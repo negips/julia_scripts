@@ -10,7 +10,7 @@ import Pkg
 #Pkg.add("Blink")
 
 using Blink
-using PyPlot
+using PyPlot,Colors,PyCall
 using LinearAlgebra
 
 
@@ -22,23 +22,41 @@ ex0   = [0. 1.  0. 0.];
 ex1   = [0. 2. -1. 0.];
 ex2   = [0. 3. -3. 1.];
 
-close()
+close("all")
+
+dt     = 0.01;
+Nstep  = 50000;
+egvupd = 200;
+ifrot  = true;    # Rotate Matrix
+
 
 # Create Matrix A
-v = [-0.01 -0.02];
+v0 = [-0.01 -0.02];
 
-n = length(v);
+n = length(v0);
 A = zeros(Float64,n,n);
 
 for i in 1:n
-  A[i,i] = v[i];
+  A[i,i] = copy(v0[i]);
 end
 
-# Parameters controlling the modal decay rates
+if (ifrot)
+  global A    
+  U = rand(Float64,n,n);
+  U = U/norm(U);
 
-dt = 0.01;
-Nstep = 50000;
-egvupd = 200;
+  v = U[:,1];
+  U[:,1] = v/norm(v);    
+  for i=2:n
+    v = U[:,i];
+    α = U[:,1:i-1]'*v;
+    v = v - U[:,1:i-1]*α;
+    v = v/norm(v);
+    U[:,i] = v;
+  end
+  
+  A  = U'*A*U;
+end  
 
 
 nmodes = 1;
@@ -49,8 +67,8 @@ R1lag  = zeros(Float64,n,2,nmodes);
 R2lag  = zeros(Float64,n,2,nmodes);
 
 v = copy(Vinit[:,1]);
-v[1] = 1.e-1;
-v[2] = 1.;
+#v[1] = 1.e-1;
+#v[2] = 1.;
 v = v/norm(v);
 Vinit[:,1] = v;
 
@@ -78,17 +96,31 @@ v2    = [1., 0.];
 h1  = figure(num=1,figsize=[18.,6.]);
 ax1 = subplot(121);
 ax2 = subplot(122);
-
-   
+ 
 
 time = range(dt,step=dt,length=Nstep);
 
-ee = eigvals(A);
+F   = eigen(A);  
+ee0 = F.values;
+ee  = sort(ee0,rev=true);
 emax1 = ee[1]*ones(Float64,Nstep);
-pl1 = ax1.plot(time,emax1,linestyle="--")
-emax1 = ee[2]*ones(Float64,Nstep);
-pl1 = ax1.plot(time,emax1,linestyle="--")
+pl11 = ax1.plot(time,emax1,linestyle="--")
+emax2 = ee[2]*ones(Float64,Nstep);
+pl12 = ax1.plot(time,emax2,linestyle="--")
 
+# Plot the eigenvectors
+egvs = F.vectors
+ax2.arrow(0.,0.,egvs[1,1],egvs[2,1],width=0.02,length_includes_head=true,color="orange");
+ax2.arrow(0.,0.,egvs[1,2],egvs[2,2],width=0.02,length_includes_head=true,color="blue");
+
+#
+#ax2.arrow(0.,0.,egvs[1,2],egvs[2,2],width=0.02,length_includes_head=true);
+
+ax2.set_xlabel(L"x_{1}")
+ax2.set_ylabel(L"x_{2}")
+ax2.set_xlim([-1.1,1.1])
+ax2.set_ylim([-1.1,1.1])
+pause(0.001)
 
 for i in 1:Nstep
   global V, Vlag,Rlag,Rhs,Evals,Ermax
@@ -110,7 +142,7 @@ for i in 1:Nstep
 #    ext = ex2;
   end
 
-  A1     = A;
+  A1     = copy(A);
 
   Ar = V'*A1*V;
   ee = eigvals(Ar);
@@ -152,13 +184,19 @@ for i in 1:Nstep
     VNORM[i,j]  = norm(V[:,j]);
 
     if (mod(i,egvupd)==0)
-      ax2.cla()
+      global pl2
+
+      if i>egvupd    
+#        ax2.cla()
+        pl2.remove();
+      end  
+
 #      ax2.plot([0., V[1,j]],[0., V[2,j]]);
       pl2 = ax2.arrow(0.,0.,V[1,j],V[2,j],width=0.02,color="black",length_includes_head=true);
-      ax2.set_xlabel(L"x_{1}")
-      ax2.set_ylabel(L"x_{2}")
-      ax2.set_xlim([-1.25,1.25])
-      ax2.set_ylim([0.,1.25])
+#      ax2.set_xlabel(L"x_{1}")
+#      ax2.set_ylabel(L"x_{2}")
+#      ax2.set_xlim([-1.25,1.25])
+#      ax2.set_ylim([0.,1.25])
       ax2.set_title("Approximated Eigenvctor")
  
       
@@ -166,12 +204,9 @@ for i in 1:Nstep
       ax1.set_xlabel(L"time")
       ax1.set_ylabel(L"\lambda")
       ax1.set_title("Approximated Eigenvalue")
-     
-      
 
       pause(0.001)
     end  
-#    h1.canvas.draw() # Update the figure
 
   end
 

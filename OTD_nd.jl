@@ -23,7 +23,7 @@ ex2   = [0. 3. -3. 1.];
 close()
 
 # Create Matrix A
-n = 500;
+n = 300;
 v = -0.2 .+ -1. *rand(Float64,n);
 
 v[1] = -0.01;
@@ -48,11 +48,11 @@ end
 # Parameters controlling the modal decay rates
 
 dt = 0.01;
-Nstep = 500000;
+Nstep = 100000;
 egvupd = 1000;
 
 
-nmodes = 5;
+nmodes = 4;
 Vinit  = rand(Float64,n,nmodes);
 V      = zeros(Float64,n,nmodes);
 Vlag   = zeros(Float64,n,3,nmodes);
@@ -176,9 +176,9 @@ for i in 1:Nstep
     if (mod(i,egvupd)==0)
       global pl
 
-#      if (j==1)
-#        ax2.cla()
-#      end
+      if (j==1 && i>egvupd)
+        ax2.cla()
+      end
 
 #      ax2.plot([0., V[1,j]], [0., V[2,j]], [0., V[3,j]]);
 ##      pl2 = ax2.arrow(0.,0.,0.,V[1,j],V[2,j],V[3,j],width=0.02,color="black",length_includes_head=true);
@@ -191,16 +191,16 @@ for i in 1:Nstep
 #      ax2.set_title("Approximated Basis")
      
       if (j==1)
-        ax1.plot(t,real(Ermax[i]),marker=".",color="gray")
+#        ax1.plot(t,real(Ermax[i]),marker=".",color="gray")
       end  
 
-      pl = ax1.plot(t,real(Evals[i,j]),marker=".")
+      pl = ax1.plot(t,real(Evals[i,j]),marker=".",color="black")
       ax1.set_xlabel(L"time")
       ax1.set_ylabel(L"\lambda")
       ax1.set_title("Approximated Eigenvalues")
 
       if j==nmodes
-        pause(0.001)
+        pause(0.0001)
       end  
     end  
 

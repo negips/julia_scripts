@@ -21,12 +21,12 @@ ex0   = [0. 1.  0. 0.];
 ex1   = [0. 2. -1. 0.];
 ex2   = [0. 3. -3. 1.];
 
-close()
+close("all")
 
 # Create Matrix A
-v0 = [-0.001 -0.030 -0.015];
+v0 = [-0.001 -0.020 -0.015];
 v3a    = 0.004;
-Omega  = 0.003;
+Omega  = 0.002;
 
 n = length(v0);
 A = zeros(Float64,n,n);
@@ -43,9 +43,8 @@ end
 # Parameters controlling the modal decay rates
 
 dt = 0.05;
-Nstep = 300000;
+Nstep = 150000;
 egvupd = 1000;
-
 
 
 nmodes = 2;
@@ -108,7 +107,6 @@ pl1 = ax1.plot(time,emax1,linestyle="--")
 pl2 = ax1.plot(time,emax2,linestyle="--")
 pl3 = ax1.plot(time,emax3,linestyle="--")
 
-
 for i in 1:Nstep
   global V, Vlag,Rlag,Rhs,Evals,Ermax
   global t, ax2, A1
@@ -145,7 +143,6 @@ for i in 1:Nstep
   end
   ee = eigvals(Ar + Ar');
   Ermax[i]   = maximum(ee);
-
 
   for j in 1:nmodes
     global V,Vlag,R1lag,R2lag,Rhs
