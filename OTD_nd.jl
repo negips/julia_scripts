@@ -2,7 +2,7 @@
 # Source code for Exercise 2 of Homework 1
 
 println("Visualizing the changing approximated eigenvectors/eigenvalues")
-println("from the OTD method in a 3x3 system with 2 OTD modes")
+println("from the OTD method in a n x n system.")
 
 import Pkg
 #Pkg.add("PyPlot")
@@ -11,7 +11,6 @@ import Pkg
 using Blink
 using PyPlot
 using LinearAlgebra
-
 
 # Temporal discretization
 bdf1  = [ 1.  -1.  0.  0.]/1.;
@@ -24,16 +23,27 @@ ex2   = [0. 3. -3. 1.];
 close()
 
 # Create Matrix A
-v0 = [-0.001 -0.015 -0.015];
-v3a    = 0.004;
-Omega  = 0.003;
+n = 500;
+v = -0.2 .+ -1. *rand(Float64,n);
 
-n = length(v);
+v[1] = -0.01;
+v[2] = -0.05;
+v[3] = -0.1;
+v[4] = -0.15;
+
+
 A = zeros(Float64,n,n);
 
 for i in 1:n
-  A[i,i] = v0[i];
+  A[i,i] = v[i];
 end
+
+# Just adding superdiagonal
+v2 = rand(Float64,n-1);
+for i in 1:n-1
+  A[i,i+1] = v2[i];
+end
+
 
 # Parameters controlling the modal decay rates
 
@@ -42,8 +52,7 @@ Nstep = 500000;
 egvupd = 1000;
 
 
-
-nmodes = 2;
+nmodes = 5;
 Vinit  = rand(Float64,n,nmodes);
 V      = zeros(Float64,n,nmodes);
 Vlag   = zeros(Float64,n,3,nmodes);
@@ -51,8 +60,6 @@ R1lag  = zeros(Float64,n,2,nmodes);
 R2lag  = zeros(Float64,n,2,nmodes);
 
 v = copy(Vinit[:,1]);
-#v[1] = 1.e-3;
-#v[2] = 1.;
 v = v/norm(v);
 Vinit[:,1] = v;
 
@@ -77,32 +84,28 @@ t     = 0.
 v1    = [0, 1.];
 v2    = [1., 0.];
 
-h1  = figure(num=1,figsize=[18.,6.]);
-ax1 = subplot(121);
-ax2 = subplot(122,projection="3d");
-
-   
+h1  = figure(num=1,figsize=[8.,6.]);
+ax1 = h1.add_axes();
+#ax1 = axes();
+#ax2 = subplot(122,projection="3d");
 
 time = range(dt,step=dt,length=Nstep);
 
 ee0 = eigvals(A);
 ee  = sort(ee0,rev=true);
 
-emax1 = zeros(Float64,Nstep);
-emax2 = zeros(Float64,Nstep);
-emax3 = zeros(Float64,Nstep);
+for i in 1:nmodes
+  emax1 = ee[i]*ones(Float64,Nstep);
+  plot(time,emax1,linestyle="--")
+end
 
-for i in 1:Nstep
-  global emax1,emax2,emax3
-  emax1[i] = v0[1];
-  emax2[i] = v0[2];
-  emax3[i] = v0[3] + v3a*sin(Omega*time[i]);
-end  
+eer = eigvals(A + A');
+ee2 = sort(eer,rev=true);
+emax1 = ee2[1]*ones(Float64,Nstep);
+#plot(time,emax1,linestyle=":")
 
-pl1 = ax1.plot(time,emax1,linestyle="--")
-pl2 = ax1.plot(time,emax2,linestyle="--")
-pl3 = ax1.plot(time,emax3,linestyle="--")
 
+ax1 = gca();
 
 for i in 1:Nstep
   global V, Vlag,Rlag,Rhs,Evals,Ermax
@@ -125,9 +128,6 @@ for i in 1:Nstep
   end
 
   A1     = A;
-  A1[1,1] = v0[1];
-  A1[2,2] = v0[2];
-  A1[3,3] = v0[3] + v3a*sin(Omega*time[i]);
 
   Ar = V'*A1*V;
   ee = eigvals(Ar);
@@ -174,36 +174,35 @@ for i in 1:Nstep
     VNORM[i,j]  = norm(V[:,j]);
 
     if (mod(i,egvupd)==0)
-      if (j==1)
-        ax2.cla()
-      end
+      global pl
 
-      ax2.plot([0., V[1,j]], [0., V[2,j]], [0., V[3,j]]);
-#      pl2 = ax2.arrow(0.,0.,0.,V[1,j],V[2,j],V[3,j],width=0.02,color="black",length_includes_head=true);
-      ax2.set_xlabel(L"x_{1}")
-      ax2.set_ylabel(L"x_{2}")
-      ax2.set_zlabel(L"x_{3}")
-     
-      ax2.set_xlim([-1.25,1.25])
-      ax2.set_ylim([-1.25,1.25])
-      ax2.set_zlim([-1.25,1.25])
-     
-      ax2.set_title("Approximated Basis")
+#      if (j==1)
+#        ax2.cla()
+#      end
+
+#      ax2.plot([0., V[1,j]], [0., V[2,j]], [0., V[3,j]]);
+##      pl2 = ax2.arrow(0.,0.,0.,V[1,j],V[2,j],V[3,j],width=0.02,color="black",length_includes_head=true);
+#      ax2.set_xlabel(L"x_{1}")
+#      ax2.set_ylabel(L"x_{2}")
+#      ax2.set_xlim([-1.25,1.25])
+#      ax2.set_ylim([-1.25,1.25])
+#      ax2.set_zlim([-1.25,1.25])
+#     
+#      ax2.set_title("Approximated Basis")
      
       if (j==1)
         ax1.plot(t,real(Ermax[i]),marker=".",color="gray")
       end  
 
-      ax1.plot(t,real(Evals[i,j]),marker=".",color="black")
+      pl = ax1.plot(t,real(Evals[i,j]),marker=".")
       ax1.set_xlabel(L"time")
       ax1.set_ylabel(L"\lambda")
       ax1.set_title("Approximated Eigenvalues")
 
-      if j==2
-        pause(0.0001)
+      if j==nmodes
+        pause(0.001)
       end  
     end  
-#    h1.canvas.draw() # Update the figure
 
   end
 
