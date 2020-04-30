@@ -1,8 +1,8 @@
 #!/usr/bin/julia
 # Source code for Exercise 2 of Homework 1
 
-println("Visualizing the changing approximated eigenvectors/eigenvalues")
-println("from the OTD method in a 3x3 system with 2 OTD modes")
+
+println("OTD comparison with Power method")
 
 import Pkg
 #Pkg.add("PyPlot")
@@ -24,40 +24,40 @@ ex2   = [0. 3. -3. 1.];
 close()
 
 # Create Matrix A
-v0 = [-0.001 -0.030 -0.015];
-v3a    = 0.004;
-Omega  = 0.003;
+v0 = [-0.01 -0.02];
 
-n = length(v0);
+n = length(v);
 A = zeros(Float64,n,n);
 
 for i in 1:n
   A[i,i] = v0[i];
-  for j in i+1:n
-    tmp = rand(Float64)
-    A[i,j] = tmp;
-  end  
 end
-
 
 # Parameters controlling the modal decay rates
 
-dt = 0.05;
-Nstep = 300000;
+dt = 0.01;
+Nstep = 50000;
 egvupd = 1000;
 
 
-
-nmodes = 2;
+nmodes = 1;
 Vinit  = rand(Float64,n,nmodes);
 V      = zeros(Float64,n,nmodes);
+Rhs    = zeros(Float64,n,nmodes);
 Vlag   = zeros(Float64,n,3,nmodes);
 R1lag  = zeros(Float64,n,2,nmodes);
 R2lag  = zeros(Float64,n,2,nmodes);
 
+# Power method variables
+Vp     = zeros(Float64,n);
+Vplag  = zeros(Float64,n,3);
+Rplag  = zeros(Float64,n,2);
+Rhsp   = zeros(Float64,n);
+
+
 v = copy(Vinit[:,1]);
-#v[1] = 1.e-3;
-#v[2] = 1.;
+v[1] = 1.e-0;
+v[2] = 1.;
 v = v/norm(v);
 Vinit[:,1] = v;
 
@@ -71,48 +71,36 @@ for i=2:nmodes
 end
 
 V   = copy(Vinit);
-Rhs = 0*copy(V);
+Vp  = copy(V[:,1]);
 
 VNORM = zeros(Float64,Nstep,nmodes);
 Evals = zeros(Complex,Nstep,nmodes);
 Ermax = zeros(Complex,Nstep);
 
-t     = 0.
+Epvals = zeros(Complex,Nstep);
 
-v1    = [0, 1.];
-v2    = [1., 0.];
+
+t     = 0.
 
 h1  = figure(num=1,figsize=[18.,6.]);
 ax1 = subplot(121);
-ax2 = subplot(122,projection="3d");
-
+ax2 = subplot(122);
    
 
 time = range(dt,step=dt,length=Nstep);
 
-ee0 = eigvals(A);
-ee  = sort(ee0,rev=true);
-
-emax1 = zeros(Float64,Nstep);
-emax2 = zeros(Float64,Nstep);
-emax3 = zeros(Float64,Nstep);
-
-for i in 1:Nstep
-  global emax1,emax2,emax3
-  emax1[i] = v0[1];
-  emax2[i] = v0[2];
-  emax3[i] = v0[3] + v3a*sin(Omega*time[i]);
-end  
-
+ee = eigvals(A);
+emax1 = ee[1]*ones(Float64,Nstep);
 pl1 = ax1.plot(time,emax1,linestyle="--")
-pl2 = ax1.plot(time,emax2,linestyle="--")
-pl3 = ax1.plot(time,emax3,linestyle="--")
+emax1 = ee[2]*ones(Float64,Nstep);
+pl1 = ax1.plot(time,emax1,linestyle="--")
 
 
 for i in 1:Nstep
   global V, Vlag,Rlag,Rhs,Evals,Ermax
-  global t, ax2, A1
-     
+  global t, ax2
+  global Vp, Vplag,Rplag,Rhsp,Epvals
+    
   t = t + dt;
 
   bdf = bdf3;
@@ -129,10 +117,7 @@ for i in 1:Nstep
 #    ext = ex2;
   end
 
-  A1     = copy(A);
-  A1[1,1] = v0[1];
-  A1[2,2] = v0[2];
-  A1[3,3] = v0[3] + v3a*sin(Omega*time[i]);
+  A1     = A;
 
   Ar = V'*A1*V;
   ee = eigvals(Ar);
@@ -140,13 +125,15 @@ for i in 1:Nstep
 
 #  Ar = Ar + Ar';
   ee = eigvals(Ar);
-  for j=1:nmodes
-    Evals[i,j] = ee[j];
-  end
-  ee = eigvals(Ar + Ar');
-  Ermax[i]   = maximum(ee);
+  Ermax[i] = maximum(ee);
+
+# Clear the previous figure  
+  if (mod(i,egvupd)==0)
+    ax2.cla()
+  end  
 
 
+# OTD Calculation 
   for j in 1:nmodes
     global V,Vlag,R1lag,R2lag,Rhs
 
@@ -161,8 +148,7 @@ for i in 1:Nstep
     Ax      = A1*V[:,j]; 
     alpha   = V'*Ax; 
     w       = V*alpha;
-    rhs2    = 1*(ext[2]*w + ext[3]*R2lag[:,1,j] + ext[4]*R2lag[:,2,j]);
-
+    rhs2    = (ext[2]*w + ext[3]*R2lag[:,1,j] + ext[4]*R2lag[:,2,j]);
 
     R2lag[:,2,j] = R2lag[:,1,j];
     R2lag[:,1,j] = w;
@@ -176,41 +162,60 @@ for i in 1:Nstep
 
     V[:,j]      = copy(Rhs[:,j])*dt/bdf[1];
 
+    vdiff       = V[:,j] .- Vlag[:,j];
+
     VNORM[i,j]  = norm(V[:,j]);
 
     if (mod(i,egvupd)==0)
-      if (j==1)
-        ax2.cla()
-      end
+#      ax2.cla()
+#      ax2.plot([0., V[1,j]],[0., V[2,j]]);
+      pl2 = ax2.arrow(0.,0.,V[1,j],V[2,j],width=0.01,color="black",length_includes_head=true);
 
-      ax2.plot([0., V[1,j]], [0., V[2,j]], [0., V[3,j]]);
-#      pl2 = ax2.arrow(0.,0.,0.,V[1,j],V[2,j],V[3,j],width=0.02,color="black",length_includes_head=true);
+      scale = 1.
+      pl22 = ax2.arrow(Vlag[1,j],V[2,j],scale*vdiff[1],scale*vdiff[2],width=0.005,color="blue",length_includes_head=true);     
       ax2.set_xlabel(L"x_{1}")
       ax2.set_ylabel(L"x_{2}")
-      ax2.set_zlabel(L"x_{3}")
-     
-      ax2.set_xlim([-1.25,1.25])
-      ax2.set_ylim([-1.25,1.25])
-      ax2.set_zlim([-1.25,1.25])
-     
-      ax2.set_title("Approximated Basis")
-     
-      if (j==1)
-#        ax1.plot(t,real(Ermax[i]),marker=".",color="gray")
-      end  
-
-      ax1.plot(t,real(Evals[i,j]),marker=".",color="black")
+      ax2.set_xlim([0,1.25])
+      ax2.set_ylim([0.,1.25])
+      ax2.set_title("Approximated Eigenvctor")
+ 
+      
+      ax1.plot(t,real(Ermax[i]),marker=".",color="black")
       ax1.set_xlabel(L"time")
       ax1.set_ylabel(L"\lambda")
-      ax1.set_title("Approximated Eigenvalues")
+      ax1.set_title("Approximated Eigenvalue")
 
-      if j==2
-        pause(0.00001)
-      end  
     end  
-#    h1.canvas.draw() # Update the figure
 
   end
+
+#   Power Method Calculation
+#   Extrapolate A*x
+    rhs     = A1*Vp;
+    rhs1    = ext[2]*rhs + ext[3]*Rplag[:,1] + ext[4]*Rplag[:,2];
+
+    Rplag[:,2] = Rplag[:,1];
+    Rplag[:,1] = rhs;
+
+    bdlag    = 1. /dt*(bdf[2]*Vp + bdf[3]*Vplag[:,1] + bdf[4]*Vplag[:,2]); 
+    Rhsp     = rhs1 - bdlag;
+
+    Vplag[:,3] = Vplag[:,2];
+    Vplag[:,2] = Vplag[:,1];
+    Vplag[:,1] = Vp;
+
+    Vp         = copy(Rhsp)*dt/bdf[1];
+    Rayleigh   = Vp'*A*Vp/(Vp'*Vp);
+
+    Epvals[i]  = Rayleigh;
+
+    if (mod(i,egvupd)==0)
+      pl3 = ax2.arrow(0.,0.,Vp[1],Vp[2],width=0.01,color="red",length_includes_head=true);
+      ax1.plot(t,real(Rayleigh),marker=".",color="red")
+
+      pause(0.001)
+
+    end  
 
 # Orthogonalize field
 # Do we also need to rescale?
@@ -227,7 +232,20 @@ for i in 1:Nstep
   end
 
 
+# Normalize Vp  
+  Vp = Vp/norm(Vp);
+
 end
+
+h2 = figure(num=2);
+err1 = abs.(v0[1] .- Evals);
+semilogy(time,err1);
+err2 = abs.(v0[1] .- Epvals);
+semilogy(time,err2);
+ax3 = gca();
+ax3.set_xlabel(L"time")
+ax3.set_ylabel(L"||\epsilon||")
+
 
 
 println("Done.")

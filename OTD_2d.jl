@@ -49,8 +49,8 @@ R1lag  = zeros(Float64,n,2,nmodes);
 R2lag  = zeros(Float64,n,2,nmodes);
 
 v = copy(Vinit[:,1]);
-#v[1] = 1.e-3;
-#v[2] = 1.;
+v[1] = 1.e-1;
+v[2] = 1.;
 v = v/norm(v);
 Vinit[:,1] = v;
 
