@@ -1,7 +1,7 @@
 #!/usr/bin/julia
 # Source code for Exercise 2 of Homework 1
 
-println("OTD test in a Jordan form matrix")
+println("Modified OTD test in a Jordan form matrix")
 
 import Pkg
 #Pkg.add("PyPlot")
