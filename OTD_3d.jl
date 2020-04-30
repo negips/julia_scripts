@@ -1,9 +1,8 @@
 #!/usr/bin/julia
 # Source code for Exercise 2 of Homework 1
 
-
-println("Visualizing the changing approximated eigenvector/eigenvalue")
-println("from the OTD method in a 2x2 system, for a single OTD mode")
+println("Visualizing the changing approximated eigenvectors/eigenvalues")
+println("from the OTD method in a 3x3 system with 2 OTD modes")
 
 import Pkg
 #Pkg.add("PyPlot")
@@ -25,7 +24,7 @@ ex2   = [0. 3. -3. 1.];
 close()
 
 # Create Matrix A
-v = [-0.01 -0.02];
+v = [-0.001 -0.015 -0.020];
 
 n = length(v);
 A = zeros(Float64,n,n);
@@ -37,11 +36,11 @@ end
 # Parameters controlling the modal decay rates
 
 dt = 0.01;
-Nstep = 50000;
-egvupd = 200;
+Nstep = 100000;
+egvupd = 500;
 
 
-nmodes = 1;
+nmodes = 2;
 Vinit  = rand(Float64,n,nmodes);
 V      = zeros(Float64,n,nmodes);
 Vlag   = zeros(Float64,n,3,nmodes);
@@ -77,7 +76,7 @@ v2    = [1., 0.];
 
 h1  = figure(num=1,figsize=[18.,6.]);
 ax1 = subplot(121);
-ax2 = subplot(122);
+ax2 = subplot(122,projection="3d");
 
    
 
@@ -86,8 +85,10 @@ time = range(dt,step=dt,length=Nstep);
 ee = eigvals(A);
 emax1 = ee[1]*ones(Float64,Nstep);
 pl1 = ax1.plot(time,emax1,linestyle="--")
-emax1 = ee[2]*ones(Float64,Nstep);
-pl1 = ax1.plot(time,emax1,linestyle="--")
+emax2 = ee[2]*ones(Float64,Nstep);
+pl2 = ax1.plot(time,emax2,linestyle="--")
+emax3 = ee[3]*ones(Float64,Nstep);
+pl3 = ax1.plot(time,emax3,linestyle="--")
 
 
 for i in 1:Nstep
@@ -118,7 +119,12 @@ for i in 1:Nstep
 
 #  Ar = Ar + Ar';
   ee = eigvals(Ar);
-  Ermax[i] = maximum(ee);
+  for j=1:nmodes
+    Evals[i,j] = ee[j];
+  end
+  ee = eigvals(Ar + Ar');
+  Ermax[i]   = maximum(ee);
+
 
   for j in 1:nmodes
     global V,Vlag,R1lag,R2lag,Rhs
@@ -152,24 +158,32 @@ for i in 1:Nstep
     VNORM[i,j]  = norm(V[:,j]);
 
     if (mod(i,egvupd)==0)
-      ax2.cla()
-#      ax2.plot([0., V[1,j]],[0., V[2,j]]);
-      pl2 = ax2.arrow(0.,0.,V[1,j],V[2,j],width=0.02,color="black",length_includes_head=true);
+      if (j==1)
+        ax2.cla()
+      end
+
+      ax2.plot([0., V[1,j]], [0., V[2,j]], [0., V[3,j]]);
+#      pl2 = ax2.arrow(0.,0.,0.,V[1,j],V[2,j],V[3,j],width=0.02,color="black",length_includes_head=true);
       ax2.set_xlabel(L"x_{1}")
       ax2.set_ylabel(L"x_{2}")
       ax2.set_xlim([-1.25,1.25])
-      ax2.set_ylim([0.,1.25])
-      ax2.set_title("Approximated Eigenvctor")
- 
-      
-      ax1.plot(t,real(Ermax[i]),marker=".",color="black")
+      ax2.set_ylim([-1.25,1.25])
+      ax2.set_zlim([-1.25,1.25])
+     
+      ax2.set_title("Approximated Basis")
+     
+      if (j==1)
+        ax1.plot(t,real(Ermax[i]),marker=".",color="gray")
+      end  
+
+      ax1.plot(t,real(Evals[i,j]),marker=".",color="black")
       ax1.set_xlabel(L"time")
       ax1.set_ylabel(L"\lambda")
-      ax1.set_title("Approximated Eigenvalue")
-     
-      
+      ax1.set_title("Approximated Eigenvalues")
 
-      pause(0.001)
+      if j==2
+        pause(0.001)
+      end  
     end  
 #    h1.canvas.draw() # Update the figure
 
