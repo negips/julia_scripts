@@ -84,7 +84,6 @@ end
 V   = copy(Vinit);
 Rhs = 0*copy(V);
 
-VNORM = zeros(Float64,Nstep,nmodes);
 Evals = zeros(Complex,Nstep,nmodes);
 Ermax = zeros(Complex,Nstep);
 
@@ -109,9 +108,13 @@ emax2 = ee[2]*ones(Float64,Nstep);
 pl12 = ax1.plot(time,emax2,linestyle="--")
 
 # Plot the eigenvectors
-egvs = F.vectors
-ax2.arrow(0.,0.,egvs[1,1],egvs[2,1],width=0.02,length_includes_head=true,color="orange");
-ax2.arrow(0.,0.,egvs[1,2],egvs[2,2],width=0.02,length_includes_head=true,color="blue");
+egvs  = F.vectors
+cm    = get_cmap("tab10");
+rgba0 = cm(0); 
+rgba1 = cm(1); 
+
+ax2.arrow(0.,0.,egvs[1,1],egvs[2,1],width=0.02,length_includes_head=true,color=rgba1);
+ax2.arrow(0.,0.,egvs[1,2],egvs[2,2],width=0.02,length_includes_head=true,color=rgba0);
 
 #
 #ax2.arrow(0.,0.,egvs[1,2],egvs[2,2],width=0.02,length_includes_head=true);
@@ -181,18 +184,24 @@ for i in 1:Nstep
 
     V[:,j]      = copy(Rhs[:,j])*dt/bdf[1];
 
-    VNORM[i,j]  = norm(V[:,j]);
+    vdiff       = V[:,j] - Vlag[:,1,j];  
 
     if (mod(i,egvupd)==0)
-      global pl2
+      global vdiff    
+      global pl2,pl3,pl4
 
       if i>egvupd    
-#        ax2.cla()
         pl2.remove();
+#        pl3.remove();
+        pl4[1].remove();        
       end  
 
 #      ax2.plot([0., V[1,j]],[0., V[2,j]]);
-      pl2 = ax2.arrow(0.,0.,V[1,j],V[2,j],width=0.02,color="black",length_includes_head=true);
+      pl2 = ax2.arrow(0.,0.,V[1,j],V[2,j],width=0.01,color="black",length_includes_head=true);
+
+#      scale = 1000.;
+#      pl3 = ax2.arrow(Vlag[1,j],V[2,j],scale*vdiff[1],scale*vdiff[2],width=0.01,color="red",length_includes_head=true);     
+
 #      ax2.set_xlabel(L"x_{1}")
 #      ax2.set_ylabel(L"x_{2}")
 #      ax2.set_xlim([-1.25,1.25])
@@ -200,7 +209,7 @@ for i in 1:Nstep
       ax2.set_title("Approximated Eigenvctor")
  
       
-      ax1.plot(t,real(Ermax[i]),marker=".",color="black")
+      pl4 = ax1.plot(time[1:i],real(Evals[1:i,j]),color="black");
       ax1.set_xlabel(L"time")
       ax1.set_ylabel(L"\lambda")
       ax1.set_title("Approximated Eigenvalue")
