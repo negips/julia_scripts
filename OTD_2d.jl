@@ -13,6 +13,8 @@ using Blink
 using PyPlot,Colors,PyCall
 using LinearAlgebra
 
+lafs = 16;
+
 
 # Temporal discretization
 bdf1  = [ 1.  -1.  0.  0.]/1.;
@@ -25,7 +27,7 @@ ex2   = [0. 3. -3. 1.];
 close("all")
 
 dt     = 0.01;
-Nstep  = 50000;
+Nstep  = 100000;
 egvupd = 200;
 ifrot  = true;    # Rotate Matrix
 
@@ -119,8 +121,8 @@ ax2.arrow(0.,0.,egvs[1,2],egvs[2,2],width=0.02,length_includes_head=true,color=r
 #
 #ax2.arrow(0.,0.,egvs[1,2],egvs[2,2],width=0.02,length_includes_head=true);
 
-ax2.set_xlabel(L"x_{1}")
-ax2.set_ylabel(L"x_{2}")
+ax2.set_xlabel(L"x_{1}",fontsize=lafs)
+ax2.set_ylabel(L"x_{2}",fontsize=lafs)
 ax2.set_xlim([-1.1,1.1])
 ax2.set_ylim([-1.1,1.1])
 pause(0.001)
@@ -192,15 +194,15 @@ for i in 1:Nstep
 
       if i>egvupd    
         pl2.remove();
-#        pl3.remove();
+        pl3.remove();
         pl4[1].remove();        
       end  
 
 #      ax2.plot([0., V[1,j]],[0., V[2,j]]);
       pl2 = ax2.arrow(0.,0.,V[1,j],V[2,j],width=0.01,color="black",length_includes_head=true);
 
-#      scale = 1000.;
-#      pl3 = ax2.arrow(Vlag[1,j],V[2,j],scale*vdiff[1],scale*vdiff[2],width=0.01,color="red",length_includes_head=true);     
+      scale = 5000.;
+      pl3 = ax2.arrow(Vlag[1,j],V[2,j],scale*vdiff[1],scale*vdiff[2],width=0.01,color="red",length_includes_head=true);     
 
 #      ax2.set_xlabel(L"x_{1}")
 #      ax2.set_ylabel(L"x_{2}")
@@ -210,8 +212,8 @@ for i in 1:Nstep
  
       
       pl4 = ax1.plot(time[1:i],real(Evals[1:i,j]),color="black");
-      ax1.set_xlabel(L"time")
-      ax1.set_ylabel(L"\lambda")
+      ax1.set_xlabel(L"time",fontsize=lafs)
+      ax1.set_ylabel(L"\lambda",fontsize=lafs)
       ax1.set_title("Approximated Eigenvalue")
 
       pause(0.001)
