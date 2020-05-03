@@ -12,6 +12,7 @@ import Pkg
 using Blink
 using PyPlot,Colors,PyCall
 using LinearAlgebra
+using Random
 
 lafs = 16;
 
@@ -27,13 +28,16 @@ ex2   = [0. 3. -3. 1.];
 close("all")
 
 dt     = 0.01;
-Nstep  = 100000;
-egvupd = 200;
+Nstep  = 30000;
+egvupd = 400;
 ifrot  = true;    # Rotate Matrix
+
+nonnormal   = true;
+ifoptimal   = false;
 
 
 # Create Matrix A
-v0 = [-0.01 -0.02];
+v0 = [-0.007 -0.02];
 
 n = length(v0);
 A = zeros(Float64,n,n);
@@ -42,7 +46,13 @@ for i in 1:n
   A[i,i] = copy(v0[i]);
 end
 
+if nonnormal
+  A[1,2] = 0.05;
+end  
+
 if (ifrot)
+      
+  Random.seed!(1)
   global A    
   U = rand(Float64,n,n);
   U = U/norm(U);
@@ -60,6 +70,50 @@ if (ifrot)
   A  = U'*A*U;
 end  
 
+# Plot the eigenvalues/vectors
+h1  = figure(num=1,figsize=[18.,6.]);
+ax1 = subplot(121);
+ax2 = subplot(122);
+ 
+
+time = range(dt,step=dt,length=Nstep);
+
+F   = eigen(A);  
+ee0 = F.values;
+ee  = sort(ee0,rev=true);
+
+Fe   = eigen(A+A');
+ii   = sortperm(Fe.values,rev=true);
+i1   = ii[1];
+
+emax1 = ee[1]*ones(Float64,Nstep);
+pl11  = ax1.plot(time,emax1,linestyle="--")
+emax2 = ee[2]*ones(Float64,Nstep);
+pl12  = ax1.plot(time,emax2,linestyle="--")
+emax3 = Fe.values[i1]*ones(Float64,Nstep);
+pl13  = ax1.plot(time,emax3,linestyle=":",color="gray")
+
+# Plot the eigenvectors
+egvs  = F.vectors
+cm    = get_cmap("tab10");
+rgba0 = cm(0); 
+rgba1 = cm(1); 
+rgba2 = cm(2); 
+
+ax2.arrow(0.,0.,egvs[1,1],egvs[2,1],width=0.02,length_includes_head=true,color=rgba1);
+ax2.arrow(0.,0.,egvs[1,2],egvs[2,2],width=0.02,length_includes_head=true,color=rgba0);
+
+if nonnormal
+  global ax2    
+  ax2.arrow(0.,0.,Fe.vectors[1,i1],Fe.vectors[2,i1],width=0.02,length_includes_head=true,color="gray",ls=":");
+end
+
+
+if (ifoptimal)
+  Random.seed!(11);
+else
+  Random.seed!(17);           # 22, 30, 31, 37 
+end  
 
 nmodes = 1;
 Vinit  = rand(Float64,n,nmodes);
@@ -69,8 +123,7 @@ R1lag  = zeros(Float64,n,2,nmodes);
 R2lag  = zeros(Float64,n,2,nmodes);
 
 v = copy(Vinit[:,1]);
-#v[1] = 1.e-1;
-#v[2] = 1.;
+v = -F.vectors[:,1] + 0.8*F.vectors[:,2]; 
 v = v/norm(v);
 Vinit[:,1] = v;
 
@@ -90,33 +143,6 @@ Evals = zeros(Complex,Nstep,nmodes);
 Ermax = zeros(Complex,Nstep);
 
 t     = 0.
-
-v1    = [0, 1.];
-v2    = [1., 0.];
-
-h1  = figure(num=1,figsize=[18.,6.]);
-ax1 = subplot(121);
-ax2 = subplot(122);
- 
-
-time = range(dt,step=dt,length=Nstep);
-
-F   = eigen(A);  
-ee0 = F.values;
-ee  = sort(ee0,rev=true);
-emax1 = ee[1]*ones(Float64,Nstep);
-pl11 = ax1.plot(time,emax1,linestyle="--")
-emax2 = ee[2]*ones(Float64,Nstep);
-pl12 = ax1.plot(time,emax2,linestyle="--")
-
-# Plot the eigenvectors
-egvs  = F.vectors
-cm    = get_cmap("tab10");
-rgba0 = cm(0); 
-rgba1 = cm(1); 
-
-ax2.arrow(0.,0.,egvs[1,1],egvs[2,1],width=0.02,length_includes_head=true,color=rgba1);
-ax2.arrow(0.,0.,egvs[1,2],egvs[2,2],width=0.02,length_includes_head=true,color=rgba0);
 
 #
 #ax2.arrow(0.,0.,egvs[1,2],egvs[2,2],width=0.02,length_includes_head=true);
@@ -147,14 +173,20 @@ for i in 1:Nstep
 #    ext = ex2;
   end
 
-  A1     = copy(A);
+#  A1     = copy(A);
+
+  if (ifoptimal)
+    A1 = (A + A');
+  else
+    A1 = copy(A);
+  end  
 
   Ar = V'*A1*V;
   ee = eigvals(Ar);
   Evals[i,:] = ee;
 
 #  Ar = Ar + Ar';
-  ee = eigvals(Ar);
+  ee = eigvals(Ar + Ar');
   Ermax[i] = maximum(ee);
 
   for j in 1:nmodes
@@ -190,12 +222,13 @@ for i in 1:Nstep
 
     if (mod(i,egvupd)==0)
       global vdiff    
-      global pl2,pl3,pl4
+      global pl2,pl3,pl4,pl5
 
       if i>egvupd    
         pl2.remove();
         pl3.remove();
-        pl4[1].remove();        
+        pl4[1].remove();
+#        pl5[1].remove();
       end  
 
 #      ax2.plot([0., V[1,j]],[0., V[2,j]]);
@@ -212,6 +245,7 @@ for i in 1:Nstep
  
       
       pl4 = ax1.plot(time[1:i],real(Evals[1:i,j]),color="black");
+#      pl5 = ax1.plot(time[1:i],real(Ermax[1:i,j]),color="gray",linestyle=":");
       ax1.set_xlabel(L"time",fontsize=lafs)
       ax1.set_ylabel(L"\lambda",fontsize=lafs)
       ax1.set_title("Approximated Eigenvalue")
