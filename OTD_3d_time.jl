@@ -10,11 +10,7 @@ import Pkg
 
 using Blink
 using PyPlot
-using LinearAlgebra,Random
-
-
-nonnormal = true;
-ifoptimal = false;
+using LinearAlgebra
 
 
 # Temporal discretization
@@ -28,29 +24,28 @@ ex2   = [0. 3. -3. 1.];
 close("all")
 
 # Create Matrix A
-v0 = [-0.005 -0.020 -0.015];
+v0 = [-0.001 -0.020 -0.015];
+v3a    = 0.004;
+Omega  = 0.002;
 
 n = length(v0);
 A = zeros(Float64,n,n);
 
 for i in 1:n
   A[i,i] = v0[i];
+  for j in i+1:n
+    tmp = rand(Float64)
+    A[i,j] = tmp;
+  end  
 end
-
-if nonnormal
-  global A    
-  A[2,3] = 0.05;
-end  
 
 
 # Parameters controlling the modal decay rates
 
 dt = 0.05;
-Nstep = 20000;
-egvupd = 200;
+Nstep = 150000;
+egvupd = 1000;
 
-
-Random.seed!(10);       # 10
 
 nmodes = 2;
 Vinit  = rand(Float64,n,nmodes);
@@ -89,49 +84,28 @@ v2    = [1., 0.];
 h1  = figure(num=1,figsize=[18.,6.]);
 ax1 = subplot(121);
 ax2 = subplot(122,projection="3d");
-ax2.set_xlabel(L"x_{1}")
-ax2.set_ylabel(L"x_{2}")
-ax2.set_zlabel(L"x_{3}")
 
-ax2.set_xlim([-1.25,1.25])
-ax2.set_ylim([-1.25,1.25])
-ax2.set_zlim([-1.25,1.25])
-
-ax2.set_title("Approximated Basis")
-
-cm    = get_cmap("tab10");
-rgba0 = cm(0); 
-rgba1 = cm(1); 
-rgba2 = cm(2); 
-rgba3 = cm(3); 
-
+   
 
 time = range(dt,step=dt,length=Nstep);
 
-F0  = eigen(A);
-ee  = sort(F0.values,rev=true);
+ee0 = eigvals(A);
+ee  = sort(ee0,rev=true);
 
-emax1 = ee[1].*ones(Float64,Nstep);
-emax2 = ee[2].*ones(Float64,Nstep);
-emax3 = ee[3].*ones(Float64,Nstep);
+emax1 = zeros(Float64,Nstep);
+emax2 = zeros(Float64,Nstep);
+emax3 = zeros(Float64,Nstep);
 
-Fe    = eigen(A + A');
-ee2   = sort(Fe.values,rev=true);
-emax4 = ee2[1].*ones(Float64,Nstep);
-emax5 = ee2[2].*ones(Float64,Nstep);
+for i in 1:Nstep
+  global emax1,emax2,emax3
+  emax1[i] = v0[1];
+  emax2[i] = v0[2];
+  emax3[i] = v0[3] + v3a*sin(Omega*time[i]);
+end  
 
-
-ple1 = ax1.plot(time,emax1,linestyle="--",color=rgba0)
-ple2 = ax1.plot(time,emax2,linestyle="--",color=rgba1)
-ple3 = ax1.plot(time,emax3,linestyle="--",color=rgba2)
-ple4 = ax1.plot(time,emax4,linestyle=":",color="gray")
-ple5 = ax1.plot(time,emax5,linestyle=":",color="gray")
-
-ax1.set_xlabel(L"time")
-ax1.set_ylabel(L"\lambda")
-ax1.set_title("Approximated Eigenvalues")
-
-
+pl1 = ax1.plot(time,emax1,linestyle="--")
+pl2 = ax1.plot(time,emax2,linestyle="--")
+pl3 = ax1.plot(time,emax3,linestyle="--")
 
 for i in 1:Nstep
   global V, Vlag,Rlag,Rhs,Evals,Ermax
@@ -153,14 +127,10 @@ for i in 1:Nstep
 #    ext = ex2;
   end
 
-  if (ifoptimal)
-    A1   = A + A';
-  else  
-    A1     = copy(A);
-  end  
-#  A1[1,1] = v0[1];
-#  A1[2,2] = v0[2];
-#  A1[3,3] = v0[3] + v3a*sin(Omega*time[i]);
+  A1     = copy(A);
+  A1[1,1] = v0[1];
+  A1[2,2] = v0[2];
+  A1[3,3] = v0[3] + v3a*sin(Omega*time[i]);
 
   Ar = V'*A1*V;
   ee = eigvals(Ar);
@@ -176,7 +146,6 @@ for i in 1:Nstep
 
   for j in 1:nmodes
     global V,Vlag,R1lag,R2lag,Rhs
-    global pl5,pl6,pl7,pl8
 
 #   Extrapolate A*x
     rhs     = A1*V[:,j];
@@ -208,47 +177,35 @@ for i in 1:Nstep
 
     if (mod(i,egvupd)==0)
       if (j==1)
-#        ax2.cla()
+        ax2.cla()
       end
 
-      if i>egvupd
-        if j==1
-          pl5[1].remove()
-          pl6[1].remove()
-        else
-          pl7[1].remove()
-          pl8[1].remove()
-        end  
-      end
-
-
+      ax2.plot([0., V[1,j]], [0., V[2,j]], [0., V[3,j]]);
 #      pl2 = ax2.arrow(0.,0.,0.,V[1,j],V[2,j],V[3,j],width=0.02,color="black",length_includes_head=true);
-#      ax2.set_xlabel(L"x_{1}")
-#      ax2.set_ylabel(L"x_{2}")
-#      ax2.set_zlabel(L"x_{3}")
-#     
-#      ax2.set_xlim([-1.25,1.25])
-#      ax2.set_ylim([-1.25,1.25])
-#      ax2.set_zlim([-1.25,1.25])
-#     
-#      ax2.set_title("Approximated Basis")
+      ax2.set_xlabel(L"x_{1}")
+      ax2.set_ylabel(L"x_{2}")
+      ax2.set_zlabel(L"x_{3}")
+     
+      ax2.set_xlim([-1.25,1.25])
+      ax2.set_ylim([-1.25,1.25])
+      ax2.set_zlim([-1.25,1.25])
+     
+      ax2.set_title("Approximated Basis")
      
       if (j==1)
 #        ax1.plot(t,real(Ermax[i]),marker=".",color="gray")
       end  
 
-      if j==1
-        pl5 = ax2.plot([0., V[1,j]], [0., V[2,j]], [0., V[3,j]],color=rgba0);
-        pl6 = ax1.plot(time[1:i],real(Evals[1:i,j]),color="black");
-      else
-        pl7 = ax2.plot([0., V[1,j]], [0., V[2,j]], [0., V[3,j]],color=rgba1);
-        pl8 = ax1.plot(time[1:i],real(Evals[1:i,j]),color="black");
-      end  
+      ax1.plot(t,real(Evals[i,j]),marker=".",color="black")
+      ax1.set_xlabel(L"time")
+      ax1.set_ylabel(L"\lambda")
+      ax1.set_title("Approximated Eigenvalues")
 
-      if j==nmodes
+      if j==2
         pause(0.00001)
       end  
-    end 
+    end  
+#    h1.canvas.draw() # Update the figure
 
   end
 
