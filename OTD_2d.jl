@@ -28,16 +28,16 @@ ex2   = [0. 3. -3. 1.];
 close("all")
 
 dt     = 0.01;
-Nstep  = 30000;
+Nstep  = 100000;
 egvupd = 400;
-ifrot  = true;    # Rotate Matrix
+ifrot  = false;    # Rotate Matrix
 
 nonnormal   = true;
 ifoptimal   = false;
 
 
 # Create Matrix A
-v0 = [-0.007 -0.02];
+v0 = [-0.02 -0.007];
 
 n = length(v0);
 A = zeros(Float64,n,n);
@@ -82,9 +82,10 @@ F   = eigen(A);
 ee0 = F.values;
 ee  = sort(ee0,rev=true);
 
-Fe   = eigen(A+A');
+Fe   = eigen(0.5*(A+A'));
 ii   = sortperm(Fe.values,rev=true);
 i1   = ii[1];
+i2   = ii[2];
 
 emax1 = ee[1]*ones(Float64,Nstep);
 pl11  = ax1.plot(time,emax1,linestyle="--")
@@ -92,6 +93,8 @@ emax2 = ee[2]*ones(Float64,Nstep);
 pl12  = ax1.plot(time,emax2,linestyle="--")
 emax3 = Fe.values[i1]*ones(Float64,Nstep);
 pl13  = ax1.plot(time,emax3,linestyle=":",color="gray")
+emax4 = Fe.values[i2]*ones(Float64,Nstep);
+pl14  = ax1.plot(time,emax4,linestyle=":",color="green")
 
 # Plot the eigenvectors
 egvs  = F.vectors
@@ -106,6 +109,7 @@ ax2.arrow(0.,0.,egvs[1,2],egvs[2,2],width=0.02,length_includes_head=true,color=r
 if nonnormal
   global ax2    
   ax2.arrow(0.,0.,Fe.vectors[1,i1],Fe.vectors[2,i1],width=0.02,length_includes_head=true,color="gray",ls=":");
+  ax2.arrow(0.,0.,Fe.vectors[1,i2],Fe.vectors[2,i2],width=0.02,length_includes_head=true,color="green",ls=":");
 end
 
 
@@ -123,7 +127,7 @@ R1lag  = zeros(Float64,n,2,nmodes);
 R2lag  = zeros(Float64,n,2,nmodes);
 
 v = copy(Vinit[:,1]);
-v = -F.vectors[:,1] + 0.8*F.vectors[:,2]; 
+v = F.vectors[:,1] - 0.1*F.vectors[:,2]; 
 v = v/norm(v);
 Vinit[:,1] = v;
 

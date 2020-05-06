@@ -28,11 +28,11 @@ close("all")
 
 dt     = 0.01;
 Nstep  = 50000;
-egvupd = 400;
+egvupd = 200;
 
 nonnormal   = true;
 ifoptimal   = false;
-iftime      = true;
+iftime      = false;
 iftcorr     = false;
 ifrot       = false;    # Rotate Matrix
 
@@ -41,6 +41,8 @@ v0    = [-0.02 -0.007];
 α0    = 0.05;
 α1    = 0.03;
 omega = 0.05;
+
+FAC   = 0.5;
 
 n = length(v0);
 A = zeros(Float64,n,n);
@@ -85,9 +87,10 @@ F    = eigen(A);
 ee0  = F.values;
 ee   = sort(ee0,rev=true);
 
-Fe   = eigen(A+A');
+Fe   = eigen(FAC*(A+A'));
 ii   = sortperm(Fe.values,rev=true);
 i1   = ii[1];
+i2   = ii[2];
 
 emax1 = ee[1]*ones(Float64,Nstep);
 pl11  = ax1.plot(time,emax1,linestyle="--")
@@ -96,6 +99,7 @@ pl12  = ax1.plot(time,emax2,linestyle="--")
 
 # Energy growth rate
 emax3 = zeros(Float64,Nstep);
+emax4 = zeros(Float64,Nstep);
 
 if iftime
   global emax3 
@@ -105,14 +109,18 @@ if iftime
     Fe     = eigen(A+A');
     ii     = sortperm(Fe.values,rev=true);
     i1     = ii[1];
+    i2     = ii[2];
 
     emax3[i] = Fe.values[i1];
+    emax4[i] = Fe.values[i2];
   end
 else
   emax3 = Fe.values[i1]*ones(Float64,Nstep);
+  emax4 = Fe.values[i2]*ones(Float64,Nstep);
 end  
 
 pl13     = ax1.plot(time,emax3,linestyle=":",color="gray")
+pl14     = ax1.plot(time,emax4,linestyle=":",color="green")
 ax1.set_xlabel(L"time",fontsize=lafs)
 ax1.set_ylabel(L"\lambda",fontsize=lafs)
 ax1.set_title("Approximated Eigenvalue")
@@ -129,8 +137,10 @@ plegv1 = ax2.arrow(0.,0.,egvs[1,1],egvs[2,1],width=0.02,length_includes_head=tru
 plegv2 = ax2.arrow(0.,0.,egvs[1,2],egvs[2,2],width=0.02,length_includes_head=true,color=rgba0);
 
 if nonnormal
-  global ax2,plegve    
-  plegve = ax2.arrow(0.,0.,Fe.vectors[1,i1],Fe.vectors[2,i1],width=0.02,length_includes_head=true,color="gray",ls=":");
+  global ax2,plegve1,plegve2 
+  plegve1 = ax2.arrow(0.,0.,Fe.vectors[1,i1],Fe.vectors[2,i1],width=0.02,length_includes_head=true,color="gray",ls=":");
+  plegve2 = ax2.arrow(0.,0.,Fe.vectors[1,i2],Fe.vectors[2,i2],width=0.02,length_includes_head=true,color="green",ls=":");
+ 
 end
 
 # Generate seed for consistent results
@@ -185,7 +195,7 @@ pause(0.001)
 
 for i in 1:Nstep
   global V, Vlag,Rlag,Rhs,Evals,Ermax
-  global t, ax2, plegv1, plegv2, plegve
+  global t, ax2, plegv1, plegv2, plegve1, plegve2
      
   t = t + dt;
 
@@ -204,7 +214,7 @@ for i in 1:Nstep
   end
 
   if (ifoptimal)
-    A1 = (A + A');
+    A1 = FAC*(A + A');
   else
     A1 = copy(A);
 
@@ -243,7 +253,6 @@ for i in 1:Nstep
       Ac[1,2] = corr;
     end 
 
-
 #   Extrapolate A*x
     rhs     = (A1+Ac)*V[:,j];
     rhs1    = ext[2]*rhs + ext[3]*R1lag[:,1,j] + ext[4]*R1lag[:,2,j];
@@ -278,7 +287,8 @@ for i in 1:Nstep
       if iftime
         plegv1.remove();
         plegv2.remove();
-        plegve.remove();
+        plegve1.remove();
+        plegve2.remove();
       end  
 
       if i>egvupd    
@@ -308,13 +318,15 @@ for i in 1:Nstep
         plegv2 = ax2.arrow(0.,0.,F.vectors[1,i2],F.vectors[2,i2],width=0.02,length_includes_head=true,color=rgba1);
 
 
-        A2 = A2 + A2';
+        A2 = FAC*(A2 + A2');
         Fe = eigen(A2);
         ii = sortperm(Fe.values,rev=true);
         i1 = ii[1];
         i2 = ii[2];
        
-        plegve = ax2.arrow(0.,0.,Fe.vectors[1,i1],Fe.vectors[2,i1],width=0.02,length_includes_head=true,color="gray",ls=":");
+        plegve1 = ax2.arrow(0.,0.,Fe.vectors[1,i1],Fe.vectors[2,i1],width=0.02,length_includes_head=true,color="gray",ls=":");
+        plegve2 = ax2.arrow(0.,0.,Fe.vectors[1,i2],Fe.vectors[2,i2],width=0.02,length_includes_head=true,color="green",ls=":");
+       
       end
       
       pl4 = ax1.plot(time[1:i],real(Evals[1:i,j]),color="black");
@@ -342,9 +354,9 @@ for i in 1:Nstep
 
 end
 
-h2  = figure(num=2,figsize=[8.,6.]);
-plot(time,real.(Evecs_sys[2,:,1]),color=rgba0);
-plot(time,real.(Evecs_calc[2,:,1]),color="black");
+#h2  = figure(num=2,figsize=[8.,6.]);
+#plot(time,real.(Evecs_sys[2,:,1]),color=rgba0);
+#plot(time,real.(Evecs_calc[2,:,1]),color="black");
 
 #plot(real.(Evecs_sys[2,:,1]),real.(Evecs_calc[2,:,1]),color="black");
 

@@ -38,8 +38,10 @@ for i in 1:n
 end
 
 if nonnormal
-  global A    
-  A[2,3] = 0.05;
+  global A
+#  A[1,2] = -0.05;
+ 
+  A[2,3] = 0.06;
 end  
 
 
@@ -50,41 +52,9 @@ Nstep = 20000;
 egvupd = 200;
 
 
-Random.seed!(10);       # 10
-
-nmodes = 2;
-Vinit  = rand(Float64,n,nmodes);
-V      = zeros(Float64,n,nmodes);
-Vlag   = zeros(Float64,n,3,nmodes);
-R1lag  = zeros(Float64,n,2,nmodes);
-R2lag  = zeros(Float64,n,2,nmodes);
-
-v = copy(Vinit[:,1]);
-#v[1] = 1.e-3;
-#v[2] = 1.;
-v = v/norm(v);
-Vinit[:,1] = v;
-
-# Orthogonalize initial field
-for i=2:nmodes
-  v = Vinit[:,i];
-  alpha = (Vinit[:,1:i-1])'*v;
-  w = v - Vinit[:,1:i-1]*alpha;
-  w = w/norm(w);
-  Vinit[:,i] = w;
-end
-
-V   = copy(Vinit);
-Rhs = 0*copy(V);
-
-VNORM = zeros(Float64,Nstep,nmodes);
 Evals = zeros(Complex,Nstep,nmodes);
 Ermax = zeros(Complex,Nstep);
 
-t     = 0.
-
-v1    = [0, 1.];
-v2    = [1., 0.];
 
 h1  = figure(num=1,figsize=[18.,6.]);
 ax1 = subplot(121);
@@ -109,17 +79,16 @@ rgba3 = cm(3);
 time = range(dt,step=dt,length=Nstep);
 
 F0  = eigen(A);
-ee  = sort(F0.values,rev=true);
+ee  = sortperm(F0.values,rev=true);
 
-emax1 = ee[1].*ones(Float64,Nstep);
-emax2 = ee[2].*ones(Float64,Nstep);
-emax3 = ee[3].*ones(Float64,Nstep);
+emax1 = F0.values[ee[1]].*ones(Float64,Nstep);
+emax2 = F0.values[ee[2]].*ones(Float64,Nstep);
+emax3 = F0.values[ee[3]].*ones(Float64,Nstep);
 
-Fe    = eigen(A + A');
-ee2   = sort(Fe.values,rev=true);
-emax4 = ee2[1].*ones(Float64,Nstep);
-emax5 = ee2[2].*ones(Float64,Nstep);
-
+Fe    = eigen(0.5*(A + A'));
+ee2   = sortperm(Fe.values,rev=true);
+emax4 = Fe.values[ee2[1]].*ones(Float64,Nstep);
+emax5 = Fe.values[ee2[2]].*ones(Float64,Nstep);
 
 ple1 = ax1.plot(time,emax1,linestyle="--",color=rgba0)
 ple2 = ax1.plot(time,emax2,linestyle="--",color=rgba1)
@@ -132,6 +101,38 @@ ax1.set_ylabel(L"\lambda")
 ax1.set_title("Approximated Eigenvalues")
 
 
+Random.seed!(10);       # 10
+
+nmodes = 2;
+Vinit  = rand(Float64,n,nmodes);
+V      = zeros(Float64,n,nmodes);
+Vlag   = zeros(Float64,n,3,nmodes);
+R1lag  = zeros(Float64,n,2,nmodes);
+R2lag  = zeros(Float64,n,2,nmodes);
+
+#Vinit[:,1] = 0.1*F0.vectors[:,ee[2]] +  1.0*F0.vectors[:,ee[1]]
+#Vinit[:,2] = 0.5*F0.vectors[:,ee[1]] +  0.0*F0.vectors[:,ee[3]]
+
+v = copy(Vinit[:,1]);
+#v[1] = 1.e-3;
+#v[2] = 1.;
+v = v/norm(v);
+Vinit[:,1] = v;
+
+# Orthogonalize initial field
+for i=2:nmodes
+  v = Vinit[:,i];
+  alpha = (Vinit[:,1:i-1])'*v;
+  w = v - Vinit[:,1:i-1]*alpha;
+  w = w/norm(w);
+  Vinit[:,i] = w;
+end
+
+V   = copy(Vinit);
+Rhs = 0*copy(V);
+
+
+t     = 0.
 
 for i in 1:Nstep
   global V, Vlag,Rlag,Rhs,Evals,Ermax
@@ -154,7 +155,7 @@ for i in 1:Nstep
   end
 
   if (ifoptimal)
-    A1   = A + A';
+    A1   = 0.5*(A + A');
   else  
     A1     = copy(A);
   end  
@@ -203,8 +204,6 @@ for i in 1:Nstep
     Vlag[:,1,j] = V[:,j];
 
     V[:,j]      = copy(Rhs[:,j])*dt/bdf[1];
-
-    VNORM[i,j]  = norm(V[:,j]);
 
     if (mod(i,egvupd)==0)
       if (j==1)
