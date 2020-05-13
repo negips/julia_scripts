@@ -51,7 +51,7 @@ dt = 0.05;
 Nstep = 20000;
 egvupd = 200;
 
-
+nmodes=2
 Evals = zeros(Complex,Nstep,nmodes);
 Ermax = zeros(Complex,Nstep);
 

@@ -31,7 +31,7 @@ Nstep  = 50000;
 egvupd = 200;
 
 nonnormal   = true;
-ifoptimal   = false;
+ifoptimal   = true;
 iftime      = false;
 iftcorr     = false;
 ifrot       = false;    # Rotate Matrix
@@ -41,8 +41,7 @@ v0    = [-0.02 -0.007];
 α0    = 0.05;
 α1    = 0.03;
 omega = 0.05;
-
-FAC   = 0.5;
+FAC   = 0.5;            # Factor in front of (A + A')
 
 n = length(v0);
 A = zeros(Float64,n,n);
