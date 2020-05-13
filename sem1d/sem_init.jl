@@ -104,18 +104,24 @@ end
 intpm1d = zeros(Float64,lx1d,lx1);
 intpm1d = interpolation_matrix(Basisd.nodes,Basis.nodes,Basis.baryweights);
 
+# Matrices for Convection operator
 jacm1d  = intpm1d*jacm1;
 bm1d    = jacm1d.*wzm1d;            # Mass matrix on the de-aliased grid
 
 gradxd = zeros(Float64,lx1d,lx1,nel);
-bmd_matrix = zeros(Float64,lx1,lx1d,nel);
-
+bmd_matrix = zeros(Float64,lx1d,lx1d,nel);
 for i in 1:nel
-  global gradxd    
-  gradxd[:,:,i] = intpm1d*gradx[:,:,i];            # Interpolation of gradient on to the de-aliased grid
-  vd            = intpm1d;
-  bmd_matrix[:,:,i] = ones(Float64,lx1,1)*bm1d[:,i]';
-#  bmd_matrix[:,:,i] = bmd_matrix[:,:,i]*vd;
+  for j in 1:lx1d    
+    bmd_matrix[j,j,i] = bm1d[j];
+  end
+end  
+
+intg_dealias = zeros(Float64,lx1,lx1d,nel);        # Matrix to perform integration on the dealiased grid   
+for i in 1:nel
+  global gradxd,bmd_matrix 
+  gradxd[:,:,i] = intpm1d*gradx[:,:,i];            # Interpolation of gradient on to the dealiased grid
+  vd            = copy(intpm1d);
+  intg_dealias[:,:,i] = (bmd_matrix[:,:,i]*vd)';
 end  
 
 # Weak Laplacian
@@ -133,8 +139,6 @@ for i in 1:nel
     dvdx[:,j,i] = copy(dv1);
     dv1  = bm1[:,i].*dv1;
   
-#    println(size(dv1))
-#    println(dv1)
     wlp[j,:,i]  = -dv1'*gradx[:,:,i];
   end
 end  
