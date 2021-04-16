@@ -21,7 +21,7 @@ Basisd      = LobattoLegendre(Nd)               # Polynomial Basis
 
 xs          = 0.;                               # Domain start
 xe          = 10.;                              # Domain end
-nel         = 3;                                # No of elements
+nel         = 20;                                # No of elements
 nnodes      = nel+1;                            # No of nodes
 xc          = range(xs,stop=xe,length=nnodes);  # Element coordinates
 
