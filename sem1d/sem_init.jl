@@ -5,13 +5,18 @@ using PyPlot,PyCall
 
 close("all")
 
+
+AT = Float64
+#AT = Complex
+
+
 # define nodal bases
-N           = 5 ;                               # polynomial degree
-lx1         = N+1;                              # No of points
+N           = 8                                 # polynomial degree
+lx1         = N+1                               # No of points
 Basis       = LobattoLegendre(N)                # Polynomial Basis
 
-Nd          = 8 ;                               # polynomial degree
-lx1d        = Nd+1;                             # No of points
+Nd          = 12                                # polynomial degree
+lx1d        = Nd+1                              # No of points
 Basisd      = LobattoLegendre(Nd)               # Polynomial Basis
 
 #basis2 = GaussLegendre(N)
@@ -34,12 +39,12 @@ dxm1        = Basis.D;                          # Derivative Matrix
 dxtm1       = Basis.D';                         # Derivative transpose
 
 # GLL Points
-xm1         = zeros(Float64,lx1,nel);
-ym1         = zeros(Float64,lx1,nel);           # Tagging this along to make sense of derivatives
+xm1         = zeros(AT,lx1,nel);
+ym1         = zeros(AT,lx1,nel);                # Tagging this along to make sense of derivatives
 for i in 1:nel
   global xm1, ym1
  
-  xi              = zeros(Float64,lx1);
+  xi              = zeros(AT,lx1);
   x0              = xc[i];
   x1              = xc[i+1];
   map_from_canonical!(xi,zgm1,x0,x1,Basis);
@@ -49,21 +54,20 @@ end
 
 
 
-
 # Local Geometric Matrices
-xrm1   = zeros(Float64,lx1,nel);                # dx/dr
-xsm1   = zeros(Float64,lx1,nel);                # dx/ds
+xrm1   = zeros(AT,lx1,nel);                # dx/dr
+xsm1   = zeros(AT,lx1,nel);                # dx/ds
 
-yrm1   = zeros(Float64,lx1,nel);                # dy/dr
-ysm1   = zeros(Float64,lx1,nel);                # dy/ds
+yrm1   = zeros(AT,lx1,nel);                # dy/dr
+ysm1   = zeros(AT,lx1,nel);                # dy/ds
 
-rxm1   = zeros(Float64,lx1,nel);                # dr/dx
-rym1   = zeros(Float64,lx1,nel);                # dr/dy
-sxm1   = zeros(Float64,lx1,nel);                # ds/dx
-sym1   = zeros(Float64,lx1,nel);                # ds/dy
+rxm1   = zeros(AT,lx1,nel);                # dr/dx
+rym1   = zeros(AT,lx1,nel);                # dr/dy
+sxm1   = zeros(AT,lx1,nel);                # ds/dx
+sym1   = zeros(AT,lx1,nel);                # ds/dy
 
-jacm1  = zeros(Float64,lx1,nel);                # dr/dx
-jacmi  = zeros(Float64,lx1,nel);                # dr/dx
+jacm1  = zeros(AT,lx1,nel);                # dr/dx
+jacmi  = zeros(AT,lx1,nel);                # dr/dx
 
 for i in 1:nel
   global xrm1,xsm1,yrm1,ysm1 
@@ -91,7 +95,7 @@ bm1   = jacm1.*wzm1;
 
 
 # Gradient operator
-gradx  = zeros(Float64,lx1,lx1,nel);            # d/dx
+gradx  = zeros(AT,lx1,lx1,nel);            # d/dx
 for i in 1:nel
   global gradx
 
@@ -101,22 +105,22 @@ for i in 1:nel
 end
 
 # Interpolation operator to de-aliased grid
-intpm1d = zeros(Float64,lx1d,lx1);
+intpm1d = zeros(AT,lx1d,lx1);
 intpm1d = interpolation_matrix(Basisd.nodes,Basis.nodes,Basis.baryweights);
 
 # Matrices for Convection operator
 jacm1d  = intpm1d*jacm1;
 bm1d    = jacm1d.*wzm1d;            # Mass matrix on the de-aliased grid
 
-gradxd = zeros(Float64,lx1d,lx1,nel);
-bmd_matrix = zeros(Float64,lx1d,lx1d,nel);
+gradxd = zeros(AT,lx1d,lx1,nel);
+bmd_matrix = zeros(AT,lx1d,lx1d,nel);
 for i in 1:nel
   for j in 1:lx1d    
     bmd_matrix[j,j,i] = bm1d[j];
   end
 end  
 
-intg_dealias = zeros(Float64,lx1,lx1d,nel);        # Matrix to perform integration on the dealiased grid   
+intg_dealias = zeros(AT,lx1,lx1d,nel);        # Matrix to perform integration on the dealiased grid   
 for i in 1:nel
   global gradxd,bmd_matrix 
   gradxd[:,:,i] = intpm1d*gradx[:,:,i];            # Interpolation of gradient on to the dealiased grid
@@ -127,13 +131,13 @@ end
 # Weak Laplacian
 # wlp = -[ (BM1*∇v)^T.(∇) ]
 
-wlp   = zeros(Float64,lx1,lx1,nel);
-dvdx  = zeros(Float64,lx1,lx1,nel);
+wlp   = zeros(AT,lx1,lx1,nel);
+dvdx  = zeros(AT,lx1,lx1,nel);
 
 for i in 1:nel
   for j in 1:lx1
     global dvdx, wlp
-    v    = zeros(Float64,lx1);
+    v    = zeros(AT,lx1);
     v[j] = 1.;
     dv1  = gradx[:,:,i]*v;
     dvdx[:,j,i] = copy(dv1);

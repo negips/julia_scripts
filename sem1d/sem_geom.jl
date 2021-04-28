@@ -1,4 +1,4 @@
-function sem_geom(Basis,Basisd,xc,N,Nd,nel,dxm1)
+function sem_geom(Basis,Basisd,xc,N,Nd,nel,dxm1,dxtm1)
 #     Generate the geometric matrices
 
 #     Input:
@@ -115,16 +115,20 @@ function sem_geom(Basis,Basisd,xc,N,Nd,nel,dxm1)
       dvdx  = zeros(Float64,lx1,lx1,nel);
       
       for i in 1:nel
+        dv1 = dxtm1 .+ 0.
         for j in 1:lx1
 #          global dvdx, wlp
-          v    = zeros(Float64,lx1);
-          v[j] = 1.;
-          dv1  = gradx[:,:,i]*v;
-          dvdx[:,j,i] = copy(dv1);
-          dv1  = bm1[:,i].*dv1;
+#          v    = zeros(Float64,lx1);
+#          v[j] = 1.;
+#          dv1  = gradx[:,:,i]*v;
+#          println(size(rxm1))
+#          println(size(dxtm1))
+           dv1[j,:]  = bm1[:,i].*dxtm1[j,:].*rxm1[:,i] 
+        end  
+        dvdx[:,:,i] = copy(dv1);
+#        dv1  = bm1[:,i].*dv1;
         
-          wlp[j,:,i]  = -dv1'*gradx[:,:,i];
-        end
+        wlp[:,:,i]  = -dv1*gradx[:,:,i];
       end
       
       Geom = GeomMatrices(xm1,xrm1,rxm1,jacm1,jacmi,bm1,gradx,intpm1d,gradxd,bm1d,cnv,wlp,dvdx);

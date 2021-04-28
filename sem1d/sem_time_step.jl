@@ -35,7 +35,6 @@ for i in 1:nel
 end   
 
 
-
 cm    = get_cmap("tab10");
 rgba0 = cm(0); 
 rgba1 = cm(1); 

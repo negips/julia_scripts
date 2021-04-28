@@ -1,27 +1,32 @@
 # testing the re2/map/par readers
 #
 
+      using Revise
 
-#      include("JNek_MPI.jl")         # JNek_MPI
-      include("JNek_IO.jl")          # JNek_IO
+#      include("JNek_PARALLEL.jl")         # JNek_PARALLEL
+      include("JNek_IO.jl")               # JNek_IO
+
+
+      using .JNek_IO
       
       using MPI
 
+      nid0  = 0
+
       if (MPI.Initialized() == false)
-        println("MPI = $(MPI.Initialized())")
         MPI.Init()
       end  
+        
+      comm = MPI.COMM_WORLD
+      rank = MPI.Comm_rank(comm)
 
       re2   = "channelp.re2"
       map   = "channelp.ma2"
 
-      nid0  = 0
-      comm  = MPI.COMM_WORLD
+      hdr,version,nelgt,ldimr,nelgv,xc,yc,data = read_re2(re2,nid0)
 
-      if MPI.Comm_rank(comm) == nid0
-        println("Started MPI with $(MPI.Comm_size(comm)) ranks\n")
-      end
+      if rank == 0
+        println("Done")
+      end  
 
-      hdr,version,nelgt,ldimr,nelgv = JNek_IO.read_re2(re2,MPI,nid0)
-
-      println("Done")
+#      MPI.Finalize()
