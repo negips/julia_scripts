@@ -87,6 +87,7 @@ function AssembleMatrixLesshafft(c0,cnv,wlp,xm1,bm1,Basis,lx1,nel)
         Binv[:,i] = 1.0./b
       end 
 
+      println("Matrix Built")
       return A, B, OP, Binv
 end
 

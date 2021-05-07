@@ -7,7 +7,7 @@
       include("JNek_IO.jl")               # JNek_IO
 
 
-      using .JNek_IO
+#      import JNek_IO
       
       using MPI
 
@@ -23,7 +23,7 @@
       re2   = "channelp.re2"
       map   = "channelp.ma2"
 
-      hdr,version,nelgt,ldimr,nelgv,xc,yc,data = read_re2(re2,nid0)
+      hdr,version,nelgt,ldimr,nelgv,xc,yc,ncurve,curveieg,curveiside,curveparam,curvetype,cbl,bl = JNek_IO.read_re2(re2,nid0)
 
       if rank == 0
         println("Done")

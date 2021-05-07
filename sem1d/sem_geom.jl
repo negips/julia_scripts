@@ -9,7 +9,6 @@ function sem_geom(Basis,Basisd,xc,N,Nd,nel,dxm1,dxtm1)
 #     nel   : No of elements
 #     xc    : elemental nodes
 
-
       lx1  = N+1;
       lx1d = Nd+1;
 #     GLL Points
@@ -62,15 +61,13 @@ function sem_geom(Basis,Basisd,xc,N,Nd,nel,dxm1,dxtm1)
       rym1  = -jacmi.*(yrm1);
       sxm1  = -jacmi.*(xsm1);
       
-#     Mass matrix
+#     Diagonal Mass matrix (as a vector)
       bm1   = jacm1.*wzm1;
       
       
 #     Gradient operator
       gradx  = zeros(Float64,lx1,lx1,nel);            # d/dx
       for i in 1:nel
-#        global gradx
-      
         for j in 1:lx1
           gradx[j,:,i] = rxm1[j].*dxm1[j,:];
         end  
