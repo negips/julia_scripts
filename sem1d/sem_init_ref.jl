@@ -11,19 +11,19 @@ println("Intializing SEM")
 AT = Float64
 
 # define nodal bases
-N           = 4 ;                               # polynomial degree
+N           = 8 ;                               # polynomial degree
 lx1         = N+1;                              # No of points
 Basis       = LobattoLegendre(N)                # Polynomial Basis
 
-Nd          = 6 ;                               # polynomial degree
+Nd          = Int64(floor(N*1.5)+1) ;                               # polynomial degree
 lx1d        = Nd+1;                             # No of points
 Basisd      = LobattoLegendre(Nd)               # Polynomial Basis
 
 #basis2 = GaussLegendre(N)
 
 xs          = 0.                                # Domain start
-xe          = 3.5                              # Domain end
-nel         = 1                                 # No of elements
+xe          = 50                              # Domain end
+nel         = 20                                # No of elements
 nnodes      = nel+1;                            # No of nodes
 xc          = range(xs,stop=xe,length=nnodes);  # Element coordinates
 

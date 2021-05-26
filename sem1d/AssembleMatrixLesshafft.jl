@@ -4,8 +4,8 @@ function AssembleMatrixLesshafft(c0,cnv,wlp,xm1,bm1,Basis,lx1,nel)
 #     Lutz Lesshafft (2018) Artificial eigenmodes in truncated flow domains
 #     
 #     ∂ψ/∂t     = -U∂ψ/∂x + μ(x)ψ + γ∂∂ψ/∂x∂x + f(x)ψ(s)
-#     f(x)ψ(xₛ) = c0*exp(-((x-xₐ)/0.1)²)*ψ(s)
-#     xₛ        = 39.0
+#     f(x)ψ(xs) = c0*exp(-((x-xₐ)/0.1)²)*ψ(s)
+#     xs        = 39.0
 #     a         = 1.0
 #     c0        = Parametrically varied.
 #
@@ -34,12 +34,12 @@ function AssembleMatrixLesshafft(c0,cnv,wlp,xm1,bm1,Basis,lx1,nel)
       xs  = 39.0        # Feedback source point
       b   = 0.1         # Exponential drop off rate for feedback
 
-#     Find the element containing xₛ
+#     Find the element containing xs
       ar   = argmin((xm1 .- xs).^2)
 #      r    = ar.I[1]
-      e    = ar.I[2]          # Element which has the point xₛ
+      e    = ar.I[2]          # Element which has the point xs
 
-#     Map xₛ to reference coordinates ξ in [-1,1]
+#     Map xs to reference coordinates ξ in [-1,1]
 #      ξ    = -2.     
       ξ    = map_to_canonical(xs,xm1[1,e],xm1[lx1,e],Basis)
       Ixs  = zeros(Float64,1,lx1)
@@ -61,7 +61,6 @@ function AssembleMatrixLesshafft(c0,cnv,wlp,xm1,bm1,Basis,lx1,nel)
         μ   = (U*U/8.0)*(1.0 .- xm1[:,i]./20.0)
         bμ  = bm1[:,i].*μ
         Mμ  = diagm(bμ)
-#        display(Mμ)
 
 #       Sub matrix 
         subm = -U.*cnv[:,:,i] + Mμ + γ.*wlp[:,:,i];
