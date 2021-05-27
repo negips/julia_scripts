@@ -55,11 +55,13 @@ function sem_geom(Basis,Basisd,xc,N,Nd,nel,dxm1,dxtm1)
       jacm1 = xrm1.*ysm1 - xsm1.*yrm1;
       jacmi = 1 ./jacm1;                              # Inverse Jacobian
       
-      rxm1  = jacmi.*(ysm1);
-      sym1  = jacmi.*(xrm1);
+      rxm1   = jacmi./xrm1
+
+#      rxm1  = jacmi.*(ysm1);
+#      sym1  = jacmi.*(xrm1);
       
-      rym1  = -jacmi.*(yrm1);
-      sxm1  = -jacmi.*(xsm1);
+#      rym1  = -jacmi.*(yrm1);
+#      sxm1  = -jacmi.*(xsm1);
       
 #     Diagonal Mass matrix (as a vector)
       bm1   = jacm1.*wzm1;

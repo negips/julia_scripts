@@ -23,7 +23,7 @@ Basisd      = LobattoLegendre(Nd)               # Polynomial Basis
 
 xs          = 0.                                # Domain start
 xe          = 50                              # Domain end
-nel         = 20                                # No of elements
+nel         = 30                                # No of elements
 nnodes      = nel+1;                            # No of nodes
 xc          = range(xs,stop=xe,length=nnodes);  # Element coordinates
 
@@ -48,20 +48,9 @@ for j in 1:lx1, i in 1:lx1
     dxtm1[i,j] = 0.
   end  
 end
-#
-#xm1, xrm1, rxm1, jacm1, jacmi, bm1, gradx, intpm1d, gradxd, bm1d, wlp, dvdx = sem_geom(Basis,Basisd,xc,N,Nd,nel,dxm1)
-#
+
+
 Geom = sem_geom(Basis,Basisd,xc,N,Nd,nel,dxm1,dxtm1);
 
-# Clean up matrices
-#eps10 = 10.0*eps(Float64)
-#for e in 1:nel, j in 1:lx1, i in 1:lx1
-#  if abs(Geom.cnv[i,j,e])<eps10
-#    Geom.cnv[i,j,e] = 0.
-#  end  
-#  if abs(Geom.wlp[i,j,e])<eps10
-#    Geom.wlp[i,j] = 0.
-#  end  
-#end
 
 println("Initialization done")
