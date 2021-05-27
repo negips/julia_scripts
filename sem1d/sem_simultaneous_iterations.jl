@@ -59,7 +59,7 @@ rgba1 = cm(1)
 rgba2 = cm(2) 
 
 dt = 0.001
-plotupd = 100
+plotupd = Inf
 eigcal  = 500
 
 nsteps = 100000
@@ -136,17 +136,6 @@ for i in 1:nsteps
 
   end       # ik in 1:nkryl
 
-  if mod(i,eigcal)==0
-    println("Istep=$i, Time=$t")
-   
-    At = Vlag[:,1,:]'*V       # V'AV
-    λ = eigvals(At)
-    
-    Lesshafft_λ = 1.0*im*λ
-    display("$(Lesshafft_λ[1])")
-    display("$(Lesshafft_λ[2])")
-  end  
-
 # Orthogonalization  
   β           = sqrt(V[:,1]'*(Bg.*V[:,1]))
   V[:,1]      = V[:,1]/β
@@ -159,15 +148,45 @@ for i in 1:nsteps
     V[:,i]    = V[:,i]/β
   end  
 
+# Calculate Eigenvalues of Reduced operator  
+  if mod(i,eigcal)==0
+    global hλ, ax1, λ
+    if i==eigcal
+      hλ = figure(num=1,figsize=[8.,6.]);
+      ax1 = gca()
+    end  
+
+    println("Istep=$i, Time=$t")
+   
+    Ar = V'*(Cg .+ Sg .+ Fg .+ Lg)*V       # V'AV
+    λ = eigvals(Ar)
+    
+    Lesshafft_λ = 1.0*im*λ
+    display("$(Lesshafft_λ[1])")
+    display("$(Lesshafft_λ[2])")
+
+    pλ = ax1.plot(real.(Lesshafft_λ),imag.(Lesshafft_λ), linestyle="none",marker=".", markersize=8)
+    pause(0.001)
+  end  
+
+
 # Plot
   if mod(i,plotupd)==0
+    global hev, ax2
+    if i==plotupd
+      hev = figure(num=2,figsize=[8.,6.]);
+      ax2 = gca()
+    end  
+
     if (i>plotupd)
        plr[1].remove();
        pli[1].remove();
     end   
-  
-    plr = plot(xg,real.(V[:,1]),color=rgba0);
-    pli = plot(xg,imag.(V[:,1]),color=rgba1,linestyle="--");
+
+    for ik in 1:nkryl
+      plr = ax2.plot(xg,real.(V[:,ik]),color=rgba0);
+      pli = ax2.plot(xg,imag.(V[:,ik]),color=rgba1,linestyle="--");
+    end  
 
     pause(0.0001)
   end
