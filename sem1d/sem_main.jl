@@ -3,7 +3,7 @@ println("Main interface for 1D SEM")
 using PolynomialBases
 using LinearAlgebra
 # using UnicodePlots
-using Plots
+#using Plots
 
 # Include the function files
 include("sem_geom.jl")

@@ -40,7 +40,6 @@ function AssembleMatrixLesshafft(c0,cnv,wlp,xm1,bm1,Basis,lx1,nel)
       e    = ar.I[2]          # Element which has the point xₛ
 
 #     Map xₛ to reference coordinates ξ in [-1,1]
-#      ξ    = -2.     
       ξ    = map_to_canonical(xs,xm1[1,e],xm1[lx1,e],Basis)
       Ixs  = zeros(Float64,1,lx1)
       interpolation_matrix!(Ixs,ξ,zgm1,Basis.baryweights)

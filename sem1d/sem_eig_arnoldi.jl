@@ -20,6 +20,8 @@ include("Sem_QQT.jl")
 
 close("all")
 
+manualarnoldi = true
+
 ndof, glnum = Sem_Global_Num(Geom.xm1)
 
 Q,QT  = Sem_QQT(glnum)
@@ -73,25 +75,85 @@ ax1 = gca()
 
 # eigs is from the Arpack package
 println("Starting IRAM")
-λ, ϕ = eigs(Lnew, nev=40, ncv=150, which=:LR, maxiter=500)
+Nev = 40
+Ncv = 150
 
-Lesshafft_λ = 1.0*im*λ
+if (manualarnoldi)
+  vol = sum(Geom.bm1[:])                                    # Volume
+  V   = zeros(Complex,lx1*nel,Nev+1)
+  H   = zeros(Complex,Nev+1,Nev)
+  Hb  = zeros(Complex,Nev,Nev)
 
-λi = imag(Lesshafft_λ)
-λr = real(Lesshafft_λ)
+  B   = Geom.bm1[:]/vol       # B-orthogonal Weight
 
-p1 = ax1.plot(λr,λi, linestyle="none",marker=".",markersize=16)
+  v   = rand(Float64,lx1*nel,1) .+ im.*rand(Float64,lx1*nel,1)    # Starting Vector
+  v[1,1] = 0. + im*0.
+  vnorm = sqrt(v'*(B.*v))                               # Normalize
+  v   = v./vnorm
+  V[:,1] = v
+ 
+  v   = reshape(v,lx1,nel)
+  for i in 1:Nev
+    global v
+    local vnorm
+#   Apply operator 
+    for e in 1:nel
+      v[:,e] = OP[:,:,e]*v[:,e];
+    end
+    v[1,1] = 0. + im*0.
+    vg       = Q*QT*v[:]
+    vb       = B.*vg
+    hij      = V[:,1:i]'*vb         # projections
+    H[1:i,i] = hij 
+    vp       = V[:,1:i]*hij         # Projected vector      
+    vg       = vg .- vp             # Residual
+    vnorm    = sqrt(vg'*(B.*vg))
+    vg       = vg./vnorm
+    H[i+1,i] = vnorm          
+    V[:,i+1] = vg
+    v        = reshape(vg,lx1,nel)
+  end
+  Hb  = H[1:Nev,1:Nev];
+  F   = eigen(Hb)
 
-ax1.set_xlim(-6.0, 6.0)
-ax1.set_ylim(-10.0, 1.0)
-grid(true)
+  λ         = F.values
+  evec      = F.vectors
 
-h2 = figure(num=2,figsize=[8.,6.]);
-ax2 = gca()
-for i in 1:1
-  p2 = ax2.plot(xglob[r1:r2],real.(ϕ[:,i]), linestyle="-")
-#  p3 = ax2.plot(xglob[r1:r2],imag.(F.vectors[:,r2-i]), linestyle="-")
+# Restart Here
+
+
+  ϕ         = V[:,1:Nev]*evec
+
+ 
+else
+
+  λ, ϕ = eigs(Lnew, nev=Nev, ncv=Ncv, which=:LR, maxiter=500)
+
 end  
+
+  Lesshafft_λ = 1.0*im*λ
+  
+  λi = imag(Lesshafft_λ)
+  λr = real(Lesshafft_λ)
+  
+  p1 = ax1.plot(λr,λi, linestyle="none",marker=".",markersize=16)
+  
+  #ax1.set_xlim(-6.0, 6.0)
+  #ax1.set_ylim(-10.0, 1.0)
+  #grid(true)
+  
+  h2 = figure(num=2,figsize=[8.,6.]);
+  ax2 = gca()
+  for i in 1:1
+   if (manualarnoldi)
+     p2 = ax2.plot(xglob,real.(ϕ[:,Nev-i+1]), linestyle="-")
+   else   
+     p2 = ax2.plot(xglob[r1:r2],real.(ϕ[:,i]), linestyle="-")
+   end 
+
+  #  p3 = ax2.plot(xglob[r1:r2],imag.(F.vectors[:,r2-i]), linestyle="-")
+  end  
+
 
 
 println("Done")

@@ -91,15 +91,13 @@ function sem_geom(Basis,Basisd,xc,N,Nd,nel,dxm1,dxtm1)
       
       bm1d = zeros(Float64,lx1,lx1d,nel);        # Matrix to perform integration on the dealiased grid   
       for i in 1:nel
-#        global gradxd,bmd_matrix 
-
+#       global gradxd,bmd_matrix 
         gradxd[:,:,i] = intpm1d*gradx[:,:,i];            # Interpolation of gradient on to the dealiased grid
         bm1d[:,:,i]   = (bmd_matrix[:,:,i]*intpm1d)';
 
       end
 
 #     Convective matrix assuming uniform velocity
-#      cnv = bm1d*gradxd;
       cnv = zeros(Float64,lx1,lx1,nel);
       for i in 1:nel
         cnv[:,:,i] = bm1d[:,:,i]*gradxd[:,:,i];
@@ -114,15 +112,9 @@ function sem_geom(Basis,Basisd,xc,N,Nd,nel,dxm1,dxtm1)
       for i in 1:nel
         dv1 = dxtm1 .+ 0.
         for j in 1:lx1
-#          global dvdx, wlp
-#          v    = zeros(Float64,lx1);
-#          v[j] = 1.;
-#          dv1  = gradx[:,:,i]*v;
-#          println(size(rxm1))
-#          println(size(dxtm1))
            dv1[j,:]  = bm1[:,i].*dxtm1[j,:].*rxm1[:,i] 
         end  
-        dvdx[:,:,i] = copy(dv1);
+        dvdx[:,:,i] = dv1;
 #        dv1  = bm1[:,i].*dv1;
         
         wlp[:,:,i]  = -dv1*gradx[:,:,i];
