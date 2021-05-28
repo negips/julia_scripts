@@ -98,6 +98,8 @@ Rhs = similar(V[:,1])
 verbose = true
 verbosestep = 100
 
+reortho = 500
+
 rcParams["markers.fillstyle"] = "full"
 
 for i in 1:nsteps
@@ -164,30 +166,29 @@ for i in 1:nsteps
 
   end       # ik in 1:nkryl
 
-# Orthogonalization  
-  β           = sqrt(V[:,1]'*(Bg.*V[:,1]))
-  V[:,1]      = V[:,1]/β
-  for i in 2:nkryl
-    global V
-    local β
-    h         = V[:,1:i-1]'*(Bg.*V[:,i])
-    V[:,i]    = V[:,i] - V[:,1:i-1]*h
-    β         = sqrt(V[:,i]'*(Bg.*V[:,i]))
-    V[:,i]    = V[:,i]/β
-  end  
-
-# Calculate Eigenvalues of Reduced operator  
-  if mod(i,eigcal)==0
+# Orthogonalization && eig calculation
+  if mod(i,reortho)==0
+#   Calculate Eigenvalues of Reduced operator  
     global hλ, ax1, λ, pλ
-    if i==eigcal
+   
+    β           = sqrt(V[:,1]'*(Bg.*V[:,1]))
+    V[:,1]      = V[:,1]/β
+    for i in 2:nkryl
+      global V
+      local β
+      h         = V[:,1:i-1]'*(Bg.*V[:,i])
+      V[:,i]    = V[:,i] - V[:,1:i-1]*h
+      β         = sqrt(V[:,i]'*(Bg.*V[:,i]))
+      V[:,i]    = V[:,i]/β
+    end
+
+    if i==reortho
 #      hλ = figure(num=1,figsize=[8.,6.]);
 #      ax1 = gca()
     else
 #      ax1.clear()
       pλ[1].remove()
     end  
-
-    println("Istep=$i, Time=$t")
    
     Ar = V'*(Cg .+ Sg .+ Fg .+ Lg)*V       # V'AV
     λ = eigvals(Ar)
