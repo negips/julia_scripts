@@ -41,7 +41,7 @@ U  = 6.0
 rcParams["markers.fillstyle"] = "none"
 hλ = figure(num=1,figsize=[8.,6.]);
 ax1 = gca()
-pΛ = plot(real.(Ω),imag.(Ω),linestyle="none",marker="o")
+pΛ = plot(real.(Ω),imag.(Ω),linestyle="none",marker="o",markersize=8)
 
 
 # Local Matrices constructed in Sem_main.jl
@@ -184,7 +184,7 @@ for i in 1:nsteps
 #      ax1 = gca()
     else
 #      ax1.clear()
-      pλ.remove()
+      pλ[1].remove()
     end  
 
     println("Istep=$i, Time=$t")
