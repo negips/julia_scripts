@@ -4,7 +4,8 @@ using PolynomialBases
 using PyPlot,PyCall
 using LinearAlgebra
 using IterativeSolvers
-
+using SpecialFunctions
+using Roots
 
 close("all")
 
@@ -19,6 +20,29 @@ bdf3  = [11. -18.  9. -2.]/6.;
 ex0   = [0. 1.  0. 0.];
 ex1   = [0. 2. -1. 0.];
 ex2   = [0. 3. -3. 1.];
+
+rcParams = PyPlot.PyDict(PyPlot.matplotlib."rcParams")
+
+# Analytical Eigenvalues
+ω1 = find_zero(airyai,(-3.0,-0.0))
+ω2 = find_zero(airyai,(-5.0,-3.0))
+ω3 = find_zero(airyai,(-6.0,-5.0))
+ω4 = find_zero(airyai,(-7.0,-6.0))
+ω5 = find_zero(airyai,(-8.0,-7.0))
+ω6 = find_zero(airyai,(-9.5,-8.0))
+ω7 = find_zero(airyai,(-10.5,-9.5))
+
+ω  = [ω1, ω2, ω3, ω4, ω5, ω6, ω7]
+U  = 6.0
+γ  = 1.0 - im*1.0
+
+Ω  = im*(U*U/8 .- U*U/4/γ .+ γ^(1.0/3.0)*(U^(4.0/3.0))/(160.0^(2.0/3.0))*ω)
+
+rcParams["markers.fillstyle"] = "none"
+hλ = figure(num=1,figsize=[8.,6.]);
+ax1 = gca()
+pΛ = plot(real.(Ω),imag.(Ω),linestyle="none",marker="o")
+
 
 # Local Matrices constructed in Sem_main.jl
 
@@ -38,7 +62,6 @@ xg    = QT*(vimult.*Geom.xm1[:])
 V     = rand(Float64,ndof,nkryl) + im*rand(Float64,ndof,nkryl);
 
 # Orthogonalize
-
 α           = sqrt(V[:,1]'*(Bg.*V[:,1]))
 V[:,1]      = V[:,1]/α
 for i in 2:nkryl
@@ -58,11 +81,13 @@ rgba0 = cm(0)
 rgba1 = cm(1) 
 rgba2 = cm(2) 
 
-dt = 0.001
+dt = 0.01
 plotupd = Inf
 eigcal  = 500
 
-nsteps = 100000
+λn = zeros(Complex,nkryl)
+
+nsteps = 10000000
 
 time = range(0.,step=dt,length=nsteps);
 
@@ -70,7 +95,10 @@ t = 0.
 bc = zeros(Complex,1,ndof);
 Rhs = similar(V[:,1])
 
-verbose = false
+verbose = true
+verbosestep = 100
+
+rcParams["markers.fillstyle"] = "full"
 
 for i in 1:nsteps
   global V,Vlag,Rlag
@@ -84,7 +112,7 @@ for i in 1:nsteps
 
     v = V[:,ik]  
 
-    if verbose
+    if verbose && mod(i,verbosestep)==0 && ik==1
       println("ik=$ik, Istep=$i, Time=$t")
     end  
 
@@ -150,10 +178,13 @@ for i in 1:nsteps
 
 # Calculate Eigenvalues of Reduced operator  
   if mod(i,eigcal)==0
-    global hλ, ax1, λ
+    global hλ, ax1, λ, pλ
     if i==eigcal
-      hλ = figure(num=1,figsize=[8.,6.]);
-      ax1 = gca()
+#      hλ = figure(num=1,figsize=[8.,6.]);
+#      ax1 = gca()
+    else
+#      ax1.clear()
+      pλ.remove()
     end  
 
     println("Istep=$i, Time=$t")
@@ -162,8 +193,9 @@ for i in 1:nsteps
     λ = eigvals(Ar)
     
     Lesshafft_λ = 1.0*im*λ
-    display("$(Lesshafft_λ[1])")
-    display("$(Lesshafft_λ[2])")
+    for j in length(λ):-1:1  
+      display("$(Lesshafft_λ[j])")
+    end  
 
     pλ = ax1.plot(real.(Lesshafft_λ),imag.(Lesshafft_λ), linestyle="none",marker=".", markersize=8)
     pause(0.001)
@@ -179,13 +211,17 @@ for i in 1:nsteps
     end  
 
     if (i>plotupd)
-       plr[1].remove();
-       pli[1].remove();
+#       plr[1].remove();
+#       pli[1].remove();
+#      lo = ax2.get_lines()
+      for lo in ax2.get_lines()
+        lo.remove()
+      end  
     end   
 
     for ik in 1:nkryl
-      plr = ax2.plot(xg,real.(V[:,ik]),color=rgba0);
-      pli = ax2.plot(xg,imag.(V[:,ik]),color=rgba1,linestyle="--");
+      plr = ax2.plot(xg,real.(V[:,ik]),color=cm(ik-1));
+      pli = ax2.plot(xg,imag.(V[:,ik]),color=cm(ik-1),linestyle="--");
     end  
 
     pause(0.0001)
