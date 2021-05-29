@@ -1,4 +1,5 @@
 println("Main interface for Time Stepper")
+println("Using Jacobi Davidson for Eigenvalue/Eigenvaector Computations")
 
 using PolynomialBases
 using PyPlot,PyCall
@@ -55,7 +56,7 @@ Big   = 1.0./Bg      # Global inverse Mass vector
 
 Oper  = similar(Bg)
 
-nkryl = 2
+nkryl = 1
 
 xg    = QT*(vimult.*Geom.xm1[:])
 
@@ -82,7 +83,7 @@ rgba1 = cm(1)
 rgba2 = cm(2) 
 
 dt = 0.001
-plotupd = Inf
+plotupd = 200
 eigcal  = 500
 
 λn = zeros(Complex,nkryl)
@@ -110,7 +111,7 @@ for i in 1:nsteps
   t = t + dt;
 
   for ik in 1:nkryl
-    global Oper,Rhs
+    global Opg
 
     v = V[:,ik]  
 
@@ -118,58 +119,32 @@ for i in 1:nsteps
       println("ik=$ik, Istep=$i, Time=$t")
     end  
 
-    bdf = bdf3;
-    ext = ex2;
-       
-    if i==1
-      bdf = bdf1;
-      ext = ex0;
-    elseif i==2  
-      bdf = bdf2;
-      ext = ex1;
-#    elseif i==3 
-#      bdf = bdf3;
-#      ext = ex2;
-    end
-
-#   Build RHS
-    rhs       = Cg*v            # Convection
-    rhs       = rhs .+ Sg*v     # Source term
-    rhs       = rhs .+ Fg*v     # Feedback
-
-#   Extrapolate Rhs  
-    rhs1      = ext[2]*rhs + ext[3]*Rlag[:,1,ik] + ext[4]*Rlag[:,2,ik]
-
-#   Save Lag terms  
-    Rlag[:,2,ik] = Rlag[:,1,ik]
-    Rlag[:,1,ik] = rhs
-
-#   Add contribution from lag terms  
-    bdlag    = (1.0/dt).*Bg.*(bdf[2]*v + bdf[3]*Vlag[:,1,ik] + bdf[4]*Vlag[:,2,ik])
-    Rhs      = rhs1 .- bdlag
-
-    Vlag[:,3,ik] = copy(Vlag[:,2,ik])
-    Vlag[:,2,ik] = copy(Vlag[:,1,ik])
-    Vlag[:,1,ik] = copy(v);
-
-    Rhs[1]    = 0.       # Boundary condition at inlet
-
-    Oper      = -Lg
+    OPg       = Cg .+ Sg .+ Lg
     for j in 1:ndof
-      Oper[j,j] = Oper[j,j] + bdf[1]/dt*Bg[j]
-    end
-    Oper[1,:] = bc
-    Oper[1,1] = 1.0 + im*0.0
+      OPg[j,:] = OPg[j,:]./Bg[j]
+    end  
+    OPg[1,:] = bc
+    OPg[1,1] = 1.0 + im*0.0        # Change operator for BC
 
-    soln         = gmres(Oper,Rhs);
-    V[:,ik]      = copy(soln)
+#   Apply BC       
+    v[1]      = 0.0 + im*0.0
+   
+#   k1
+    v1        = v .+ dt/2.0*OPg*v
+    v2        = v .+ dt/2.0*OPg*v1
+    v3        = v .+ dt*OPg*v2
+    v4        = v .+ dt/6.0*(OPg*(v .+ 2.0*v1 .+ 2.0*v2 .+ v3))
+
+    v         = v4
+
+    V[:,ik]      = copy(v)
 
   end       # ik in 1:nkryl
 
 # Orthogonalization && eig calculation
   if mod(i,reortho)==0
 #   Calculate Eigenvalues of Reduced operator  
-    global hλ, ax1, λ, pλ
+    global hλ, ax1, λ, pλ, Ar
    
     β           = sqrt(V[:,1]'*(Bg.*V[:,1]))
     V[:,1]      = V[:,1]/β
@@ -199,6 +174,37 @@ for i in 1:nsteps
     end  
 
     pλ = ax1.plot(real.(Lesshafft_λ),imag.(Lesshafft_λ), linestyle="none",marker=".", markersize=8)
+
+    fac = 0.2
+    o1 = minimum(real.(Ω))
+    l1 = minimum(real.(Lesshafft_λ))
+    x1 = min(l1,o1)
+
+    o2 = maximum(real.(Ω))
+    l2 = maximum(real.(Lesshafft_λ))
+    x2 = max(l2,o2)
+
+    dx = (x2-x1)*fac
+    x1 = x1 - dx
+    x2 = x2 + dx
+
+    o1 = minimum(imag.(Ω))
+    l1 = minimum(imag.(Lesshafft_λ))
+    y1 = min(l1,o1) 
+
+    o2 = maximum(imag.(Ω))
+    l2 = maximum(imag.(Lesshafft_λ))
+    y2 = max(l2,o2)
+
+    dy = (y2-y1)*fac
+    y1 = y1 - dy
+    y2 = y2 + dy
+
+
+    ax1.set_xlim((x1,x2))  
+    ax1.set_ylim((y1,y2))  
+
+   
     pause(0.001)
   end  
 
