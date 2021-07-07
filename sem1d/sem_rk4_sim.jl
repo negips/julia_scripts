@@ -10,7 +10,7 @@ using Roots
 close("all")
 
 # Include the function files
-include("sem_main.jl")
+# include("sem_main.jl")
 
 
 # Temporal discretization
@@ -81,8 +81,8 @@ rgba0 = cm(0)
 rgba1 = cm(1) 
 rgba2 = cm(2) 
 
-dt = 0.001
-plotupd = 200
+dt = 0.0001
+plotupd = 5
 eigcal  = 500
 
 λn = zeros(Complex,nkryl)
@@ -106,6 +106,10 @@ for i in 1:nsteps
   global V,Vlag,Rlag
   global t
   global plr,pli
+
+  if i==1
+    println("Starting time loop")
+  end  
 
   t = t + dt;
 

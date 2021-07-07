@@ -35,4 +35,15 @@ c0 = 0.0;
 
 L,B,OP,Conv,Src,Lap,Fd = AssembleMatrixLesshafft2(c0,Geom.cnv,Geom.wlp,Geom.xm1,Geom.bm1,Basis,lx1,nel);
 
+ifglobal = true
 
+if ifglobal
+  Cg    = QT*Conv*Q    # Global Convection matrix
+  Lg    = QT*Lap*Q     # Global Laplacian matrix
+  Sg    = QT*Src*Q     # Global Src matrix
+  Fg    = QT*Fd*Q      # Global Feedback matrix
+  Bg    = QT*B         # Global Mass vector
+  Big   = 1.0./Bg      # Global inverse Mass vector
+end
+
+Opg  = similar(Bg)

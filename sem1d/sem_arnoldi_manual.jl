@@ -31,7 +31,6 @@ c0 = 0.0e-10;
 
 L,M,OP,Binv = AssembleMatrixLesshafft(c0,Geom.cnv,Geom.wlp,Geom.xm1,Geom.bm1,Basis,lx1,nel);
 
-
 xglob = vimult.*Q*QT*Geom.xm1[:]
 
 Md = diag(M)
