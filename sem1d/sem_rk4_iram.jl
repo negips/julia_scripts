@@ -56,7 +56,7 @@ EKryl = 2*Nev           # Additional size of Krylov space
 LKryl = Nev + EKryl     # Total Size of Krylov space    
 
 V     = zeros(Complex,ndof,LKryl)
-H     = zeros(Complex,LKryl+1,LKryl)
+H     = zeros(Complex,LKryl,LKryl)
 
 v     = rand(Float64,ndof) + im*rand(Float64,ndof);
 
@@ -71,8 +71,9 @@ verbosestep = 100
 reortho = 50
 ngs     = 2       # Number of Gram-Schmidt
 nkryl   = 0
+θ       = 0.      # Arnoldi Residual norm
 
-V,H,v,nkryl = ArnUpd!(V,H,Bg,nkryl,LKryl,v,ngs)
+V,H,v,θ,nkryl = ArnUpd!(V,H,Bg,θ,nkryl,LKryl,v,ngs)
 
 cm    = get_cmap("tab10");
 rgba0 = cm(0) 
@@ -96,7 +97,7 @@ t = 0.            # Time
 i = 0             # Istep
 
 while ~ifconv
-  global V,H,v
+  global V,H,v,θ
   global t, i
   global plr,pli
   global OPg
@@ -139,38 +140,43 @@ while ~ifconv
 # Expand Krylov space
   if mod(i,reortho)==0
 #   Update Arnoldi Vector 
-    V,H,v,nkryl = ArnUpd!(V,H,Bg,nkryl,LKryl,v,ngs)      
+    V,H,v,θ,nkryl = ArnUpd!(V,H,Bg,θ,nkryl,LKryl,v,ngs)      
+
+
 
 #   Perform implicit restart      
     if nkryl == LKryl+1
       global Hb
       kk = nkryl-1
-      Hb = H[1:kk,1:kk]
-      F  = eigen(Hb)          # Uses Lapack routine (dgeev/zgeev)
+#      Hb = H[1:kk,1:kk]
+      F  = eigen(H)          # Uses Lapack routine (dgeev/zgeev)
       fr = real.(F.values)
       fr_sort_i = sortperm(fr,rev=false)   # Increasing order
-      II = Matrix{Complex}(1.0I,kk,kk)
-      QQ = deepcopy(II)
-      for j in 1:1 #EKryl
-        k = fr_sort_i[j]
-        QRj = qr(Hb - F.values[k]*II)          # Expensive. Should replace by Bulge Chase
-        Hb  = QRj.T*QRj.factors + F.values[k]*II
-        QQ  = QQ*QRj.factors
-      end 
-      V = V*QQ
-      β = Hb[Nev+1,Nev]       # e_k+1^T*Hb*e_k
-      σ = QQ[kk,Nev]           # e_k+p^T*Q*e_k
-      r = copy(v)
-      v = V*QQ[:,Nev+1]        # V*Q*e_k+1
-      r = β.*v .+ σ.*r        # Update residual
+      μ         = F.values[fr_sort_perm[1:EKryl]]
+      nμ        = length(μ)
 
-      H[1:kk,1:kk] = Hb
+#      II = Matrix{Complex}(1.0I,kk,kk)
+#      QQ = deepcopy(II)
+#      for j in 1:1 #EKryl
+#        k = fr_sort_i[j]
+#        QRj = qr(Hb - F.values[k]*II)          # Expensive. Should replace by Bulge Chase
+#        Hb  = QRj.T*QRj.factors + F.values[k]*II
+#        QQ  = QQ*QRj.factors
+#      end
 
-      β = sqrt(r'*(Bg.*r))
-      v = r/β
-      H[Nev+1,Nev] = β
+      QQ,Hs = ShiftedQR(H,μ,nμ,ngs)
+      v2    = V*Q[:,Nev+1]        # New Vector
+      V     = V*QQ[:,1:Nev]       # Updated Krylov space
+      β     = Hs[Nev+1,Nev]       # e_k+1^T*H*e_k
+      σ     = QQ[kk,Nev]          # e_k+p^T*Q*e_k
+      r     = β*v2 + σ*v          # new residual vector
 
-      nkryl            = Nev
+      H     = Hs
+
+      θ     = sqrt(r'*(Bg.*r))
+      v     = r/θ
+
+      nkryl = Nev
 
       ifconv = true
     end     # nkryl == LKryl+1 

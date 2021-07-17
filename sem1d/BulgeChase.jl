@@ -1,12 +1,12 @@
 # Bulge Chase Algorithm
-function BulgeChase(H::Matrix,μ::Vector,nμ::Int)
+function CreateBulge(H::Matrix,μ::Vector,nμ::Int)
 
   # nμ      - No of Shifts
   # μ       - Shifts
   # H       - Hessenberg Matrix
 
 # x = p(H)*e1 = (H - μnI)...(H - μ2I)(H - μ1I)*e1
-  x     = polyHe1(H,μ,nμ)
+  x     = polyAe1(H,μ,nμ)
   xnorm = sqrt(x'*x)
   u     = copy(x)
 
@@ -18,9 +18,13 @@ function BulgeChase(H::Matrix,μ::Vector,nμ::Int)
   A   = copy(H)
   B   = copy(H)
 
-# H = Q0*H*Q0  
+# This creates the Bulge  
+# A = Q0*H*Q0  
   mul!(B,Q0',A)
   mul!(A,B,Q0)
+
+
+
 
  
   return A,Q0

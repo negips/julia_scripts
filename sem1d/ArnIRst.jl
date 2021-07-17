@@ -1,45 +1,69 @@
 # Arnoldi Implicit restart
-function ArnIRst!(V,H,B,k,kmax,v,ngs)
-    global V,H,v
+function ArnIRst(V::Matrix,Hes::Matrix,B::Vector,k::Int,kmax::Int,Nev::Int,gs::Int)
 
-    EKryl = kmax - k
+#   V         - Krylov Vector
+#   H         - Upper Hessenberg
+#   B         - Weight (vector)
+#   β         - previous/new residual norm
+#   k         - Current Krylov size
+#   kmax      - Maximum Krylov size
+#   r         - Old/New residual vector for Arnoldi iteration
+#   Nev       - Eigenvalues to retain
+#   ngs       - No of Gram-Schmidt
+
+    tol = 1.0e-10  
+
+    EKryl = kmax - 1 - Nev 
+    ifconv = false
+    nkryl = k
+
+    r = V[:,k]*Hes[k,k-1]
+
+    rw,cl = size(V)
+
+    U     = 0.0*V
+    G     = 0.0*Hes
 
 #   Perform implicit restart      
-    if k == kmax+1
-      global Hb
+    if k == kmax
+
       kk = k-1
-      Hb = H[1:kk,1:kk]
-      F  = eigen(Hb)          # Uses Lapack routine (dgeev/zgeev)
+
+      H = Hes[1:kk,1:kk]
+
+      F  = eigen(H)          # Uses Lapack routine (dgeev/zgeev)
       fr = real.(F.values)
       fr_sort_i = sortperm(fr,rev=false)   # Increasing order
-      II = Matrix{Complex}(1.0I,kk,kk)
-      QQ = deepcopy(II)
-      for j in 1:1 #EKryl
-        k = fr_sort_i[j]
-        QRj = qr(Hb - F.values[k]*II)          # Expensive. Should replace by Bulge Chase
-        Hb  = QRj.T*QRj.factors + F.values[k]*II
-        QQ  = QQ*QRj.factors
-      end 
-      V = V*QQ
-      β = Hb[Nev+1,Nev]       # e_k+1^T*Hb*e_k
-      σ = QQ[kk,Nev]           # e_k+p^T*Q*e_k
-      r = copy(v)
-      v = V*QQ[:,Nev+1]        # V*Q*e_k+1
-      r = β.*v .+ σ.*r        # Update residual
+      μ         = F.values[fr_sort_i[1:EKryl]]
+      nμ        = length(μ)
 
-      H[1:kk,1:kk] = Hb
+      Q,Hs  = ExplicitShiftedQR(H,μ,nμ,ngs)
+      v     = V[:,1:kk]*Q[:,Nev+1]        # Part of new residual vector
+      βk    = Hs[Nev+1,Nev]               # e_k+1^T*H*e_k
+      σ     = Q[kk,Nev]                   # e_k+p^T*Q*e_k
 
-      β = sqrt(r'*(Bg.*r))
-      v = r/β
-      H[Nev+1,Nev] = β
+      r    .= βk*v .+ σ*r                 # new residual vector
+      β     = abs(sqrt(r'*(B.*r)))
 
-      k            = Nev
+      if abs(β)<tol
+        ifconv = true
+      else
+        r     = r/β
+      end  
 
-      ifconv = true
-    end     # k == kmax+1 
+      U[:,1:Nev]        = V[:,1:kk]*Q[:,1:Nev]        # Updated Krylov space
+      G[1:Nev,1:Nev]    = Hs[1:Nev,1:Nev]             # New Upper Hessenberg
+      G[Nev+1,Nev]      = β
+      U[:,Nev+1]        = r
 
+      nkryl = Nev+1
 
+    end     # k == kmax+1
 
-  return
+    return U,G,nkryl,ifconv
 end  
+
+
+
+
 
