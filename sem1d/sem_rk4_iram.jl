@@ -7,13 +7,18 @@ using LinearAlgebra
 using IterativeSolvers
 using SpecialFunctions
 using Roots
+using Random
+
 
 include("ArnUpd.jl")
+include("ArnIRst.jl")
+include("ExplicitShiftedQR.jl")
+include("IRAM.jl")
 
 close("all")
 
 # Include the function files
-# include("sem_main.jl")
+include("sem_main.jl")
 
 # Local Matrices constructed in Sem_main.jl
 # Global Matrices also constructed in Sem_main.jl
@@ -26,6 +31,9 @@ close("all")
 # Big   = 1.0./Bg      # Global inverse Mass vector
 # 
 # Oper  = similar(Bg)
+
+rng = MersenneTwister(1234)
+
 
 rcParams = PyPlot.PyDict(PyPlot.matplotlib."rcParams")
 
@@ -51,14 +59,20 @@ pΛ = plot(real.(Ω),imag.(Ω),linestyle="none",marker="o",markersize=8)
 
 xg    = QT*(vimult.*Geom.xm1[:])
 
-Nev   = 2               # Number of eigenvalues to calculate
-EKryl = 2*Nev           # Additional size of Krylov space
+Nev   = 4               # Number of eigenvalues to calculate
+EKryl = 3*Nev           # Additional size of Krylov space
 LKryl = Nev + EKryl     # Total Size of Krylov space    
 
-V     = zeros(Complex,ndof,LKryl)
-H     = zeros(Complex,LKryl,LKryl)
+vt    = ComplexF64
+#vt    = Float64
 
-v     = rand(Float64,ndof) + im*rand(Float64,ndof);
+V     = zeros(vt,ndof,LKryl+1)
+Vold  = zeros(vt,ndof,LKryl+1)
+
+H     = zeros(vt,LKryl+1,LKryl)
+Hold  = zeros(vt,LKryl+1,LKryl)
+
+v     = randn(vt,ndof);
 
 # Orthogonalize
 # α           = sqrt(v'*(Bg.*v))
@@ -66,14 +80,19 @@ v     = rand(Float64,ndof) + im*rand(Float64,ndof);
 # V[:,1]      = v
 # nkryl       = 1
 
-verbose = true
-verbosestep = 100
-reortho = 50
+ifarnoldi = true
+verbose = false
+reortho = 200
+verbosestep = reortho #500
+nsteps      = 100000
+
 ngs     = 2       # Number of Gram-Schmidt
 nkryl   = 0
-θ       = 0.      # Arnoldi Residual norm
+tol     = 1.0e-12
 
-V,H,v,θ,nkryl = ArnUpd!(V,H,Bg,θ,nkryl,LKryl,v,ngs)
+h,θ,r  = ArnUpd(V,Bg,v,nkryl,ngs)
+V[:,1] = r
+nkryl  = 1
 
 cm    = get_cmap("tab10");
 rgba0 = cm(0) 
@@ -82,11 +101,10 @@ rgba2 = cm(2)
 
 dt = 0.0001
 plotupd = 200
-eigcal  = 500
 
-λn = zeros(Complex,nkryl)
+λn = zeros(vt,nkryl)
 
-bc = zeros(Complex,1,ndof);
+bc = zeros(vt,1,ndof);
 Rhs = similar(v)
 
 rcParams["markers.fillstyle"] = "full"
@@ -96,25 +114,28 @@ Istep  = 0
 t = 0.            # Time
 i = 0             # Istep
 
-while ~ifconv
-  global V,H,v,θ
+maxouter_it = 50
+major_it    = 1
+
+while (~ifconv)
+  global V,H,v
   global t, i
   global plr,pli
   global OPg
   global nkryl
-  global QQ, QRj
   global hλ, ax1, λ, pλ, Ar
   global ifconv
+  global major_it
+  global Vold,Hold
+
+  local h,r,β
+  local U
 
   i = i + 1
 
   t = t + dt;
 
 #  v = V[:,ik]  
-
-  if verbose && mod(i,verbosestep)==0
-    println("Istep=$i, Time=$t")
-  end  
 
 # Build the operator only the first time
   if (i==1)
@@ -137,131 +158,88 @@ while ~ifconv
 
   v  = v4
 
-# Expand Krylov space
-  if mod(i,reortho)==0
-#   Update Arnoldi Vector 
-    V,H,v,θ,nkryl = ArnUpd!(V,H,Bg,θ,nkryl,LKryl,v,ngs)      
-
-
-
-#   Perform implicit restart      
-    if nkryl == LKryl+1
-      global Hb
-      kk = nkryl-1
-#      Hb = H[1:kk,1:kk]
-      F  = eigen(H)          # Uses Lapack routine (dgeev/zgeev)
-      fr = real.(F.values)
-      fr_sort_i = sortperm(fr,rev=false)   # Increasing order
-      μ         = F.values[fr_sort_perm[1:EKryl]]
-      nμ        = length(μ)
-
-#      II = Matrix{Complex}(1.0I,kk,kk)
-#      QQ = deepcopy(II)
-#      for j in 1:1 #EKryl
-#        k = fr_sort_i[j]
-#        QRj = qr(Hb - F.values[k]*II)          # Expensive. Should replace by Bulge Chase
-#        Hb  = QRj.T*QRj.factors + F.values[k]*II
-#        QQ  = QQ*QRj.factors
-#      end
-
-      QQ,Hs = ShiftedQR(H,μ,nμ,ngs)
-      v2    = V*Q[:,Nev+1]        # New Vector
-      V     = V*QQ[:,1:Nev]       # Updated Krylov space
-      β     = Hs[Nev+1,Nev]       # e_k+1^T*H*e_k
-      σ     = QQ[kk,Nev]          # e_k+p^T*Q*e_k
-      r     = β*v2 + σ*v          # new residual vector
-
-      H     = Hs
-
-      θ     = sqrt(r'*(Bg.*r))
-      v     = r/θ
-
-      nkryl = Nev
-
-      ifconv = true
-    end     # nkryl == LKryl+1 
-
-#  end       # mod(i,reortho)    
-    if (nkryl == Nev && i>LKryl*reortho)
-      if i==reortho*LKryl
-#        hλ = figure(num=1,figsize=[8.,6.]);
-#        ax1 = gca()
-      else
-#        ax1.clear()
-        pλ[1].remove()
-      end  
-   
-      Ar = V[:,1:Nev]'*(Cg .+ Sg .+ Fg .+ Lg)*V[:,1:Nev]       # V'AV
-      λ = eigvals(Ar)
-      
-      Lesshafft_λ = 1.0*im*λ
-      for j in length(λ):-1:1  
-        display("$(Lesshafft_λ[j])")
-      end  
-
-      pλ = ax1.plot(real.(Lesshafft_λ),imag.(Lesshafft_λ), linestyle="none",marker=".", markersize=8)
-
-      fac = 0.2
-      o1 = minimum(real.(Ω))
-      l1 = minimum(real.(Lesshafft_λ))
-      x1 = min(l1,o1)
-
-      o2 = maximum(real.(Ω))
-      l2 = maximum(real.(Lesshafft_λ))
-      x2 = max(l2,o2)
-
-      dx = (x2-x1)*fac
-      x1 = x1 - dx
-      x2 = x2 + dx
-
-      o1 = minimum(imag.(Ω))
-      l1 = minimum(imag.(Lesshafft_λ))
-      y1 = min(l1,o1) 
-
-      o2 = maximum(imag.(Ω))
-      l2 = maximum(imag.(Lesshafft_λ))
-      y2 = max(l2,o2)
-
-      dy = (y2-y1)*fac
-      y1 = y1 - dy
-      y2 = y2 + dy
-
-
-      ax1.set_xlim((x1,x2))  
-      ax1.set_ylim((y1,y2))  
-
-   
-      pause(0.001)
-    end     # nkryl == Nev  
-  end       # mod(i,reortho)    
-
-  end       # mod(i,reortho)    
-
-# Plot
-  if mod(i,plotupd)==0
-    global hev, ax2
-    if i==plotupd
-      hev = figure(num=2,figsize=[8.,6.]);
-      ax2 = gca()
-    end  
-
-    if (i>plotupd)
-#       plr[1].remove();
-#       pli[1].remove();
-#      lo = ax2.get_lines()
-      for lo in ax2.get_lines()
-        lo.remove()
-      end  
-    end   
-
-    for ik in 1:nkryl
-      plr = ax2.plot(xg,real.(V[:,ik]),color=cm(ik-1));
-      pli = ax2.plot(xg,imag.(V[:,ik]),color=cm(ik-1),linestyle="--");
-    end  
-
-    pause(0.0001)
-  end
+  if (ifarnoldi)
+#   Expand Krylov space
+    if mod(i,reortho)==0
+ #     Update Arnoldi Vector 
+ #      V,H,v,θ,nkryl = ArnUpd!(V,H,Bg,θ,nkryl,LKryl,v,ngs)      
+       h,β,r = ArnUpd(V,Bg,v,nkryl,ngs)
+       H[1:nkryl,nkryl] = h
+       H[nkryl+1,nkryl] = β
+       nkryl = nkryl + 1
+       V[:,nkryl] = r
+       v          = r
  
+ #     Perform implicit restart
+
+#       V,H,nkryl,β,major_it = IRAM!(V,H,Bg,v,nkryl,LKryl,major_it,Nev,ngs)
+
+       if nkryl == LKryl+1
+         Hold = H
+         Vold = V
+         U,G,nkryl,ifconv = ArnIRst(V,H,Bg,nkryl,LKryl+1,Nev,ngs)
+         V = U
+         H = G
+         
+         v = V[:,nkryl]
+         β = abs(H[Nev+1,Nev])
+         println("Outer Iteration: $major_it; β=$β")
+ 
+         if (β < tol)
+           break
+         end  
+
+        major_it = major_it + 1
+        if (major_it>maxouter_it)
+          break
+        end  
+      end     # nkryl == LKryl+1
+      
+
+      if (verbose)
+        println("Krylov Size: $nkryl")
+      end  
+
+    end       # mod(i,reortho)
+  
+  elseif i==nsteps
+   if verbose && mod(i,verbosestep)==0
+    println("Istep=$i, Time=$t")
+  end  
+
+   
+    break
+  end         # ifarnoldi 
+
+end       # while ... 
+
+if (ifarnoldi)
+  Hr = H[1:Nev,1:Nev]
+  F  = eigen(Hr)
+  DT = dt*reortho 
+  
+  λr = log.(abs.(F.values))/DT
+  λi = atan.(imag(F.values),real.(F.values))/DT
+  
+  λ  = λr .+ im*λi
+  
+  Lesshafft_λ = 1.0*im*λ
+  
+  pλ = ax1.plot(real.(Lesshafft_λ),imag.(Lesshafft_λ), linestyle="none",marker=".", markersize=8)
+  
+  eigvec = V[:,1:Nev]*F.vectors
+  
+  hv = figure(num=2,figsize=[8.,6.]);
+  ax2 = gca()
+  for j in 1:Nev
+    pvec = ax2.plot(xg,real.(eigvec[:,j]),linestyle="-")
+  end  
+else
+  hv = figure(num=2,figsize=[8.,6.]);
+  ax2 = gca()
+  pvec = ax2.plot(xg,real.(v),linestyle="-")
+end
+
 
 
 

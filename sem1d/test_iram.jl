@@ -7,32 +7,37 @@ using Random
 include("ArnUpd.jl")
 include("ArnIRst.jl")
 include("ExplicitShiftedQR.jl")
+include("IRAM.jl")
 
 rng = MersenneTwister(1234)
 
 vt = ComplexF64
 #vt = Float64
 
-n = 1000     # Matrix size
+n = 100     # Matrix size
 
 λ  = randn(rng,vt,n)
+#λ .= λ.^3
 λm = diagm(0 => λ)
 
 U = randn(rng,vt,n,n)
+u = qr(U)
+UQ = u.Q
 
-A = inv(U)*λm*U
+A = inv(UQ)*λm*UQ
 
 λr = real.(λ)
 ind = sortperm(λr,rev=true)
 
 Nev   = 8                           # Number of eigenvalues to calculate
-EKryl = 16                           # Additional size of Krylov space
+EKryl = 20                           # Additional size of Krylov space
 LKryl = Nev + EKryl                 # Total Size of Krylov space    
 
 V     = zeros(vt,n,LKryl+1)
 Hes   = zeros(vt,LKryl+1,LKryl)
 Bg    = ones(Float64,n)             # Weight vector
 
+v     = randn(rng,vt,n)
 v     = randn(rng,vt,n)
 
 ngs     = 3       # Number of Gram-Schmidt
@@ -64,7 +69,7 @@ end
 #while ~ifconv
 
 # Major Iterations
-for mi in 1:30
+for mi in 1:400
   global V,Hes,nkryl,ifconv
   local U,G
   local β
@@ -75,28 +80,42 @@ for mi in 1:30
 
     r = V[:,nkryl]
     v = A*r
-    h,β,r  = ArnUpd(V,Bg,v,nkryl,ngs)
-    Hes[1:nkryl,nkryl] = h
-    Hes[nkryl+1,nkryl] = β
-    V[:,nkryl+1]       = r
-    nkryl              = nkryl + 1
+#    h,β,r  = ArnUpd(V,Bg,v,nkryl,ngs)
+#    Hes[1:nkryl,nkryl] = h
+#    Hes[nkryl+1,nkryl] = β
+#    V[:,nkryl+1]       = r
+#    nkryl              = nkryl + 1
 
-    if β < 1.0e-10
-      println(["β = $β; Iteration= $mi"])
-    end
-  
+     V,Hes,nkryl,β,mi2 = IRAM!(V,Hes,Bg,v,nkryl,LKryl,mi,Nev,ngs)
+#     nkryl = nk
+#     V   = U
+#     Hes = G
+#     println(nkryl)
+
   end
 
-  U,G,nkryl,ifconv = ArnIRst(V,Hes,Bg,nkryl,LKryl+1,Nev,ngs)
+#  println(nkryl)
+#  U,G,nk,β,mi2 = IRAM!(V,Hes,Bg,v,nkryl,LKryl,mi,Nev,ngs)
+#  nkryl = nk
+#  println(nkryl)
+
+
+#  U,G,nkryl,ifconv = ArnIRst(V,Hes,Bg,nkryl,LKryl+1,Nev,ngs)
 #  println(["β = $β; nkryl=$nkryl"])
 
-  V   = U
-  Hes = G
+#  V   = U
+#  Hes = G
 
 #  println(Hes[1,1])
-  β   = Hes[Nev+1,Nev]
-  println("β = $β; Iteration=$mi")
+  β   = abs(Hes[Nev+1,Nev])
+#  println("β = $β; Iteration=$mi")
+
+  if β < 1.0e-12
+    break
+  end
   
+  
+ 
 end  
 
 #println("Actual Eigenvalues")
@@ -110,8 +129,11 @@ F = eigen(Ht)
 #
 ind2 = sortperm(real.(F.values),rev=true)
 
-display(λ[ind[1:Nev+5]])
+display(λ[ind[1:Nev+2]])
 display(F.values[ind2])
+
+errnorm = norm(λ[ind[1:Nev]]-F.values[ind2]) 
+display("Err Norm: $errnorm")
 
 #V,H,v,β,nkryl,ifconv = ArnIRst!(V,H,Bg,β,nkryl,LKryl,Nev,v,ngs)
 

@@ -15,6 +15,8 @@ function ArnUpd(V::Matrix,b::Vector,v::Vector,k::Int,ngs::Int)
   β   = 0.
   r = copy(v)
 
+  tol = 1.0e-12
+
 # New Arnoldi Vector
   if k > 0
     h = V[:,1:k]'*(b.*r)
@@ -27,6 +29,16 @@ function ArnUpd(V::Matrix,b::Vector,v::Vector,k::Int,ngs::Int)
         mul!(q,V[:,1:k],g)
         r .= r .- q
         h .= h .+ g
+      end
+    elseif ngs <=0 
+      while true
+        g   = Qj[:,1:j-1]'*q
+        res = abs(g'*g)
+        if res<tol
+          break
+        end
+        h = h .+ g
+        q = q - Qj[:,1:j-1]*g
       end  
     end
     β        = norm(sqrt(r'*(b.*r)))

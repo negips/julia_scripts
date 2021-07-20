@@ -1,6 +1,7 @@
 # Perform Explicit Shifted QR with exact eigenvalue shifts
 function ExplicitShiftedQR(Hs,μ0,nμ,ngs)
 
+  tol = 1.0e-12
   H   = copy(Hs)
 
   r,c = size(H)
@@ -34,6 +35,16 @@ function ExplicitShiftedQR(Hs,μ0,nμ,ngs)
           h = h .+ g
           q = q - Qj[:,1:j-1]*g
         end
+      elseif ngs<=0
+        while true
+          g   = Qj[:,1:j-1]'*q
+          res = abs(g'*g)
+          if res<tol
+            break
+          end
+          h = h .+ g
+          q = q - Qj[:,1:j-1]*g
+        end  
       end  
       Qj[:,j]     = q/norm(q)
       R[1:j-1,j]  = h
