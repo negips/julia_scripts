@@ -45,8 +45,11 @@ rcParams = PyPlot.PyDict(PyPlot.matplotlib."rcParams")
 ω5 = find_zero(airyai,(-8.0,-7.0))
 ω6 = find_zero(airyai,(-9.5,-8.0))
 ω7 = find_zero(airyai,(-10.5,-9.5))
+ω8 = find_zero(airyai,(-11.8,-10.5))
+ω9 = find_zero(airyai,(-12.0,-11.8))
+ω10 = find_zero(airyai,(-12.9,-12.0))
 
-ω  = [ω1, ω2, ω3, ω4, ω5, ω6, ω7]
+ω  = [ω1, ω2, ω3, ω4, ω5, ω6, ω7, ω8, ω9, ω10]
 U  = 6.0
 γ  = 1.0 - im*1.0
 
@@ -57,14 +60,10 @@ hλ = figure(num=1,figsize=[8.,6.]);
 ax1 = gca()
 pΛ = plot(real.(Ω),imag.(Ω),linestyle="none",marker="o",markersize=8)
 
-hv  = figure(num=2,figsize=[8.,6.]);
-ax2 = gca()
-
-
 xg    = QT*(vimult.*Geom.xm1[:])
 
-Nev   = 4               # Number of eigenvalues to calculate
-EKryl = 2*Nev           # Additional size of Krylov space
+Nev   = 20               # Number of eigenvalues to calculate
+EKryl = Int64(floor(2.5*Nev))           # Additional size of Krylov space
 LKryl = Nev + EKryl     # Total Size of Krylov space    
 
 vt    = ComplexF64
@@ -78,21 +77,16 @@ Hold  = zeros(vt,LKryl+1,LKryl)
 
 r     = randn(vt,ndof);
 
-# Orthogonalize
-# α           = sqrt(v'*(Bg.*v))
-# v           = v/α
-# V[:,1]      = v
-# nkryl       = 1
-
-ifarnoldi = true
-verbose = false
-reortho = 1000
+ifarnoldi   = true
+ifplot      = false
+verbose     = false
+reortho     = 1000
 verbosestep = reortho #500
 nsteps      = 100000
 
 ngs     = 2       # Number of Gram-Schmidt
 nkryl   = 0
-tol     = 1.0e-10
+tol     = 1.0e-08
 
 h,θ,v  = ArnUpd(V,Bg,r,nkryl,ngs)
 V[:,1] = v
@@ -116,8 +110,15 @@ ifconv = false
 t = 0.            # Time
 i = 0             # Istep
 
-maxouter_it = 200
+maxouter_it = 5000
 major_it    = 1
+
+if (ifplot)
+  hv  = figure(num=2,figsize=[8.,6.]);
+  ax2 = gca()
+end
+
+# Start iterations
 
 while (~ifconv)
   global V,H,v
@@ -163,37 +164,30 @@ while (~ifconv)
   if (ifarnoldi)
 #   Expand Krylov space
     if mod(i,reortho)==0
- #     Update Arnoldi Vector 
-#       h,β,r = ArnUpd(V,Bg,v,nkryl,ngs)
-#       H[1:nkryl,nkryl] = h
-#       H[nkryl+1,nkryl] = β
-#       nkryl = nkryl + 1
-#       V[:,nkryl] = r
-#       v          = r
-# 
-# #     Perform implicit restart
-#
 
-       if (i>reortho)
-         for lo in ax2.get_lines()
-           lo.remove()
+       if ifplot
+         if (i>reortho) 
+           for lo in ax2.get_lines()
+             lo.remove()
+           end  
          end  
-       end  
 
-       pv1 = ax2.plot(xg,real.(v),linestyle="-")
+         pv1 = ax2.plot(xg,real.(v),linestyle="-")
+       end  
 
        V,H,nkryl,β,major_it = IRAM!(V,H,Bg,v,nkryl,LKryl,major_it,Nev,ngs)
 
        v   = V[:,nkryl]
-       pv2 = ax2.plot(xg,real.(v),linestyle="--")
-#      β = 1.
 
-       vmin = 1.5*minimum(real.(v))
-       vmax = 1.5*maximum(real.(v))
-       ax2.set_ylim((vmin,vmax))
-       pause(0.001)
-       draw() 
+       if (ifplot)
+         pv2 = ax2.plot(xg,real.(v),linestyle="--")
 
+         vmin = 1.5*minimum(real.(v))
+         vmax = 1.5*maximum(real.(v))
+         ax2.set_ylim((vmin,vmax))
+         pause(0.001)
+         draw() 
+       end  
 #
 #       if nkryl == LKryl+1
 #         Hold = H
