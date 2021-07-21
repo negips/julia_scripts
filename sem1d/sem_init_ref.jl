@@ -8,7 +8,8 @@ println("Intializing SEM")
 
 #close("all")
 
-AT = Float64
+#AT = Float64
+AT = ComplexF64
 
 # define nodal bases
 N           = 8 ;                               # polynomial degree
@@ -22,7 +23,7 @@ Basisd      = LobattoLegendre(Nd)               # Polynomial Basis
 #basis2 = GaussLegendre(N)
 
 xs          = 0.                                # Domain start
-xe          = 60                               # Domain end
+xe          = 40                               # Domain end
 nel         = 40                                # No of elements
 nnodes      = nel+1;                            # No of nodes
 xc          = range(xs,stop=xe,length=nnodes);  # Element coordinates
@@ -38,19 +39,18 @@ wzm1d       = Basisd.weights;                   # Reference integration weights
 dxm1        = Basis.D;                          # Derivative Matrix
 dxtm1       = Basis.D';                         # Derivative transpose
 
-# Clean up matrices
-eps10 = 10.0*eps(Float64)
-for j in 1:lx1, i in 1:lx1
-  if abs(dxm1[i,j])<eps10
-    dxm1[i,j] = 0.
-  end  
-  if abs(dxtm1[i,j])<eps10
-    dxtm1[i,j] = 0.
-  end  
-end
+# # Clean up matrices
+# eps10 = 10.0*eps(Float64)
+# for j in 1:lx1, i in 1:lx1
+#   if abs(dxm1[i,j])<eps10
+#     dxm1[i,j] = 0.
+#   end  
+#   if abs(dxtm1[i,j])<eps10
+#     dxtm1[i,j] = 0.
+#   end  
+# end
 
 
 Geom = sem_geom(Basis,Basisd,xc,N,Nd,nel,dxm1,dxtm1);
-
 
 println("Initialization done")

@@ -17,7 +17,7 @@ function AssembleMatrixLesshafft(c0,cnv,wlp,xm1,bm1,Basis,lx1,nel)
 
 
 #      VT  = Float64
-      VT  = Complex
+      VT  = ComplexF64
 
       II  = Matrix(1.0I,lx1,lx1)
       U   = 6.0
@@ -119,21 +119,21 @@ function AssembleMatrixLesshafft2(c0,cnv,wlp,xm1,bm1,Basis,lx1,nel)
 
 
 
-      VT  = Complex
+      VT  = ComplexF64
 
-      II  = Matrix(1.0I,lx1,lx1)
+      II  = Matrix{VT}(1.0I,lx1,lx1)
       U   = 6.0
       γ   = 1.0 - 1.0*im
 
       dof = nel*lx1;
 
       A    = zeros(VT,dof,dof);
-      B    = zeros(Float64,dof);
+      B    = zeros(VT,dof);
       Conv = zeros(VT,dof,dof)
       Src  = zeros(VT,dof,dof)
       Lap  = zeros(VT,dof,dof)
       Fd   = zeros(VT,dof,dof)
-      Binv = zeros(Float64,lx1,nel);
+      Binv = zeros(VT,lx1,nel);
 
       OP   = zeros(VT,lx1,lx1,nel);
 

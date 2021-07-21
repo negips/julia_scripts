@@ -6,7 +6,7 @@ using LinearAlgebra
 #using Plots
 
 # Include the function files
-include("sem_geom.jl")
+include("sem_geom2.jl")
 
 include("AssembleMatrix.jl")
 
@@ -44,6 +44,8 @@ if ifglobal
   Fg    = QT*Fd*Q      # Global Feedback matrix
   Bg    = QT*B         # Global Mass vector
   Big   = 1.0./Bg      # Global inverse Mass vector
+  
+  OPg   = QT*(L)*Q./Bg
 end
 
-Opg  = similar(Bg)
+#OPg  = similar(Cg)

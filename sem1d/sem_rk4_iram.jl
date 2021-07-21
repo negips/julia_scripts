@@ -18,7 +18,7 @@ include("IRAM.jl")
 close("all")
 
 # Include the function files
-#include("sem_main.jl")
+include("sem_main.jl")
 
 # Local Matrices constructed in Sem_main.jl
 # Global Matrices also constructed in Sem_main.jl
@@ -50,7 +50,7 @@ rcParams = PyPlot.PyDict(PyPlot.matplotlib."rcParams")
 U  = 6.0
 γ  = 1.0 - im*1.0
 
-Ω  = im*(U*U/8 .- U*U/4/γ .+ γ^(1.0/3.0)*(U^(4.0/3.0))/(160.0^(2.0/3.0))*ω)
+Ω  = im*(U*U/8.0 .- U*U/(4.0*γ) .+ γ^(1.0/3.0)*(U^(4.0/3.0))/(160.0^(2.0/3.0))*ω)
 
 rcParams["markers.fillstyle"] = "none"
 hλ = figure(num=1,figsize=[8.,6.]);
@@ -133,7 +133,6 @@ while (~ifconv)
 
   local h,r,β
   local U
-
 
   β = 1.0
   i = i + 1

@@ -6,11 +6,12 @@ using LinearAlgebra
 using IterativeSolvers
 using SpecialFunctions
 using Roots
+using Random
 
 close("all")
 
 # Include the function files
-# include("sem_main.jl")
+include("sem_main.jl")
 
 
 # Temporal discretization
@@ -44,22 +45,23 @@ ax1 = gca()
 pΛ = plot(real.(Ω),imag.(Ω),linestyle="none",marker="o",markersize=8)
 
 
-# Local Matrices constructed in Sem_main.jl
+# # Local Matrices constructed in Sem_main.jl
+# 
+# Cg    = QT*Conv*Q    # Global Convection matrix
+# Lg    = QT*Lap*Q     # Global Laplacian matrix
+# Sg    = QT*Src*Q     # Global Src matrix
+# Fg    = QT*Fd*Q      # Global Feedback matrix
+# Bg    = QT*B         # Global Mass vector
+# Big   = 1.0./Bg      # Global inverse Mass vector
+# 
+# Oper  = similar(Bg)
 
-Cg    = QT*Conv*Q    # Global Convection matrix
-Lg    = QT*Lap*Q     # Global Laplacian matrix
-Sg    = QT*Src*Q     # Global Src matrix
-Fg    = QT*Fd*Q      # Global Feedback matrix
-Bg    = QT*B         # Global Mass vector
-Big   = 1.0./Bg      # Global inverse Mass vector
-
-Oper  = similar(Bg)
-
-nkryl = 1
+nkryl = 2
 
 xg    = QT*(vimult.*Geom.xm1[:])
 
-V     = rand(Float64,ndof,nkryl) + im*rand(Float64,ndof,nkryl);
+#V     = rand(Float64,ndof,nkryl) + im*rand(Float64,ndof,nkryl);
+V     = rand(ComplexF64,ndof,nkryl)
 
 # Orthogonalize
 α           = sqrt(V[:,1]'*(Bg.*V[:,1]))
@@ -73,8 +75,8 @@ for i in 2:nkryl
   V[:,i]    = V[:,i]/α
 end  
 
-Vlag  = zeros(Complex,ndof,3,nkryl);
-Rlag  = zeros(Complex,ndof,2,nkryl);
+Vlag  = zeros(ComplexF64,ndof,3,nkryl);
+Rlag  = zeros(ComplexF64,ndof,2,nkryl);
 
 cm    = get_cmap("tab10");
 rgba0 = cm(0) 
@@ -82,17 +84,17 @@ rgba1 = cm(1)
 rgba2 = cm(2) 
 
 dt = 0.0001
-plotupd = 5
-eigcal  = 500
+plotupd = 2000
+eigcal  = 2000
 
-λn = zeros(Complex,nkryl)
+λn = zeros(ComplexF64,nkryl)
 
 nsteps = 10000000
 
 time = range(0.,step=dt,length=nsteps);
 
 t = 0.
-bc = zeros(Complex,1,ndof);
+bc = zeros(ComplexF64,1,ndof);
 Rhs = similar(V[:,1])
 
 verbose = true
@@ -156,59 +158,63 @@ for i in 1:nsteps
       local β
       h         = V[:,1:i-1]'*(Bg.*V[:,i])
       V[:,i]    = V[:,i] - V[:,1:i-1]*h
+      g         = V[:,1:i-1]'*(Bg.*V[:,i])
+      V[:,i]    = V[:,i] - V[:,1:i-1]*g
+      h         = h + g 
       β         = sqrt(V[:,i]'*(Bg.*V[:,i]))
       V[:,i]    = V[:,i]/β
     end
 
-    if i==reortho
+    if i<=eigcal
 #      hλ = figure(num=1,figsize=[8.,6.]);
 #      ax1 = gca()
-    else
+    elseif mod(i,eigcal)==0
 #      ax1.clear()
       pλ[1].remove()
     end  
+
+    if mod(i,eigcal)==0
+      Ar = V'*(Cg .+ Sg .+ Fg .+ Lg)*V       # V'AV
+      λ = eigvals(Ar)
+      
+      Lesshafft_λ = 1.0*im*λ
+      for j in length(λ):-1:1  
+        display("Lesshafft: $(Lesshafft_λ[j])")
+      end  
+
+      pλ = ax1.plot(real.(Lesshafft_λ),imag.(Lesshafft_λ), linestyle="none",marker=".", markersize=8)
+
+      fac = 0.2
+      o1 = minimum(real.(Ω))
+      l1 = minimum(real.(Lesshafft_λ))
+      x1 = min(l1,o1)
+
+      o2 = maximum(real.(Ω))
+      l2 = maximum(real.(Lesshafft_λ))
+      x2 = max(l2,o2)
+
+      dx = (x2-x1)*fac
+      x1 = x1 - dx
+      x2 = x2 + dx
+
+      o1 = minimum(imag.(Ω))
+      l1 = minimum(imag.(Lesshafft_λ))
+      y1 = min(l1,o1) 
+
+      o2 = maximum(imag.(Ω))
+      l2 = maximum(imag.(Lesshafft_λ))
+      y2 = max(l2,o2)
+
+      dy = (y2-y1)*fac
+      y1 = y1 - dy
+      y2 = y2 + dy
+
+
+      ax1.set_xlim((x1,x2))  
+      ax1.set_ylim((y1,y2))  
    
-    Ar = V'*(Cg .+ Sg .+ Fg .+ Lg)*V       # V'AV
-    λ = eigvals(Ar)
-    
-    Lesshafft_λ = 1.0*im*λ
-    for j in length(λ):-1:1  
-      display("$(Lesshafft_λ[j])")
+      pause(0.001)
     end  
-
-    pλ = ax1.plot(real.(Lesshafft_λ),imag.(Lesshafft_λ), linestyle="none",marker=".", markersize=8)
-
-    fac = 0.2
-    o1 = minimum(real.(Ω))
-    l1 = minimum(real.(Lesshafft_λ))
-    x1 = min(l1,o1)
-
-    o2 = maximum(real.(Ω))
-    l2 = maximum(real.(Lesshafft_λ))
-    x2 = max(l2,o2)
-
-    dx = (x2-x1)*fac
-    x1 = x1 - dx
-    x2 = x2 + dx
-
-    o1 = minimum(imag.(Ω))
-    l1 = minimum(imag.(Lesshafft_λ))
-    y1 = min(l1,o1) 
-
-    o2 = maximum(imag.(Ω))
-    l2 = maximum(imag.(Lesshafft_λ))
-    y2 = max(l2,o2)
-
-    dy = (y2-y1)*fac
-    y1 = y1 - dy
-    y2 = y2 + dy
-
-
-    ax1.set_xlim((x1,x2))  
-    ax1.set_ylim((y1,y2))  
-
-   
-    pause(0.001)
   end  
 
 
