@@ -18,7 +18,7 @@ include("IRAM.jl")
 close("all")
 
 # Include the function files
-include("sem_main.jl")
+#include("sem_main.jl")
 
 # Local Matrices constructed in Sem_main.jl
 # Global Matrices also constructed in Sem_main.jl
@@ -57,6 +57,10 @@ hλ = figure(num=1,figsize=[8.,6.]);
 ax1 = gca()
 pΛ = plot(real.(Ω),imag.(Ω),linestyle="none",marker="o",markersize=8)
 
+hv  = figure(num=2,figsize=[8.,6.]);
+ax2 = gca()
+
+
 xg    = QT*(vimult.*Geom.xm1[:])
 
 Nev   = 4               # Number of eigenvalues to calculate
@@ -72,7 +76,7 @@ Vold  = zeros(vt,ndof,LKryl+1)
 H     = zeros(vt,LKryl+1,LKryl)
 Hold  = zeros(vt,LKryl+1,LKryl)
 
-v     = randn(vt,ndof);
+r     = randn(vt,ndof);
 
 # Orthogonalize
 # α           = sqrt(v'*(Bg.*v))
@@ -82,17 +86,17 @@ v     = randn(vt,ndof);
 
 ifarnoldi = true
 verbose = false
-reortho = 200
+reortho = 1000
 verbosestep = reortho #500
 nsteps      = 100000
 
 ngs     = 2       # Number of Gram-Schmidt
 nkryl   = 0
-tol     = 1.0e-12
+tol     = 1.0e-10
 
-h,θ,r  = ArnUpd(V,Bg,v,nkryl,ngs)
-V[:,1] = r
-nkryl  = 1
+h,θ,v  = ArnUpd(V,Bg,r,nkryl,ngs)
+V[:,1] = v
+nkryl  = 0
 
 cm    = get_cmap("tab10");
 rgba0 = cm(0) 
@@ -100,7 +104,6 @@ rgba1 = cm(1)
 rgba2 = cm(2) 
 
 dt = 0.0001
-plotupd = 200
 
 λn = zeros(vt,nkryl)
 
@@ -110,11 +113,10 @@ Rhs = similar(v)
 rcParams["markers.fillstyle"] = "full"
 
 ifconv = false
-Istep  = 0
 t = 0.            # Time
 i = 0             # Istep
 
-maxouter_it = 1
+maxouter_it = 200
 major_it    = 1
 
 while (~ifconv)
@@ -127,15 +129,16 @@ while (~ifconv)
   global ifconv
   global major_it
   global Vold,Hold
+  global ax2 
 
   local h,r,β
   local U
 
+
+  β = 1.0
   i = i + 1
 
   t = t + dt;
-
-#  v = V[:,ik]  
 
 # Build the operator only the first time
   if (i==1)
@@ -162,43 +165,67 @@ while (~ifconv)
 #   Expand Krylov space
     if mod(i,reortho)==0
  #     Update Arnoldi Vector 
- #      V,H,v,θ,nkryl = ArnUpd!(V,H,Bg,θ,nkryl,LKryl,v,ngs)      
-       h,β,r = ArnUpd(V,Bg,v,nkryl,ngs)
-       H[1:nkryl,nkryl] = h
-       H[nkryl+1,nkryl] = β
-       nkryl = nkryl + 1
-       V[:,nkryl] = r
-       v          = r
- 
- #     Perform implicit restart
+#       h,β,r = ArnUpd(V,Bg,v,nkryl,ngs)
+#       H[1:nkryl,nkryl] = h
+#       H[nkryl+1,nkryl] = β
+#       nkryl = nkryl + 1
+#       V[:,nkryl] = r
+#       v          = r
+# 
+# #     Perform implicit restart
+#
 
-#       V,H,nkryl,β,major_it = IRAM!(V,H,Bg,v,nkryl,LKryl,major_it,Nev,ngs)
-
-       if nkryl == LKryl+1
-         Hold = H
-         Vold = V
-         U,G,nkryl,ifconv = ArnIRst(V,H,Bg,nkryl,LKryl+1,Nev,ngs)
-         V = U
-         H = G
-         
-         v = V[:,nkryl]
-         β = abs(H[Nev+1,Nev])
-         println("Outer Iteration: $major_it; β=$β")
- 
-         if (β < tol)
-           break
+       if (i>reortho)
+         for lo in ax2.get_lines()
+           lo.remove()
          end  
+       end  
 
-        major_it = major_it + 1
+       pv1 = ax2.plot(xg,real.(v),linestyle="-")
+
+       V,H,nkryl,β,major_it = IRAM!(V,H,Bg,v,nkryl,LKryl,major_it,Nev,ngs)
+
+       v   = V[:,nkryl]
+       pv2 = ax2.plot(xg,real.(v),linestyle="--")
+#      β = 1.
+
+       vmin = 1.5*minimum(real.(v))
+       vmax = 1.5*maximum(real.(v))
+       ax2.set_ylim((vmin,vmax))
+       pause(0.001)
+       draw() 
+
+#
+#       if nkryl == LKryl+1
+#         Hold = H
+#         Vold = V
+#         U,G,nkryl,ifconv = ArnIRst(V,H,Bg,nkryl,LKryl+1,Nev,ngs)
+#         V = U
+#         H = G
+#         
+#         v = V[:,nkryl]
+#         β = abs(H[Nev+1,Nev])
+#         println("Outer Iteration: $major_it; β=$β")
+# 
+#         if (β < tol)
+#           break
+#         end  
+#
+#        major_it = major_it + 1
         if (major_it>maxouter_it)
           break
         end  
-      end     # nkryl == LKryl+1
-      
-
+#      end     # nkryl == LKryl+1
+#      
+#
       if (verbose)
         println("Krylov Size: $nkryl")
+      end
+      if (β < tol)
+        break
       end  
+
+#      break
 
     end       # mod(i,reortho)
   
@@ -229,15 +256,16 @@ if (ifarnoldi)
   
   eigvec = V[:,1:Nev]*F.vectors
   
-  hv = figure(num=2,figsize=[8.,6.]);
-  ax2 = gca()
+  hev = figure(num=3,figsize=[8.,6.]);
+  ax3 = gca()
   for j in 1:Nev
-    local pvec = ax2.plot(xg,real.(eigvec[:,j]),linestyle="-")
+    local pvec1 = ax3.plot(xg,real.(eigvec[:,j]),linestyle="-")
+    local pvec2 = ax3.plot(xg,imag.(eigvec[:,j]),linestyle="--")
   end  
 else
-  hv = figure(num=2,figsize=[8.,6.]);
-  ax2 = gca()
-  pvec = ax2.plot(xg,real.(v),linestyle="-")
+  hev = figure(num=3,figsize=[8.,6.]);
+  ax3 = gca()
+  pvec = ax3.plot(xg,real.(v),linestyle="-")
 end
 
 
