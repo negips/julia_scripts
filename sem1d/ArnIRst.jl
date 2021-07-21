@@ -11,7 +11,7 @@ function ArnIRst(V::Matrix,Hes::Matrix,B::Vector,k::Int,kmax::Int,Nev::Int,gs::I
 #   Nev       - Eigenvalues to retain
 #   ngs       - No of Gram-Schmidt
 
-    tol = 1.0e-10  
+    tol = 1.0e-12 
 
     EKryl = kmax - 1 - Nev 
     ifconv = false
@@ -45,10 +45,10 @@ function ArnIRst(V::Matrix,Hes::Matrix,B::Vector,k::Int,kmax::Int,Nev::Int,gs::I
       r    .= βk*v .+ σ*r                 # new residual vector
       β     = abs(sqrt(r'*(B.*r)))
 
+      r     = r/β
+
       if abs(β)<tol
         ifconv = true
-      else
-        r     = r/β
       end  
 
       U[:,1:Nev]        = V[:,1:kk]*Q[:,1:Nev]        # Updated Krylov space

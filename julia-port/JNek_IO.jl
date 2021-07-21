@@ -179,7 +179,12 @@
 #        recpos = recpos + meshlength*nelt 
 #        seek(fid,recpos)
 
-        nc   = read(fid,Float64)
+        if wdsizi == 4
+          nc   = read(fid,Float32)
+        else
+          nc   = read(fid,Float64)
+        end  
+
 
         ncurve = nc
         if ncurve > 0

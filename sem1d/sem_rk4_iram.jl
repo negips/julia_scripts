@@ -60,7 +60,7 @@ pΛ = plot(real.(Ω),imag.(Ω),linestyle="none",marker="o",markersize=8)
 xg    = QT*(vimult.*Geom.xm1[:])
 
 Nev   = 4               # Number of eigenvalues to calculate
-EKryl = 3*Nev           # Additional size of Krylov space
+EKryl = 2*Nev           # Additional size of Krylov space
 LKryl = Nev + EKryl     # Total Size of Krylov space    
 
 vt    = ComplexF64
@@ -114,7 +114,7 @@ Istep  = 0
 t = 0.            # Time
 i = 0             # Istep
 
-maxouter_it = 50
+maxouter_it = 1
 major_it    = 1
 
 while (~ifconv)
@@ -232,7 +232,7 @@ if (ifarnoldi)
   hv = figure(num=2,figsize=[8.,6.]);
   ax2 = gca()
   for j in 1:Nev
-    pvec = ax2.plot(xg,real.(eigvec[:,j]),linestyle="-")
+    local pvec = ax2.plot(xg,real.(eigvec[:,j]),linestyle="-")
   end  
 else
   hv = figure(num=2,figsize=[8.,6.]);

@@ -2,7 +2,7 @@
 function ExplicitShiftedQR(Hs,μ0,nμ,ngs)
 
   tol = 1.0e-12
-  H   = copy(Hs)
+  H   = deepcopy(Hs)
 
   r,c = size(H)
 
@@ -39,6 +39,8 @@ function ExplicitShiftedQR(Hs,μ0,nμ,ngs)
         while true
           g   = Qj[:,1:j-1]'*q
           res = abs(g'*g)
+          println(res)
+          break
           if res<tol
             break
           end
