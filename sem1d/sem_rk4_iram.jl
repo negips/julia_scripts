@@ -1,19 +1,20 @@
 println("Main interface for Time Stepper")
 println("Using Implicitly Restarted Arnoldi")
 
-using PolynomialBases
 using PyPlot,PyCall
 using LinearAlgebra
 using IterativeSolvers
 using SpecialFunctions
 using Roots
 using Random
+using JLD2
 
 
 include("ArnUpd.jl")
 include("ArnIRst.jl")
 include("ExplicitShiftedQR.jl")
 include("IRAM.jl")
+include("RK4.jl")
 
 close("all")
 
@@ -32,8 +33,7 @@ include("sem_main.jl")
 # 
 # Oper  = similar(Bg)
 
-rng = MersenneTwister(1234)
-
+rng = MersenneTwister(1235)
 
 rcParams = PyPlot.PyDict(PyPlot.matplotlib."rcParams")
 
@@ -48,8 +48,13 @@ rcParams = PyPlot.PyDict(PyPlot.matplotlib."rcParams")
 ω8 = find_zero(airyai,(-11.8,-10.5))
 ω9 = find_zero(airyai,(-12.0,-11.8))
 ω10 = find_zero(airyai,(-12.9,-12.0))
+ω11 = find_zero(airyai,(-13.8,-12.9))
+ω12 = find_zero(airyai,(-14.8,-13.8))
+ω13 = find_zero(airyai,(-15.8,-14.8))
+ω14 = find_zero(airyai,(-16.8,-15.8))
+ω15 = find_zero(airyai,(-17.5,-16.8))
 
-ω  = [ω1, ω2, ω3, ω4, ω5, ω6, ω7, ω8, ω9, ω10]
+ω  = [ω1, ω2, ω3, ω4, ω5, ω6, ω7, ω8, ω9, ω10, ω11, ω12, ω13, ω14, ω15]
 U  = 6.0
 γ  = 1.0 - im*1.0
 
@@ -63,7 +68,7 @@ pΛ = plot(real.(Ω),imag.(Ω),linestyle="none",marker="o",markersize=8)
 xg    = QT*(vimult.*Geom.xm1[:])
 
 Nev   = 20               # Number of eigenvalues to calculate
-EKryl = Int64(floor(2.5*Nev))           # Additional size of Krylov space
+EKryl = Int64(floor(2.0*Nev))           # Additional size of Krylov space
 LKryl = Nev + EKryl     # Total Size of Krylov space    
 
 vt    = ComplexF64
@@ -83,10 +88,11 @@ verbose     = false
 reortho     = 1000
 verbosestep = reortho #500
 nsteps      = 100000
+ifsave      = true
 
 ngs     = 2       # Number of Gram-Schmidt
 nkryl   = 0
-tol     = 1.0e-08
+tol     = 1.0e-6
 
 h,θ,v  = ArnUpd(V,Bg,r,nkryl,ngs)
 V[:,1] = v
@@ -119,6 +125,7 @@ if (ifplot)
 end
 
 # Start iterations
+println("Starting Iterations")
 
 while (~ifconv)
   global V,H,v
@@ -142,7 +149,7 @@ while (~ifconv)
 
 # Build the operator only the first time
   if (i==1)
-    OPg       = Cg .+ Sg .+ Lg
+    OPg       = Cg .+ Sg .+ Lg .+ Fg
     for j in 1:ndof
       OPg[j,:] = OPg[j,:]./Bg[j]
     end  
@@ -153,13 +160,14 @@ while (~ifconv)
 # Apply BC       
   v[1]      = 0.0 + im*0.0
   
-# RK4 steps
-  v1 = v .+ dt/2.0*OPg*v
-  v2 = v .+ dt/2.0*OPg*v1
-  v3 = v .+ dt*OPg*v2
-  v4 = v .+ dt/6.0*(OPg*(v .+ 2.0*v1 .+ 2.0*v2 .+ v3))
-
-  v  = v4
+## RK4 steps
+#  v1 = v .+ dt/2.0*OPg*v
+#  v2 = v .+ dt/2.0*OPg*v1
+#  v3 = v .+ dt*OPg*v2
+#  v4 = v .+ dt/6.0*(OPg*(v .+ 2.0*v1 .+ 2.0*v2 .+ v3))
+#
+#  v  = v4
+   v  = RK4!(OPg,v,dt)
 
   if (ifarnoldi)
 #   Expand Krylov space
@@ -188,48 +196,28 @@ while (~ifconv)
          pause(0.001)
          draw() 
        end  
-#
-#       if nkryl == LKryl+1
-#         Hold = H
-#         Vold = V
-#         U,G,nkryl,ifconv = ArnIRst(V,H,Bg,nkryl,LKryl+1,Nev,ngs)
-#         V = U
-#         H = G
-#         
-#         v = V[:,nkryl]
-#         β = abs(H[Nev+1,Nev])
-#         println("Outer Iteration: $major_it; β=$β")
-# 
-#         if (β < tol)
-#           break
-#         end  
-#
-#        major_it = major_it + 1
-        if (major_it>maxouter_it)
-          break
-        end  
-#      end     # nkryl == LKryl+1
-#      
-#
-      if (verbose)
-        println("Krylov Size: $nkryl")
-      end
-      if (β < tol)
-        break
-      end  
 
-#      break
+       if (major_it>maxouter_it)
+         break
+       end  
+       if (verbose)
+         println("Krylov Size: $nkryl")
+       end
+       if (β < tol)
+         break
+       end  
 
     end       # mod(i,reortho)
   
-  elseif i==nsteps
-   if verbose && mod(i,verbosestep)==0
-    println("Istep=$i, Time=$t")
-  end  
-
+  else
+    if verbose && mod(i,verbosestep)==0
+      println("Istep=$i, Time=$t")
+    end
    
-    break
-  end         # ifarnoldi 
+    if i==nsteps
+      break
+    end  
+  end    # Arnoldi   
 
 end       # while ... 
 
@@ -253,7 +241,7 @@ if (ifarnoldi)
   ax3 = gca()
   for j in 1:Nev
     local pvec1 = ax3.plot(xg,real.(eigvec[:,j]),linestyle="-")
-    local pvec2 = ax3.plot(xg,imag.(eigvec[:,j]),linestyle="--")
+#    local pvec2 = ax3.plot(xg,imag.(eigvec[:,j]),linestyle="--")
   end  
 else
   hev = figure(num=3,figsize=[8.,6.]);
@@ -263,8 +251,9 @@ end
 
 
 
-
-
+if (ifsave )
+  save("nev20_xe40_c0_tol-6.jld2"; AT,N,Nd,xs,xe,nel,U,γ,Ω,xg,vt,Nev,EKryl,LKryl,reortho,V,H,F,DT,λ,Lesshafft_λ)
+end  
 
 
 

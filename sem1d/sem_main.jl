@@ -6,7 +6,7 @@ using LinearAlgebra
 #using Plots
 
 # Include the function files
-include("sem_geom2.jl")
+include("sem_geom.jl")
 
 include("AssembleMatrix.jl")
 
@@ -16,6 +16,7 @@ include("sem_init_ref.jl")
 
 include("Sem_QQT.jl")
 
+Geom = sem_geom(Basis,Basisd,xc,N,Nd,nel,dxm1,dxtm1);
 
 #L  = AssembleMatrix(c0,Geom.cnv,ν,Geom.wlp,lx1,nel);
 
@@ -31,7 +32,7 @@ vimult = 1.0 ./vmult
 
 xall  = vimult.*(Q*QT*Geom.xm1[:]);
 
-c0 = 0.0;
+c0 = 0.0e-10;
 
 L,B,OP,Conv,Src,Lap,Fd = AssembleMatrixLesshafft2(c0,Geom.cnv,Geom.wlp,Geom.xm1,Geom.bm1,Basis,lx1,nel);
 

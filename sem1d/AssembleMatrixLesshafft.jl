@@ -15,8 +15,6 @@ function AssembleMatrixLesshafft(c0,cnv,wlp,xm1,bm1,Basis,lx1,nel)
 #     γ         = 1. - i
 
 
-
-#      VT  = Float64
       VT  = ComplexF64
 
       II  = Matrix(1.0I,lx1,lx1)
@@ -26,8 +24,8 @@ function AssembleMatrixLesshafft(c0,cnv,wlp,xm1,bm1,Basis,lx1,nel)
       dof = nel*(lx1-1) + 1;
 
       A    = zeros(VT,dof,dof);
-      B    = zeros(Float64,dof,dof);
-      Binv = zeros(Float64,lx1,nel);
+      B    = zeros(VT,dof,dof);
+      Binv = zeros(VT,lx1,nel);
 
       OP   = zeros(VT,lx1,lx1,nel);
 
@@ -43,7 +41,7 @@ function AssembleMatrixLesshafft(c0,cnv,wlp,xm1,bm1,Basis,lx1,nel)
 #     Map xs to reference coordinates ξ in [-1,1]
 #      ξ    = -2.     
       ξ    = map_to_canonical(xs,xm1[1,e],xm1[lx1,e],Basis)
-      Ixs  = zeros(Float64,1,lx1)
+      Ixs  = zeros(VT,1,lx1)
       interpolation_matrix!(Ixs,ξ,zgm1,Basis.baryweights)
 
 #     Location of Ixs in the global matrix (Columns)
@@ -138,7 +136,7 @@ function AssembleMatrixLesshafft2(c0,cnv,wlp,xm1,bm1,Basis,lx1,nel)
       OP   = zeros(VT,lx1,lx1,nel);
 
       xa  = 1.0         # Feedback destination point
-      xs  = 3.90        # Feedback source point
+      xs  = 39.0        # Feedback source point
       b   = 0.1         # Exponential drop off rate for feedback
 
 #     Find the element containing xs

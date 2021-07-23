@@ -32,13 +32,13 @@ function ArnUpd(V::Matrix,b::Vector,v::Vector,k::Int,ngs::Int)
       end
     elseif ngs <=0 
       while true
-        g   = Qj[:,1:j-1]'*q
+        g   = V[:,1:k]'*(b.*r)
         res = abs(g'*g)
         if res<tol
           break
         end
         h = h .+ g
-        q = q - Qj[:,1:j-1]*g
+        r = r - V[:,1:k]*g
       end  
     end
     β        = norm(sqrt(r'*(b.*r)))
