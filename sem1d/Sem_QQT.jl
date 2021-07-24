@@ -68,8 +68,8 @@ function Sem_Global_Num(xm1)
         else
           gno = gno + 1
           glnum[i,j] = gno
-          x0 = x1
-        end  
+        x0 = x1
+      end  
 
 
       end            
