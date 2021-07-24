@@ -89,7 +89,7 @@ function CreateBulge(H::Matrix,μ::Vector,nμ::Int)
   mul!(B,Q0,A)
   mul!(A,B,Q0')
  
-  return A,Q0
+  return A,Q0'          # Note: Returning the transpose
 end
 
 #----------------------------------------------------------------------
