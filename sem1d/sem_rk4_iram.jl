@@ -84,15 +84,15 @@ r     = randn(vt,ndof);
 
 ifarnoldi   = true
 ifplot      = false
-verbose     = false
-reortho     = 1000
+verbose     = true
+reortho     = 2000
 verbosestep = reortho #500
 nsteps      = 100000
 ifsave      = true
 
-ngs     = 2       # Number of Gram-Schmidt
+ngs     = 0       # Number of Gram-Schmidt
 nkryl   = 0
-tol     = 1.0e-6
+tol     = 1.0e-11
 
 h,θ,v  = ArnUpd(V,Bg,r,nkryl,ngs)
 V[:,1] = v
@@ -103,7 +103,7 @@ rgba0 = cm(0)
 rgba1 = cm(1) 
 rgba2 = cm(2) 
 
-dt = 0.0001
+dt = 0.00005
 
 λn = zeros(vt,nkryl)
 
