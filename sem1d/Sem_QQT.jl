@@ -43,12 +43,12 @@ function Sem_Global_Num(xm1)
 
       x1    = xtmp[1]
       eps10 = eps(typeof(x1))   # Get machine precision of the variable type
-      eps10 = 100.0*eps10
+      eps10 = 1000.0*eps10
 
       ii    = sortperm(xtmp)
       sort!(xtmp)
 
-      gno   = 0
+      gno   = 0 
       x0    = xtmp[1] - 10000.
       diff  = 0.
       for k in 1:n
