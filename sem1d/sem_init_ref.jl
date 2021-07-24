@@ -9,7 +9,7 @@ using PolynomialBases
 AT = ComplexF64
 
 # define nodal bases
-N           = 12 ;                              # polynomial degree
+N           = 8 ;                              # polynomial degree
 lx1         = N+1;                              # No of points
 Basis       = LobattoLegendre(N)                # Polynomial Basis
 
@@ -21,7 +21,7 @@ Basisd      = LobattoLegendre(Nd)               # Polynomial Basis
 
 xs          = 0.                                # Domain start
 xe          = 80.0                              # Domain end
-nel         = 100                                # No of elements
+nel         = 90                                # No of elements
 nnodes      = nel+1;                            # No of nodes
 xc          = range(xs,stop=xe,length=nnodes);  # Element coordinates
 

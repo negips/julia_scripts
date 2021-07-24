@@ -139,8 +139,7 @@ while (~ifconv)
   global Vold,Hold
   global ax2 
 
-  local h,r,β
-  local U
+  local β
 
   β = 1.0
   i = i + 1
