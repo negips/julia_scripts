@@ -1,3 +1,5 @@
+      include("BulgeChase.jl")
+
       Hes = copy(Hold)
       VV  = Vold
 
@@ -5,27 +7,33 @@
       k  = kk + 1
       r  = VV[:,k]*Hes[k,k-1]
 
-      H  = H[1:kk,1:kk]
+      H  = Hes[1:kk,1:kk]
 
       F  = eigen(H)          # Uses Lapack routine (dgeev/zgeev)
+      Fval = F.values
       fr = real.(F.values)
       fr_sort_i = sortperm(fr,rev=false)   # Increasing order
       μ         = F.values[fr_sort_i[1:EKryl]]
       nμ        = length(μ)
 
-      Q,Hs  = ExplicitShiftedQR(H,μ,nμ,0)
+#      Hs,Q  = ExplicitShiftedQR(H,μ,nμ,2)
+      Hs,Q  = FrancisSeq(H,μ,nμ)
       v     = V[:,1:kk]*Q[:,Nev+1]        # Part of new residual vector
-      βk    = Hs[Nev+1,Nev]               # e_k+1^T*H*e_k         # This in principle is zero
-      σ     = Q[kk,Nev]                   # e_k+p^T*Q*e_k
+      βk    = Hs[kk-nμ+1,kk-nμ]               # e_k+1^T*H*e_k         # This in principle is zero
+#      σ     = Q[kk,Nev]                   # e_k+p^T*Q*e_k
 
-      r2    = βk*v .+ σ*r                 # new residual vector
-      β     = abs(sqrt(r2'*(Bg.*r2)))
+#      r2    = βk*v .+ σ*r                 # new residual vector
+#      β     = abs(sqrt(r2'*(Bg.*r2)))
 
-      r2    = r2/β
-
-
+#      r2    = r2/β
 
 
+#       H0,Q0 = CreateBulge(H,μ,1)
+#       Hn,Qn = ChaseBulge(H0)
 
+#       diag(Hn,-2)
+
+#      x = H0[:,1]
+#      Qi,w = CreateReflectorZeros(x,2,35)
 
 

@@ -55,7 +55,7 @@ res1  = zeros(Float64,niter)     # Vector
   nμ        = 1
   H3,Q3     = BulgeChase(H2,μ,nμ)
 
-  H22,Q22   = BulgeChaseSeq(H,λ[1:3],3)
+  H22,Q22   = BulgeChaseSeq(H,λ[1:2],2)
 
 ## Collect Right multipliers 
 #  Q     = Q*Q0

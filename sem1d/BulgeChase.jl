@@ -1,5 +1,6 @@
 # Bulge Chase Algorithm
-function BulgeChase(H::Matrix,μ::Vector,nμ::Int)
+function FrancisAlg(H::Matrix,μ::Vector,nμ::Int)
+# Also known as BulgeChase Algorithm  
 
   # nμ      - No of Shifts
   # μ       - Shifts
@@ -21,23 +22,27 @@ function BulgeChase(H::Matrix,μ::Vector,nμ::Int)
 end
 #----------------------------------------------------------------------
 
-function BulgeChaseSeq(H::Matrix,μ0::Vector,nμ::Int)
+function FrancisSeq(H::Matrix,μ0::Vector,nμ::Int)
 # Sequential Bulge Chase
 
   # nμ      - No of Shifts
   # μ       - Shifts
   # H       - Hessenberg Matrix
 
-  Q   = Matrix{typeof(A[1,1])}(1.0I,n,n)
-  Qn  = Matrix{typeof(A[1,1])}(1.0I,n,n)
-  Hn  = copy(H)    
+  r,n = size(H)
+
+  Q   = Matrix{typeof(H[1,1])}(1.0I,n,n)
+  Qn  = Matrix{typeof(H[1,1])}(1.0I,n,n)
+  Hn  = deepcopy(H)    
 
   if nμ == 0
     μ = [0.]
     nμ = 1
   else
     μ = μ0
-  end  
+  end
+
+  println("Francis' Algorithm: nμ=$nμ")
 
   for i in 1:nμ
 #   Create a bulge in the matrix
@@ -54,10 +59,12 @@ function BulgeChaseSeq(H::Matrix,μ0::Vector,nμ::Int)
     Q0    = convert(Matrix,hn.Q)
     Hn    = convert(Matrix,hn.H)      # Hn = Qn'*H0*Qn = Qn'*Q0'*H*Q0*Qn
 
+#    Hn,Q0  = ChaseBulge(H0)  
+
 #   Collect Right multipliers 
     mul!(Q,Qn,Q0)       # Q = Qn*Q0
-  end        
- 
+  end
+
   return Hn,Q
 end
 
@@ -70,20 +77,17 @@ function CreateBulge(H::Matrix,μ::Vector,nμ::Int)
   # H       - Hessenberg Matrix
 
 # x = p(H)*e1 = (H - μnI)...(H - μ2I)(H - μ1I)*e1
-  x     = polyHe1(H,μ,nμ)
-  xnorm = sqrt(x'*x)
-  y     = 0.0*x
+  x         = polyHe1(H,μ,nμ)
+  n         = length(x)
+  Q0,y,τ    = CreateReflectorZeros(x,1,n)
 
-  y[1]      = xnorm
-  Q0        = CreateReflector(x,y)    
-
-  A   = copy(H)
-  B   = copy(H)
+  A   = deepcopy(H)
+  B   = deepcopy(H)
 
 # This creates the Bulge  
 # A = Q0*H*Q0  
-  mul!(B,Q0',A)
-  mul!(A,B,Q0)
+  mul!(B,Q0,A)
+  mul!(A,B,Q0')
  
   return A,Q0
 end
@@ -168,7 +172,8 @@ function CreateReflector(x::Vector,y::Vector)
   τ_norm    = abs(τ)
   if τ_norm>1.0e-12
     expiθ  = τ/τ_norm
-  else 
+  else
+    println("Small τ: $τ_norm in CreateReflector")
     expiθ  = 1.0 + 0.0im
   end  
 
@@ -179,6 +184,68 @@ function CreateReflector(x::Vector,y::Vector)
 
   return Q
 end
+#----------------------------------------------------------------------
+function CreateReflectorZeros(x::Vector,k::Int,n::Int)
+
+# Create Unitary matrix which introduces zeros after the
+# kth position in the vector x
+# General Function for Real or Complex vectors 
+#
+# x   -     Vector to Reflect
+# n   -     Length of the vector
+# k   -     Position after which we want zeros
+ 
+  Q         = Matrix{typeof(x[1])}(1.0I,n,n)
+  if k>=n
+    return Q
+  end
+
+  θ         = 6.0*π/4.0
+
+  w         = 0.0*x
+  w[k]      = x[k] - norm(x[k:n])*exp(im*θ)
+  w[k+1:n]  = x[k+1:n]
+  w         = w
+  τ         = 1.0/(w'*x)
+  Q         = (I - τ*w*w')
+
+  return Q,w,τ
+end
+#----------------------------------------------------------------------
+
+function ChaseBulge(H0)
+#   Chase the Bulge in the Francis Algorithm
+
+   r,c = size(H0)
+   H   = copy(H0)
+   A   = copy(H0)
+   B   = copy(H0)
+   Q   = Matrix{typeof(H0[1,1])}(1.0I,r,c)
+   T   = Matrix{typeof(H0[1,1])}(1.0I,r,c)      # tmp
+
+   for i in 1:c-2
+     x        = H[:,i]
+     Qi,y,τ   = CreateReflectorZeros(x,i+1,r)
+     v = y'*H
+     A = y*v
+     
+     H .= H .- τ*A
+
+#     mul!(A,Qi,H) 
+#     mul!(H,A,Qi)
+
+#    Collect Right Multipliers      
+     mul!(T,Q,Qi')
+     Q = copy(T)
+   end  
+
+   return H,Q
+end
+#----------------------------------------------------------------------
+
+
+
+
 
 
 

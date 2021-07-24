@@ -18,8 +18,14 @@ function ExplicitShiftedQR(Hs,μ0,nμ,ngs)
     μ  = μ0
   end  
 
+  nloops = 1
+  for m in 1:nloops
   for i in 1:nμ
-    Hj  = H - μ[i]*I
+    k = i
+#    if m==2
+#      k = nμ - i + 1
+#    end  
+    Hj  = H - μ[k]*I
     Qj  = Matrix{typeof(Hj[1,1])}(1.0I,r,c)    # Identity
     q   = Hj[:,1]
     Qj[:,1] = q/norm(q)
@@ -58,13 +64,14 @@ function ExplicitShiftedQR(Hs,μ0,nμ,ngs)
 #    h = qr(H)
 #    Qj = h.Q
 #    R  = h.R
-    H = R*Qj + μ[i]*I
+    H = R*Qj + μ[k]*I
     Q = Q*Qj
 
 #    println(norm(Q'Q - I))
-  end 
+  end
+  end       # m in 1:nloops
  
-  return Q,H 
+  return H,Q 
 end
 
 

@@ -13,6 +13,7 @@ using JLD2
 include("ArnUpd.jl")
 include("ArnIRst.jl")
 include("ExplicitShiftedQR.jl")
+include("BulgeChase.jl")
 include("IRAM.jl")
 include("RK4.jl")
 
@@ -67,8 +68,8 @@ pΛ = plot(real.(Ω),imag.(Ω),linestyle="none",marker="o",markersize=8)
 
 xg    = QT*(vimult.*Geom.xm1[:])
 
-Nev   = 20               # Number of eigenvalues to calculate
-EKryl = Int64(floor(2.0*Nev))           # Additional size of Krylov space
+Nev   = 10               # Number of eigenvalues to calculate
+EKryl = Int64(floor(2.5*Nev))           # Additional size of Krylov space
 LKryl = Nev + EKryl     # Total Size of Krylov space    
 
 vt    = ComplexF64
@@ -83,16 +84,16 @@ Hold  = zeros(vt,LKryl+1,LKryl)
 r     = randn(vt,ndof);
 
 ifarnoldi   = true
-ifplot      = false
-verbose     = true
+ifplot      = false 
+verbose     = false
 reortho     = 2000
 verbosestep = reortho #500
 nsteps      = 100000
 ifsave      = true
 
-ngs     = 0       # Number of Gram-Schmidt
+ngs     = 3       # Number of Gram-Schmidt
 nkryl   = 0
-tol     = 1.0e-11
+tol     = 1.0e-10
 
 h,θ,v  = ArnUpd(V,Bg,r,nkryl,ngs)
 V[:,1] = v
@@ -103,7 +104,7 @@ rgba0 = cm(0)
 rgba1 = cm(1) 
 rgba2 = cm(2) 
 
-dt = 0.00005
+dt = 0.0001
 
 λn = zeros(vt,nkryl)
 
@@ -116,7 +117,7 @@ ifconv = false
 t = 0.            # Time
 i = 0             # Istep
 
-maxouter_it = 5000
+maxouter_it = 200
 major_it    = 1
 
 if (ifplot)
@@ -182,6 +183,9 @@ while (~ifconv)
          pv1 = ax2.plot(xg,real.(v),linestyle="-")
        end  
 
+       if nkryl == LKryl
+         Hold = H
+       end  
        V,H,nkryl,β,major_it = IRAM!(V,H,Bg,v,nkryl,LKryl,major_it,Nev,ngs)
 
        v   = V[:,nkryl]
@@ -191,7 +195,9 @@ while (~ifconv)
 
          vmin = 1.5*minimum(real.(v))
          vmax = 1.5*maximum(real.(v))
-         ax2.set_ylim((vmin,vmax))
+#         ax2.set_ylim((vmin,vmax))
+         ax2.set_ylim((-1.0,1.0))
+        
          pause(0.001)
          draw() 
        end  
@@ -251,7 +257,7 @@ end
 
 
 if (ifsave )
-  save("nev20_xe40_c0_tol-6.jld2"; AT,N,Nd,xs,xe,nel,U,γ,Ω,xg,vt,Nev,EKryl,LKryl,reortho,V,H,F,DT,λ,Lesshafft_λ)
+  save("nev20_xe40_c0_tol-6.jld2"; AT,N,Nd,xs,xe,nel,U,γ,Ω,xg,vt,Nev,EKryl,LKryl,reortho,V,H,F,DT,λ,Lesshafft_λ);
 end  
 
 
