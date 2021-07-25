@@ -37,9 +37,11 @@ function ArnIRst(V::Matrix,Hes::Matrix,B::Vector,k::Int,kmax::Int,Nev::Int,gs::I
       μ         = F.values[fr_sort_i[1:EKryl]]
       nμ        = length(μ)
 
-      Q,Hs  = ExplicitShiftedQR(H,μ,nμ,ngs)
+#      Hs,Q  = ExplicitShiftedQR(H,μ,nμ,ngs)
+      Hs,Q  = FrancisSeq(H,μ,nμ)     
       v     = V[:,1:kk]*Q[:,Nev+1]        # Part of new residual vector
       βk    = Hs[Nev+1,Nev]               # e_k+1^T*H*e_k         # This in principle is zero
+      println("βk After ImplicitQR: $βk")
       σ     = Q[kk,Nev]                   # e_k+p^T*Q*e_k
 
       r    .= βk*v .+ σ*r                 # new residual vector

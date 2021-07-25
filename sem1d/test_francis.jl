@@ -1,10 +1,13 @@
 # Testing the Francis Algorithm
 
-include("BulgeChase.jl")
-include("ExplicitShiftedQR.jl")
 using LinearAlgebra
 using Random
 using PyPlot
+
+
+include("BulgeChase.jl")
+include("ExplicitShiftedQR.jl")
+include("BulgeChase.jl")
 
 rng = MersenneTwister(1234)
 
@@ -42,88 +45,38 @@ res1  = zeros(Float64,niter)     # Vector
 
   i = 1
 
-  Hpert,Q0 = CreateBulge(Hn,μ,nμ)    # = Q0'*p(H)*Q0
+#  Hpert,Q0 = CreateBulge(Hn,μ,nμ)    # = Q0'*p(H)*Q0
+  μ         = λ[1:1]
+  nμ        = 1
+  H1,Q1     = FrancisAlg(H,μ,nμ)
 
-# Collect Right multipliers 
-  Q     = Q*Q0
-  
-  hn    = hessenberg(Hpert)
-  Qn    = convert(Matrix,hn.Q)
-  Hn    = convert(Matrix,hn.H)      # Hn = Qn'*Hpert*Qn = Qn'*Q0'*H*Q0*Qn
+#  μ         = λ[2:2]
+#  nμ        = 1
+#  H2,Q2     = FrancisAlg(H1,μ,nμ)
+#  μ         = λ[3:3]
+#  nμ        = 1
+#  H3,Q3     = FrancisAlg(H2,μ,nμ)
 
-# Collect Right multipliers 
-  Q     = Q*Qn                      # Hn = Q'*H*Q
-
-
-  res[i]  = abs(Hn[n-m+1,n-m])
-
-# Test QR
-
-  B   = H - μ[1]*I
-  t   = qr(B)
-  B1  = t.R*t.Q + μ[1]*I
-
-
-# Hessenberg Decomposition is uniquely determined by the first column of Q
-# So I am finding the reflector for the first column so that it gives the same Q as the QR decomposition
-# of p(A) = QR
-  QR_Q1 = t.Q[:,1]
-
-  u = Q[:,1] - QR_Q1
-  τ = u'*Q[:,1]
-  Q2 = I - (1.0/τ)*u*u'
-
-  yy = Q2*Q[:,1]
-  Q3 = Q2*Q
-
-  R       = (Q3)'*(H-μ[1]*I)
-  Hnn     = R*(Q3) + μ[1]*I
-
-
-  ν       = λ[1:3]
-  nν      = length(ν)
-  Q4,H4   = ShiftedQR(H,ν,nν,2)    
-
-  H4[:,5:8]
-
-#  ν       = λ[2]
-#  nν      = 1
-#  Q5,H5,R5 = ShiftedQR(H4,ν,nν,1)    
-
-
-#  t.Q
-
-#end
-
+#  H22,Q22   = FrancisSeq(H,λ[1:2],2)
 #
-#semilogy(res)
-#semilogy(res1)
 
-# Hn[n-m:n,n-m:n]
+  nμ        = 3
+  μ         = λ[1:nμ]    
+  H33,Q33   = FrancisSeq(H,μ,nμ)
 
-#x = polyHe1(H,μ,nμ)
-# y = 0.0*x
-# y[1] = -sqrt(x'*x)
-# 
-# u = x-y
-# #u = u/u[1]
-# τ = u'*x
-# 
-# Q = I - (1.0/τ)*u*u'
+  H33
 
-#Q0*x
+#  μ         = λ[1:4]
+#  nμ        = 2
+#  w1        = enpolyH(H,μ,nμ)
+#
+#  Q,w,τ     = AdjointReflectorZeros(w1',n-1,n);
+#
+#  A,Q0      = CreateLowerBulge(H,μ,nμ);         # A = Q0'*H*Q0
 
-# x = 0.0*x
-# x[1] = im
-# x[2] = 1.0
-# xr   = real.(x)
-# xi   = imag.(x)
-# 
-# 
-# u = y-x
-# u = u/norm(u)
-# Q = I - 2.0*u*u'
-# 
-# Q*x
+
+
+
+
 
 

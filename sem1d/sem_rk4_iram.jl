@@ -13,6 +13,7 @@ using JLD2
 include("ArnUpd.jl")
 include("ArnIRst.jl")
 include("ExplicitShiftedQR.jl")
+include("BulgeChase.jl")
 include("IRAM.jl")
 include("RK4.jl")
 
@@ -116,7 +117,7 @@ ifconv = false
 t = 0.            # Time
 i = 0             # Istep
 
-maxouter_it = 5000
+maxouter_it = 1
 major_it    = 1
 
 if (ifplot)
@@ -139,8 +140,7 @@ while (~ifconv)
   global Vold,Hold
   global ax2 
 
-  local h,r,β
-  local U
+  local β
 
   β = 1.0
   i = i + 1
@@ -183,6 +183,10 @@ while (~ifconv)
          pv1 = ax2.plot(xg,real.(v),linestyle="-")
        end  
 
+       if nkryl == LKryl
+         Hold = H
+         Vold = V
+       end  
        V,H,nkryl,β,major_it = IRAM!(V,H,Bg,v,nkryl,LKryl,major_it,Nev,ngs)
 
        v   = V[:,nkryl]
@@ -192,7 +196,9 @@ while (~ifconv)
 
          vmin = 1.5*minimum(real.(v))
          vmax = 1.5*maximum(real.(v))
-         ax2.set_ylim((vmin,vmax))
+#         ax2.set_ylim((vmin,vmax))
+         ax2.set_ylim((-1.0,1.0))
+        
          pause(0.001)
          draw() 
        end  
@@ -252,7 +258,7 @@ end
 
 
 if (ifsave )
-  save("nev20_xe40_c0_tol-6.jld2"; AT,N,Nd,xs,xe,nel,U,γ,Ω,xg,vt,Nev,EKryl,LKryl,reortho,V,H,F,DT,λ,Lesshafft_λ)
+  save("nev20_xe40_c0_tol-6.jld2"; AT,N,Nd,xs,xe,nel,U,γ,Ω,xg,vt,Nev,EKryl,LKryl,reortho,V,H,F,DT,λ,Lesshafft_λ);
 end  
 
 
