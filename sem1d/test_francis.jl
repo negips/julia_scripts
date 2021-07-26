@@ -60,11 +60,11 @@ res1  = zeros(Float64,niter)     # Vector
 #  H22,Q22   = FrancisSeq(H,λ[1:2],2)
 #
 
-  nμ        = 3
+  nμ        = 1
   μ         = λ[1:nμ]    
-  H33,Q33   = FrancisSeq(H,μ,nμ)
+  H33,Q33   = RevFrancisSeq(H,μ,nμ)
 
-  H33
+  H33[nμ+1,nμ]
 
 #  μ         = λ[1:4]
 #  nμ        = 2

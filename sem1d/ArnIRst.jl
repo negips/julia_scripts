@@ -11,6 +11,8 @@ function ArnIRst(V::Matrix,Hes::Matrix,B::Vector,k::Int,kmax::Int,Nev::Int,gs::I
 #   Nev       - Eigenvalues to retain
 #   ngs       - No of Gram-Schmidt
 
+    revFrancis = true   
+
     tol = 1.0e-12 
 
     EKryl = kmax - 1 - Nev 
@@ -31,23 +33,43 @@ function ArnIRst(V::Matrix,Hes::Matrix,B::Vector,k::Int,kmax::Int,Nev::Int,gs::I
 
       H = Hes[1:kk,1:kk]
 
-      F  = eigen(H)          # Uses Lapack routine (dgeev/zgeev)
-      fr = real.(F.values)
-      fr_sort_i = sortperm(fr,rev=false)   # Increasing order
-      μ         = F.values[fr_sort_i[1:EKryl]]
-      nμ        = length(μ)
+      if (revFrancis)
+        F  = eigen(H)          # Uses Lapack routine (dgeev/zgeev)
+        fr = real.(F.values)
+        fr_sort_i = sortperm(fr,rev=true)   # Decreasing order
+        μ         = F.values[fr_sort_i[1:Nev]]
+        nμ        = length(μ)
 
-#      Hs,Q  = ExplicitShiftedQR(H,μ,nμ,ngs)
-      Hs,Q  = FrancisSeq(H,μ,nμ)     
-      v     = V[:,1:kk]*Q[:,Nev+1]        # Part of new residual vector
-      βk    = Hs[Nev+1,Nev]               # e_k+1^T*H*e_k         # This in principle is zero
-      println("βk After ImplicitQR: $βk")
-      σ     = Q[kk,Nev]                   # e_k+p^T*Q*e_k
+        Hs,Q  = RevFrancisSeq(H,μ,nμ)     
+        v     = V[:,1:kk]*Q[:,Nev+1]        # Part of new residual vector
+        βk    = Hs[Nev+1,Nev]               # e_k+1^T*H*e_k         # This in principle is zero
+        println("βk After ImplicitQR: $βk")
+        σ     = Q[kk,Nev]                   # e_k+p^T*Q*e_k
 
-      r    .= βk*v .+ σ*r                 # new residual vector
-      β     = abs(sqrt(r'*(B.*r)))
+        r    .= βk*v .+ σ*r                 # new residual vector
+        β     = abs(sqrt(r'*(B.*r)))
 
-      r     = r/β
+        r     = r/β
+
+      else
+        F  = eigen(H)          # Uses Lapack routine (dgeev/zgeev)
+        fr = real.(F.values)
+        fr_sort_i = sortperm(fr,rev=false)   # Increasing order
+        μ         = F.values[fr_sort_i[1:EKryl]]
+        nμ        = length(μ)
+
+#        Hs,Q  = ExplicitShiftedQR(H,μ,nμ,ngs)
+        Hs,Q  = FrancisSeq(H,μ,nμ)     
+        v     = V[:,1:kk]*Q[:,Nev+1]        # Part of new residual vector
+        βk    = Hs[Nev+1,Nev]               # e_k+1^T*H*e_k         # This in principle is zero
+        println("βk After ImplicitQR: $βk")
+        σ     = Q[kk,Nev]                   # e_k+p^T*Q*e_k
+
+        r    .= βk*v .+ σ*r                 # new residual vector
+        β     = abs(sqrt(r'*(B.*r)))
+
+        r     = r/β
+      end        
 
       if abs(β)<tol
         ifconv = true

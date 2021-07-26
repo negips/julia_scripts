@@ -14,7 +14,7 @@
       fr = real.(F.values)
       fr_sort_i = sortperm(fr,rev=false)   # Increasing order
       μ         = F.values[fr_sort_i[1:EKryl]]
-      nμ        = length(μ)
+      nμ        = 50 #length(μ)
 
 #      Hs,Q  = ExplicitShiftedQR(H,μ,nμ,2)
       Hs,Q  = FrancisSeq(H,μ,nμ)
@@ -29,9 +29,35 @@
 
 
       en          = zeros(ComplexF64,LKryl)
-      en[LKryl]   = 1.0
+      en[LKryl]   = 2.0
       vn          = Vold[:,LKryl+1]*Hold[LKryl+1,LKryl]
       erM         = vn*en'
 
       erMQ        = erM*Q
+
+      β_1         = Hs[kk-nμ-1,kk-nμ-2]
+      β0          = Hs[kk-nμ,kk-nμ-1]
+      β1          = Hs[kk-nμ+1,kk-nμ]
+      β2          = Hs[kk-nμ+2,kk-nμ+1]
+
+      θ           = [β_1 β0 β1 β2]
+
+#     Reverse Step
+      F2  = eigen(H)          # Uses Lapack routine (dgeev/zgeev)
+      F2v = F2.values
+      fr  = real.(F2.values)
+      fr_sort_i = sortperm(fr,rev=true)   # Decreasing order
+      μ2        = F2v[fr_sort_i[1:EKryl]]
+      nμ2       = 50 #length(μ)
+
+      Hs2,Q2  = RevFrancisSeq(H,μ2,nμ2)
+
+      β_1         = Hs2[nμ2-1,nμ2-2]
+      β0          = Hs2[nμ2,nμ2-1]
+      β1          = Hs2[nμ2+1,nμ2]
+      β2          = Hs2[nμ2+2,nμ2+1]
+
+      θ2          = [β_1 β0 β1 β2]
+
+
 

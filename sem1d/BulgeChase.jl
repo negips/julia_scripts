@@ -19,7 +19,7 @@ function FrancisAlg(H::Matrix,μ::Vector,nμ::Int)
 ## Collect Left multipliers 
 #  Q     = Qn'*Q0                    # Hn = Q'*H*Q
 
-  Hn,Qn  = ChaseBulge(H0)
+  Hn,Qn  = ChaseBulgeDown(H0)
 # Collect Left multipliers 
   mul!(Q,Qn,Q0)       # Q = Qn*Q0
 
@@ -74,9 +74,68 @@ function FrancisSeq(H::Matrix,μ0::Vector,nμ::Int)
 ##     Collect Left multipliers 
 #      mul!(Q,Q0',Qn)       # Q = Q0'*Qn
 
-      Hn,Q0  = ChaseBulge(H0)  
+      Hn,Q0  = ChaseBulgeDown(H0)  
 #     Collect Left multipliers 
       mul!(Q,Q0,Qn)       # Q = Q0*Qn
+    end
+    βk = abs(Hn[r-nμ+1,r-nμ])
+  end
+  println("Francis Algorithm nloops: $j")
+
+  return Hn,Q
+end
+
+#----------------------------------------------------------------------
+function RevFrancisSeq(H::Matrix,μ0::Vector,nμ::Int)
+# Sequential Bulge Chase
+
+  # nμ      - No of Shifts
+  # μ       - Shifts
+  # H       - Hessenberg Matrix
+
+  r,n = size(H)
+
+  Q   = Matrix{typeof(H[1,1])}(1.0I,n,n)
+  Qn  = Matrix{typeof(H[1,1])}(1.0I,n,n)
+  Hn  = deepcopy(H)    
+
+  if nμ == 0
+    μ = [0.]
+    nμ = 1
+  else
+    μ = μ0
+  end
+
+  println("Francis' Algorithm: nμ=$nμ")
+
+  j      = 0
+  nloops = 1
+  βk     = 1.0
+  tol    = 1.0e-10
+
+  while βk>tol && j < nloops
+    j = j+1
+    for i in 1:nμ
+#     Create a bulge in the top left of the matrix
+      λ     = μ[i:i]
+      nλ    = 1
+      H0,Q0 = CreateLowerBulge(Hn,λ,nλ)
+
+#     Collect Right multipliers 
+      mul!(Qn,Q,Q0)       # Qn = Q0*Q
+
+#     Chase Bulge through bottom right and return to 
+#     Hessenberg form.  
+#     Should probably code it manually  
+#      hn    = hessenberg(H0)
+#      Q0    = convert(Matrix,hn.Q)
+#      Hn    = convert(Matrix,hn.H)      # Hn = Qn'*H0*Qn = Qn'*Q0*H*Q0'*Qn
+##     Collect Left multipliers 
+#      mul!(Q,Q0',Qn)       # Q = Q0'*Qn
+
+      Hn,Q0  = ChaseBulgeUp(H0)  
+#     Collect Right multipliers 
+      mul!(Q,Qn,Q0)       # Q = Qn*Q0
     end
     βk = abs(Hn[r-nμ+1,r-nμ])
   end
@@ -98,8 +157,8 @@ function CreateBulge(H::Matrix,μ::Vector,nμ::Int)
   n         = length(x)
   Q0,y,τ    = CreateReflectorZeros(x,1,n)
 
-  A   = deepcopy(H)
-  B   = deepcopy(H)
+  A   = copy(H)
+  B   = copy(H)
 
 # This creates the Bulge  
 # A = Q0*H*Q0  
@@ -122,10 +181,8 @@ function CreateLowerBulge(H::Matrix,μ::Vector,nμ::Int)
   n         = length(x)
   Q0,y,τ    = AdjointReflectorZeros(x',r,r)
 
-  display(x)
-
-  A   = deepcopy(H)
-  B   = deepcopy(H)
+  A   = copy(H)
+  B   = copy(H)
 
 # This creates the Bulge  
 # A = Q0*H*Q0  
@@ -340,8 +397,11 @@ function AdjointReflectorZeros(x::Vector,k::Int,n::Int)
 # k   -     Position after which we want zeros
  
   Q         = Matrix{typeof(x[1])}(1.0I,n,n)
+  w         = 0.0*x
+  τ         = 0.0
+ 
   if k>n
-    return Q
+    return Q,w,τ
   end
 
   θ         = 0.0*π/4.0
@@ -357,7 +417,7 @@ function AdjointReflectorZeros(x::Vector,k::Int,n::Int)
 end
 #----------------------------------------------------------------------
 
-function ChaseBulge(H0::Matrix,c1::Int64)
+function ChaseBulgeDown(H0::Matrix)
 #   Chase the Bulge in the Francis Algorithm
 
    r,c = size(H0)
@@ -376,6 +436,32 @@ function ChaseBulge(H0::Matrix,c1::Int64)
 
 #    Collect Left Multipliers      
      T = Qi*Q
+     Q = copy(T)
+   end  
+
+   return H,Q
+end
+#----------------------------------------------------------------------
+function ChaseBulgeUp(H0::Matrix)
+#   Chase the Bulge in the Francis Algorithm
+
+   r,c = size(H0)
+   H   = copy(H0)
+   A   = copy(H0)
+   B   = copy(H0)
+   Q   = Matrix{typeof(H0[1,1])}(1.0I,r,c)
+   T   = Matrix{typeof(H0[1,1])}(1.0I,r,c)      # tmp
+
+   for i in c:-1:3
+     x        = H[i,:]
+     y        = adjoint.(x)
+     Qi,w,τ   = AdjointReflectorZeros(y,i-1,c)
+     
+     A = H*Qi
+     H = Qi'*A
+
+#    Collect Right Multipliers      
+     T = Q*Qi
      Q = copy(T)
    end  
 
