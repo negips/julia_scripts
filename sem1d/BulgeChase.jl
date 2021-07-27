@@ -19,7 +19,7 @@ function FrancisAlg(H::Matrix,μ::Vector,nμ::Int)
 ## Collect Left multipliers 
 #  Q     = Qn'*Q0                    # Hn = Q'*H*Q
 
-  Hn,Qn  = ChaseBulgeDown(H0)
+  Hn,Qn  = ChaseBulgeDown(H0,c-2)
 # Collect Left multipliers 
   mul!(Q,Qn,Q0)       # Q = Qn*Q0
 
@@ -47,12 +47,13 @@ function FrancisSeq(H::Matrix,μ0::Vector,nμ::Int)
     μ = μ0
   end
 
-  println("Francis' Algorithm: nμ=$nμ")
-
   j      = 0
   nloops = 1
   βk     = 1.0
-  tol    = 1.0e-10
+  tol    = 1.0e-12
+
+
+  println("Francis' Algorithm: nμ=$nμ, MaxLoops:$nloops, Tol=$tol")
 
   while βk>tol && j < nloops
     j = j+1
@@ -74,7 +75,8 @@ function FrancisSeq(H::Matrix,μ0::Vector,nμ::Int)
 ##     Collect Left multipliers 
 #      mul!(Q,Q0',Qn)       # Q = Q0'*Qn
 
-      Hn,Q0  = ChaseBulgeDown(H0)  
+      c1 = n-i-1 
+      Hn,Q0  = ChaseBulgeDown(H0,c1)  
 #     Collect Left multipliers 
       mul!(Q,Q0,Qn)       # Q = Q0*Qn
     end
@@ -106,12 +108,12 @@ function RevFrancisSeq(H::Matrix,μ0::Vector,nμ::Int)
     μ = μ0
   end
 
-  println("Francis' Algorithm: nμ=$nμ")
-
   j      = 0
   nloops = 1
   βk     = 1.0
-  tol    = 1.0e-10
+  tol    = 1.0e-12
+
+  println("Rev. Francis' Algorithm: nμ=$nμ, MaxLoops:$nloops, Tol=$tol")
 
   while βk>tol && j < nloops
     j = j+1
@@ -133,13 +135,14 @@ function RevFrancisSeq(H::Matrix,μ0::Vector,nμ::Int)
 ##     Collect Left multipliers 
 #      mul!(Q,Q0',Qn)       # Q = Q0'*Qn
 
-      Hn,Q0  = ChaseBulgeUp(H0)  
+      c1 = i+2
+      Hn,Q0  = ChaseBulgeUp(H0,c1)  
 #     Collect Right multipliers 
       mul!(Q,Qn,Q0)       # Q = Qn*Q0
     end
     βk = abs(Hn[r-nμ+1,r-nμ])
   end
-  println("Francis Algorithm nloops: $j")
+  println("Rev. Francis Algorithm nloops: $j")
 
   return Hn,Q
 end
@@ -339,7 +342,7 @@ function CreateReflectorZeros(x::Vector,k::Int,n::Int)
     return Q
   end
 
-  θ         = 0.0*π/4.0
+  θ         = 1.0*π/4.0
 
   w         = 0.0*x
   w[k]      = x[k] - norm(x[k:n])*exp(im*θ)
@@ -404,7 +407,7 @@ function AdjointReflectorZeros(x::Vector,k::Int,n::Int)
     return Q,w,τ
   end
 
-  θ         = 0.0*π/4.0
+  θ         = 1.0*π/4.0
 
   w         = 0.0*x
   w[k]      = x[k] - norm(x[1:k])*exp(im*θ)
@@ -417,7 +420,7 @@ function AdjointReflectorZeros(x::Vector,k::Int,n::Int)
 end
 #----------------------------------------------------------------------
 
-function ChaseBulgeDown(H0::Matrix)
+function ChaseBulgeDown(H0::Matrix,c1)
 #   Chase the Bulge in the Francis Algorithm
 
    r,c = size(H0)
@@ -427,7 +430,7 @@ function ChaseBulgeDown(H0::Matrix)
    Q   = Matrix{typeof(H0[1,1])}(1.0I,r,c)
    T   = Matrix{typeof(H0[1,1])}(1.0I,r,c)      # tmp
 
-   for i in 1:c-2
+   for i in 1:c1
      x        = H[:,i]
      Qi,y,τ   = CreateReflectorZeros(x,i+1,r)
      
@@ -442,7 +445,7 @@ function ChaseBulgeDown(H0::Matrix)
    return H,Q
 end
 #----------------------------------------------------------------------
-function ChaseBulgeUp(H0::Matrix)
+function ChaseBulgeUp(H0::Matrix,c1)
 #   Chase the Bulge in the Francis Algorithm
 
    r,c = size(H0)
@@ -452,7 +455,7 @@ function ChaseBulgeUp(H0::Matrix)
    Q   = Matrix{typeof(H0[1,1])}(1.0I,r,c)
    T   = Matrix{typeof(H0[1,1])}(1.0I,r,c)      # tmp
 
-   for i in c:-1:3
+   for i in c:-1:c1
      x        = H[i,:]
      y        = adjoint.(x)
      Qi,w,τ   = AdjointReflectorZeros(y,i-1,c)

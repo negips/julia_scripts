@@ -14,33 +14,35 @@
       fr = real.(F.values)
       fr_sort_i = sortperm(fr,rev=false)   # Increasing order
       μ         = F.values[fr_sort_i[1:EKryl]]
-      nμ        = 50 #length(μ)
+      nμ        = length(μ)
 
-#      Hs,Q  = ExplicitShiftedQR(H,μ,nμ,2)
+##      Hs,Q  = ExplicitShiftedQR(H,μ,nμ,2)
       Hs,Q  = FrancisSeq(H,μ,nμ)
-      v     = V[:,1:kk]*Q[:,Nev+1]        # Part of new residual vector
+#      v     = V[:,1:kk]*Q[:,Nev+1]        # Part of new residual vector
       βk    = Hs[kk-nμ+1,kk-nμ]               # e_k+1^T*H*e_k         # This in principle is zero
-      σ     = Q[kk,Nev]                   # e_k+p^T*Q*e_k
+      display(βk)
 
-      r2    = βk*v .+ σ*r                 # new residual vector
-      β     = abs(sqrt(r2'*(Bg.*r2)))
-
-#      r2    = r2/β
-
-
-      en          = zeros(ComplexF64,LKryl)
-      en[LKryl]   = 2.0
-      vn          = Vold[:,LKryl+1]*Hold[LKryl+1,LKryl]
-      erM         = vn*en'
-
-      erMQ        = erM*Q
-
-      β_1         = Hs[kk-nμ-1,kk-nμ-2]
-      β0          = Hs[kk-nμ,kk-nμ-1]
-      β1          = Hs[kk-nμ+1,kk-nμ]
-      β2          = Hs[kk-nμ+2,kk-nμ+1]
-
-      θ           = [β_1 β0 β1 β2]
+#      σ     = Q[kk,Nev]                   # e_k+p^T*Q*e_k
+#
+#      r2    = βk*v .+ σ*r                 # new residual vector
+#      β     = abs(sqrt(r2'*(Bg.*r2)))
+#
+##      r2    = r2/β
+#
+#
+#      en          = zeros(ComplexF64,LKryl)
+#      en[LKryl]   = 2.0
+#      vn          = Vold[:,LKryl+1]*Hold[LKryl+1,LKryl]
+#      erM         = vn*en'
+#
+#      erMQ        = erM*Q
+#
+#      β_1         = Hs[kk-nμ-1,kk-nμ-2]
+#      β0          = Hs[kk-nμ,kk-nμ-1]
+#      β1          = Hs[kk-nμ+1,kk-nμ]
+#      β2          = Hs[kk-nμ+2,kk-nμ+1]
+#
+#      θ           = [β_1 β0 β1 β2]
 
 #     Reverse Step
       F2  = eigen(H)          # Uses Lapack routine (dgeev/zgeev)
@@ -57,7 +59,7 @@
       β1          = Hs2[nμ2+1,nμ2]
       β2          = Hs2[nμ2+2,nμ2+1]
 
-      θ2          = [β_1 β0 β1 β2]
-
+#      θ2          = [β_1 β0 β1 β2]
+      display(β1)
 
 
