@@ -11,7 +11,7 @@ function ArnIRst(V::Matrix,Hes::Matrix,B::Vector,k::Int,kmax::Int,Nev::Int,ngs::
 #   Nev       - Eigenvalues to retain
 #   ngs       - No of Gram-Schmidt
 
-    revFrancis = true   
+    revFrancis = false 
 
     tol = 1.0e-12 
 
@@ -31,11 +31,13 @@ function ArnIRst(V::Matrix,Hes::Matrix,B::Vector,k::Int,kmax::Int,Nev::Int,ngs::
 
       kk = k-1
 
-      H = Hes[1:kk,1:kk]
+      H = deepcopy(Hes[1:kk,1:kk])
 
       if (revFrancis)
 
-        μ,nμ  = ArnGetCustomShifts(H,Nev)
+#        μ,nμ  = ArnGetCustomShifts(H,Nev)
+        μ,nμ  = ArnGetUpperShifts(H,Nev)
+
         Hs,Q  = RevFrancisSeq(H,μ,nμ)     
         v     = V[:,1:kk]*Q[:,Nev+1]        # Part of new residual vector
         βk    = Hs[Nev+1,Nev]               # e_k+1^T*H*e_k         # This in principle is zero
@@ -43,23 +45,35 @@ function ArnIRst(V::Matrix,Hes::Matrix,B::Vector,k::Int,kmax::Int,Nev::Int,ngs::
         σ     = Q[kk,Nev]                   # e_k+p^T*Q*e_k
 
         r    .= βk*v .+ σ*r                 # new residual vector
-        β     = abs(sqrt(r'*(B.*r)))
+        if ndims(B)>1
+          β     = abs(sqrt(r'*(B*r)))
+        else
+          β     = abs(sqrt(r'*(B.*r)))
+        end  
+
 
         r     = r/β
 
       else
 
-        μ,nμ  = ArnGetShifts(H,Nev)
+        μ,nμ  = ArnGetLowerShifts(H,Nev)
 
 #        Hs,Q  = ExplicitShiftedQR(H,μ,nμ,ngs)
         Hs,Q  = FrancisSeq(H,μ,nμ)     
         v     = V[:,1:kk]*Q[:,Nev+1]        # Part of new residual vector
         βk    = Hs[Nev+1,Nev]               # e_k+1^T*H*e_k         # This in principle is zero
         println("βk After ImplicitQR: $βk")
-        σ     = Q[kk,Nev]                   # e_k+p^T*Q*e_k
 
+#        ResM  = r*Q[kk,:]
+#        r     = ResM[:,Nev] 
+
+        σ     = Q[kk,Nev]                   # e_k+p^T*Q*e_k
         r    .= βk*v .+ σ*r                 # new residual vector
-        β     = abs(sqrt(r'*(B.*r)))
+        if ndims(B)>1
+          β     = abs(sqrt(r'*(B*r)))
+        else
+          β     = abs(sqrt(r'*(B.*r)))
+        end  
 
         r     = r/β
       end        
@@ -75,18 +89,38 @@ function ArnIRst(V::Matrix,Hes::Matrix,B::Vector,k::Int,kmax::Int,Nev::Int,ngs::
 
       nkryl = Nev+1
 
+    else
+      U           = V
+      G           = Hes
+      ifconv      = false
+      nkryl       = k
+
     end     # k == kmax+1
 
     return U,G,nkryl,ifconv
 end  
 #----------------------------------------------------------------------
 
-function ArnGetShifts(H::Matrix,Nev::Int)
+function ArnGetUpperShifts(H::Matrix,Nev::Int)
 
+      r,c = size(H)
+      F  = eigen(H)          # Uses Lapack routine (dgeev/zgeev)
+      fr = real.(F.values)
+      fr_sort_i = sortperm(fr,rev=true)   # Decreasing order
+      μ         = F.values[fr_sort_i[1:Nev]]
+      nμ        = length(μ)
+
+      return μ,nμ
+end
+
+#----------------------------------------------------------------------
+function ArnGetLowerShifts(H::Matrix,Nev::Int)
+
+      r,c = size(H)
       F  = eigen(H)          # Uses Lapack routine (dgeev/zgeev)
       fr = real.(F.values)
       fr_sort_i = sortperm(fr,rev=false)   # Increasing order
-      μ         = F.values[fr_sort_i[1:Nev]]
+      μ         = F.values[fr_sort_i[1:c-Nev]]
       nμ        = length(μ)
 
       return μ,nμ
@@ -119,7 +153,7 @@ function ArnGetCustomShifts(H::Matrix,Nev::Int)
       
       Ω  = im*(U*U/8.0 .- U*U/(4.0*γ) .+ γ^(1.0/3.0)*(U^(4.0/3.0))/(160.0^(2.0/3.0))*ω)
 
-      i         = 3
+      i         = 1
       μ         = Ω[i:i+Nev-1]
       nμ        = length(μ)
 

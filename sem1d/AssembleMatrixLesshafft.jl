@@ -1,4 +1,4 @@
-function AssembleMatrixLesshafft(c0,cnv,wlp,xm1,bm1,Basis,lx1,nel)
+function AssembleMatrixLesshafft(U,γ,c0,cnv,wlp,xm1,bm1,Basis,lx1,nel)
 
 #     Building the Complex Ginzburg Landau model problem from
 #     Lutz Lesshafft (2018) Artificial eigenmodes in truncated flow domains
@@ -18,8 +18,8 @@ function AssembleMatrixLesshafft(c0,cnv,wlp,xm1,bm1,Basis,lx1,nel)
       VT  = ComplexF64
 
       II  = Matrix(1.0I,lx1,lx1)
-      U   = 6.0
-      γ   = 1.0 - 1.0*im
+#      U   = 6.0
+#      γ   = 1.0 - 1.0*im
 
       dof = nel*(lx1-1) + 1;
 
@@ -92,7 +92,7 @@ end
 
 #---------------------------------------------------------------------- 
 
-function AssembleMatrixLesshafft2(c0,cnv,wlp,xm1,bm1,Basis,lx1,nel)
+function AssembleMatrixLesshafft2(U,γ,c0,cnv,wlp,xm1,bm1,Basis,lx1,nel)
 
 #     Building the Complex Ginzburg Landau model problem from
 #     Lutz Lesshafft (2018) Artificial eigenmodes in truncated flow domains
@@ -120,8 +120,8 @@ function AssembleMatrixLesshafft2(c0,cnv,wlp,xm1,bm1,Basis,lx1,nel)
       VT  = ComplexF64
 
       II  = Matrix{VT}(1.0I,lx1,lx1)
-      U   = 6.0
-      γ   = 1.0 - 1.0*im
+#      U   = 6.0
+#      γ   = 1.0 - 1.0*im
 
       dof = nel*lx1;
 

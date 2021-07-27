@@ -32,9 +32,21 @@ vimult = 1.0 ./vmult
 
 xall  = vimult.*(Q*QT*Geom.xm1[:]);
 
-c0 = 0.0e-10;
+U   = 6.0
+γ   = 1.0 - 1.0*im
+c0  = 0.0e-10;
 
-L,B,OP,Conv,Src,Lap,Fd = AssembleMatrixLesshafft2(c0,Geom.cnv,Geom.wlp,Geom.xm1,Geom.bm1,Basis,lx1,nel);
+L,B,OP,Conv,Src,Lap,Fd = AssembleMatrixLesshafft2(U,γ,c0,Geom.cnv,Geom.wlp,Geom.xm1,Geom.bm1,Basis,lx1,nel);
+
+# Build Dealiased Mass Matrix
+Md    = zeros(VT,npts,npts)
+for i in 1:nel
+  j1 = (i-1)*lx1 + 1;
+  j2 = i*lx1;
+# Dealiased Mass matrix
+  Md[j1:j2,j1:j2] = (Geom.intpm1d')*diagm(Geom.bm1d[:,i])*Geom.intpm1d
+end
+
 
 ifglobal = true
 
@@ -45,8 +57,16 @@ if ifglobal
   Fg    = QT*Fd*Q      # Global Feedback matrix
   Bg    = QT*B         # Global Mass vector
   Big   = 1.0./Bg      # Global inverse Mass vector
+  Mdg   = QT*Md*Q      # Global Dialiased Weight Matrix for inner products 
   
   OPg   = QT*(L)*Q./Bg
 end
 
-#OPg  = similar(Cg)
+println("Global Matrices Built")
+
+
+
+
+
+
+

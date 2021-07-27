@@ -13,7 +13,7 @@ rng = MersenneTwister(1234)
 
 close("all")
 
-n = 8
+n = 100
 
 λs = randn(rng,ComplexF64,n)
 
@@ -22,9 +22,8 @@ A  = inv(AR)*diagm(λs)*AR
 h = hessenberg(A)
 H = convert(Matrix,h.H)
 
-F = eigen(H)
-ind = sortperm(abs.(F.values))
-λ   = F.values[ind]
+ind = sortperm(abs.(λs),rev=false)
+λ   = λs[ind]
 
 m   = 1
 
@@ -45,10 +44,20 @@ res1  = zeros(Float64,niter)     # Vector
 
   i = 1
 
-#  Hpert,Q0 = CreateBulge(Hn,μ,nμ)    # = Q0'*p(H)*Q0
-  μ         = λ[1:1]
-  nμ        = 1
-  H1,Q1     = FrancisAlg(H,μ,nμ)
+#  Hpert,Q0 = CreateBulge(Hn,μ,nμ)    # = Q0'*p(H)*Q0 
+  for j in 1:1
+    global μ, nμ, H1, Q1
+    nμ        = 20
+    μ         = λ[1:nμ]
+    H1,Q1     = FrancisSeq(H,μ,nμ)
+  end
+  display(H1[n-nμ+1,n-nμ])
+
+  nμ        = 20
+  μ         = λ[1:nμ]
+  H2,Q2     = ExplicitShiftedQR(H,μ,nμ,2)
+  display(H2[n-nμ+1,n-nμ])
+
 
 #  μ         = λ[2:2]
 #  nμ        = 1
@@ -60,11 +69,11 @@ res1  = zeros(Float64,niter)     # Vector
 #  H22,Q22   = FrancisSeq(H,λ[1:2],2)
 #
 
-  nμ        = 2
+  nμ        = 20
   μ         = λ[1:nμ]    
-  H33,Q33   = RevFrancisSeq(H,μ,nμ)
+  H3,Q3     = RevFrancisSeq(H,μ,nμ)
 
-  H33[nμ+1,nμ]
+  display(H3[nμ+1,nμ])
 
 #  μ         = λ[1:4]
 #  nμ        = 2

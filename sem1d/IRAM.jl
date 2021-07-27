@@ -1,8 +1,8 @@
-function IRAM!(Vin::Matrix,Hes::Matrix,Bg::Vector,v::Vector,k::Int,kmax::Int,Mi::Int,Nev,ngs::Int)
+function IRAM!(Vin::Matrix,Hes::Matrix,Bg::Union{Vector,Matrix},v::Vector,k::Int,kmax::Int,Mi::Int,Nev,ngs::Int)
 
 #   Vin     - Krylov Matrix
 #   Hes     - Hessenberg Matrix
-#   Bg      - Weight Vector
+#   Bg      - Weight Vector/Matrix
 #   v       - New Arnoldi vector
 #   k       - Current Krylov Size
 #   kmax    - Max Krylov size
