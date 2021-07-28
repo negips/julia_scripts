@@ -1,5 +1,5 @@
 # Arnoldi Implicit restart
-function ArnIRst(V::Matrix,Hes::Matrix,B::Vector,k::Int,kmax::Int,Nev::Int,ngs::Int)
+function ArnIRst(V::Matrix,Hes::Matrix,B::Union{Vector,Matrix},k::Int,kmax::Int,Nev::Int,ngs::Int)
 
 #   V         - Krylov Vector
 #   H         - Upper Hessenberg
@@ -11,7 +11,7 @@ function ArnIRst(V::Matrix,Hes::Matrix,B::Vector,k::Int,kmax::Int,Nev::Int,ngs::
 #   Nev       - Eigenvalues to retain
 #   ngs       - No of Gram-Schmidt
 
-    revFrancis = false 
+    revFrancis = true 
 
     tol = 1.0e-12 
 
@@ -51,12 +51,11 @@ function ArnIRst(V::Matrix,Hes::Matrix,B::Vector,k::Int,kmax::Int,Nev::Int,ngs::
           β     = abs(sqrt(r'*(B.*r)))
         end  
 
-
         r     = r/β
 
       else
 
-        μ,nμ  = ArnGetLowerShifts(H,Nev)
+        μ,nμ  = ArnGetLowerShifts(H,EKryl)
 
 #        Hs,Q  = ExplicitShiftedQR(H,μ,nμ,ngs)
         Hs,Q  = FrancisSeq(H,μ,nμ)     
@@ -114,13 +113,13 @@ function ArnGetUpperShifts(H::Matrix,Nev::Int)
 end
 
 #----------------------------------------------------------------------
-function ArnGetLowerShifts(H::Matrix,Nev::Int)
+function ArnGetLowerShifts(H::Matrix,EKryl::Int)
 
       r,c = size(H)
       F  = eigen(H)          # Uses Lapack routine (dgeev/zgeev)
       fr = real.(F.values)
       fr_sort_i = sortperm(fr,rev=false)   # Increasing order
-      μ         = F.values[fr_sort_i[1:c-Nev]]
+      μ         = F.values[fr_sort_i[1:EKryl]]
       nμ        = length(μ)
 
       return μ,nμ

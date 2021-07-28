@@ -53,42 +53,31 @@ function FrancisSeq(H::Matrix,μ0::Vector,nμ::Int)
   tol    = 1.0e-12
 
 
-  println("Francis' Algorithm: nμ=$nμ, MaxLoops:$nloops, Tol=$tol")
+#  println("Francis' Algorithm: nμ=$nμ, MaxLoops:$nloops, Tol=$tol")
 
-#  while βk>tol && j < nloops
-#    j = j+1
-    for i in 1:nμ
-#     Create a bulge in the top left of the matrix
-      λ     = μ[i:i]
-      nλ    = 1
-      H0,Q0 = CreateBulge(Hn,λ,nλ)
+  for i in 1:nμ
+#   Create a bulge in the top left of the matrix
+    λ     = μ[i:i]
+    nλ    = 1
+    H0,Q0 = CreateBulge(Hn,λ,nλ)
 
-#     Collect Left multipliers 
-      mul!(Qn,Q0,Q)       # Qn = Q0*Q
+#   Collect Left multipliers 
+    mul!(Qn,Q0,Q)       # Qn = Q0*Q
 
-#     Chase Bulge through bottom right and return to 
-#     Hessenberg form.  
-#     Should probably code it manually  
-#      hn    = hessenberg(H0)
-#      Q0    = convert(Matrix,hn.Q)
-#      Hn    = convert(Matrix,hn.H)      # Hn = Qn'*H0*Qn = Qn'*Q0*H*Q0'*Qn
-##     Collect Left multipliers 
-#      mul!(Q,Q0',Qn)       # Q = Q0'*Qn
+#   Chase Bulge through bottom right and return to 
+#   Hessenberg form.  
+#   Should probably code it manually  
+#    hn    = hessenberg(H0)
+#    Q0    = convert(Matrix,hn.Q)
+#    Hn    = convert(Matrix,hn.H)      # Hn = Qn'*H0*Qn = Qn'*Q0*H*Q0'*Qn
+##   Collect Left multipliers 
+#    mul!(Q,Q0',Qn)       # Q = Q0'*Qn
 
-      Hn,Q0  = ChaseBulgeDown(H0,nμ)  
-##     Collect Left multipliers 
-      mul!(Q,Q0,Qn)       # Q = Q0*Qn
+    Hn,Q0  = ChaseBulgeDown(H0,nμ)  
+##   Collect Left multipliers 
+    mul!(Q,Q0,Qn)       # Q = Q0*Qn
 
-#     Do a second loop just to be sure
-#       Qn = copy(Q)
-#       H0 = copy(Hn)
-#       Hn,Q0  = ChaseBulgeDown(H0)  
-# ##     Collect Left multipliers 
-#       mul!(Q,Q0,Qn)       # Q = Q0*Qn
-
-    end
-#    βk = abs(Hn[r-nμ+1,r-nμ])
-#  end
+  end
 #  println("Francis Algorithm nloops: $j")
 
   return Hn,Q
@@ -167,8 +156,8 @@ function CreateBulge(H::Matrix,μ::Vector,nμ::Int)
   n         = length(x)
   k1        = 1         # Zeros after this
   k2        = nμ+2      # Last non-zero entry position
-#  Q0,y,τ    = CreateReflectorZeros(x,k1,n)
-  Q0,y,τ    = CreateReflectorZeros2(x,k1,k2,n)
+  Q0,y,τ    = CreateReflectorZeros(x,k1,n)
+#  Q0,y,τ    = CreateReflectorZeros2(x,k1,k2,n)
 
   A   = deepcopy(H)
   B   = deepcopy(H)
@@ -355,10 +344,8 @@ function CreateReflectorZeros(x::Vector,k::Int,n::Int)
   θ         = 0.0*π/4.0
 
   w         = 0.0*x
-#  w[1:k]    = x[1:k]
   w[k]      = x[k] - norm(x[k:n])*exp(im*θ)
   w[k+1:n]  = x[k+1:n]
-  w         = w
   β         = w'x
   τ         = 1.0/β
   Q         = (I - τ*w*w')
@@ -504,13 +491,14 @@ function ChaseBulgeDown(H0::Matrix,nμ)
      xnorm    = norm(x[i+2:c])
 
 #     if xnorm>tol
-#       Qi,w,τ   = CreateReflectorZeros(x,i+1,r)
-       k1 = i+1
-       k2 = i+1+nμ
-       if k2>r
-         k2 = r
-       end  
-       Qi,w,τ   = CreateReflectorZeros2(x,k1,k2,r)
+       Qi,w,τ   = CreateReflectorZeros(x,i+1,r)
+
+#       k1 = i+1
+#       k2 = i+1+nμ
+#       if k2>r
+#         k2 = r
+#       end  
+#       Qi,w,τ   = CreateReflectorZeros2(x,k1,k2,r)
       
 #       A = Qi*H
 #       H = A*Qi'
