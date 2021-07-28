@@ -1,5 +1,5 @@
 # Arnoldi Implicit restart
-function ArnIRst(V::Matrix,Hes::Matrix,B::Vector,k::Int,kmax::Int,Nev::Int,gs::Int)
+function ArnIRst(V::Matrix,Hes::Matrix,B::Vector,k::Int,kmax::Int,Nev::Int,ngs::Int)
 
 #   V         - Krylov Vector
 #   H         - Upper Hessenberg
@@ -11,7 +11,9 @@ function ArnIRst(V::Matrix,Hes::Matrix,B::Vector,k::Int,kmax::Int,Nev::Int,gs::I
 #   Nev       - Eigenvalues to retain
 #   ngs       - No of Gram-Schmidt
 
-    tol = 1.0e-12 
+    revFrancis = false 
+
+    tol = 1.0e-08 
 
     EKryl = kmax - 1 - Nev 
     ifconv = false
@@ -31,23 +33,36 @@ function ArnIRst(V::Matrix,Hes::Matrix,B::Vector,k::Int,kmax::Int,Nev::Int,gs::I
 
       H = Hes[1:kk,1:kk]
 
-      F  = eigen(H)          # Uses Lapack routine (dgeev/zgeev)
-      fr = real.(F.values)
-      fr_sort_i = sortperm(fr,rev=false)   # Increasing order
-      μ         = F.values[fr_sort_i[1:EKryl]]
-      nμ        = length(μ)
+      if (revFrancis)
 
-      Hs,Q  = ExplicitShiftedQR(H,μ,nμ,ngs)
-#      Hs,Q  = FrancisSeq(H,μ,nμ)     
-      v     = V[:,1:kk]*Q[:,Nev+1]        # Part of new residual vector
-      βk    = Hs[Nev+1,Nev]               # e_k+1^T*H*e_k         # This in principle is zero
-      println("βk After ImplicitQR: $βk")
-      σ     = Q[kk,Nev]                   # e_k+p^T*Q*e_k
+        μ,nμ  = ArnGetCustomShifts(H,Nev)
+        Hs,Q  = RevFrancisSeq(H,μ,nμ)     
+        v     = V[:,1:kk]*Q[:,Nev+1]        # Part of new residual vector
+        βk    = Hs[Nev+1,Nev]               # e_k+1^T*H*e_k         # This in principle is zero
+        println("βk After ImplicitQR: $βk")
+        σ     = Q[kk,Nev]                   # e_k+p^T*Q*e_k
 
-      r    .= βk*v .+ σ*r                 # new residual vector
-      β     = abs(sqrt(r'*(B.*r)))
+        r    .= βk*v .+ σ*r                 # new residual vector
+        β     = abs(sqrt(r'*(B.*r)))
 
-      r     = r/β
+        r     = r/β
+
+      else
+
+        μ,nμ  = ArnGetShifts(H,Nev)
+
+        Hs,Q  = ExplicitShiftedQR(H,μ,nμ,ngs)
+#        Hs,Q  = FrancisSeq(H,μ,nμ)     
+        v     = V[:,1:kk]*Q[:,Nev+1]        # Part of new residual vector
+        βk    = Hs[Nev+1,Nev]               # e_k+1^T*H*e_k         # This in principle is zero
+        println("βk After ImplicitQR: $βk")
+        σ     = Q[kk,Nev]                   # e_k+p^T*Q*e_k
+
+        r    .= βk*v .+ σ*r                 # new residual vector
+        β     = abs(sqrt(r'*(B.*r)))
+
+        r     = r/β
+      end        
 
       if abs(β)<tol
         ifconv = true
@@ -64,6 +79,59 @@ function ArnIRst(V::Matrix,Hes::Matrix,B::Vector,k::Int,kmax::Int,Nev::Int,gs::I
 
     return U,G,nkryl,ifconv
 end  
+#----------------------------------------------------------------------
+
+function ArnGetShifts(H::Matrix,Nev::Int)
+
+      r,c = size(H)
+      F  = eigen(H)          # Uses Lapack routine (dgeev/zgeev)
+      fr = real.(F.values)
+      fr_sort_i = sortperm(fr,rev=false)   # Increasing order
+      μ         = F.values[fr_sort_i[1:r-Nev]]
+      nμ        = length(μ)
+
+      return μ,nμ
+end
+
+#----------------------------------------------------------------------
+
+function ArnGetCustomShifts(H::Matrix,Nev::Int)
+
+#     Analytical Eigenvalues
+      ω1 = find_zero(airyai,(-3.0,-0.0))
+      ω2 = find_zero(airyai,(-5.0,-3.0))
+      ω3 = find_zero(airyai,(-6.0,-5.0))
+      ω4 = find_zero(airyai,(-7.0,-6.0))
+      ω5 = find_zero(airyai,(-8.0,-7.0))
+      ω6 = find_zero(airyai,(-9.5,-8.0))
+      ω7 = find_zero(airyai,(-10.5,-9.5))
+      ω8 = find_zero(airyai,(-11.8,-10.5))
+      ω9 = find_zero(airyai,(-12.0,-11.8))
+      ω10 = find_zero(airyai,(-12.9,-12.0))
+      ω11 = find_zero(airyai,(-13.8,-12.9))
+      ω12 = find_zero(airyai,(-14.8,-13.8))
+      ω13 = find_zero(airyai,(-15.8,-14.8))
+      ω14 = find_zero(airyai,(-16.8,-15.8))
+      ω15 = find_zero(airyai,(-17.5,-16.8))
+      
+      ω  = [ω1, ω2, ω3, ω4, ω5, ω6, ω7, ω8, ω9, ω10, ω11, ω12, ω13, ω14, ω15]
+      U  = 6.0
+      γ  = 1.0 - im*1.0
+      
+      Ω  = im*(U*U/8.0 .- U*U/(4.0*γ) .+ γ^(1.0/3.0)*(U^(4.0/3.0))/(160.0^(2.0/3.0))*ω)
+
+      i         = 1
+      μ         = Ω[i:i+Nev-1]
+      nμ        = length(μ)
+
+      return μ,nμ
+end
+
+#----------------------------------------------------------------------
+
+
+
+
 
 
 

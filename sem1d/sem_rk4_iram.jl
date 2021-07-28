@@ -68,7 +68,7 @@ pΛ = plot(real.(Ω),imag.(Ω),linestyle="none",marker="o",markersize=8)
 
 xg    = QT*(vimult.*Geom.xm1[:])
 
-Nev   = 20               # Number of eigenvalues to calculate
+Nev   = 10               # Number of eigenvalues to calculate
 EKryl = Int64(floor(2.5*Nev))           # Additional size of Krylov space
 LKryl = Nev + EKryl     # Total Size of Krylov space    
 
@@ -84,8 +84,8 @@ Hold  = zeros(vt,LKryl+1,LKryl)
 r     = randn(vt,ndof);
 
 ifarnoldi   = true
-ifplot      = false 
-verbose     = false
+ifplot      = true
+verbose     = true
 reortho     = 1000
 verbosestep = reortho #500
 nsteps      = 100000
@@ -104,7 +104,7 @@ rgba0 = cm(0)
 rgba1 = cm(1) 
 rgba2 = cm(2) 
 
-dt = 0.0001
+dt = 0.0005
 
 λn = zeros(vt,nkryl)
 
@@ -117,7 +117,7 @@ ifconv = false
 t = 0.            # Time
 i = 0             # Istep
 
-maxouter_it = 200
+maxouter_it = 500
 major_it    = 1
 
 if (ifplot)
@@ -185,7 +185,8 @@ while (~ifconv)
 
        if nkryl == LKryl
          Hold = H
-       end  
+         Vold = V
+       end
        V,H,nkryl,β,major_it = IRAM!(V,H,Bg,v,nkryl,LKryl,major_it,Nev,ngs)
 
        v   = V[:,nkryl]
@@ -206,9 +207,10 @@ while (~ifconv)
          break
        end  
        if (verbose)
-         println("Krylov Size: $nkryl")
+         println("Major Iteration: $major_it, Krylov Size: $nkryl, β: $β")
        end
        if (β < tol)
+         println("β = $β")
          break
        end  
 

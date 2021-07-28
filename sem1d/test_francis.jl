@@ -1,12 +1,13 @@
 # Testing the Francis Algorithm
 
-include("BulgeChase.jl")
-include("ExplicitShiftedQR.jl")
-include("FrancisAlg.jl")
-
 using LinearAlgebra
 using Random
 using PyPlot
+
+
+include("BulgeChase.jl")
+include("ExplicitShiftedQR.jl")
+include("BulgeChase.jl")
 
 rng = MersenneTwister(1234)
 
@@ -47,80 +48,35 @@ res1  = zeros(Float64,niter)     # Vector
 #  Hpert,Q0 = CreateBulge(Hn,μ,nμ)    # = Q0'*p(H)*Q0
   μ         = λ[1:1]
   nμ        = 1
-  H1,Q1     = BulgeChase(H,μ,nμ)
-  μ         = λ[2:2]
-  nμ        = 1
-  H2,Q2     = BulgeChase(H1,μ,nμ)
-  μ         = λ[3:3]
-  nμ        = 1
-  H3,Q3     = BulgeChase(H2,μ,nμ)
+  H1,Q1     = FrancisAlg(H,μ,nμ)
 
-  H22,Q22   = BulgeChaseSeq(H,λ[1:2],2)
+#  μ         = λ[2:2]
+#  nμ        = 1
+#  H2,Q2     = FrancisAlg(H1,μ,nμ)
+#  μ         = λ[3:3]
+#  nμ        = 1
+#  H3,Q3     = FrancisAlg(H2,μ,nμ)
 
-## Collect Right multipliers 
-#  Q     = Q*Q0
-#  
-#  hn    = hessenberg(Hpert)
-#  Qn    = convert(Matrix,hn.Q)
-#  Hn    = convert(Matrix,hn.H)      # Hn = Qn'*Hpert*Qn = Qn'*Q0'*H*Q0*Qn
+#  H22,Q22   = FrancisSeq(H,λ[1:2],2)
 #
-## Collect Right multipliers 
-#  Q     = Q*Qn                      # Hn = Q'*H*Q
+
+  nμ        = 2
+  μ         = λ[1:nμ]    
+  H33,Q33   = RevFrancisSeq(H,μ,nμ)
+
+  H33[nμ+1,nμ]
+
+#  μ         = λ[1:4]
+#  nμ        = 2
+#  w1        = enpolyH(H,μ,nμ)
+#
+#  Q,w,τ     = AdjointReflectorZeros(w1',n-1,n);
+#
+#  A,Q0      = CreateLowerBulge(H,μ,nμ);         # A = Q0'*H*Q0
 
 
-  res[i]  = abs(Hn[n-m+1,n-m])
-
-# Test QR
-
-  B   = H - μ[1]*I
-  t   = qr(B)
-  B1  = t.R*t.Q + μ[1]*I
 
 
-x = polyHe1(H,μ,nμ)
-y = 0.0*x
-xnorm = sqrt(x'*x)
-y[1] = abs(xnorm)
-τ    = x'*y
-τ_norm = abs(τ)
-if τ_norm>1.0e-12
-  expiθ  = τ/τ_norm
-else 
-  expiθ  = 1.0 + 0.0im
-end  
 
-u    = (x-y)
-unorm = sqrt(u'*u)
-u   .= u/unorm
-Qi   = I - 2.0*u*u'
-
-w    = expiθ*x - y
-unorm = sqrt(w'*w)
-w   .= w/unorm
-U    = expiθ*(I - 2.0*w*w')
-
-U*x
-
-# 
-# u = x-y
-# #u = u/u[1]
-# τ = u'*x
-# 
-# Q = I - (1.0/τ)*u*u'
-
-#Q0*x
-
-# x = 0.0*x
-# x[1] = im
-# x[2] = 1.0
-# xr   = real.(x)
-# xi   = imag.(x)
-# 
-# 
-# u = y-x
-# u = u/norm(u)
-# Q = I - 2.0*u*u'
-# 
-# Q*x
 
 

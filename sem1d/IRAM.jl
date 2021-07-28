@@ -9,7 +9,6 @@ function IRAM!(Vin::Matrix,Hes::Matrix,Bg::Vector,v::Vector,k::Int,kmax::Int,Mi:
 #   Mi      - Major iteration Number
 #   Nev     - No of Requested Eigenvalues/Vectors
 #   ngs     - No of Gram-Schmidt orthogonalizations
-#
 
     V = Vin
     H = Hes
@@ -33,8 +32,8 @@ function IRAM!(Vin::Matrix,Hes::Matrix,Bg::Vector,v::Vector,k::Int,kmax::Int,Mi:
 
 #   Perform implicit restart      
     if k == kmax+1
-      Hold = H
-      Vold = V
+#      Hold = H
+#      Vold = V
       U,G,k2,ifconv = ArnIRst(V,H,Bg,k,kmax+1,Nev,ngs)
       V = U
       H = G

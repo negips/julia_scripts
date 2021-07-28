@@ -2,7 +2,7 @@
 function ExplicitShiftedQR(Hs,μ0,nμ,ngs)
 
   tol = 1.0e-12
-  H   = deepcopy(Hs)
+  H   = copy(Hs)
 
   r,c = size(H)
 
