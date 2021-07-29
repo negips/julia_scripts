@@ -57,8 +57,8 @@ function ArnIRst(V::Matrix,Hes::Matrix,B::Union{Vector,Matrix},k::Int,kmax::Int,
 
         μ,nμ  = ArnGetLowerShifts(H,EKryl)
 
-        Hs,Q  = ExplicitShiftedQR(H,μ,nμ,ngs)
-#        Hs,Q  = FrancisSeq(H,μ,nμ)     
+#        Hs,Q  = ExplicitShiftedQR(H,μ,nμ,ngs)
+        Hs,Q  = FrancisSeq(H,μ,nμ)     
         v     = V[:,1:kk]*Q[:,Nev+1]        # Part of new residual vector
         βk    = Hs[Nev+1,Nev]               # e_k+1^T*H*e_k         # This in principle is zero
         println("βk After ImplicitQR: $βk")

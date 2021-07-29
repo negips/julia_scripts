@@ -13,11 +13,11 @@ VT = ComplexF64
 # define nodal bases
 N           = 8 ;                              # polynomial degree
 lx1         = N+1;                              # No of points
-Basis       = LobattoLegendre(N, VT)                # Polynomial Basis
+Basis       = LobattoLegendre(N, Float64)                # Polynomial Basis
 
 Nd          = Int64(floor(N*1.5)+1) ;                               # polynomial degree
 lx1d        = Nd+1;                             # No of points
-Basisd      = LobattoLegendre(Nd, VT)               # Polynomial Basis
+Basisd      = LobattoLegendre(Nd, Float64)               # Polynomial Basis
 
 #basis2 = GaussLegendre(N)
 
