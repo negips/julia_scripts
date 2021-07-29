@@ -7,7 +7,7 @@ using IterativeSolvers
 using SpecialFunctions
 using Roots
 using Random
-using JLD2
+# using JLD2
 
 
 include("ArnUpd.jl")
@@ -56,8 +56,9 @@ rcParams = PyPlot.PyDict(PyPlot.matplotlib."rcParams")
 ω15 = find_zero(airyai,(-17.5,-16.8))
 
 ω  = [ω1, ω2, ω3, ω4, ω5, ω6, ω7, ω8, ω9, ω10, ω11, ω12, ω13, ω14, ω15]
-U  = 6.0
-γ  = 1.0 - im*1.0
+# Parameters defined earlier
+#U  = 6.0
+#γ  = 1.0 - im*1.0
 
 Ω  = im*(U*U/8.0 .- U*U/(4.0*γ) .+ γ^(1.0/3.0)*(U^(4.0/3.0))/(160.0^(2.0/3.0))*ω)
 
@@ -69,7 +70,7 @@ pΛ = plot(real.(Ω),imag.(Ω),linestyle="none",marker="o",markersize=8)
 xg    = QT*(vimult.*Geom.xm1[:])
 
 Nev   = 10               # Number of eigenvalues to calculate
-EKryl = Int64(floor(2.5*Nev))           # Additional size of Krylov space
+EKryl = Int64(floor(1.5*Nev))           # Additional size of Krylov space
 LKryl = Nev + EKryl     # Total Size of Krylov space    
 
 vt    = ComplexF64
@@ -82,10 +83,12 @@ H     = zeros(vt,LKryl+1,LKryl)
 Hold  = zeros(vt,LKryl+1,LKryl)
 
 r     = randn(vt,ndof);
+r     = (1.0+1.0im)sin.(5*pi*xg[:])
+r[1]  = 0.0
 
 ifarnoldi   = true
-ifplot      = true
-verbose     = true
+ifplot      = false
+verbose     = false
 reortho     = 1000
 verbosestep = reortho #500
 nsteps      = 100000
@@ -93,18 +96,18 @@ ifsave      = true
 
 ngs     = 2       # Number of Gram-Schmidt
 nkryl   = 0
-tol     = 1.0e-08
+tol     = 1.0e-06
 
 h,θ,v  = ArnUpd(V,Bg,r,nkryl,ngs)
 V[:,1] = v
-nkryl  = 0
+nkryl  = 1
 
 cm    = get_cmap("tab10");
 rgba0 = cm(0) 
 rgba1 = cm(1) 
 rgba2 = cm(2) 
 
-dt = 0.0005
+dt = 0.0001
 
 λn = zeros(vt,nkryl)
 
@@ -117,7 +120,7 @@ ifconv = false
 t = 0.            # Time
 i = 0             # Istep
 
-maxouter_it = 500
+maxouter_it = 100
 major_it    = 1
 
 if (ifplot)
@@ -160,14 +163,7 @@ while (~ifconv)
 # Apply BC       
   v[1]      = 0.0 + im*0.0
   
-## RK4 steps
-#  v1 = v .+ dt/2.0*OPg*v
-#  v2 = v .+ dt/2.0*OPg*v1
-#  v3 = v .+ dt*OPg*v2
-#  v4 = v .+ dt/6.0*(OPg*(v .+ 2.0*v1 .+ 2.0*v2 .+ v3))
-#
-#  v  = v4
-   v  = RK4!(OPg,v,dt)
+  v  = RK4!(OPg,v,dt)
 
   if (ifarnoldi)
 #   Expand Krylov space
@@ -220,7 +216,20 @@ while (~ifconv)
     if verbose && mod(i,verbosestep)==0
       println("Istep=$i, Time=$t")
     end
-   
+    if (ifplot && mod(i,reortho)==0)
+      if (i>reortho) 
+        for lo in ax2.get_lines()
+          lo.remove()
+        end  
+      end  
+     
+      pv1 = ax2.plot(xg,real.(v),linestyle="-")
+
+      vmin = 1.5*minimum(real.(v))
+      vmax = 1.5*maximum(real.(v))
+      ax2.set_ylim((vmin,vmax))
+    end 
+  
     if i==nsteps
       break
     end  
@@ -258,9 +267,9 @@ end
 
 
 
-if (ifsave )
-  save("nev20_xe40_c0_tol-6.jld2"; AT,N,Nd,xs,xe,nel,U,γ,Ω,xg,vt,Nev,EKryl,LKryl,reortho,V,H,F,DT,λ,Lesshafft_λ);
-end  
+# if (ifsave )
+#   save("nev20_xe40_c0_tol-6.jld2"; VT,N,Nd,xs,xe,nel,U,γ,Ω,xg,vt,Nev,EKryl,LKryl,reortho,V,H,F,DT,λ,Lesshafft_λ);
+# end  
 
 
 

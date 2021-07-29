@@ -5,8 +5,8 @@ using PolynomialBases
 
 # Include the function files
 
-#AT = Float64
-AT = ComplexF64
+#VT = Float64
+VT = ComplexF64
 
 # define nodal bases
 N           = 8 ;                              # polynomial degree
@@ -21,7 +21,7 @@ Basisd      = LobattoLegendre(Nd)               # Polynomial Basis
 
 xs          = 0.                                # Domain start
 xe          = 40.0                              # Domain end
-nel         = 31                                # No of elements
+nel         = 30                                # No of elements
 nnodes      = nel+1;                            # No of nodes
 xc          = range(xs,stop=xe,length=nnodes);  # Element coordinates
 

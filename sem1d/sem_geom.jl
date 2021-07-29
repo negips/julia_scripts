@@ -82,28 +82,29 @@ function sem_geom(Basis,Basisd,xc,N,Nd,nel,dxm1,dxtm1)
       
 #     Matrices for Convection operator
       jacm1d  = intpm1d*jacm1;
-      tmp     = jacm1d.*wzm1d;            # Mass matrix on the de-aliased grid
+      bm1d    = jacm1d.*wzm1d;            # Mass matrix on the de-aliased grid
       
       gradxd = zeros(VT,lx1d,lx1,nel);
       bmd_matrix = zeros(VT,lx1d,lx1d,nel);
+
       for i in 1:nel
         for j in 1:lx1d    
-          bmd_matrix[j,j,i] = tmp[j];
+          bmd_matrix[j,j,i] = bm1d[j];
         end
       end
       
-      bm1d = zeros(VT,lx1,lx1d,nel);        # Matrix to perform integration on the dealiased grid   
+      bintpd = zeros(VT,lx1,lx1d,nel);        # Matrix to perform integration on the dealiased grid   
       for i in 1:nel
 #       global gradxd,bmd_matrix 
         gradxd[:,:,i] = intpm1d*gradx[:,:,i];            # Interpolation of gradient on to the dealiased grid
-        bm1d[:,:,i]   = (bmd_matrix[:,:,i]*intpm1d)';
+        bintpd[:,:,i]   = (bmd_matrix[:,:,i]*intpm1d)';
 
       end
 
 #     Convective matrix assuming uniform velocity
       cnv = zeros(VT,lx1,lx1,nel);
       for i in 1:nel
-        cnv[:,:,i] = bm1d[:,:,i]*gradxd[:,:,i];
+        cnv[:,:,i] = bintpd[:,:,i]*gradxd[:,:,i];
       end  
       
 #     Weak Laplacian
@@ -123,7 +124,7 @@ function sem_geom(Basis,Basisd,xc,N,Nd,nel,dxm1,dxtm1)
         wlp[:,:,i]  = -dv1*gradx[:,:,i];
       end
       
-      Geom = GeomMatrices(xm1,xrm1,rxm1,jacm1,jacmi,bm1,gradx,intpm1d,gradxd,bm1d,cnv,wlp,dvdx);
+      Geom = GeomMatrices(xm1,xrm1,rxm1,jacm1,jacmi,bm1,gradx,intpm1d,gradxd,bm1d,bintpd,cnv,wlp,dvdx);
 
       println("SEM Geom: Done")
 
@@ -144,6 +145,7 @@ struct GeomMatrices
       intpm1d;
       gradxd;
       bm1d;
+      bintpd;
       cnv;
       wlp;
       dvdx;

@@ -19,7 +19,7 @@ function FrancisAlg(H::Matrix,μ::Vector,nμ::Int)
 ## Collect Left multipliers 
 #  Q     = Qn'*Q0                    # Hn = Q'*H*Q
 
-  Hn,Qn  = ChaseBulgeDown(H0,c-2)
+  Hn,Qn  = ChaseBulgeDown(H0,nμ)
 # Collect Left multipliers 
   mul!(Q,Qn,Q0)       # Q = Qn*Q0
 
@@ -53,36 +53,32 @@ function FrancisSeq(H::Matrix,μ0::Vector,nμ::Int)
   tol    = 1.0e-12
 
 
-  println("Francis' Algorithm: nμ=$nμ, MaxLoops:$nloops, Tol=$tol")
+#  println("Francis' Algorithm: nμ=$nμ, MaxLoops:$nloops, Tol=$tol")
 
-  while βk>tol && j < nloops
-    j = j+1
-    for i in 1:nμ
-#     Create a bulge in the top left of the matrix
-      λ     = μ[i:i]
-      nλ    = 1
-      H0,Q0 = CreateBulge(Hn,λ,nλ)
+  for i in 1:nμ
+#   Create a bulge in the top left of the matrix
+    λ     = μ[i:i]
+    nλ    = 1
+    H0,Q0 = CreateBulge(Hn,λ,nλ)
 
-#     Collect Left multipliers 
-      mul!(Qn,Q0,Q)       # Qn = Q0*Q
+#   Collect Left multipliers 
+    mul!(Qn,Q0,Q)       # Qn = Q0*Q
 
-#     Chase Bulge through bottom right and return to 
-#     Hessenberg form.  
-#     Should probably code it manually  
-#      hn    = hessenberg(H0)
-#      Q0    = convert(Matrix,hn.Q)
-#      Hn    = convert(Matrix,hn.H)      # Hn = Qn'*H0*Qn = Qn'*Q0*H*Q0'*Qn
-##     Collect Left multipliers 
-#      mul!(Q,Q0',Qn)       # Q = Q0'*Qn
+#   Chase Bulge through bottom right and return to 
+#   Hessenberg form.  
+#   Should probably code it manually  
+#    hn    = hessenberg(H0)
+#    Q0    = convert(Matrix,hn.Q)
+#    Hn    = convert(Matrix,hn.H)      # Hn = Qn'*H0*Qn = Qn'*Q0*H*Q0'*Qn
+##   Collect Left multipliers 
+#    mul!(Q,Q0',Qn)       # Q = Q0'*Qn
 
-      c1 = n-2 
-      Hn,Q0  = ChaseBulgeDown(H0,c1)  
-#     Collect Left multipliers 
-      mul!(Q,Q0,Qn)       # Q = Q0*Qn
-    end
-    βk = abs(Hn[r-nμ+1,r-nμ])
+    Hn,Q0  = ChaseBulgeDown(H0,nμ)  
+##   Collect Left multipliers 
+    mul!(Q,Q0,Qn)       # Q = Q0*Qn
+
   end
-  println("Francis Algorithm nloops: $j")
+#  println("Francis Algorithm nloops: $j")
 
   return Hn,Q
 end
@@ -136,7 +132,7 @@ function RevFrancisSeq(H::Matrix,μ0::Vector,nμ::Int)
 #      mul!(Q,Q0',Qn)       # Q = Q0'*Qn
 
       c1 = 2
-      Hn,Q0  = ChaseBulgeUp(H0,c1)  
+      Hn,Q0  = ChaseBulgeUp(H0)  
 #     Collect Right multipliers 
       mul!(Q,Qn,Q0)       # Q = Qn*Q0
     end
@@ -158,14 +154,17 @@ function CreateBulge(H::Matrix,μ::Vector,nμ::Int)
 # x = p(H)*e1 = (H - μnI)...(H - μ2I)(H - μ1I)*e1
   x         = polyHe1(H,μ,nμ)
   n         = length(x)
-  Q0,y,τ    = CreateReflectorZeros(x,1,n)
+  k1        = 1         # Zeros after this
+  k2        = k1+nμ     # Last non-zero entry position
+  Q0,y,τ    = CreateReflectorZeros(x,k1,n)
+#  Q0,y,τ    = CreateReflectorZeros2(x,k1,k2,n)
 
-  A   = copy(H)
-  B   = copy(H)
+  A   = deepcopy(H)
+  B   = deepcopy(H)
 
 # This creates the Bulge  
 # A = Q0*H*Q0  
-  mul!(B,Q0,A)
+  mul!(B,Q0,H)
   mul!(A,B,Q0')
  
   return A,Q0          # Return Left Multipliers
@@ -226,7 +225,7 @@ function polyHe1(H::Matrix,μ0::Vector,nμ::Int)
     for j in 1:i+1
       x[j] = sum(H[j,1:i].*x0[1:i]) - μ[i]*x0[j]
     end  
-    x0 = x
+    x0 = 1.0*x
   end  
 
   return x0
@@ -261,7 +260,7 @@ function enpolyH(H::Matrix,μ0::Vector,nμ::Int)
     for j in r-i:r
       x[j] = sum(x0[j:c].*H[j:r,j]) - μ[i]*x0[j]
     end  
-    x0 = x
+    x0 = 1.0*x
   end  
 
   return x0
@@ -342,24 +341,104 @@ function CreateReflectorZeros(x::Vector,k::Int,n::Int)
     return Q
   end
 
-  θ         = 1.0*π/4.0
+  θ         = 0.0*π/4.0
 
   w         = 0.0*x
   w[k]      = x[k] - norm(x[k:n])*exp(im*θ)
   w[k+1:n]  = x[k+1:n]
-  w         = w
-  β         = w'x
-  if (abs(β)>tol)
-    τ       = 1.0/β
-    Q       = (I - τ*w*w')
-  else
-    w       = 0.0*x
-    τ       = 0.0
-  end  
+  β         = w'*x
+  τ         = 1.0/β
+  Q         = (I - τ*w*w')
+
+#  y         = Q*x
+#  if norm(y[k+1:n])>tol
+#    println("Remaking Projector")
+#    w2         = 0.0*y
+#    w2[k]      = y[k] - norm(y[k:n])*exp(im*θ)
+#    w2[k+1:n]  = y[k+1:n]
+#    w2         = w2
+#    β          = w2'x
+#    τ2         = 1.0/β
+#    Q2         = (I - τ*w2*w2')
+#    Q1         = copy(Q)
+#    Q          = Q2*Q1
+#  end  
+
+  return Q,w,τ
+end
+#---------------------------------------------------------------------- 
+function CreateReflectorZerosSub(x::Vector,k1::Int,k2::Int,n::Int)
+
+# Create Unitary matrix which introduces zeros after the
+# kth position in the vector x
+# General Function for Real or Complex vectors 
+#
+# x   -     Vector to Reflect
+# n   -     Length of the vector
+# k1  -     Position after which we want zeros
+# k2  -     Last non-zero entry in the vector
+#
+
+  tol = 1.0e-12
+  l         = k2-k1+1
+ 
+  Q         = Matrix{typeof(x[1])}(1.0I,l,l)
+  w         = zeros(typeof(x[1]),l)
+  if k1>=n
+    return Q
+  end
+
+  θ         = 0.0*π/4.0
+
+#  w          = zeros(typeof(x[1]),n)
+  w[1]       = x[k1] - norm(x[k1:k2])*exp(im*θ)
+  w[2:l]     = x[k1+1:k2]
+  β          = w'*(x[k1:k2])
+  τ          = 1.0/β
+  ww         = w*w'
+  Q          = I - τ*ww
 
   return Q,w,τ
 end
 #----------------------------------------------------------------------
+
+#----------------------------------------------------------------------
+function CreateReflectorZeros2(x::Vector,k1::Int,k2::Int,n::Int)
+
+# Create Unitary matrix which introduces zeros after the
+# kth position in the vector x
+# General Function for Real or Complex vectors 
+#
+# x   -     Vector to Reflect
+# n   -     Length of the vector
+# k1  -     Position after which we want zeros
+# k2  -     Last non-zero entry in the vector
+#
+
+  tol = 1.0e-12
+  l         = k2-k1+1
+ 
+  Q         = Matrix{typeof(x[1])}(1.0I,n,n)
+  w         = zeros(typeof(x[1]),l)
+  if k1>=n
+    return Q
+  end
+
+  θ         = 0.0*π/4.0
+
+#  w          = zeros(typeof(x[1]),n)
+  w[1]       = x[k1] - norm(x[k1:k2])*exp(im*θ)
+  w[2:l]     = x[k1+1:k2]
+  β          = w'*(x[k1:k2])
+  τ          = 1.0/β
+  ww         = w*w'
+  Q[k1:k2,k1:k2] = I - τ*ww
+
+  return Q,w,τ
+end
+#----------------------------------------------------------------------
+
+
 function TransposeReflectorZeros(x::Vector,k::Int,n::Int)
 
 # Create Unitary matrix which introduces zeros up to the
@@ -407,7 +486,7 @@ function AdjointReflectorZeros(x::Vector,k::Int,n::Int)
     return Q,w,τ
   end
 
-  θ         = 1.0*π/4.0
+  θ         = 0.0*π/4.0
 
   w         = 0.0*x
   w[k]      = x[k] - norm(x[1:k])*exp(im*θ)
@@ -420,54 +499,79 @@ function AdjointReflectorZeros(x::Vector,k::Int,n::Int)
 end
 #----------------------------------------------------------------------
 
-function ChaseBulgeDown(H0::Matrix,c1)
+function ChaseBulgeDown(H0::Matrix,nμ::Int)
 #   Chase the Bulge in the Francis Algorithm
 
    r,c = size(H0)
-   H   = copy(H0)
-   A   = copy(H0)
-   B   = copy(H0)
+   H   = deepcopy(H0)
+   A   = deepcopy(H0)
+   B   = deepcopy(H0)
    Q   = Matrix{typeof(H0[1,1])}(1.0I,r,c)
    T   = Matrix{typeof(H0[1,1])}(1.0I,r,c)      # tmp
 
-   for i in 1:c1
+   tol = 1.0e-12
+
+   for i in 1:c-2
      x        = H[:,i]
-     Qi,y,τ   = CreateReflectorZeros(x,i+1,r)
+     xnorm    = norm(x[i+1])
+     if (xnorm<tol)
+       println("$i: Need Deflation: $xnorm")
+     end  
 
-     T = Qi*Q
+#     Qi,w,τ   = CreateReflectorZeros(x,i+1,r)
+     
+     k1       = i+1
+     k2       = k1+nμ
+     if k2>r
+       k2 = r
+     end  
+     Qi,w,τ   = CreateReflectorZeros2(x,k1,k2,r)
+     mul!(A,Qi,H)
+     mul!(H,A,Qi')
+#     Collect Left Multipliers      
+     mul!(T,Qi,Q)
+     Q = 1.0*T
 
-     A = Qi*H
-     H = A*Qi'
+#     qi,w,τ   = CreateReflectorZerosSub(x,k1,k2,r)
+#     a  = qi*H[k1:k2,:]
+#     H[k1:k2,:] = a
+#
+#     k3 = k2+1
+#     if k3>r
+#       k3=r
+#     end  
+#     b  = H[k1:k3,k1:k2]*(qi')
+#     H[k1:k3,k1:k2] = b
+#
+#     qsub        = qi*Q[k1:k2,:]
+#     Q[k1:k2,:]  = qsub 
 
-#    Collect Left Multipliers      
-     T = Qi*Q
-     Q = copy(T)
    end  
 
    return H,Q
 end
 #----------------------------------------------------------------------
-function ChaseBulgeUp(H0::Matrix,c1)
+function ChaseBulgeUp(H0::Matrix)
 #   Chase the Bulge in the Francis Algorithm
 
    r,c = size(H0)
-   H   = copy(H0)
-   A   = copy(H0)
-   B   = copy(H0)
+   H   = deepcopy(H0)
+   A   = deepcopy(H0)
+   B   = deepcopy(H0)
    Q   = Matrix{typeof(H0[1,1])}(1.0I,r,c)
    T   = Matrix{typeof(H0[1,1])}(1.0I,r,c)      # tmp
 
-   for i in c:-1:c1
+   for i in c:-1:3
      x        = H[i,:]
      y        = adjoint.(x)
      Qi,w,τ   = AdjointReflectorZeros(y,i-1,c)
      
-     A = H*Qi
-     H = Qi'*A
+     mul!(A,H,Qi)
+     mul!(H,Qi',A)
 
-#    Collect Right Multipliers      
-     T = Q*Qi
-     Q = copy(T)
+#    Collect Right Multipliers
+     mul!(T,Q,Qi) 
+     Q = 1.0*T
    end  
 
    return H,Q

@@ -1,5 +1,5 @@
 # Arnoldi Implicit restart
-function ArnIRst(V::Matrix,Hes::Matrix,B::Vector,k::Int,kmax::Int,Nev::Int,ngs::Int)
+function ArnIRst(V::Matrix,Hes::Matrix,B::Union{Vector,Matrix},k::Int,kmax::Int,Nev::Int,ngs::Int)
 
 #   V         - Krylov Vector
 #   H         - Upper Hessenberg
@@ -19,7 +19,7 @@ function ArnIRst(V::Matrix,Hes::Matrix,B::Vector,k::Int,kmax::Int,Nev::Int,ngs::
     ifconv = false
     nkryl = k
 
-    r = V[:,k]*Hes[k,k-1]
+    r1 = V[:,k]*Hes[k,k-1]
 
     rw,cl = size(V)
 
@@ -31,35 +31,49 @@ function ArnIRst(V::Matrix,Hes::Matrix,B::Vector,k::Int,kmax::Int,Nev::Int,ngs::
 
       kk = k-1
 
-      H = Hes[1:kk,1:kk]
+      H = deepcopy(Hes[1:kk,1:kk])
 
       if (revFrancis)
 
-        μ,nμ  = ArnGetCustomShifts(H,Nev)
+#        μ,nμ  = ArnGetCustomShifts(H,Nev)
+        μ,nμ  = ArnGetUpperShifts(H,Nev)
+
         Hs,Q  = RevFrancisSeq(H,μ,nμ)     
         v     = V[:,1:kk]*Q[:,Nev+1]        # Part of new residual vector
         βk    = Hs[Nev+1,Nev]               # e_k+1^T*H*e_k         # This in principle is zero
-        println("βk After ImplicitQR: $βk")
+#        println("βk After ImplicitQR: $βk")
         σ     = Q[kk,Nev]                   # e_k+p^T*Q*e_k
 
-        r    .= βk*v .+ σ*r                 # new residual vector
-        β     = abs(sqrt(r'*(B.*r)))
+        r     = βk*v .+ σ*r1                # new residual vector
+        if ndims(B)>1
+          β     = abs(sqrt(r'*(B*r)))
+        else
+          β     = abs(sqrt(r'*(B.*r)))
+        end  
 
         r     = r/β
 
       else
 
-        μ,nμ  = ArnGetShifts(H,Nev)
+        μ,nμ  = ArnGetLowerShifts(H,EKryl)
 
         Hs,Q  = ExplicitShiftedQR(H,μ,nμ,ngs)
 #        Hs,Q  = FrancisSeq(H,μ,nμ)     
         v     = V[:,1:kk]*Q[:,Nev+1]        # Part of new residual vector
         βk    = Hs[Nev+1,Nev]               # e_k+1^T*H*e_k         # This in principle is zero
-        println("βk After ImplicitQR: $βk")
-        σ     = Q[kk,Nev]                   # e_k+p^T*Q*e_k
+#        println("βk After ImplicitQR: $βk")
 
-        r    .= βk*v .+ σ*r                 # new residual vector
-        β     = abs(sqrt(r'*(B.*r)))
+#        ResM  = r*Q[kk,:]
+#        r     = ResM[:,Nev] 
+
+        σ     = Q[kk,Nev]                   # e_k+p^T*Q*e_k
+        r     = βk*v .+ σ*r1                 # new residual vector
+
+        if ndims(B)>1
+          β     = abs(sqrt(r'*(B*r)))
+        else
+          β     = abs(sqrt(r'*(B.*r)))
+        end  
 
         r     = r/β
       end        
@@ -75,19 +89,38 @@ function ArnIRst(V::Matrix,Hes::Matrix,B::Vector,k::Int,kmax::Int,Nev::Int,ngs::
 
       nkryl = Nev+1
 
+    else
+      U           = V
+      G           = Hes
+      ifconv      = false
+      nkryl       = k
+
     end     # k == kmax+1
 
     return U,G,nkryl,ifconv
 end  
 #----------------------------------------------------------------------
 
-function ArnGetShifts(H::Matrix,Nev::Int)
+function ArnGetUpperShifts(H::Matrix,Nev::Int)
+
+      r,c = size(H)
+      F  = eigen(H)          # Uses Lapack routine (dgeev/zgeev)
+      fr = real.(F.values)
+      fr_sort_i = sortperm(fr,rev=true)   # Decreasing order
+      μ         = F.values[fr_sort_i[1:Nev]]
+      nμ        = length(μ)
+
+      return μ,nμ
+end
+
+#----------------------------------------------------------------------
+function ArnGetLowerShifts(H::Matrix,EKryl::Int)
 
       r,c = size(H)
       F  = eigen(H)          # Uses Lapack routine (dgeev/zgeev)
       fr = real.(F.values)
       fr_sort_i = sortperm(fr,rev=false)   # Increasing order
-      μ         = F.values[fr_sort_i[1:r-Nev]]
+      μ         = F.values[fr_sort_i[1:EKryl]]
       nμ        = length(μ)
 
       return μ,nμ

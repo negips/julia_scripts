@@ -1,65 +1,32 @@
       include("BulgeChase.jl")
-
       Hes = copy(Hold)
       VV  = Vold
-
       kk = LKryl
-      k  = kk + 1
-      r  = VV[:,k]*Hes[k,k-1]
 
-      H  = Hes[1:kk,1:kk]
+      OH = Hes[1:kk,1:kk]
+      Hc = copy(OH)
+      μ,nμ  = ArnGetLowerShifts(Hc,EKryl)
 
-      F  = eigen(H)          # Uses Lapack routine (dgeev/zgeev)
-      Fval = F.values
-      fr = real.(F.values)
-      fr_sort_i = sortperm(fr,rev=false)   # Increasing order
-      μ         = F.values[fr_sort_i[1:EKryl]]
-      nμ        = length(μ)
+      Hf = copy(Hc)
+      for j in 1:1
+        global Hf,Hp,Qf1
+        local Qp1,nμ
+        nμ    = 1
+        Hp,Qp1 = CreateBulge(Hf,μ[j:j],nμ);
+        Hf,Qf1 = ChaseBulgeDown(Hp,nμ);
+      end  
 
-##      Hs,Q  = ExplicitShiftedQR(H,μ,nμ,2)
-      Hs,Q  = FrancisSeq(H,μ,nμ)
-#      v     = V[:,1:kk]*Q[:,Nev+1]        # Part of new residual vector
-      βk    = Hs[kk-nμ+1,kk-nμ]               # e_k+1^T*H*e_k         # This in principle is zero
-      display(βk)
+      k  = 1
+      k1 = 2
+      k2 = 3
+      x = Hp[:,k]
+      qi,w,τ = CreateReflectorZerosSub(x,2,3,kk)
+#      Hsub     = Hp[k:k2,k:k2]
+#      a = qi*Hsub
+#      b = a*qi'
+#      Hp[k1:k2,k1:k2] = 1.0*Hsub
 
-#      σ     = Q[kk,Nev]                   # e_k+p^T*Q*e_k
-#
-#      r2    = βk*v .+ σ*r                 # new residual vector
-#      β     = abs(sqrt(r2'*(Bg.*r2)))
-#
-##      r2    = r2/β
-#
-#
-#      en          = zeros(ComplexF64,LKryl)
-#      en[LKryl]   = 2.0
-#      vn          = Vold[:,LKryl+1]*Hold[LKryl+1,LKryl]
-#      erM         = vn*en'
-#
-#      erMQ        = erM*Q
-#
-#      β_1         = Hs[kk-nμ-1,kk-nμ-2]
-#      β0          = Hs[kk-nμ,kk-nμ-1]
-#      β1          = Hs[kk-nμ+1,kk-nμ]
-#      β2          = Hs[kk-nμ+2,kk-nμ+1]
-#
-#      θ           = [β_1 β0 β1 β2]
+      println("done")
 
-#     Reverse Step
-      F2  = eigen(H)          # Uses Lapack routine (dgeev/zgeev)
-      F2v = F2.values
-      fr  = real.(F2.values)
-      fr_sort_i = sortperm(fr,rev=true)   # Decreasing order
-      μ2        = F2v[fr_sort_i[1:EKryl]]
-      nμ2       = 50 #length(μ)
-
-      Hs2,Q2  = RevFrancisSeq(H,μ2,nμ2)
-
-      β_1         = Hs2[nμ2-1,nμ2-2]
-      β0          = Hs2[nμ2,nμ2-1]
-      β1          = Hs2[nμ2+1,nμ2]
-      β2          = Hs2[nμ2+2,nμ2+1]
-
-#      θ2          = [β_1 β0 β1 β2]
-      display(β1)
 
 
