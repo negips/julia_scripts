@@ -41,7 +41,7 @@ function ArnIRst(V::Matrix,Hes::Matrix,B::Union{Vector,Matrix},k::Int,kmax::Int,
         Hs,Q  = RevFrancisSeq(H,μ,nμ)     
         v     = V[:,1:kk]*Q[:,Nev+1]        # Part of new residual vector
         βk    = Hs[Nev+1,Nev]               # e_k+1^T*H*e_k         # This in principle is zero
-#        println("βk After ImplicitQR: $βk")
+        println("βk After ImplicitQR: $βk")
         σ     = Q[kk,Nev]                   # e_k+p^T*Q*e_k
 
         r     = βk*v .+ σ*r1                # new residual vector
@@ -61,7 +61,7 @@ function ArnIRst(V::Matrix,Hes::Matrix,B::Union{Vector,Matrix},k::Int,kmax::Int,
 #        Hs,Q  = FrancisSeq(H,μ,nμ)     
         v     = V[:,1:kk]*Q[:,Nev+1]        # Part of new residual vector
         βk    = Hs[Nev+1,Nev]               # e_k+1^T*H*e_k         # This in principle is zero
-#        println("βk After ImplicitQR: $βk")
+        println("βk After ImplicitQR: $βk")
 
 #        ResM  = r*Q[kk,:]
 #        r     = ResM[:,Nev] 
@@ -104,10 +104,10 @@ end
 function ArnGetUpperShifts(H::Matrix,Nev::Int)
 
       r,c = size(H)
-      F  = eigen(H)          # Uses Lapack routine (dgeev/zgeev)
-      fr = real.(F.values)
+      f  = eigvals(H)          # Uses Lapack routine (dgeev/zgeev)
+      fr = real.(f)
       fr_sort_i = sortperm(fr,rev=true)   # Decreasing order
-      μ         = F.values[fr_sort_i[1:Nev]]
+      μ         = f[fr_sort_i[1:Nev]]
       nμ        = length(μ)
 
       return μ,nμ
@@ -117,10 +117,10 @@ end
 function ArnGetLowerShifts(H::Matrix,EKryl::Int)
 
       r,c = size(H)
-      F  = eigen(H)          # Uses Lapack routine (dgeev/zgeev)
-      fr = real.(F.values)
+      f  = eigvals(H)          # Uses Lapack routine (dgeev/zgeev)
+      fr = real.(f)
       fr_sort_i = sortperm(fr,rev=false)   # Increasing order
-      μ         = F.values[fr_sort_i[1:EKryl]]
+      μ         = f[fr_sort_i[1:EKryl]]
       nμ        = length(μ)
 
       return μ,nμ

@@ -7,15 +7,17 @@ using PolynomialBases
 
 #VT = Float64
 VT = ComplexF64
+#setprecision(128)
+#VT  = Complex{BigFloat}
 
 # define nodal bases
 N           = 8 ;                              # polynomial degree
 lx1         = N+1;                              # No of points
-Basis       = LobattoLegendre(N)                # Polynomial Basis
+Basis       = LobattoLegendre(N, VT)                # Polynomial Basis
 
 Nd          = Int64(floor(N*1.5)+1) ;                               # polynomial degree
 lx1d        = Nd+1;                             # No of points
-Basisd      = LobattoLegendre(Nd)               # Polynomial Basis
+Basisd      = LobattoLegendre(Nd, VT)               # Polynomial Basis
 
 #basis2 = GaussLegendre(N)
 
