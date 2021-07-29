@@ -77,6 +77,12 @@ function FrancisSeq(H::Matrix,μ0::Vector,nμ::Int)
 ##   Collect Left multipliers 
     mul!(Q,Q0,Qn)       # Q = Q0*Qn
 
+#    Hn2,Qn2 = ChaseBulgeDown1(Hn,nμ)
+#    Hn = 1.0*Hn2
+#    Qn = 1.0*Q
+#    mul!(Q,Qn2,Qn)       # Q = Q0*Qn
+
+
   end
 #  println("Francis Algorithm nloops: $j")
 
@@ -392,7 +398,7 @@ function CreateGivens(x::Vector,k::Int,n::Int)
     Q[k,k]  = cs
   end
 
-  return Q
+  return Q,cs,sn
 end
 #---------------------------------------------------------------------- 
 
@@ -605,30 +611,63 @@ function ChaseBulgeDown1(H0::Matrix,nμ::Int)
 
        println("Switching rows/columns: $i,$(i+1)")
 
-       w  = 0.0*x
-       Qi = Matrix{typeof(H0[1,1])}(1.0I,r,c)
-       Qi[i,i]          = 0.0
-       Qi[i,i+1]        = 1.0
-       Qi[i+1,i+1]      = 0.0
-       Qi[i+1,i]        = 1.0
-
 #      Switch rows and columns
+       v1 = H[i,:]
+       H[i,:] = H[i+1,:]
+       H[i+1,:] = v1
+
+       v3 = H[:,i]
+       H[:,i] = H[:,i+1]
+       H[:,i+1] = v3
+
+
+       v1 = Q[i,:]
+       Q[i,:]   = Q[i+1,:]
+       Q[i+1,:] = v1
+      
        mul!(A,Qi,H)
        mul!(H,A,Qi')
-
        mul!(T,Qi,Q)
        Q = 1.0*T
      end  
 
      k1       = i+1
-
-     Qi = CreateGivens(x,k1,r)
 #     Qi,w,τ   = CreateReflectorZeros(x,k1,r)
-     mul!(A,Qi,H)
-     mul!(H,A,Qi')
+#     mul!(A,Qi,H)
+#     mul!(H,A,Qi')
 #     Collect Left Multipliers      
-     mul!(T,Qi,Q)
-     Q = 1.0*T
+#     mul!(T,Qi,Q)
+#     Q = 1.0*T
+
+
+     Qi,cs,sn = CreateGivens(x,k1,r)
+     if k1<r 
+       v1 = H[k1,:]
+       v2 = H[k1+1,:]
+       H[k1,:]   =  cs'*v1 + sn'*v2
+       H[k1+1,:] = -sn*v1  + cs*v2
+
+       v3 = H[:,k1]
+       v4 = H[:,k1+1]
+       H[:,k1]   =  v3*cs  + v4*sn
+       H[:,k1+1] = -v3*sn' + v4*cs'
+
+
+       v1 = Q[k1,:]
+       v2 = Q[k1+1,:]
+       Q[k1,:]   =  cs'*v1 + sn'*v2
+       Q[k1+1,:] = -sn*v1  + cs*v2
+     else
+       v1 = H[k1,:]
+       H[k1,:]   =  cs'*v1
+
+       v3 = H[:,k1]
+       H[:,k1]   =  v3*cs
+
+
+       v1 = Q[k1,:]
+       Q[k1,:]   =  cs'*v1
+     end 
 
    end  
 
