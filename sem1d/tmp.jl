@@ -1,4 +1,5 @@
       include("BulgeChase.jl")
+
       Hes = copy(Hold)
       VV  = Vold
       kk = LKryl
@@ -7,26 +8,34 @@
       Hc = copy(OH)
       μ,nμ  = ArnGetLowerShifts(Hc,EKryl)
 
+      A   = deepcopy(OH)
+      B   = deepcopy(OH)
+
+      rw,cl = size(OH)
+
+      Q   = Matrix{typeof(OH[1,1])}(1.0I,rw,cl)
+      T   = Matrix{typeof(OH[1,1])}(1.0I,rw,cl)      # tmp
+      Qi  = Matrix{typeof(OH[1,1])}(1.0I,rw,cl)
+
+      tol = 1.0e-12
       Hf = copy(Hc)
-      for j in 1:1
-        global Hf,Hp,Qf1
-        local Qp1,nμ
-        nμ    = 1
-        Hp,Qp1 = CreateBulge(Hf,μ[j:j],nμ);
-        Hf,Qf1 = ChaseBulgeDown(Hp,nμ);
+      tμ = nμ
+      for j in 1:tμ
+        global Hf,Hp,Qf1,Qp1,Qi,Hfold,τ
+        local nλ
+        global wi
+        local A
+        nλ    = 1
+        Hp,Qp1 = CreateBulge(Hf,μ[j:j],nλ);
+        Hf,Qf1 = ChaseBulgeDown(Hp,nλ);
+
       end  
 
-      k  = 1
-      k1 = 2
-      k2 = 3
-      x = Hp[:,k]
-      qi,w,τ = CreateReflectorZerosSub(x,2,3,kk)
-#      Hsub     = Hp[k:k2,k:k2]
-#      a = qi*Hsub
-#      b = a*qi'
-#      Hp[k1:k2,k1:k2] = 1.0*Hsub
+      qq = Qf1*Qp1;
 
-      println("done")
+      tt = LKryl-tμ
+      βk = Hf[tt+1,tt]
+      println("βk=$βk; done")
 
 
 

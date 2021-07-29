@@ -50,7 +50,7 @@ function FrancisSeq(H::Matrix,μ0::Vector,nμ::Int)
   j      = 0
   nloops = 1
   βk     = 1.0
-  tol    = 1.0e-12
+  tol    = 1.0e-14
 
 
 #  println("Francis' Algorithm: nμ=$nμ, MaxLoops:$nloops, Tol=$tol")
@@ -73,7 +73,7 @@ function FrancisSeq(H::Matrix,μ0::Vector,nμ::Int)
 ##   Collect Left multipliers 
 #    mul!(Q,Q0',Qn)       # Q = Q0'*Qn
 
-    Hn,Q0  = ChaseBulgeDown(H0,nμ)  
+    Hn,Q0  = ChaseBulgeDown1(H0,nμ)  
 ##   Collect Left multipliers 
     mul!(Q,Q0,Qn)       # Q = Q0*Qn
 
@@ -337,7 +337,7 @@ function CreateReflectorZeros(x::Vector,k::Int,n::Int)
   tol = 1.0e-12
  
   Q         = Matrix{typeof(x[1])}(1.0I,n,n)
-  if k>=n
+  if k>n
     return Q
   end
 
@@ -345,28 +345,57 @@ function CreateReflectorZeros(x::Vector,k::Int,n::Int)
 
   w         = 0.0*x
   w[k]      = x[k] - norm(x[k:n])*exp(im*θ)
-  w[k+1:n]  = x[k+1:n]
+  if k<n
+    w[k+1:n]  = x[k+1:n]
+  end  
   β         = w'*x
   τ         = 1.0/β
   Q         = (I - τ*w*w')
 
-#  y         = Q*x
-#  if norm(y[k+1:n])>tol
-#    println("Remaking Projector")
-#    w2         = 0.0*y
-#    w2[k]      = y[k] - norm(y[k:n])*exp(im*θ)
-#    w2[k+1:n]  = y[k+1:n]
-#    w2         = w2
-#    β          = w2'x
-#    τ2         = 1.0/β
-#    Q2         = (I - τ*w2*w2')
-#    Q1         = copy(Q)
-#    Q          = Q2*Q1
-#  end  
-
   return Q,w,τ
 end
 #---------------------------------------------------------------------- 
+function CreateGivens(x::Vector,k::Int,n::Int)
+
+# Create Unitary matrix which introduces zeros after the
+# kth position in the vector x
+# General Function for Real or Complex vectors 
+#
+# x   -     Vector to Reflect
+# n   -     Length of the vector
+# k   -     Position after which we want zeros
+#
+
+  tol = 1.0e-12
+ 
+  Q         = Matrix{typeof(x[1])}(1.0I,n,n)
+  if k>n
+    return Q
+  end
+
+  θ         = 0.0*π/4.0
+  if k<n
+    xnorm   = sqrt(x[k]'*x[k] + x[k+1]'*x[k+1])
+    xnorm2  = sqrt(x[k]'*x[k] + x[k+1]'*x[k+1])
+   
+    cs      = x[k]/xnorm
+    sn      = x[k+1]/xnorm
+
+    Q[k,k]        = cs'
+    Q[k,k+1]      = sn'
+    Q[k+1,k]      = -sn
+    Q[k+1,k+1]    = cs
+  elseif k==n
+    cs      = sign(x[k])
+    sn      = 0.0 + 0.0im
+
+    Q[k,k]  = cs
+  end
+
+  return Q
+end
+#---------------------------------------------------------------------- 
+
 function CreateReflectorZerosSub(x::Vector,k1::Int,k2::Int,n::Int)
 
 # Create Unitary matrix which introduces zeros after the
@@ -400,7 +429,6 @@ function CreateReflectorZerosSub(x::Vector,k1::Int,k2::Int,n::Int)
 
   return Q,w,τ
 end
-#----------------------------------------------------------------------
 
 #----------------------------------------------------------------------
 function CreateReflectorZeros2(x::Vector,k1::Int,k2::Int,n::Int)
@@ -511,7 +539,7 @@ function ChaseBulgeDown(H0::Matrix,nμ::Int)
 
    tol = 1.0e-12
 
-   for i in 1:c-2
+   for i in 1:c-1
      x        = H[:,i]
      xnorm    = norm(x[i+1])
      if (xnorm<tol)
@@ -521,36 +549,94 @@ function ChaseBulgeDown(H0::Matrix,nμ::Int)
 #     Qi,w,τ   = CreateReflectorZeros(x,i+1,r)
      
      k1       = i+1
-     k2       = k1+nμ
-     if k2>r
-       k2 = r
-     end  
-     Qi,w,τ   = CreateReflectorZeros2(x,k1,k2,r)
-     mul!(A,Qi,H)
-     mul!(H,A,Qi')
+     Qi    = CreateGivens(x,k1,c)
+
+     A = Qi*H
+     H = A*(Qi')
+
 #     Collect Left Multipliers      
      mul!(T,Qi,Q)
      Q = 1.0*T
-
-#     qi,w,τ   = CreateReflectorZerosSub(x,k1,k2,r)
-#     a  = qi*H[k1:k2,:]
-#     H[k1:k2,:] = a
-#
-#     k3 = k2+1
-#     if k3>r
-#       k3=r
-#     end  
-#     b  = H[k1:k3,k1:k2]*(qi')
-#     H[k1:k3,k1:k2] = b
-#
-#     qsub        = qi*Q[k1:k2,:]
-#     Q[k1:k2,:]  = qsub 
 
    end  
 
    return H,Q
 end
 #----------------------------------------------------------------------
+function ChaseBulgeDown1(H0::Matrix,nμ::Int)
+#   Chase the Bulge in the Francis Algorithm
+#   Here I am assuming we have a bulge size of 1
+#   i.e. nμ=1 was used for creating the Bulge
+
+   r,c = size(H0)
+   H   = deepcopy(H0)
+   A   = deepcopy(H0)
+   B   = deepcopy(H0)
+   Q   = Matrix{typeof(H0[1,1])}(1.0I,r,c)
+   T   = Matrix{typeof(H0[1,1])}(1.0I,r,c)      # tmp
+
+   tol = 1.0e-14
+
+   for i in 1:c-1
+     x        = H[:,i]
+     if i<=c-2
+       xnorm    = norm(x[i+1:i+2])
+       if (xnorm<tol)
+         println("$i: Need Deflation: $xnorm")
+       end
+
+       xnorm    = norm(x[i+2])
+       if (xnorm<tol)
+         println("$i: Need Switching: $xnorm")
+       end  
+
+     end  
+
+     if i<=c-2
+       xb       = x[i+2]
+     else
+       xb       = 1.0
+     end
+
+     if abs(xb)<tol
+#      If the Bulge is very small, we have converged to an invariant space
+#      This is probably not the best way. But I just switch columns and rows.
+#      Lets see what happens
+
+       println("Switching rows/columns: $i,$(i+1)")
+
+       w  = 0.0*x
+       Qi = Matrix{typeof(H0[1,1])}(1.0I,r,c)
+       Qi[i,i]          = 0.0
+       Qi[i,i+1]        = 1.0
+       Qi[i+1,i+1]      = 0.0
+       Qi[i+1,i]        = 1.0
+
+#      Switch rows and columns
+       mul!(A,Qi,H)
+       mul!(H,A,Qi')
+
+       mul!(T,Qi,Q)
+       Q = 1.0*T
+     end  
+
+     k1       = i+1
+
+     Qi = CreateGivens(x,k1,r)
+#     Qi,w,τ   = CreateReflectorZeros(x,k1,r)
+     mul!(A,Qi,H)
+     mul!(H,A,Qi')
+#     Collect Left Multipliers      
+     mul!(T,Qi,Q)
+     Q = 1.0*T
+
+   end  
+
+   return H,Q
+end
+#----------------------------------------------------------------------
+
+
 function ChaseBulgeUp(H0::Matrix)
 #   Chase the Bulge in the Francis Algorithm
 
