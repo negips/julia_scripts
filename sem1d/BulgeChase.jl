@@ -36,8 +36,8 @@ function FrancisSeq(H::Matrix,μ0::Vector,nμ::Int)
 
   r,n = size(H)
 
-  Q   = Matrix{typeof(H[1,1])}(1.0I,n,n)
-  Qn  = Matrix{typeof(H[1,1])}(1.0I,n,n)
+  Q   = Matrix{eltype(H)}(1.0I,n,n)
+  Qn  = Matrix{eltype(H)}(1.0I,n,n)
   Hn  = deepcopy(H)    
 
   if nμ == 0
@@ -49,44 +49,44 @@ function FrancisSeq(H::Matrix,μ0::Vector,nμ::Int)
 
   j      = 0
   nloops = 1
-  βk     = 1.0
-  tol    = 1.0e-14
-
+  γ      = 1.0
+  tol    = 1.0e-12
 
 #  println("Francis' Algorithm: nμ=$nμ, MaxLoops:$nloops, Tol=$tol")
-
   for i in 1:nμ
 #   Create a bulge in the top left of the matrix
-    λ     = μ[i:i]
-    nλ    = 1
-    H0,Q0 = CreateBulge(Hn,λ,nλ)
+    j = 0
+    γ = 1.0
+    while γ>tol && j<nloops
+#    for j in 1:nloops       
+      λ     = μ[i:i]
+      nλ    = 1
+      H0,Q0 = CreateBulge(Hn,λ,nλ)
 
-#   Collect Left multipliers 
-    mul!(Qn,Q0,Q)       # Qn = Q0*Q
+#     Collect Left multipliers 
+      mul!(Qn,Q0,Q)       # Qn = Q0*Q
+                          # H0 = Q0*Hn*Q0'
+                          
+#     Chase Bulge through bottom right and return to 
+#     Hessenberg form.  
+#     Should probably code it manually  
+#      hn    = hessenberg(H0)
+#      Q0    = convert(Matrix,hn.Q)
+#      Hn    = convert(Matrix,hn.H)      # Hn = Qn'*H0*Qn = Qn'*Q0*H*Q0'*Qn
+##     Collect Left multipliers 
+#      mul!(Q,Q0',Qn)       # Q = Q0'*Qn
 
-#   Chase Bulge through bottom right and return to 
-#   Hessenberg form.  
-#   Should probably code it manually  
-#    hn    = hessenberg(H0)
-#    Q0    = convert(Matrix,hn.Q)
-#    Hn    = convert(Matrix,hn.H)      # Hn = Qn'*H0*Qn = Qn'*Q0*H*Q0'*Qn
-##   Collect Left multipliers 
-#    mul!(Q,Q0',Qn)       # Q = Q0'*Qn
-
-    Hn,Q0  = ChaseBulgeDown1(H0,nμ)  
-##   Collect Left multipliers 
-    mul!(Q,Q0,Qn)       # Q = Q0*Qn
-
-#    Hn2,Qn2 = ChaseBulgeDown1(Hn,nμ)
-#    Hn = 1.0*Hn2
-#    Qn = 1.0*Q
-#    mul!(Q,Qn2,Qn)       # Q = Q0*Qn
-
+      Hn,Q0  = ChaseBulgeDown1(H0,λ,nλ)         # Hn = Q0*H0*Q0' 
+##     Collect Left multipliers 
+      mul!(Q,Q0,Qn)       # Q = Q0*Qn
+      γ = abs(Hn[n-i+1,n-i])
+      j  = j+1
+    end   
 
   end
 #  println("Francis Algorithm nloops: $j")
 
-  return Hn,Q
+  return Hn,Q'
 end
 
 #----------------------------------------------------------------------
@@ -99,8 +99,8 @@ function RevFrancisSeq(H::Matrix,μ0::Vector,nμ::Int)
 
   r,n = size(H)
 
-  Q   = Matrix{typeof(H[1,1])}(1.0I,n,n)
-  Qn  = Matrix{typeof(H[1,1])}(1.0I,n,n)
+  Q   = Matrix{eltype(H)}(1.0I,n,n)
+  Qn  = Matrix{eltype(H)}(1.0I,n,n)
   Hn  = deepcopy(H)    
 
   if nμ == 0
@@ -569,7 +569,7 @@ function ChaseBulgeDown(H0::Matrix,nμ::Int)
    return H,Q
 end
 #----------------------------------------------------------------------
-function ChaseBulgeDown1(H0::Matrix,nμ::Int)
+function ChaseBulgeDown1(H0::Matrix,μ,nμ::Int)
 #   Chase the Bulge in the Francis Algorithm
 #   Here I am assuming we have a bulge size of 1
 #   i.e. nμ=1 was used for creating the Bulge
@@ -581,22 +581,10 @@ function ChaseBulgeDown1(H0::Matrix,nμ::Int)
    Q   = Matrix{typeof(H0[1,1])}(1.0I,r,c)
    T   = Matrix{typeof(H0[1,1])}(1.0I,r,c)      # tmp
 
-   tol = 1.0e-14
+   tol = 1.0e-12
 
    for i in 1:c-1
      x        = H[:,i]
-     if i<=c-2
-       xnorm    = norm(x[i+1:i+2])
-       if (xnorm<tol)
-         println("$i: Need Deflation: $xnorm")
-       end
-
-       xnorm    = norm(x[i+2])
-       if (xnorm<tol)
-         println("$i: Need Switching: $xnorm")
-       end  
-
-     end  
 
      if i<=c-2
        xb       = x[i+2]
@@ -604,72 +592,63 @@ function ChaseBulgeDown1(H0::Matrix,nμ::Int)
        xb       = 1.0
      end
 
-     if abs(xb)<tol
-#      If the Bulge is very small, we have converged to an invariant space
-#      This is probably not the best way. But I just switch columns and rows.
-#      Lets see what happens
+     if abs(xb)>tol
 
-       println("Switching rows/columns: $i,$(i+1)")
+       k1       = i+1
+       Qi,cs,sn = CreateGivens(x,k1,r)
+       if k1<r 
+         v1 = H[k1,:]
+         v2 = H[k1+1,:]
+         H[k1,:]   =  cs'*v1 + sn'*v2
+         H[k1+1,:] = -sn*v1  + cs*v2
 
-#      Switch rows and columns
-       v1 = H[i,:]
-       H[i,:] = H[i+1,:]
-       H[i+1,:] = v1
-
-       v3 = H[:,i]
-       H[:,i] = H[:,i+1]
-       H[:,i+1] = v3
+         v3 = H[:,k1]
+         v4 = H[:,k1+1]
+         H[:,k1]   =  v3*cs  + v4*sn
+         H[:,k1+1] = -v3*sn' + v4*cs'
 
 
-       v1 = Q[i,:]
-       Q[i,:]   = Q[i+1,:]
-       Q[i+1,:] = v1
-      
-       mul!(A,Qi,H)
-       mul!(H,A,Qi')
-       mul!(T,Qi,Q)
-       Q = 1.0*T
+         v1 = Q[k1,:]
+         v2 = Q[k1+1,:]
+         Q[k1,:]   =  cs'*v1 + sn'*v2
+         Q[k1+1,:] = -sn*v1  + cs*v2
+       else
+         v1 = H[k1,:]
+         H[k1,:]   =  cs'*v1
+
+         v3 = H[:,k1]
+         H[:,k1]   =  v3*cs
+
+
+         v1 = Q[k1,:]
+         Q[k1,:]   =  cs'*v1
+       end
+
+     else  
+
+
+       if i<c-2
+#        Create Bulge in the next column
+
+#         println("Invariant subspace reached: ($(i+1),$i): $xb")
+#         println("Generating new Lower Bulge for i=$(i+1)")
+         j = i+1
+         hs,qs = CreateBulge(H[j:r,j:c],μ,nμ)
+
+         Qi = Matrix{eltype(H)}(I,r,c)
+         Qi[j:r,j:c] = qs
+
+         mul!(A,Qi,H)
+         mul!(H,A,Qi')
+#         Collect Left Multipliers      
+         mul!(T,Qi,Q)
+         Q = 1.0*T
+
+       end
      end  
+     
 
-     k1       = i+1
-#     Qi,w,τ   = CreateReflectorZeros(x,k1,r)
-#     mul!(A,Qi,H)
-#     mul!(H,A,Qi')
-#     Collect Left Multipliers      
-#     mul!(T,Qi,Q)
-#     Q = 1.0*T
-
-
-     Qi,cs,sn = CreateGivens(x,k1,r)
-     if k1<r 
-       v1 = H[k1,:]
-       v2 = H[k1+1,:]
-       H[k1,:]   =  cs'*v1 + sn'*v2
-       H[k1+1,:] = -sn*v1  + cs*v2
-
-       v3 = H[:,k1]
-       v4 = H[:,k1+1]
-       H[:,k1]   =  v3*cs  + v4*sn
-       H[:,k1+1] = -v3*sn' + v4*cs'
-
-
-       v1 = Q[k1,:]
-       v2 = Q[k1+1,:]
-       Q[k1,:]   =  cs'*v1 + sn'*v2
-       Q[k1+1,:] = -sn*v1  + cs*v2
-     else
-       v1 = H[k1,:]
-       H[k1,:]   =  cs'*v1
-
-       v3 = H[:,k1]
-       H[:,k1]   =  v3*cs
-
-
-       v1 = Q[k1,:]
-       Q[k1,:]   =  cs'*v1
-     end 
-
-   end  
+   end      # for i in 1:c-1 
 
    return H,Q
 end

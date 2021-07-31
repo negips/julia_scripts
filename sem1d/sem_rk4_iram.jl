@@ -120,7 +120,7 @@ ifconv = false
 t = 0.            # Time
 i = 0             # Istep
 
-maxouter_it = 100
+maxouter_it = 50
 major_it    = 1
 
 if (ifplot)
