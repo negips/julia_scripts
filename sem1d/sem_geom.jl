@@ -1,4 +1,4 @@
-function sem_geom(Basis,Basisd,xc,N,Nd,nel,dxm1,dxtm1)
+function sem_geom(Basis,Basisd,xc,N,Nd,nel,dxm1,dxtm1,prec)
 #     Generate the geometric matrices
 
 #     Input:
@@ -9,8 +9,9 @@ function sem_geom(Basis,Basisd,xc,N,Nd,nel,dxm1,dxtm1)
 #     nel   : No of elements
 #     xc    : elemental nodes
 
-      VT    = Float64
+      VT    = prec
 #      VT = ComplexF64
+#      VT    = Complex{prec}
 
       lx1  = N+1;
       lx1d = Nd+1;

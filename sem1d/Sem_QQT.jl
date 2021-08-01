@@ -1,7 +1,8 @@
-function Sem_QQT(glnum)
+function Sem_QQT(glnum,prec)
 
-#     QT - Gather  (Direct Stiffness Summation)
-#     Q  - Scatter (Global to local)
+#     QT          - Gather  (Direct Stiffness Summation)
+#     Q           - Scatter (Global to local)
+#     prec        - Precision (Float64/BigFloat)
 
 #     glnum - Global numbering of points
 
@@ -10,8 +11,8 @@ function Sem_QQT(glnum)
       ndof1 = nel*(lx1-1) + 1;
       ndof2 = nel*lx1
 
-      Q     = zeros(Float64,ndof2,ndof1)
-      QT    = zeros(Float64,ndof1,ndof2)
+      Q     = zeros(prec,ndof2,ndof1)
+      QT    = zeros(prec,ndof1,ndof2)
 
 #     Built in a very rudimentary way.
 #     Should be a more sophisticated way to build this matrix
@@ -31,7 +32,7 @@ end
 
 #---------------------------------------------------------------------- 
 
-function Sem_Global_Num(xm1)
+function Sem_Global_Num(xm1,prec)
 
       lx1,nel = size(xm1)
 
@@ -42,14 +43,19 @@ function Sem_Global_Num(xm1)
       xtmp  = xm1[:];
 
       x1    = xtmp[1]
-      eps10 = eps(typeof(x1))   # Get machine precision of the variable type
+      eps10 = eps(prec)   # Get machine precision of the variable type
       eps10 = 1000.0*eps10
 
       ii    = sortperm(xtmp)
       sort!(xtmp)
 
       gno   = 0 
-      x0    = xtmp[1] - 10000.
+      if prec==BigFloat
+        y0 = BigFloat(10000.0)
+      else
+        y0 = 10000.0
+      end  
+      x0    = xtmp[1] - y0
       diff  = 0.
       for k in 1:n
 #        local x0::Float64

@@ -1,4 +1,4 @@
-function AssembleMatrixLesshafft(U,γ,c0,cnv,wlp,xm1,bm1,Basis,lx1,nel)
+function AssembleMatrixLesshafft(U,γ,c0,cnv,wlp,xm1,bm1,Basis,lx1,nel,prec)
 
 #     Building the Complex Ginzburg Landau model problem from
 #     Lutz Lesshafft (2018) Artificial eigenmodes in truncated flow domains
@@ -15,11 +15,31 @@ function AssembleMatrixLesshafft(U,γ,c0,cnv,wlp,xm1,bm1,Basis,lx1,nel)
 #     γ         = 1. - i
 
 
-      VT  = ComplexF64
+      VT  = Complex{prec}
 
-      II  = Matrix(1.0I,lx1,lx1)
-#      U   = 6.0
-#      γ   = 1.0 - 1.0*im
+      II  = Matrix{VT}(I,lx1,lx1)
+
+      if (prec == BigFloat)
+        xa  = BigFloat(1.0)         # Feedback destination point
+        xs  = BigFloat(39.0)        # Feedback source point
+        b   = BigFloat(0.1)         # Exponential drop off rate for feedback
+
+        fact = BigFloat(100.0)
+        one   = BigFloat(1.0)
+        eight = BigFloat(8.0)
+        twnty = BigFloat(20.0)
+      else
+        xa  = 1.0                   # Feedback destination point
+        xs  = 39.0                  # Feedback source point
+        b   = 0.1                   # Exponential drop off rate for feedback
+
+        fact = 100.0
+        one   = 1.0
+        eight = 8.0
+        twnty = 20.0
+      end
+
+      cutoff = fact*eps(prec)
 
       dof = nel*(lx1-1) + 1;
 
@@ -28,10 +48,7 @@ function AssembleMatrixLesshafft(U,γ,c0,cnv,wlp,xm1,bm1,Basis,lx1,nel)
       Binv = zeros(VT,lx1,nel);
 
       OP   = zeros(VT,lx1,lx1,nel);
-
-      xa  = 1.0         # Feedback destination point
-      xs  = 39.0        # Feedback source point
-      b   = 0.1         # Exponential drop off rate for feedback
+      
 
 #     Find the element containing xs
       ar   = argmin((xm1 .- xs).^2)
@@ -57,7 +74,7 @@ function AssembleMatrixLesshafft(U,γ,c0,cnv,wlp,xm1,bm1,Basis,lx1,nel)
 
      
 #       Standard feedback term
-        μ   = (U*U/8.0)*(1.0 .- xm1[:,i]./20.0)
+        μ   = (U*U/eight)*(one .- xm1[:,i]./twnty)
         bμ  = bm1[:,i].*μ
         Mμ  = diagm(bμ)
 
@@ -69,7 +86,7 @@ function AssembleMatrixLesshafft(U,γ,c0,cnv,wlp,xm1,bm1,Basis,lx1,nel)
 #       Long range Feedback Term
         expx = c0.*exp.(-((xm1[:,i] .- xa)/b).^2)
         Fmax = maximum(expx)
-        if Fmax > 1.0e-14
+        if Fmax > cutoff
           bmex = bm1[:,i].*expx
           Feed = bmex*Ixs
           A[j1:j2,je1:je2] = A[j1:j2,je1:je2] + Feed
@@ -82,7 +99,7 @@ function AssembleMatrixLesshafft(U,γ,c0,cnv,wlp,xm1,bm1,Basis,lx1,nel)
         j1 = (i-1)*(lx1-1) + 1;
         j2 = j1 + lx1 -1;
         b  = diag(B[j1:j2,j1:j2])
-        Binv[:,i] = 1.0./b
+        Binv[:,i] = one./b
       end 
 
       println("Matrix Built")
@@ -92,7 +109,7 @@ end
 
 #---------------------------------------------------------------------- 
 
-function AssembleMatrixLesshafft2(U,γ,c0,cnv,wlp,xm1,bm1,Basis,lx1,nel)
+function AssembleMatrixLesshafft2(U,γ,c0,cnv,wlp,xm1,bm1,Basis,lx1,nel,prec)
 
 #     Building the Complex Ginzburg Landau model problem from
 #     Lutz Lesshafft (2018) Artificial eigenmodes in truncated flow domains
@@ -117,11 +134,33 @@ function AssembleMatrixLesshafft2(U,γ,c0,cnv,wlp,xm1,bm1,Basis,lx1,nel)
 
 
 
-      VT  = ComplexF64
+      VT  = Complex{prec}
 
-      II  = Matrix{VT}(1.0I,lx1,lx1)
-#      U   = 6.0
-#      γ   = 1.0 - 1.0*im
+      II  = Matrix{VT}(I,lx1,lx1)
+
+      if (prec == BigFloat)
+        xa  = BigFloat(1.0)         # Feedback destination point
+        xs  = BigFloat(39.0)        # Feedback source point
+        b   = BigFloat(0.1)         # Exponential drop off rate for feedback
+
+        fact  = BigFloat(100.0)
+        one   = BigFloat(1.0)
+        eight = BigFloat(8.0)
+        twnty = BigFloat(20.0)
+       
+      else
+        xa  = 1.0                   # Feedback destination point
+        xs  = 39.0                  # Feedback source point
+        b   = 0.1                   # Exponential drop off rate for feedback
+
+        fact  = 100.0
+        one   = 1.0
+        eight = 8.0
+        twnty = 20.0
+      end
+
+      cutoff = fact*eps(prec)
+
 
       dof = nel*lx1;
 
@@ -135,9 +174,6 @@ function AssembleMatrixLesshafft2(U,γ,c0,cnv,wlp,xm1,bm1,Basis,lx1,nel)
 
       OP   = zeros(VT,lx1,lx1,nel);
 
-      xa  = 1.0         # Feedback destination point
-      xs  = 39.0        # Feedback source point
-      b   = 0.1         # Exponential drop off rate for feedback
 
 #     Find the element containing xs
       ar   = argmin((xm1 .- xs).^2)
@@ -160,7 +196,7 @@ function AssembleMatrixLesshafft2(U,γ,c0,cnv,wlp,xm1,bm1,Basis,lx1,nel)
         j2 = i*lx1;
     
 #       Standard source term
-        μ   = (U*U/8.0)*(1.0 .- xm1[:,i]./20.0)
+        μ   = (U*U/eight)*(one .- xm1[:,i]./twnty)
         bμ  = bm1[:,i].*μ
         Mμ  = diagm(bμ)
 
@@ -176,7 +212,7 @@ function AssembleMatrixLesshafft2(U,γ,c0,cnv,wlp,xm1,bm1,Basis,lx1,nel)
 #       Long range Feedback Term
         expx = c0.*exp.(-((xm1[:,i] .- xa)/b).^2)
         Fmax = maximum(expx)
-        if Fmax > 1.0e-14
+        if Fmax > cutoff
           bmex = bm1[:,i].*expx
           Feed = c0.*bmex*Ixs
           A[j1:j2,je1:je2] = A[j1:j2,je1:je2] + Feed

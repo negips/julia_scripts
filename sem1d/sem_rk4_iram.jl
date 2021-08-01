@@ -7,6 +7,7 @@ using IterativeSolvers
 using SpecialFunctions
 using Roots
 using Random
+using GenericLinearAlgebra          # For eigvals for BigFloat
 # using JLD2
 
 
@@ -69,11 +70,11 @@ pΛ = plot(real.(Ω),imag.(Ω),linestyle="none",marker="o",markersize=8)
 
 xg    = QT*(vimult.*Geom.xm1[:])
 
-Nev   = 20               # Number of eigenvalues to calculate
-EKryl = Int64(floor(1.5*Nev))           # Additional size of Krylov space
+Nev   = 10               # Number of eigenvalues to calculate
+EKryl = Int64(floor(2.5*Nev))           # Additional size of Krylov space
 LKryl = Nev + EKryl     # Total Size of Krylov space    
 
-vt    = ComplexF64
+vt    = Complex{prec}
 #vt    = Float64
 
 V     = zeros(vt,ndof,LKryl+1)
@@ -82,21 +83,26 @@ Vold  = zeros(vt,ndof,LKryl+1)
 H     = zeros(vt,LKryl+1,LKryl)
 Hold  = zeros(vt,LKryl+1,LKryl)
 
-r     = randn(vt,ndof);
-r     = (1.0+1.0im)sin.(5*pi*xg[:])
+if prec == BigFloat
+  r     = rand(prec,ndof) + im*rand(prec,ndof);
+else
+  r     = randn(vt,ndof);
+end  
+
+r     = (one+one*im)sin.(5*pi*xg[:])
 r[1]  = 0.0
 
 ifarnoldi   = true
 ifplot      = false
-verbose     = false
+verbose     = true
 reortho     = 1000
-verbosestep = reortho #500
+verbosestep = 50 #500
 nsteps      = 100000
 ifsave      = true
 
 ngs     = 2       # Number of Gram-Schmidt
 nkryl   = 0
-tol     = 1.0e-08
+tol     = 1.0e-16
 
 h,θ,v  = ArnUpd(V,Bg,r,nkryl,ngs)
 V[:,1] = v
@@ -107,7 +113,11 @@ rgba0 = cm(0)
 rgba1 = cm(1) 
 rgba2 = cm(2) 
 
-dt = 0.0001
+if prec == BigFloat
+  dt = BigFloat(0.0001)
+else
+  dt = 0.0001
+end  
 
 λn = zeros(vt,nkryl)
 
@@ -117,10 +127,10 @@ Rhs = similar(v)
 rcParams["markers.fillstyle"] = "full"
 
 ifconv = false
-t = 0.            # Time
+t = 0.0*dt        # Time
 i = 0             # Istep
 
-maxouter_it = 50
+maxouter_it = 500
 major_it    = 1
 
 if (ifplot)
@@ -145,7 +155,7 @@ while (~ifconv)
 
   local β
 
-  β = 1.0
+  β = one
   i = i + 1
 
   t = t + dt;
@@ -157,11 +167,11 @@ while (~ifconv)
       OPg[j,:] = OPg[j,:]./Bg[j]
     end  
     OPg[1,:] = bc
-    OPg[1,1] = 1.0 + im*0.0        # Change operator for BC
+    OPg[1,1] = one + im*zro        # Change operator for BC
   end  
 
-# Apply BC       
-  v[1]      = 0.0 + im*0.0
+# Apply BC
+  v[1]      = zro + im*zro
   
   v  = RK4!(OPg,v,dt)
 
@@ -203,7 +213,8 @@ while (~ifconv)
          break
        end  
        if (verbose)
-         println("Major Iteration: $major_it, Krylov Size: $nkryl, β: $β")
+#         println("Major Iteration: $major_it, Krylov Size: $nkryl, β: $β")
+        @printf "Major Iteration: %i, Krylov Size: %i, β: %e" major_it nkryl β
        end
        if (β < tol)
          println("β = $β")
@@ -239,25 +250,34 @@ end       # while ...
 
 if (ifarnoldi)
   Hr = H[1:Nev,1:Nev]
-  F  = eigen(Hr)
+
+  if prec == BigFloat
+    evs = eigvals(Hr)
+  else
+    F  = eigen(Hr)
+    evs = F.values
+  end
+
   DT = dt*reortho 
   
-  λr = log.(abs.(F.values))/DT
-  λi = atan.(imag(F.values),real.(F.values))/DT
+  λr = log.(abs.(evs))/DT
+  λi = atan.(imag(evs),real.(evs))/DT
   
   λ  = λr .+ im*λi
   
-  Lesshafft_λ = 1.0*im*λ
+  Lesshafft_λ = one*im*λ
   
   pλ = ax1.plot(real.(Lesshafft_λ),imag.(Lesshafft_λ), linestyle="none",marker=".", markersize=8)
   
-  eigvec = V[:,1:Nev]*F.vectors
-  
-  hev = figure(num=3,figsize=[8.,6.]);
-  ax3 = gca()
-  for j in 1:Nev
-    local pvec1 = ax3.plot(xg,real.(eigvec[:,j]),linestyle="-")
-#    local pvec2 = ax3.plot(xg,imag.(eigvec[:,j]),linestyle="--")
+  if prec != BigFloat
+    eigvec = V[:,1:Nev]*F.vectors
+    
+    hev = figure(num=3,figsize=[8.,6.]);
+    ax3 = gca()
+    for j in 1:Nev
+      local pvec1 = ax3.plot(xg,real.(eigvec[:,j]),linestyle="-")
+#      local pvec2 = ax3.plot(xg,imag.(eigvec[:,j]),linestyle="--")
+    end
   end  
 else
   hev = figure(num=3,figsize=[8.,6.]);
