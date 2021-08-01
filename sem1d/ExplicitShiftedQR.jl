@@ -1,13 +1,13 @@
 # Perform Explicit Shifted QR with exact eigenvalue shifts
 function ExplicitShiftedQR(Hs,μ0,nμ,ngs)
 
-  tol = 1.0e-12
+  tol = 1.0e-16
   H   = copy(Hs)
 
   r,c = size(H)
 
-  Q   = Matrix{typeof(H[1,1])}(1.0I,r,c)    # Identity
-  Qj  = Matrix{typeof(H[1,1])}(1.0I,r,c)    # Identity
+  Q   = Matrix{eltype(H)}(I,r,c)    # Identity
+  Qj  = Matrix{eltype(H)}(I,r,c)    # Identity
 
   R   = copy(H)
 
@@ -26,7 +26,7 @@ function ExplicitShiftedQR(Hs,μ0,nμ,ngs)
 #      k = nμ - i + 1
 #    end  
     Hj  = H - μ[k]*I
-    Qj  = Matrix{typeof(Hj[1,1])}(1.0I,r,c)    # Identity
+    Qj  = Matrix{eltype(Hj)}(I,r,c)    # Identity
     q   = Hj[:,1]
     Qj[:,1] = q/norm(q)
     R[1,1]  = norm(q)

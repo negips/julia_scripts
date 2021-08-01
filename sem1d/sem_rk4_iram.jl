@@ -8,6 +8,7 @@ using SpecialFunctions
 using Roots
 using Random
 using GenericLinearAlgebra          # For eigvals for BigFloat
+using Printf
 # using JLD2
 
 
@@ -21,7 +22,7 @@ include("RK4.jl")
 close("all")
 
 # Include the function files
-include("sem_main.jl")
+# include("sem_main.jl")
 
 # Local Matrices constructed in Sem_main.jl
 # Global Matrices also constructed in Sem_main.jl
@@ -70,9 +71,11 @@ pΛ = plot(real.(Ω),imag.(Ω),linestyle="none",marker="o",markersize=8)
 
 xg    = QT*(vimult.*Geom.xm1[:])
 
-Nev   = 10               # Number of eigenvalues to calculate
+Nev   = 15               # Number of eigenvalues to calculate
 EKryl = Int64(floor(2.5*Nev))           # Additional size of Krylov space
 LKryl = Nev + EKryl     # Total Size of Krylov space    
+ngs     = 2       # Number of Gram-Schmidt
+tol     = 1.0e-18
 
 vt    = Complex{prec}
 #vt    = Float64
@@ -84,9 +87,9 @@ H     = zeros(vt,LKryl+1,LKryl)
 Hold  = zeros(vt,LKryl+1,LKryl)
 
 if prec == BigFloat
-  r     = rand(prec,ndof) + im*rand(prec,ndof);
+  r   = rand(prec,ndof) + im*rand(prec,ndof);
 else
-  r     = randn(vt,ndof);
+  r   = randn(vt,ndof);
 end  
 
 r     = (one+one*im)sin.(5*pi*xg[:])
@@ -96,14 +99,11 @@ ifarnoldi   = true
 ifplot      = false
 verbose     = true
 reortho     = 1000
-verbosestep = 50 #500
+verbosestep = reortho #500
 nsteps      = 100000
 ifsave      = true
 
-ngs     = 2       # Number of Gram-Schmidt
 nkryl   = 0
-tol     = 1.0e-16
-
 h,θ,v  = ArnUpd(V,Bg,r,nkryl,ngs)
 V[:,1] = v
 nkryl  = 1
@@ -130,7 +130,7 @@ ifconv = false
 t = 0.0*dt        # Time
 i = 0             # Istep
 
-maxouter_it = 500
+maxouter_it = 100
 major_it    = 1
 
 if (ifplot)
@@ -214,7 +214,7 @@ while (~ifconv)
        end  
        if (verbose)
 #         println("Major Iteration: $major_it, Krylov Size: $nkryl, β: $β")
-        @printf "Major Iteration: %i, Krylov Size: %i, β: %e" major_it nkryl β
+        @printf "Major Iteration: %i, Krylov Size: %i, β: %e\n" major_it nkryl β
        end
        if (β < tol)
          println("β = $β")
