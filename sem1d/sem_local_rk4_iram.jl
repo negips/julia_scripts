@@ -78,11 +78,11 @@ Binv   = one./Bdssum
 
 ntot  = lx1*nel
 
-Nev   = 15               # Number of eigenvalues to calculate
-EKryl = Int64(floor(2.5*Nev))           # Additional size of Krylov space
-LKryl = Nev + EKryl     # Total Size of Krylov space    
-ngs     = 2       # Number of Gram-Schmidt
-tol     = 1.0e-18
+Nev   = 15                    # Number of eigenvalues to calculate
+EKryl = Int64(floor(2.5*Nev)) # Additional size of Krylov space
+LKryl = Nev + EKryl           # Total Size of Krylov space    
+ngs     = 2                   # Number of Gram-Schmidt
+tol     = 1.0e-12
 
 vt    = Complex{prec}
 #vt    = Float64
@@ -94,18 +94,20 @@ H     = zeros(vt,LKryl+1,LKryl)
 Hold  = zeros(vt,LKryl+1,LKryl)
 
 if prec == BigFloat
-  r   = rand(prec,ntot) + im*rand(prec,ntot);
+  r0   = rand(prec,ntot) + im*rand(prec,ntot);
 else
-  r   = randn(vt,ntot);
+  r0   = randn(vt,ntot);
 end  
 
-r     = (one+one*im)sin.(5*pi*xall)
-r[1]  = 0.0
+r0     = (one+one*im)sin.(2*pi*xall)
+r0[1]  = 0.0
+r      = Q*QT*r0
 
 ifarnoldi   = true
-ifplot      = true
+ifplot      = false
 verbose     = true
-reortho     = 100
+eigupd      = true
+reortho     = 500
 verbosestep = reortho #500
 nsteps      = 100000
 ifsave      = true
@@ -154,13 +156,15 @@ while (~ifconv)
   global plr,pli
   global OPg
   global nkryl
-  global hλ, ax1, λ, pλ, Ar
+  global hλ, ax1
   global ifconv
   global major_it
   global Vold,Hold
   global ax2 
 
   local β
+  local pλ
+  local Hr,evs,λ,λr,λi,Lesshafft_λ,DT,l0
 
   β = one
   i = i + 1
@@ -171,6 +175,8 @@ while (~ifconv)
   if (i==1)
     OP[1,:,1] = bc
     OP[1,1,1] = one + im*zro        # Change operator for BC
+    B[1,1]    = one + im*zro
+    Binv[1,1] = one + im*zro
   end  
 
 # Apply BC
@@ -222,7 +228,36 @@ while (~ifconv)
        if (β < tol)
          println("β = $β")
          break
-       end  
+       end
+
+       if (eigupd) && nkryl == Nev+1
+
+         l0 = ax1.get_lines()
+         for il = 2:length(l0)
+           l0[il].remove()
+         end  
+
+         Hr = H[1:Nev,1:Nev]
+
+         evs = eigvals(Hr)
+
+         DT = dt*reortho 
+         
+         λr = log.(abs.(evs))/DT
+         λi = atan.(imag(evs),real.(evs))/DT
+         
+         λ  = λr .+ im*λi
+         
+         Lesshafft_λ = one*im*λ
+         
+         pλ = ax1.plot(real.(Lesshafft_λ),imag.(Lesshafft_λ), linestyle="none",marker=".", markersize=8)
+         ax1.set_xlim((-2.0,6.0))
+         ax1.set_ylim((-7.5,0.5))
+            
+         draw()
+         
+         pause(0.001)
+       end        # eigupd
 
     end       # mod(i,reortho)
   
@@ -237,7 +272,7 @@ while (~ifconv)
         end  
       end  
      
-      pv1 = ax2.plot(xg,real.(v),linestyle="-")
+      pv1 = ax2.plot(xall,real.(v),linestyle="-")
 
       vmin = 1.5*minimum(real.(v))
       vmax = 1.5*maximum(real.(v))

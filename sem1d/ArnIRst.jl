@@ -13,7 +13,7 @@ function ArnIRst(V::Matrix,Hes::Matrix,B::Union{Vector,Matrix},k::Int,kmax::Int,
 
     revFrancis = false 
 
-    tol = 1.0e-20
+    tol = 1.0e-12
 
     EKryl = kmax - 1 - Nev 
     ifconv = false
@@ -120,8 +120,9 @@ function ArnGetLowerShifts(H::Matrix,EKryl::Int)
       f  = eigvals(H)          # Uses Lapack routine (dgeev/zgeev)
       fr = real.(f)
       fr_sort_i = sortperm(fr,rev=false)   # Increasing order
-      μ         = f[fr_sort_i[1:EKryl]]
+      μ0        = f[fr_sort_i[1:EKryl]]
       nμ        = length(μ)
+      μ         = μ0[nμ:-1:1]
 
       return μ,nμ
 end

@@ -24,25 +24,25 @@ end
 # define nodal bases
 N           = 8 ;                              # polynomial degree
 lx1         = N+1;                              # No of points
-Basis       = LobattoLegendre(N, prec)                # Polynomial Basis
+Basis       = LobattoLegendre(N, prec)          # Polynomial Basis
 
-Nd          = Int64(floor(N*1.5)+1) ;                               # polynomial degree
+Nd          = Int64(floor(N*1.5)+1)             # polynomial degree
 lx1d        = Nd+1;                             # No of points
 Basisd      = LobattoLegendre(Nd, prec)               # Polynomial Basis
 
 #basis2 = GaussLegendre(N)
 
 if (prec==BigFloat)
-  xs          = BigFloat(0.)                      # Domain start
-  xe          = BigFloat(40.0)                    # Domain end
+  xs          = BigFloat(0.)                    # Domain start
+  xe          = BigFloat(40.0)                  # Domain end
 else
-  xs          = 0.                                # Domain start
-  xe          = 40.0                              # Domain end
+  xs          = 0.                              # Domain start
+  xe          = 30.0                            # Domain end
 end  
 
 nel         = 50                                # No of elements
 nnodes      = nel+1;                            # No of nodes
-xc          = range(xs,stop=xe,length=nnodes);  # Element coordinates
+xc          = range(xs,stop=xe,length=nnodes)   # Element coordinates
 
 zgm1        = Basis.nodes;                      # Reference GLL Points
 wzm1        = Basis.weights;                    # Reference integration weights

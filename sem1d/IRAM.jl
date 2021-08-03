@@ -1,8 +1,8 @@
-function IRAM!(Vin::Matrix,Hes::Matrix,Bg::Union{Vector,Matrix},v::Vector,k::Int,kmax::Int,Mi::Int,Nev,ngs::Int)
+function IRAM!(Vin::Matrix,Hes::Matrix,B::Union{Vector,Matrix},v::Vector,k::Int,kmax::Int,Mi::Int,Nev,ngs::Int)
 
 #   Vin     - Krylov Matrix
 #   Hes     - Hessenberg Matrix
-#   Bg      - Weight Vector/Matrix
+#   B       - Weight Vector/Matrix
 #   v       - New Arnoldi vector
 #   k       - Current Krylov Size
 #   kmax    - Max Krylov size
@@ -15,12 +15,12 @@ function IRAM!(Vin::Matrix,Hes::Matrix,Bg::Union{Vector,Matrix},v::Vector,k::Int
 
 #   Update Arnoldi Vector
     if k == 0
-      h,β,r = ArnUpd(V,Bg,v,k,ngs)
+      h,β,r = ArnUpd(V,B,v,k,ngs)
       V[:,1]        = r
       nkryl         = 1
       mi            = Mi  
     else
-      h,β,r = ArnUpd(V,Bg,v,k,ngs)
+      h,β,r = ArnUpd(V,B,v,k,ngs)
       H[1:k,k]      = h
       H[k+1,k]      = β
       k             = k + 1
@@ -34,7 +34,7 @@ function IRAM!(Vin::Matrix,Hes::Matrix,Bg::Union{Vector,Matrix},v::Vector,k::Int
     if k == kmax+1
 #      Hold = H
 #      Vold = V
-      U,G,k2,ifconv = ArnIRst(V,H,Bg,k,kmax+1,Nev,ngs)
+      U,G,k2,ifconv = ArnIRst(V,H,B,k,kmax+1,Nev,ngs)
       V = U
       H = G
       
@@ -45,7 +45,6 @@ function IRAM!(Vin::Matrix,Hes::Matrix,Bg::Union{Vector,Matrix},v::Vector,k::Int
       nkryl = k2
       mi    = mi + 1
     end  
-
 
     return V,H,nkryl,β,mi 
 
