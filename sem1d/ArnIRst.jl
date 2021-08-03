@@ -121,7 +121,7 @@ function ArnGetLowerShifts(H::Matrix,EKryl::Int)
       fr = real.(f)
       fr_sort_i = sortperm(fr,rev=false)   # Increasing order
       μ0        = f[fr_sort_i[1:EKryl]]
-      nμ        = length(μ)
+      nμ        = length(μ0)
       μ         = μ0[nμ:-1:1]
 
       return μ,nμ
