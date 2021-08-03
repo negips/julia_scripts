@@ -24,6 +24,7 @@ ndof, glnum = Sem_Global_Num(Geom.xm1,prec)
 
 Q,QT   = Sem_QQT(glnum,prec)
 vmult  = sum(Q*QT,dims=2)
+vmult  = vmult[:]
 vimult = one./vmult
 
 xall  = vimult.*(Q*QT*Geom.xm1[:]);
@@ -62,7 +63,7 @@ for i in 1:nel
 end
 
 
-ifglobal = true
+#ifglobal = false
 
 if ifglobal
   Cg    = QT*Conv*Q    # Global Convection matrix

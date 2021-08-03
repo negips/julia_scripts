@@ -22,6 +22,8 @@ include("SEM_RK4.jl")
 
 close("all")
 
+ifglobal = false
+
 # Include the function files
 include("sem_main.jl")
 
@@ -70,19 +72,19 @@ hλ = figure(num=1,figsize=[8.,6.]);
 ax1 = gca()
 pΛ = plot(real.(Ω),imag.(Ω),linestyle="none",marker="o",markersize=8)
 
-xg    = QT*(vimult.*Geom.xm1[:])
-xall  = Geom.xm1[:]
-B     = Geom.bm1[:]
-Bdssum = Q*(QT*B)
-Binv   = one./Bdssum
+xg          = QT*(vimult.*Geom.xm1[:])
+xall        = Geom.xm1[:]
+B           = Geom.bm1[:]
+Bdssum      = Q*(QT*B)
+Binv        = one./Bdssum
 
-ntot  = lx1*nel
+ntot        = npts
 
-Nev   = 15                    # Number of eigenvalues to calculate
-EKryl = Int64(floor(2.5*Nev)) # Additional size of Krylov space
-LKryl = Nev + EKryl           # Total Size of Krylov space    
-ngs     = 2                   # Number of Gram-Schmidt
-tol     = 1.0e-12
+Nev         = 15                    # Number of eigenvalues to calculate
+EKryl       = Int64(floor(2.5*Nev)) # Additional size of Krylov space
+LKryl       = Nev + EKryl           # Total Size of Krylov space    
+ngs         = 2                   # Number of Gram-Schmidt
+tol         = 1.0e-12
 
 vt    = Complex{prec}
 #vt    = Float64
@@ -101,10 +103,10 @@ end
 
 r0     = (one+one*im)sin.(2*pi*xall)
 r0[1]  = zro
-r      = Q*QT*r0
+r      = vimult.*(Q*QT*r0)
 
-ifarnoldi   = true
-ifplot      = false
+ifarnoldi   = false
+ifplot      = true
 verbose     = true
 eigupd      = true
 reortho     = 500
@@ -276,7 +278,11 @@ while (~ifconv)
 
       vmin = 1.5*minimum(real.(v))
       vmax = 1.5*maximum(real.(v))
-      ax2.set_ylim((vmin,vmax))
+      vvmax = max(abs(vmin),abs(vmax))    
+      ax2.set_ylim((-vvmax,vvmax))
+#      ax2.set_ylim((-1.0,1.0))
+      draw()
+      pause(0.0001)
     end 
   
     if i==nsteps

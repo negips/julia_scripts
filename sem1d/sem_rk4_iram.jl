@@ -21,6 +21,9 @@ include("RK4.jl")
 
 close("all")
 
+# Ifglobal
+ifglobal = true
+
 # Include the function files
 include("sem_main.jl")
 
@@ -60,11 +63,11 @@ pΛ = plot(real.(Ω),imag.(Ω),linestyle="none",marker="o",markersize=8)
 
 xg    = QT*(vimult.*Geom.xm1[:])
 
-Nev   = 15               # Number of eigenvalues to calculate
+Nev   = 10               # Number of eigenvalues to calculate
 EKryl = Int64(floor(2.5*Nev))           # Additional size of Krylov space
 LKryl = Nev + EKryl     # Total Size of Krylov space    
 ngs     = 2       # Number of Gram-Schmidt
-tol     = 1.0e-12
+tol     = 1.0e-16
 
 vt    = Complex{prec}
 #vt    = Float64
@@ -120,7 +123,7 @@ ifconv = false
 t = 0.0*dt        # Time
 i = 0             # Istep
 
-maxouter_it = 100
+maxouter_it = 1000
 major_it    = 1
 
 if (ifplot)

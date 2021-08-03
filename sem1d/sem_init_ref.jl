@@ -7,9 +7,9 @@ using PolynomialBases
 
 #VT = Float64
 #VT = ComplexF64
-#setprecision(80)
-#prec = BigFloat
-prec = Float64
+setprecision(90)
+prec = BigFloat
+#prec = Float64
 
 VT  = Complex{prec}
 
@@ -22,7 +22,7 @@ else
 end  
 
 # define nodal bases
-N           = 12 ;                              # polynomial degree
+N           = 10 ;                              # polynomial degree
 lx1         = N+1;                              # No of points
 Basis       = LobattoLegendre(N, prec)          # Polynomial Basis
 
@@ -37,10 +37,10 @@ if (prec==BigFloat)
   xe          = BigFloat(60.0)                  # Domain end
 else
   xs          = 0.                              # Domain start
-  xe          = 60.0                            # Domain end
+  xe          = 40.0                            # Domain end
 end  
 
-nel         = 90                                # No of elements
+nel         = 61                                # No of elements
 nnodes      = nel+1;                            # No of nodes
 xc          = range(xs,stop=xe,length=nnodes)   # Element coordinates
 

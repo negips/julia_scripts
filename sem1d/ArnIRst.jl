@@ -13,7 +13,7 @@ function ArnIRst(V::Matrix,Hes::Matrix,B::Union{Vector,Matrix},k::Int,kmax::Int,
 
     revFrancis = false 
 
-    tol = 1.0e-12
+    tol = 1.0e-16
 
     EKryl = kmax - 1 - Nev 
     ifconv = false
