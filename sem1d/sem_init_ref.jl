@@ -22,7 +22,7 @@ else
 end  
 
 # define nodal bases
-N           = 8 ;                              # polynomial degree
+N           = 12 ;                              # polynomial degree
 lx1         = N+1;                              # No of points
 Basis       = LobattoLegendre(N, prec)          # Polynomial Basis
 
@@ -34,13 +34,13 @@ Basisd      = LobattoLegendre(Nd, prec)               # Polynomial Basis
 
 if (prec==BigFloat)
   xs          = BigFloat(0.)                    # Domain start
-  xe          = BigFloat(40.0)                  # Domain end
+  xe          = BigFloat(60.0)                  # Domain end
 else
   xs          = 0.                              # Domain start
-  xe          = 30.0                            # Domain end
+  xe          = 60.0                            # Domain end
 end  
 
-nel         = 50                                # No of elements
+nel         = 90                                # No of elements
 nnodes      = nel+1;                            # No of nodes
 xc          = range(xs,stop=xe,length=nnodes)   # Element coordinates
 

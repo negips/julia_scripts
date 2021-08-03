@@ -2,6 +2,7 @@ println("Main interface for 1D SEM")
 
 using PolynomialBases
 using LinearAlgebra
+using SparseArrays
 # using UnicodePlots
 #using Plots
 
@@ -18,12 +19,7 @@ include("Sem_QQT.jl")
 
 Geom = sem_geom(Basis,Basisd,xc,N,Nd,nel,dxm1,dxtm1,prec);
 
-#L  = AssembleMatrix(c0,Geom.cnv,ν,Geom.wlp,lx1,nel);
-
-#L  = AssembleMatrixLesshafft(c0,Geom.cnv,Geom.wlp,Geom.xm1,Geom.bm1,Basis,lx1,nel);
-
 npts  = lx1*nel
-
 ndof, glnum = Sem_Global_Num(Geom.xm1,prec)
 
 Q,QT   = Sem_QQT(glnum,prec)
@@ -42,10 +38,22 @@ else
   c0  = 0.0e-10
 end  
 
-L,B,OP,Conv,Src,Lap,Fd = AssembleMatrixLesshafft2(U,γ,c0,Geom.cnv,Geom.wlp,Geom.xm1,Geom.bm1,Basis,lx1,nel,prec);
+# So much faster with Sparse Arrays
+# Numerical error also seems much better behaved
+ifsparse = true
+if (ifsparse)
+  L,B,OP,Conv,Src,Lap,Fd = AssembleMatrixLesshafftSparse(U,γ,c0,Geom.cnv,Geom.wlp,Geom.xm1,Geom.bm1,Basis,lx1,nel,prec);
+else
+  L,B,OP,Conv,Src,Lap,Fd = AssembleMatrixLesshafft2(U,γ,c0,Geom.cnv,Geom.wlp,Geom.xm1,Geom.bm1,Basis,lx1,nel,prec);
+end  
 
 # Build Dealiased Mass Matrix
-Md    = zeros(VT,npts,npts)
+if (ifsparse)
+  Md    = spzeros(VT,npts,npts)
+else
+  Md    = zeros(VT,npts,npts)
+end
+
 for i in 1:nel
   j1 = (i-1)*lx1 + 1;
   j2 = i*lx1;
@@ -54,7 +62,7 @@ for i in 1:nel
 end
 
 
-ifglobal = false
+ifglobal = true
 
 if ifglobal
   Cg    = QT*Conv*Q    # Global Convection matrix

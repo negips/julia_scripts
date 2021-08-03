@@ -22,19 +22,8 @@ include("RK4.jl")
 close("all")
 
 # Include the function files
-# include("sem_main.jl")
+include("sem_main.jl")
 
-# Local Matrices constructed in Sem_main.jl
-# Global Matrices also constructed in Sem_main.jl
-
-# Cg    = QT*Conv*Q    # Global Convection matrix
-# Lg    = QT*Lap*Q     # Global Laplacian matrix
-# Sg    = QT*Src*Q     # Global Src matrix
-# Fg    = QT*Fd*Q      # Global Feedback matrix
-# Bg    = QT*B         # Global Mass vector
-# Big   = 1.0./Bg      # Global inverse Mass vector
-# 
-# Oper  = similar(Bg)
 
 rng = MersenneTwister(1235)
 
@@ -75,7 +64,7 @@ Nev   = 15               # Number of eigenvalues to calculate
 EKryl = Int64(floor(2.5*Nev))           # Additional size of Krylov space
 LKryl = Nev + EKryl     # Total Size of Krylov space    
 ngs     = 2       # Number of Gram-Schmidt
-tol     = 1.0e-18
+tol     = 1.0e-12
 
 vt    = Complex{prec}
 #vt    = Float64
@@ -117,7 +106,7 @@ rgba2 = cm(2)
 if prec == BigFloat
   dt = BigFloat(0.0001)
 else
-  dt = 0.0001
+  dt = 0.00005
 end  
 
 λn = zeros(vt,nkryl)

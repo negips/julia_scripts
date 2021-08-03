@@ -11,8 +11,8 @@ function Sem_QQT(glnum,prec)
       ndof1 = nel*(lx1-1) + 1;
       ndof2 = nel*lx1
 
-      Q     = zeros(prec,ndof2,ndof1)
-      QT    = zeros(prec,ndof1,ndof2)
+      Q     = spzeros(prec,ndof2,ndof1)
+      QT    = spzeros(prec,ndof1,ndof2)
 
 #     Built in a very rudimentary way.
 #     Should be a more sophisticated way to build this matrix
@@ -22,10 +22,11 @@ function Sem_QQT(glnum,prec)
         jl = (j-1)*lx1 + i;
 
         QT[jg,jl] = QT[jg,jl] + 1.0
+        Q[jl,jg]  = Q[jl,jg] + 1.0
 
       end
 
-      Q = transpose(QT)
+#      Q = transpose(QT)
 
       return Q,QT
 end
