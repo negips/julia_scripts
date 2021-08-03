@@ -54,7 +54,7 @@ for i in 1:nel
 end
 
 
-ifglobal = true
+ifglobal = false
 
 if ifglobal
   Cg    = QT*Conv*Q    # Global Convection matrix
@@ -66,9 +66,10 @@ if ifglobal
   Mdg   = QT*Md*Q      # Global Dialiased Weight Matrix for inner products 
   
   OPg   = QT*(L)*Q./Bg
+  
+  println("Global Matrices Built")
 end
 
-println("Global Matrices Built")
 
 
 

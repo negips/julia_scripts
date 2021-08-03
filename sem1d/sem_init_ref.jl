@@ -7,9 +7,9 @@ using PolynomialBases
 
 #VT = Float64
 #VT = ComplexF64
-setprecision(80)
-prec = BigFloat
-#prec = Float64
+#setprecision(80)
+#prec = BigFloat
+prec = Float64
 
 VT  = Complex{prec}
 
@@ -40,7 +40,7 @@ else
   xe          = 40.0                              # Domain end
 end  
 
-nel         = 30                                # No of elements
+nel         = 50                                # No of elements
 nnodes      = nel+1;                            # No of nodes
 xc          = range(xs,stop=xe,length=nnodes);  # Element coordinates
 
