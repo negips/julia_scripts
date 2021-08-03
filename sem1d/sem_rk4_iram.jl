@@ -98,6 +98,7 @@ r[1]  = 0.0
 ifarnoldi   = true
 ifplot      = false
 verbose     = true
+eigupd      = true
 reortho     = 1000
 verbosestep = reortho #500
 nsteps      = 100000
@@ -147,13 +148,16 @@ while (~ifconv)
   global plr,pli
   global OPg
   global nkryl
-  global hλ, ax1, λ, pλ, Ar
+  global hλ, ax1
   global ifconv
   global major_it
   global Vold,Hold
   global ax2 
 
   local β
+
+  local pλ
+  local Hr,evs,λ,λr,λi,Lesshafft_λ,DT,l0
 
   β = one
   i = i + 1
@@ -173,7 +177,7 @@ while (~ifconv)
 # Apply BC
   v[1]      = zro + im*zro
   
-  v  = RK4!(OPg,v,dt)
+  v         = RK4!(OPg,v,dt)
 
   if (ifarnoldi)
 #   Expand Krylov space
@@ -220,6 +224,36 @@ while (~ifconv)
          println("β = $β")
          break
        end  
+
+#      Update Eigenvalues
+       if (eigupd) && nkryl == Nev+1
+
+         l0 = ax1.get_lines()
+         for il = 2:length(l0)
+           l0[il].remove()
+         end  
+
+         Hr = H[1:Nev,1:Nev]
+
+         evs = eigvals(Hr)
+
+         DT = dt*reortho 
+         
+         λr = log.(abs.(evs))/DT
+         λi = atan.(imag(evs),real.(evs))/DT
+         
+         λ  = λr .+ im*λi
+         
+         Lesshafft_λ = one*im*λ
+         
+         pλ = ax1.plot(real.(Lesshafft_λ),imag.(Lesshafft_λ), linestyle="none",marker=".", markersize=8)
+         ax1.set_xlim((-2.0,6.0))
+         ax1.set_ylim((-7.5,0.5))
+            
+         draw()
+         
+         pause(0.001)
+       end        # eigupd
 
     end       # mod(i,reortho)
   

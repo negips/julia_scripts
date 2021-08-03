@@ -7,10 +7,12 @@ function SEM_RK4!(v,dt,nel,lx1,OP,B,Binv,Q,QT,prec)
   v3 = copy(v)
 
   if prec==BigFloat
+    zro = BigFloat(0.0)
     one = BigFloat(1.0)
     two = BigFloat(2.0)
     six = BigFloat(6.0)
   else
+    zro = 0.0
     one = 1.0
     two = 2.0
     six = 6.0
@@ -46,6 +48,8 @@ function SEM_RK4!(v,dt,nel,lx1,OP,B,Binv,Q,QT,prec)
     vi[j1:j2] .= OP[:,:,i]*(v[j1:j2] .+ two*v1[j1:j2] .+ two*v2[j1:j2] .+ v3[j1:j2])
   end
   v .= v .+ (dt/six)*Binv.*Q*(QT*vi)
+
+  v[1] = zro + zro*im 
 
   return v    
 end  

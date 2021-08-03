@@ -100,7 +100,7 @@ else
 end  
 
 r0     = (one+one*im)sin.(2*pi*xall)
-r0[1]  = 0.0
+r0[1]  = zro
 r      = Q*QT*r0
 
 ifarnoldi   = true
