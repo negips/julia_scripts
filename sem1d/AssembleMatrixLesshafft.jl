@@ -181,7 +181,7 @@ function AssembleMatrixLesshafft2(U,γ,c0,cnv,wlp,xm1,bm1,Basis,lx1,nel,prec)
 
 #     Map xs to reference coordinates ξ in [-1,1]
       ξ    = map_to_canonical(xs,xm1[1,e],xm1[lx1,e],Basis)
-      Ixs  = zeros(Float64,1,lx1)
+      Ixs  = zeros(VT,1,lx1)
       interpolation_matrix!(Ixs,ξ,zgm1,Basis.baryweights)
 
 #     Location of Ixs in the global matrix (Columns)
@@ -300,7 +300,7 @@ function AssembleMatrixLesshafftSparse(U,γ,c0,cnv,wlp,xm1,bm1,Basis,lx1,nel,pre
 
 #     Map xs to reference coordinates ξ in [-1,1]
       ξ    = map_to_canonical(xs,xm1[1,e],xm1[lx1,e],Basis)
-      Ixs  = zeros(Float64,1,lx1)
+      Ixs  = zeros(VT,1,lx1)
       interpolation_matrix!(Ixs,ξ,zgm1,Basis.baryweights)
 
 #     Location of Ixs in the global matrix (Columns)

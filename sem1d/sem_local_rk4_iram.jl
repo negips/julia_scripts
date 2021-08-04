@@ -44,15 +44,15 @@ rng = MersenneTwister(1235)
 rcParams = PyPlot.PyDict(PyPlot.matplotlib."rcParams")
 
 # Analytical Eigenvalues
-ω1 = find_zero(airyai,(-3.0,-0.0))
-ω2 = find_zero(airyai,(-5.0,-3.0))
-ω3 = find_zero(airyai,(-6.0,-5.0))
-ω4 = find_zero(airyai,(-7.0,-6.0))
-ω5 = find_zero(airyai,(-8.0,-7.0))
-ω6 = find_zero(airyai,(-9.5,-8.0))
-ω7 = find_zero(airyai,(-10.5,-9.5))
-ω8 = find_zero(airyai,(-11.8,-10.5))
-ω9 = find_zero(airyai,(-12.0,-11.8))
+ω1  = find_zero(airyai,(-3.0,-0.0))
+ω2  = find_zero(airyai,(-5.0,-3.0))
+ω3  = find_zero(airyai,(-6.0,-5.0))
+ω4  = find_zero(airyai,(-7.0,-6.0))
+ω5  = find_zero(airyai,(-8.0,-7.0))
+ω6  = find_zero(airyai,(-9.5,-8.0))
+ω7  = find_zero(airyai,(-10.5,-9.5))
+ω8  = find_zero(airyai,(-11.8,-10.5))
+ω9  = find_zero(airyai,(-12.0,-11.8))
 ω10 = find_zero(airyai,(-12.9,-12.0))
 ω11 = find_zero(airyai,(-13.8,-12.9))
 ω12 = find_zero(airyai,(-14.8,-13.8))
@@ -60,7 +60,7 @@ rcParams = PyPlot.PyDict(PyPlot.matplotlib."rcParams")
 ω14 = find_zero(airyai,(-16.8,-15.8))
 ω15 = find_zero(airyai,(-17.5,-16.8))
 
-ω  = [ω1, ω2, ω3, ω4, ω5, ω6, ω7, ω8, ω9, ω10, ω11, ω12, ω13, ω14, ω15]
+ω   = [ω1, ω2, ω3, ω4, ω5, ω6, ω7, ω8, ω9, ω10, ω11, ω12, ω13, ω14, ω15]
 # Parameters defined earlier
 #U  = 6.0
 #γ  = 1.0 - im*1.0
@@ -68,9 +68,9 @@ rcParams = PyPlot.PyDict(PyPlot.matplotlib."rcParams")
 Ω  = im*(U*U/8.0 .- U*U/(4.0*γ) .+ γ^(1.0/3.0)*(U^(4.0/3.0))/(160.0^(2.0/3.0))*ω)
 
 rcParams["markers.fillstyle"] = "none"
-hλ = figure(num=1,figsize=[8.,6.]);
+hλ  = figure(num=1,figsize=[8.,6.]);
 ax1 = gca()
-pΛ = plot(real.(Ω),imag.(Ω),linestyle="none",marker="o",markersize=8)
+pΛ  = plot(real.(Ω),imag.(Ω),linestyle="none",marker="o",markersize=8)
 
 xg          = QT*(vimult.*Geom.xm1[:])
 xall        = Geom.xm1[:]
@@ -84,7 +84,7 @@ Nev         = 15                    # Number of eigenvalues to calculate
 EKryl       = Int64(floor(2.5*Nev)) # Additional size of Krylov space
 LKryl       = Nev + EKryl           # Total Size of Krylov space    
 ngs         = 2                   # Number of Gram-Schmidt
-tol         = 1.0e-12
+tol         = 1.0e-08
 
 vt    = Complex{prec}
 #vt    = Float64
@@ -105,11 +105,11 @@ r0     = (one+one*im)sin.(2*pi*xall)
 r0[1]  = zro
 r      = vimult.*(Q*QT*r0)
 
-ifarnoldi   = false
-ifplot      = true
+ifarnoldi   = true
+ifplot      = false
 verbose     = true
 eigupd      = true
-reortho     = 500
+reortho     = 2000
 verbosestep = reortho #500
 nsteps      = 100000
 ifsave      = true
@@ -117,7 +117,7 @@ ifsave      = true
 nkryl   = 0
 h,θ,v  = ArnUpd(V,B,r,nkryl,ngs)
 V[:,1] = v
-nkryl  = 1
+nkryl  = 0
 
 cm    = get_cmap("tab10");
 rgba0 = cm(0) 
@@ -127,7 +127,7 @@ rgba2 = cm(2)
 if prec == BigFloat
   dt = BigFloat(0.0001)
 else
-  dt = 0.0001
+  dt = 0.00002
 end  
 
 λn = zeros(vt,nkryl)
@@ -140,7 +140,7 @@ ifconv = false
 t = 0.0*dt        # Time
 i = 0             # Istep
 
-maxouter_it = 100
+maxouter_it = 200
 major_it    = 1
 
 rcParams["markers.fillstyle"] = "full"
@@ -189,77 +189,84 @@ while (~ifconv)
   if (ifarnoldi)
 #   Expand Krylov space
     if mod(i,reortho)==0
+      if ifplot
+        if (i>reortho) 
+          for lo in ax2.get_lines()
+            lo.remove()
+          end  
+        end  
 
-       if ifplot
-         if (i>reortho) 
-           for lo in ax2.get_lines()
-             lo.remove()
-           end  
-         end  
+        pv1 = ax2.plot(xall,real.(v),linestyle="-")
+      end  
 
-         pv1 = ax2.plot(xall,real.(v),linestyle="-")
-       end  
+      if nkryl == LKryl
+        Hold = H
+        Vold = V
+      end
 
-       if nkryl == LKryl
-         Hold = H
-         Vold = V
-       end
-       V,H,nkryl,β,major_it = IRAM!(V,H,B,v,nkryl,LKryl,major_it,Nev,ngs)
+      vmin = minimum(real.(v))
+      vmax = maximum(real.(v))
+      vv1  = max(abs(vmin),abs(vmax))
+     
+      V,H,nkryl,β,major_it = IRAM!(V,H,B,v,nkryl,LKryl,major_it,Nev,ngs)
 
-       v   = V[:,nkryl]
+      v   = V[:,nkryl]
 
-       if (ifplot)
-         pv2 = ax2.plot(xall,real.(v),linestyle="--")
+      if (ifplot)
+        pv2 = ax2.plot(xall,real.(v),linestyle="--")
 
-         vmin = 1.5*minimum(real.(v))
-         vmax = 1.5*maximum(real.(v))
-#         ax2.set_ylim((vmin,vmax))
-         ax2.set_ylim((-1.0,1.0))
+        vmin  = minimum(real.(v))
+        vmax  = maximum(real.(v))
+        vv2   = max(abs(vmin),abs(vmax))
+        vv    = 1.25*max(vv1,vv2)
+
+        ax2.set_ylim((-vv,vv))
+#        ax2.set_ylim((-1.0,1.0))
+       
+        pause(0.0001)
+        draw() 
+      end  
+
+      if (major_it>maxouter_it)
+        break
+      end  
+      if (verbose)
+#        println("Major Iteration: $major_it, Krylov Size: $nkryl, β: $β")
+       @printf "Major Iteration: %3i, Krylov Size: %3i, β: %e\n" major_it nkryl β
+      end
+      if (β < tol)
+        println("β = $β")
+        break
+      end
+
+      if (eigupd) && nkryl == Nev+1
+
+        l0 = ax1.get_lines()
+        for il = 2:length(l0)
+          l0[il].remove()
+        end  
+
+        Hr = H[1:Nev,1:Nev]
+
+        evs = eigvals(Hr)
+
+        DT = dt*reortho 
         
-         pause(0.001)
-         draw() 
-       end  
-
-       if (major_it>maxouter_it)
-         break
-       end  
-       if (verbose)
-#         println("Major Iteration: $major_it, Krylov Size: $nkryl, β: $β")
-        @printf "Major Iteration: %i, Krylov Size: %i, β: %e\n" major_it nkryl β
-       end
-       if (β < tol)
-         println("β = $β")
-         break
-       end
-
-       if (eigupd) && nkryl == Nev+1
-
-         l0 = ax1.get_lines()
-         for il = 2:length(l0)
-           l0[il].remove()
-         end  
-
-         Hr = H[1:Nev,1:Nev]
-
-         evs = eigvals(Hr)
-
-         DT = dt*reortho 
-         
-         λr = log.(abs.(evs))/DT
-         λi = atan.(imag(evs),real.(evs))/DT
-         
-         λ  = λr .+ im*λi
-         
-         Lesshafft_λ = one*im*λ
-         
-         pλ = ax1.plot(real.(Lesshafft_λ),imag.(Lesshafft_λ), linestyle="none",marker=".", markersize=8)
-         ax1.set_xlim((-2.0,6.0))
-         ax1.set_ylim((-7.5,0.5))
-            
-         draw()
-         
-         pause(0.001)
-       end        # eigupd
+        λr = log.(abs.(evs))/DT
+        λi = atan.(imag(evs),real.(evs))/DT
+        
+        λ  = λr .+ im*λi
+        
+        Lesshafft_λ = one*im*λ
+        
+        pλ = ax1.plot(real.(Lesshafft_λ),imag.(Lesshafft_λ), linestyle="none",marker=".", markersize=8)
+        ax1.set_xlim((-2.0,6.0))
+        ax1.set_ylim((-7.5,0.5))
+           
+        draw()
+        
+        pause(0.0001)
+      end        # eigupd
 
     end       # mod(i,reortho)
   

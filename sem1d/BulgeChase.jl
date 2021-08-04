@@ -23,10 +23,9 @@ function FrancisAlg(H::Matrix,μ::Vector,nμ::Int)
 # Collect Left multipliers 
   mul!(Q,Qn,Q0)       # Q = Qn*Q0
 
-  return Hn,Q
+  return Hn,Q'
 end
 #----------------------------------------------------------------------
-
 function FrancisSeq(H::Matrix,μ0::Vector,nμ::Int)
 # Sequential Bulge Chase
 
@@ -48,9 +47,68 @@ function FrancisSeq(H::Matrix,μ0::Vector,nμ::Int)
   end
 
   j      = 0
-  nloops = 1
+  nloops = 1 
   γ      = 1.0
-  tol    = 1.0e-12
+  tol    = 1.0e-08
+
+#  println("Francis' Algorithm: nμ=$nμ, MaxLoops:$nloops, Tol=$tol")
+  for i in 1:nμ
+#   Create a bulge in the top left of the matrix
+    λ     = μ[i:i]
+    nλ    = 1
+    H0,Q0 = CreateBulge(Hn,λ,nλ)
+
+#   Collect Left multipliers 
+    mul!(Qn,Q0,Q)       # Qn = Q0*Q
+                        # H0 = Q0*Hn*Q0'
+                        
+#   Chase Bulge through bottom right and return to 
+#   Hessenberg form.  
+#   Should probably code it manually  
+#    hn    = hessenberg(H0)
+#    Q0    = convert(Matrix,hn.Q)
+#    Hn    = convert(Matrix,hn.H)      # Hn = Qn'*H0*Qn = Qn'*Q0*H*Q0'*Qn
+##   Collect Left multipliers 
+#    mul!(Q,Q0',Qn)       # Q = Q0'*Qn
+
+    Hn,Q0  = ChaseBulgeDown1(H0,λ,nλ)         # Hn = Q0*H0*Q0' 
+##   Collect Left multipliers 
+    mul!(Q,Q0,Qn)       # Q = Q0*Qn
+
+  end
+#  println("Francis Algorithm nloops: $j")
+
+  return Hn,Q'
+end
+
+#----------------------------------------------------------------------
+function FrancisSeqExact(H::Matrix,μ0::Vector,nμ::Int)
+# Sequential Bulge Chase
+# Francis Algorithm for exact Shifts
+# Using Tolerance to control how many times
+# Bulge Chase is done per eigenvalue shift.
+
+  # nμ      - No of Shifts
+  # μ       - Shifts
+  # H       - Hessenberg Matrix
+
+  r,n = size(H)
+
+  Q   = Matrix{eltype(H)}(1.0I,n,n)
+  Qn  = Matrix{eltype(H)}(1.0I,n,n)
+  Hn  = deepcopy(H)    
+
+  if nμ == 0
+    μ = [0.]
+    nμ = 1
+  else
+    μ = μ0
+  end
+
+  j      = 0
+  nloops = 5 
+  γ      = 1.0
+  tol    = 1.0e-08
 
 #  println("Francis' Algorithm: nμ=$nμ, MaxLoops:$nloops, Tol=$tol")
   for i in 1:nμ
@@ -66,15 +124,6 @@ function FrancisSeq(H::Matrix,μ0::Vector,nμ::Int)
 #     Collect Left multipliers 
       mul!(Qn,Q0,Q)       # Qn = Q0*Q
                           # H0 = Q0*Hn*Q0'
-                          
-#     Chase Bulge through bottom right and return to 
-#     Hessenberg form.  
-#     Should probably code it manually  
-#      hn    = hessenberg(H0)
-#      Q0    = convert(Matrix,hn.Q)
-#      Hn    = convert(Matrix,hn.H)      # Hn = Qn'*H0*Qn = Qn'*Q0*H*Q0'*Qn
-##     Collect Left multipliers 
-#      mul!(Q,Q0',Qn)       # Q = Q0'*Qn
 
       Hn,Q0  = ChaseBulgeDown1(H0,λ,nλ)         # Hn = Q0*H0*Q0' 
 ##     Collect Left multipliers 
@@ -113,36 +162,29 @@ function RevFrancisSeq(H::Matrix,μ0::Vector,nμ::Int)
   j      = 0
   nloops = 1
   βk     = 1.0
-  tol    = 1.0e-12
+  tol    = 1.0e-08
 
   println("Rev. Francis' Algorithm: nμ=$nμ, MaxLoops:$nloops, Tol=$tol")
 
-  while βk>tol && j < nloops
-    j = j+1
-    for i in 1:nμ
+  for i in 1:nμ
+    j  = 0
+    βk = 1.0
+    while βk>tol && j < nloops
+      j = j+1
 #     Create a bulge in the top left of the matrix
       λ     = μ[i:i]
       nλ    = 1
       H0,Q0 = CreateLowerBulge(Hn,λ,nλ)
 
 #     Collect Right multipliers 
-      mul!(Qn,Q,Q0)       # Qn = Q0*Q
+      mul!(Qn,Q,Q0)       # Qn = Q*Q0
 
-#     Chase Bulge through bottom right and return to 
-#     Hessenberg form.  
-#     Should probably code it manually  
-#      hn    = hessenberg(H0)
-#      Q0    = convert(Matrix,hn.Q)
-#      Hn    = convert(Matrix,hn.H)      # Hn = Qn'*H0*Qn = Qn'*Q0*H*Q0'*Qn
-##     Collect Left multipliers 
-#      mul!(Q,Q0',Qn)       # Q = Q0'*Qn
-
-      c1 = 2
       Hn,Q0  = ChaseBulgeUp(H0)  
 #     Collect Right multipliers 
       mul!(Q,Qn,Q0)       # Q = Qn*Q0
+      
+      βk = abs(Hn[i+1,i])
     end
-    βk = abs(Hn[r-nμ+1,r-nμ])
   end
   println("Rev. Francis Algorithm nloops: $j")
 
