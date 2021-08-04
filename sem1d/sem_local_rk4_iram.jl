@@ -319,14 +319,14 @@ if (ifarnoldi)
     hev = figure(num=3,figsize=[8.,6.]);
     ax3 = gca()
     for j in 1:Nev
-      local pvec1 = ax3.plot(xg,real.(eigvec[:,j]),linestyle="-")
+      local pvec1 = ax3.plot(xall,real.(eigvec[:,j]),linestyle="-")
 #      local pvec2 = ax3.plot(xg,imag.(eigvec[:,j]),linestyle="--")
     end
   end  
 else
   hev = figure(num=3,figsize=[8.,6.]);
   ax3 = gca()
-  pvec = ax3.plot(xg,real.(v),linestyle="-")
+  pvec = ax3.plot(xall,real.(v),linestyle="-")
 end
 
 
