@@ -300,7 +300,9 @@ while (~ifconv)
 end       # while ... 
 
 if (ifarnoldi)
-  Hr = H[1:Nev,1:Nev]
+
+  nconv = nkryl-1
+  Hr = H[1:nconv,1:nconv]
 
   if prec == BigFloat
     evs = eigvals(Hr)
@@ -321,11 +323,11 @@ if (ifarnoldi)
   pλ = ax1.plot(real.(Lesshafft_λ),imag.(Lesshafft_λ), linestyle="none",marker=".", markersize=8)
   
   if prec != BigFloat
-    eigvec = V[:,1:Nev]*F.vectors
+    eigvec = V[:,1:nconv]*F.vectors
     
     hev = figure(num=3,figsize=[8.,6.]);
     ax3 = gca()
-    for j in 1:Nev
+    for j in 1:nconv
       local pvec1 = ax3.plot(xall,real.(eigvec[:,j]),linestyle="-")
 #      local pvec2 = ax3.plot(xg,imag.(eigvec[:,j]),linestyle="--")
     end

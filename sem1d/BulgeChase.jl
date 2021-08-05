@@ -35,8 +35,8 @@ function FrancisSeq(H::Matrix,μ0::Vector,nμ::Int)
 
   r,n = size(H)
 
-  Q   = Matrix{eltype(H)}(1.0I,n,n)
-  Qn  = Matrix{eltype(H)}(1.0I,n,n)
+  Q   = Matrix{eltype(H)}(I,n,n)
+  Qn  = Matrix{eltype(H)}(I,n,n)
   Hn  = deepcopy(H)    
 
   if nμ == 0
@@ -45,11 +45,6 @@ function FrancisSeq(H::Matrix,μ0::Vector,nμ::Int)
   else
     μ = μ0
   end
-
-  j      = 0
-  nloops = 1 
-  γ      = 1.0
-  tol    = 1.0e-08
 
 #  println("Francis' Algorithm: nμ=$nμ, MaxLoops:$nloops, Tol=$tol")
   for i in 1:nμ
@@ -61,15 +56,6 @@ function FrancisSeq(H::Matrix,μ0::Vector,nμ::Int)
 #   Collect Left multipliers 
     mul!(Qn,Q0,Q)       # Qn = Q0*Q
                         # H0 = Q0*Hn*Q0'
-                        
-#   Chase Bulge through bottom right and return to 
-#   Hessenberg form.  
-#   Should probably code it manually  
-#    hn    = hessenberg(H0)
-#    Q0    = convert(Matrix,hn.Q)
-#    Hn    = convert(Matrix,hn.H)      # Hn = Qn'*H0*Qn = Qn'*Q0*H*Q0'*Qn
-##   Collect Left multipliers 
-#    mul!(Q,Q0',Qn)       # Q = Q0'*Qn
 
     Hn,Q0  = ChaseBulgeDown1(H0,λ,nλ)         # Hn = Q0*H0*Q0' 
 ##   Collect Left multipliers 
@@ -94,8 +80,8 @@ function FrancisSeqExact(H::Matrix,μ0::Vector,nμ::Int)
 
   r,n = size(H)
 
-  Q   = Matrix{eltype(H)}(1.0I,n,n)
-  Qn  = Matrix{eltype(H)}(1.0I,n,n)
+  Q   = Matrix{eltype(H)}(I,n,n)
+  Qn  = Matrix{eltype(H)}(I,n,n)
   Hn  = deepcopy(H)    
 
   if nμ == 0
@@ -108,7 +94,7 @@ function FrancisSeqExact(H::Matrix,μ0::Vector,nμ::Int)
   j      = 0
   nloops = 5 
   γ      = 1.0
-  tol    = 1.0e-08
+  tol    = 1.0e-10
 
 #  println("Francis' Algorithm: nμ=$nμ, MaxLoops:$nloops, Tol=$tol")
   for i in 1:nμ
@@ -148,8 +134,8 @@ function RevFrancisSeq(H::Matrix,μ0::Vector,nμ::Int)
 
   r,n = size(H)
 
-  Q   = Matrix{eltype(H)}(1.0I,n,n)
-  Qn  = Matrix{eltype(H)}(1.0I,n,n)
+  Q   = Matrix{eltype(H)}(I,n,n)
+  Qn  = Matrix{eltype(H)}(I,n,n)
   Hn  = deepcopy(H)    
 
   if nμ == 0
@@ -356,6 +342,7 @@ function CreateReflector(x::Vector,y::Vector)
   
   τ         = x'*y
   τ_norm    = abs(τ)
+
   if τ_norm>1.0e-12
     expiθ  = τ/τ_norm
   else
@@ -382,9 +369,9 @@ function CreateReflectorZeros(x::Vector,k::Int,n::Int)
 # k   -     Position after which we want zeros
 #
 
-  tol = 1.0e-12
+  tol = 1.0e-14
  
-  Q         = Matrix{typeof(x[1])}(1.0I,n,n)
+  Q         = Matrix{typeof(x[1])}(I,n,n)
   if k>n
     return Q
   end
@@ -397,8 +384,12 @@ function CreateReflectorZeros(x::Vector,k::Int,n::Int)
     w[k+1:n]  = x[k+1:n]
   end  
   β         = w'*x
-  τ         = 1.0/β
-  Q         = (I - τ*w*w')
+  if (abs(β)>tol)
+    τ         = 1.0/β
+    Q         = (I - τ*w*w')
+  else
+    τ         = Inf
+  end
 
   return Q,w,τ
 end
@@ -444,41 +435,6 @@ function CreateGivens(x::Vector,k::Int,n::Int)
 end
 #---------------------------------------------------------------------- 
 
-function CreateReflectorZerosSub(x::Vector,k1::Int,k2::Int,n::Int)
-
-# Create Unitary matrix which introduces zeros after the
-# kth position in the vector x
-# General Function for Real or Complex vectors 
-#
-# x   -     Vector to Reflect
-# n   -     Length of the vector
-# k1  -     Position after which we want zeros
-# k2  -     Last non-zero entry in the vector
-#
-
-  tol = 1.0e-12
-  l         = k2-k1+1
- 
-  Q         = Matrix{typeof(x[1])}(1.0I,l,l)
-  w         = zeros(typeof(x[1]),l)
-  if k1>=n
-    return Q
-  end
-
-  θ         = 0.0*π/4.0
-
-#  w          = zeros(typeof(x[1]),n)
-  w[1]       = x[k1] - norm(x[k1:k2])*exp(im*θ)
-  w[2:l]     = x[k1+1:k2]
-  β          = w'*(x[k1:k2])
-  τ          = 1.0/β
-  ww         = w*w'
-  Q          = I - τ*ww
-
-  return Q,w,τ
-end
-
-#----------------------------------------------------------------------
 function CreateReflectorZeros2(x::Vector,k1::Int,k2::Int,n::Int)
 
 # Create Unitary matrix which introduces zeros after the
@@ -572,6 +528,40 @@ function AdjointReflectorZeros(x::Vector,k::Int,n::Int)
   Q         = I - τ*w*w'
 
   return Q,w,τ
+end
+#----------------------------------------------------------------------
+function BandedHessenberg(H0::Matrix,b::Int)
+#   Chase the Bulge in the Francis Algorithm
+
+#  H0  - Matrix to transform into a (banded) upper Hessenberg
+#  b   - Band Size.
+
+   r,c = size(H0)
+   H   = deepcopy(H0)
+   A   = deepcopy(H0)
+   B   = deepcopy(H0)
+   Q   = Matrix{eltype(H0)}(I,r,c)
+   T   = Matrix{eltype(H0)}(I,r,c)
+
+   if b<1 || b>c
+     println("Illegal band size b: $b")
+     return H,Q
+   end   
+
+   for i in 1:7 #c-b
+     x        = H[:,i]
+     Qi,w,τ   = CreateReflectorZeros(x,i+b,r)
+
+     A = Qi*H
+     H = A*(Qi')
+
+#     Collect Left Multipliers      
+     mul!(T,Qi,Q)
+     Q = 1.0*T
+
+   end  
+
+   return H,Q
 end
 #----------------------------------------------------------------------
 

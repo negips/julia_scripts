@@ -6,10 +6,10 @@ function ExplicitShiftedQR(Hs,μ0,nμ,ngs)
 
   r,c = size(H)
 
-  Q   = Matrix{eltype(H)}(I,r,c)    # Identity
-  Qj  = Matrix{eltype(H)}(I,r,c)    # Identity
+  Q         = Matrix{eltype(H)}(I,r,c)    # Identity
+  Qtmp      = Matrix{eltype(H)}(I,r,c)    # Identity
 
-  R   = copy(H)
+  R   = zeros(eltype(H),r,c)
 
   if nμ == 0
     nμ = 1
@@ -18,28 +18,25 @@ function ExplicitShiftedQR(Hs,μ0,nμ,ngs)
     μ  = μ0
   end  
 
-  nloops = 1
-  for m in 1:nloops
   for i in 1:nμ
-    k = i
-#    if m==2
-#      k = nμ - i + 1
-#    end  
+    k   = i
     Hj  = H - μ[k]*I
-    Qj  = Matrix{eltype(Hj)}(I,r,c)    # Identity
+    Qj  = Matrix{eltype(Q)}(I,r,c)    # Identity
     q   = Hj[:,1]
     Qj[:,1] = q/norm(q)
     R[1,1]  = norm(q)
-    R[2,1]  = 0.
+    for m in 2:r
+      R[m,1]    = 0.
+    end  
     for j in 2:c
-      q = Hj[:,j]
-      h = Qj[:,1:j-1]'*q
+      q  = Hj[:,j]
+      h  = Qj[:,1:j-1]'*q
       q .= q .- Qj[:,1:j-1]*h
       if ngs>1
-        for k = 1:ngs-1
-          g = Qj[:,1:j-1]'*q
-          h = h .+ g
-          q = q - Qj[:,1:j-1]*g
+        for l = 1:ngs-1
+          g  = Qj[:,1:j-1]'*q
+          h  = h .+ g
+          q .= q .- Qj[:,1:j-1]*g
         end
       elseif ngs<=0
         while true
@@ -57,21 +54,19 @@ function ExplicitShiftedQR(Hs,μ0,nμ,ngs)
       R[1:j-1,j]  = h
       R[j,j]      = norm(q)
       if j<r
-        R[j+1,j]    = 0.
+        for m in j+1:r
+          R[m,j]    = 0.
+        end  
       end 
     end
    
-#    h = qr(H)
-#    Qj = h.Q
-#    R  = h.R
-    H = R*Qj + μ[k]*I
-    Q = Q*Qj
+    H        = R*Qj + μ[k]*I
+    Q        = Qtmp*Qj
+    Qtmp     = copy(Q)  
 
-#    println(norm(Q'Q - I))
   end
-  end       # m in 1:nloops
  
-  return H,Q 
+  return H,Q,R 
 end
 
 
