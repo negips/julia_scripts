@@ -66,7 +66,7 @@ function ExplicitShiftedQR(Hs,μ0,nμ,ngs)
 
   end
  
-  return H,Q,R 
+  return H,Q 
 end
 
 
