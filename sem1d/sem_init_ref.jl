@@ -22,7 +22,7 @@ else
 end  
 
 # define nodal bases
-N           = 21 ;                              # polynomial degree
+N           = 11 ;                              # polynomial degree
 lx1         = N+1;                              # No of points
 Basis       = LobattoLegendre(N, prec)          # Polynomial Basis
 
@@ -40,7 +40,7 @@ else
   xe          = 40.0                            # Domain end
 end  
 
-nel         = 31                                # No of elements
+nel         = 41                                # No of elements
 nnodes      = nel+1;                            # No of nodes
 xc          = range(xs,stop=xe,length=nnodes)   # Element coordinates
 

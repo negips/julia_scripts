@@ -251,8 +251,6 @@ function AssembleMatrixLesshafftSparse(U,γ,c0,cnv,wlp,xm1,bm1,Basis,lx1,nel,pre
 #     Fd    - Feedback Matrix:                  F(x,s)ψ
 #     A     - Combined operator:    -Udψ/dx + μ(x)ψ + γd²ψ/dx² + F(x,s)ψ
 
-
-
       VT  = Complex{prec}
 
       II  = Matrix{VT}(I,lx1,lx1)
@@ -335,9 +333,9 @@ function AssembleMatrixLesshafftSparse(U,γ,c0,cnv,wlp,xm1,bm1,Basis,lx1,nel,pre
           bmex = bm1[:,i].*expx
           Feed = c0.*bmex*Ixs
           A[j1:j2,je1:je2] = A[j1:j2,je1:je2] + Feed
-          OP[:,:,i] = OP[:,:,i] + Feed
+#          OP[:,:,i] = OP[:,:,i] + Feed         # Can't do this
 
-          Fd[j1:j2,je1:je2] = Feed 
+          Fd[j1:j2,je1:je2] = copy(Feed)
         end  
       end
 

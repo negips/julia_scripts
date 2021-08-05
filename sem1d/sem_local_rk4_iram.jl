@@ -105,13 +105,14 @@ r0     = (one+one*im)sin.(2*pi*xall)
 r0[1]  = zro
 r      = vimult.*(Q*QT*r0)
 
-ifarnoldi   = true
-ifplot      = false
+ifarnoldi   = false
+powerit     = false
+ifplot      = true
 verbose     = true
 eigupd      = true
-reortho     = 2000
+reortho     = 1000
 verbosestep = reortho #500
-nsteps      = 100000
+nsteps      = 10000000
 ifsave      = true
 
 nkryl   = 0
@@ -127,7 +128,7 @@ rgba2 = cm(2)
 if prec == BigFloat
   dt = BigFloat(0.0001)
 else
-  dt = 0.00002
+  dt = 0.00005
 end  
 
 λn = zeros(vt,nkryl)
@@ -271,9 +272,31 @@ while (~ifconv)
     end       # mod(i,reortho)
   
   else
+#   No Arnoldi method      
     if verbose && mod(i,verbosestep)==0
       println("Istep=$i, Time=$t")
     end
+
+#   Reorthogonalize if we are doing Power Method    
+    if (powerit && mod(i,reortho)==0)
+      vnorm = norm(v)
+      v     = v/vnorm
+      Av    = copy(v)
+      Av    = SEM_Local_Apply(v,nel,lx1,OP,Binv,Q,QT,prec)
+     
+      λ_p   = v'*Av
+      @printf "Approx λ(max): %e + %eim\n" real(λ_p) imag(λ_p)
+
+      if (eigupd)
+        l0 = ax1.get_lines()
+        for il = 2:length(l0)
+          l0[il].remove()
+        end  
+        pλ = ax1.plot(real.(λ_p),imag.(λ_p), linestyle="none",marker=".", markersize=8)
+      end   # eigupd  
+     
+    end     # powerit
+
     if (ifplot && mod(i,reortho)==0)
       if (i>reortho) 
         for lo in ax2.get_lines()
@@ -283,8 +306,8 @@ while (~ifconv)
      
       pv1 = ax2.plot(xall,real.(v),linestyle="-")
 
-      vmin = 1.5*minimum(real.(v))
-      vmax = 1.5*maximum(real.(v))
+      vmin = 1.25*minimum(real.(v))
+      vmax = 1.25*maximum(real.(v))
       vvmax = max(abs(vmin),abs(vmax))    
       ax2.set_ylim((-vvmax,vvmax))
 #      ax2.set_ylim((-1.0,1.0))

@@ -88,12 +88,12 @@ r     = (one+one*im)sin.(5*pi*xg[:])
 r[1]  = 0.0
 
 ifarnoldi   = true
-ifplot      = false
+ifplot      = true
 verbose     = true
 eigupd      = true
 reortho     = 1000
 verbosestep = reortho #500
-nsteps      = 100000
+nsteps      = 10000000
 ifsave      = true
 
 nkryl   = 0
