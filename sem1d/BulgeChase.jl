@@ -35,8 +35,8 @@ function FrancisSeq(H::Matrix,μ0::Vector,nμ::Int)
 
   r,n = size(H)
 
-  Q   = Matrix{eltype(H)}(1.0I,n,n)
-  Qn  = Matrix{eltype(H)}(1.0I,n,n)
+  Q   = Matrix{eltype(H)}(I,n,n)
+  Qn  = Matrix{eltype(H)}(I,n,n)
   Hn  = deepcopy(H)    
 
   if nμ == 0
@@ -94,8 +94,8 @@ function FrancisSeqExact(H::Matrix,μ0::Vector,nμ::Int)
 
   r,n = size(H)
 
-  Q   = Matrix{eltype(H)}(1.0I,n,n)
-  Qn  = Matrix{eltype(H)}(1.0I,n,n)
+  Q   = Matrix{eltype(H)}(I,n,n)
+  Qn  = Matrix{eltype(H)}(I,n,n)
   Hn  = deepcopy(H)    
 
   if nμ == 0
@@ -108,7 +108,7 @@ function FrancisSeqExact(H::Matrix,μ0::Vector,nμ::Int)
   j      = 0
   nloops = 5 
   γ      = 1.0
-  tol    = 1.0e-08
+  tol    = 1.0e-10
 
 #  println("Francis' Algorithm: nμ=$nμ, MaxLoops:$nloops, Tol=$tol")
   for i in 1:nμ
@@ -148,8 +148,8 @@ function RevFrancisSeq(H::Matrix,μ0::Vector,nμ::Int)
 
   r,n = size(H)
 
-  Q   = Matrix{eltype(H)}(1.0I,n,n)
-  Qn  = Matrix{eltype(H)}(1.0I,n,n)
+  Q   = Matrix{eltype(H)}(I,n,n)
+  Qn  = Matrix{eltype(H)}(I,n,n)
   Hn  = deepcopy(H)    
 
   if nμ == 0
