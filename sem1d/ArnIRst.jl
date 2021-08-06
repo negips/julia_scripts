@@ -13,7 +13,7 @@ function ArnIRst(V::Matrix,Hes::Matrix,B::Union{Vector,Matrix},k::Int,kmax::Int,
 
     revFrancis = false 
 
-    tol = 1.0e-16
+    tol = 1.0e-20
 
     EKryl = kmax - 1 - Nev 
     ifconv = false
@@ -63,6 +63,11 @@ function ArnIRst(V::Matrix,Hes::Matrix,B::Union{Vector,Matrix},k::Int,kmax::Int,
         v     = V[:,1:kk]*Q[:,Nev+1]        # Part of new residual vector
         βk    = Hs[Nev+1,Nev]               # e_k+1^T*H*e_k         # This in principle is zero
         println("βk After ImplicitQR: $βk")
+
+        hdiff = norm(H) - norm(Hs);
+        if (abs(hdiff)>1.0e-12)
+          println("Possible Forward instability: HDiff: $hdiff")
+        end  
 
 #        ResM  = r*Q[kk,:]
 #        r     = ResM[:,Nev] 

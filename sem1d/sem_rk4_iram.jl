@@ -63,11 +63,11 @@ pΛ = plot(real.(Ω),imag.(Ω),linestyle="none",marker="o",markersize=8)
 
 xg    = QT*(vimult.*Geom.xm1[:])
 
-Nev   = 10               # Number of eigenvalues to calculate
+Nev   = 15               # Number of eigenvalues to calculate
 EKryl = Int64(floor(2.5*Nev))           # Additional size of Krylov space
 LKryl = Nev + EKryl     # Total Size of Krylov space    
 ngs     = 2       # Number of Gram-Schmidt
-tol     = 1.0e-16
+tol     = 1.0e-08
 
 vt    = Complex{prec}
 #vt    = Float64
@@ -88,10 +88,10 @@ r     = (one+one*im)sin.(5*pi*xg[:])
 r[1]  = 0.0
 
 ifarnoldi   = true
-ifplot      = true
-verbose     = true
+ifplot      = false 
+verbose     = false
 eigupd      = true
-reortho     = 1000
+reortho     = 500
 verbosestep = reortho #500
 nsteps      = 10000000
 ifsave      = true
@@ -109,7 +109,7 @@ rgba2 = cm(2)
 if prec == BigFloat
   dt = BigFloat(0.0001)
 else
-  dt = 0.00005
+  dt = 0.0001
 end  
 
 λn = zeros(vt,nkryl)
@@ -123,7 +123,7 @@ ifconv = false
 t = 0.0*dt        # Time
 i = 0             # Istep
 
-maxouter_it = 1000
+maxouter_it = 50
 major_it    = 1
 
 if (ifplot)
@@ -143,7 +143,7 @@ while (~ifconv)
   global hλ, ax1
   global ifconv
   global major_it
-  global Vold,Hold
+  global Vold,Hold,vold
   global ax2 
 
   local β
@@ -188,6 +188,7 @@ while (~ifconv)
        if nkryl == LKryl
          Hold = H
          Vold = V
+         vold = v
        end
        V,H,nkryl,β,major_it = IRAM!(V,H,Bg,v,nkryl,LKryl,major_it,Nev,ngs)
 
@@ -240,7 +241,7 @@ while (~ifconv)
          
          pλ = ax1.plot(real.(Lesshafft_λ),imag.(Lesshafft_λ), linestyle="none",marker=".", markersize=8)
          ax1.set_xlim((-2.0,6.0))
-         ax1.set_ylim((-7.5,0.5))
+         ax1.set_ylim((-7.5,1.5))
             
          draw()
          
@@ -301,8 +302,11 @@ if (ifarnoldi)
     hev = figure(num=3,figsize=[8.,6.]);
     ax3 = gca()
     for j in 1:Nev
-      local pvec1 = ax3.plot(xg,real.(eigvec[:,j]),linestyle="-")
-#      local pvec2 = ax3.plot(xg,imag.(eigvec[:,j]),linestyle="--")
+      local pvec1 = ax3.plot(xg,real.(eigvec[:,j]),linestyle="--")
+#      local pvec2 = ax3.plot(xg,imag.(eigvec[:,j]),linestyle="-.")
+      local pveca = ax3.plot(xg,abs.(eigvec[:,j]),linestyle="-")
+     
+#      local pvecl = ax3.semilogy(xg,abs.(real.(eigvec[:,j])) .+ 1.0e-6,linestyle=":")
     end
   end  
 else

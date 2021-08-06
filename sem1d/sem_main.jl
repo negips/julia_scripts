@@ -36,7 +36,7 @@ if prec == BigFloat
 else
   U   = 6.0
   γ   = 1.0 - 1.0*im
-  c0  = 0.0e+00
+  c0  = 0.0e+02
 end  
 
 # So much faster with Sparse Arrays
