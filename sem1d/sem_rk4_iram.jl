@@ -99,7 +99,7 @@ ifsave      = true
 nkryl   = 0
 h,θ,v  = ArnUpd(V,Bg,r,nkryl,ngs)
 V[:,1] = v
-nkryl  = 1
+nkryl  = 0
 
 cm    = get_cmap("tab10");
 rgba0 = cm(0) 

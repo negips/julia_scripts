@@ -13,27 +13,27 @@ function IRAM!(Vin::Matrix,Hes::Matrix,B::Union{Vector,Matrix},v::Vector,k::Int,
     V = Vin
     H = Hes
 
+    b = 1         # Block size
 #   Update Arnoldi Vector
-    if k == 0
-      h,β,r = ArnUpd(V,B,v,k,ngs)
-      V[:,1]        = r
-      nkryl         = 1
-      mi            = Mi  
-    else
-      h,β,r = ArnUpd(V,B,v,k,ngs)
-      H[1:k,k]      = h
-      H[k+1,k]      = β
-      k             = k + 1
-      V[:,k]        = r
-      v             = r
-      nkryl         = k
-      mi            = Mi
+    h,β,r         = ArnUpd(V,b,B,v,k,ngs)
+    k             = k +1
+    if (k<=kmax+b)
+      V[:,k]      = r
+      nkryl       = k
+      mi          = Mi
+    end        
+    v             = r
+    nkryl         = k
+
+    if (k>b)
+      kb          = k-b
+      k1          = k-1
+      H[1:k1,kb]  = h
+      H[k,kb]     = β
     end  
 
 #   Perform implicit restart      
-    if k == kmax+1
-#      Hold = H
-#      Vold = V
+    if k == kmax+b
       U,G,k2,ifconv = ArnIRst(V,H,B,k,kmax+1,Nev,ngs)
       V = U
       H = G
