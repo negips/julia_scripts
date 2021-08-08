@@ -7,9 +7,9 @@ using PolynomialBases
 
 #VT = Float64
 #VT = ComplexF64
-#setprecision(90)
-#prec = BigFloat
-prec = Float64
+setprecision(256)
+prec = BigFloat
+#prec = Float64
 
 VT  = Complex{prec}
 
@@ -34,7 +34,7 @@ Basisd      = LobattoLegendre(Nd, prec)               # Polynomial Basis
 
 if (prec==BigFloat)
   xs          = BigFloat(0.)                    # Domain start
-  xe          = BigFloat(60.0)                  # Domain end
+  xe          = BigFloat(40.0)                  # Domain end
 else
   xs          = 0.                              # Domain start
   xe          = 40.0                            # Domain end

@@ -22,7 +22,6 @@ function IRAM!(Vin::Matrix,Hes::Matrix,B::Union{Vector,Matrix},v::Vector,k::Int,
       nkryl       = k
       mi          = Mi
     end        
-    v             = r
     nkryl         = k
 
     if (k>b)
@@ -34,13 +33,13 @@ function IRAM!(Vin::Matrix,Hes::Matrix,B::Union{Vector,Matrix},v::Vector,k::Int,
 
 #   Perform implicit restart      
     if k == kmax+b
-      U,G,k2,ifconv = ArnIRst(V,H,B,k,kmax+1,Nev,ngs)
+      U,G,k2,ifconv = ArnIRst(V,H,B,k,kmax+b,Nev,ngs)
       V = U
       H = G
       
       v = V[:,k2]
       β = abs(H[Nev+1,Nev])
-      println("Outer Iteration: $Mi; β=$β")
+      @printf "Major Iteration: %3i; β: %8e\n" Mi β
 
       nkryl = k2
       mi    = mi + 1

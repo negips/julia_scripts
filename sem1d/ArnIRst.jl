@@ -13,7 +13,7 @@ function ArnIRst(V::Matrix,Hes::Matrix,B::Union{Vector,Matrix},k::Int,kmax::Int,
 
     revFrancis = false 
 
-    tol = 1.0e-20
+    tol = 1.0e-24
 
     EKryl = kmax - 1 - Nev 
     ifconv = false
@@ -41,7 +41,14 @@ function ArnIRst(V::Matrix,Hes::Matrix,B::Union{Vector,Matrix},k::Int,kmax::Int,
         Hs,Q  = RevFrancisSeq(H,μ,nμ)     
         v     = V[:,1:kk]*Q[:,Nev+1]        # Part of new residual vector
         βk    = Hs[Nev+1,Nev]               # e_k+1^T*H*e_k         # This in principle is zero
-        println("βk After ImplicitQR: $βk")
+#        println("βk After ImplicitQR: $βk")
+        @printf "βk After ImplicitQR: %8e\n" βk
+
+        hdiff = norm(H) - norm(Hs);
+        if (abs(hdiff)>1.0e-12)
+          @printf "Possible Forward instability: HDiff: %8e\n" hdiff
+        end  
+
         σ     = Q[kk,Nev]                   # e_k+p^T*Q*e_k
 
         r     = βk*v .+ σ*r1                # new residual vector
@@ -62,15 +69,12 @@ function ArnIRst(V::Matrix,Hes::Matrix,B::Union{Vector,Matrix},k::Int,kmax::Int,
 #        Hs,Q  = FrancisSeqExact(H,μ,nμ)     
         v     = V[:,1:kk]*Q[:,Nev+1]        # Part of new residual vector
         βk    = Hs[Nev+1,Nev]               # e_k+1^T*H*e_k         # This in principle is zero
-        println("βk After ImplicitQR: $βk")
+        @printf "βk After ImplicitQR: %8e\n" βk
 
         hdiff = norm(H) - norm(Hs);
         if (abs(hdiff)>1.0e-12)
-          println("Possible Forward instability: HDiff: $hdiff")
+          @printf "Possible Forward instability: HDiff: %8e\n" hdiff
         end  
-
-#        ResM  = r*Q[kk,:]
-#        r     = ResM[:,Nev] 
 
         σ     = Q[kk,Nev]                   # e_k+p^T*Q*e_k
         r     = βk*v .+ σ*r1                 # new residual vector

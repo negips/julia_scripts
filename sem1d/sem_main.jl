@@ -32,11 +32,11 @@ xall  = vimult.*(Q*QT*Geom.xm1[:]);
 if prec == BigFloat
   U   = BigFloat(6.0)
   γ   = BigFloat(1.0) - BigFloat(1.0)*im
-  c0  = BigFloat(0.0e-10)
+  c0  = BigFloat(1.0e+02)
 else
   U   = 6.0
   γ   = 1.0 - 1.0*im
-  c0  = 0.0e+02
+  c0  = 1.0e+02
 end  
 
 # So much faster with Sparse Arrays

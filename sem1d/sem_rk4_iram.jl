@@ -67,7 +67,7 @@ Nev   = 15               # Number of eigenvalues to calculate
 EKryl = Int64(floor(2.5*Nev))           # Additional size of Krylov space
 LKryl = Nev + EKryl     # Total Size of Krylov space    
 ngs     = 2       # Number of Gram-Schmidt
-tol     = 1.0e-08
+tol     = 1.0e-24
 
 vt    = Complex{prec}
 #vt    = Float64
@@ -89,7 +89,7 @@ r[1]  = 0.0
 
 ifarnoldi   = true
 ifplot      = false 
-verbose     = false
+verbose     = true
 eigupd      = true
 reortho     = 500
 verbosestep = reortho #500
@@ -211,10 +211,10 @@ while (~ifconv)
        end  
        if (verbose)
 #         println("Major Iteration: $major_it, Krylov Size: $nkryl, β: $β")
-        @printf "Major Iteration: %i, Krylov Size: %i, β: %e\n" major_it nkryl β
+        @printf "Major Iteration: %3i, Krylov Size: %3i, β: %12e\n" major_it nkryl β
        end
        if (β < tol)
-         println("β = $β")
+         @printf "Stopping Iteration, β: %12e\n" β
          break
        end  
 
@@ -279,7 +279,15 @@ if (ifarnoldi)
   Hr = H[1:Nev,1:Nev]
 
   if prec == BigFloat
-    evs = eigvals(Hr)
+#   eigvals works for BigFloat
+#   But eigvecs does not. So if we want the eigenvectors
+#   Need to come back to Float64/ComplexF64
+#   Or write my own routine for eigenvector calculation.
+
+    evs  = eigvals(Hr)
+
+    H64  = ComplexF64.(Hr)
+    F    = eigen(H64)
   else
     F  = eigen(Hr)
     evs = F.values
@@ -295,20 +303,19 @@ if (ifarnoldi)
   Lesshafft_λ = one*im*λ
   
   pλ = ax1.plot(real.(Lesshafft_λ),imag.(Lesshafft_λ), linestyle="none",marker=".", markersize=8)
+ 
+# Eigenvectors  
+  eigvec = V[:,1:Nev]*F.vectors
   
-  if prec != BigFloat
-    eigvec = V[:,1:Nev]*F.vectors
-    
-    hev = figure(num=3,figsize=[8.,6.]);
-    ax3 = gca()
-    for j in 1:Nev
-      local pvec1 = ax3.plot(xg,real.(eigvec[:,j]),linestyle="--")
-#      local pvec2 = ax3.plot(xg,imag.(eigvec[:,j]),linestyle="-.")
-      local pveca = ax3.plot(xg,abs.(eigvec[:,j]),linestyle="-")
-     
-#      local pvecl = ax3.semilogy(xg,abs.(real.(eigvec[:,j])) .+ 1.0e-6,linestyle=":")
-    end
-  end  
+  hev = figure(num=3,figsize=[8.,6.]);
+  ax3 = gca()
+  for j in 1:Nev
+    local pvec1 = ax3.plot(xg,real.(eigvec[:,j]),linestyle="--")
+#    local pvec2 = ax3.plot(xg,imag.(eigvec[:,j]),linestyle="-.")
+    local pveca = ax3.plot(xg,abs.(eigvec[:,j]),linestyle="-")
+   
+#    local pvecl = ax3.semilogy(xg,abs.(real.(eigvec[:,j])) .+ 1.0e-6,linestyle=":")
+  end
 else
   hev = figure(num=3,figsize=[8.,6.]);
   ax3 = gca()

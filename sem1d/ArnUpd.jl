@@ -12,11 +12,19 @@ function ArnUpd(V::Matrix,b::Int,B::Vector,v::Vector,k::Int,ngs::Int)
 # ngs       - No of Gram-Schmidt
 
 
-  h = zeros(typeof(v[1]),k)
-  β   = 0.
+  h   = zeros(eltype(v),k)
+  a   = real(v[1])
+  if (typeof(a)==Float64)
+    β   = 0.
+    fac = 1000.0
+  else
+    β   = BigFloat(0.)
+    fac = BigFloat(1000.0)
+  end  
+ 
   r = copy(v)
 
-  tol = 1.0e-12
+  tol = eps(fac)
 
 # New Arnoldi Vector
   if k > 0
@@ -67,11 +75,18 @@ function ArnUpd(V::Matrix,b::Int,B::Matrix,v::Vector,k::Int,ngs::Int)
 # ngs       - No of Gram-Schmidt
 
 
-  h = zeros(typeof(v[1]),k)
-  β   = 0.
+  h = zeros(eltype(v),k)
+  a   = real(v[1])
+  if (typeof(a)==Float64)
+    β   = 0.
+    fac = 1000.0
+  else
+    β   = BigFloat(0.)
+    fac = BigFloat(1000.0)
+  end  
   r = copy(v)
 
-  tol = 1.0e-12
+  tol = eps(fac)
 
 # New Arnoldi Vector
   if k >= b
@@ -100,8 +115,8 @@ function ArnUpd(V::Matrix,b::Int,B::Matrix,v::Vector,k::Int,ngs::Int)
     β        = norm(sqrt(r'*(B*r)))
     r        = r/β
   else
-    β           = norm(sqrt(r'*(B*r)))
-    r           = r/β
+    β        = norm(sqrt(r'*(B*r)))
+    r        = r/β
   end
 
   return h,β,r
