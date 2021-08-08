@@ -67,7 +67,7 @@ Nev   = 15               # Number of eigenvalues to calculate
 EKryl = Int64(floor(2.5*Nev))           # Additional size of Krylov space
 LKryl = Nev + EKryl     # Total Size of Krylov space    
 ngs     = 2       # Number of Gram-Schmidt
-tol     = 1.0e-24
+tol     = 1.0e-08
 
 vt    = Complex{prec}
 #vt    = Float64
@@ -87,8 +87,8 @@ end
 r     = (one+one*im)sin.(5*pi*xg[:])
 r[1]  = 0.0
 
-ifarnoldi   = true
-ifplot      = false 
+ifarnoldi   = false
+ifplot      = true 
 verbose     = true
 eigupd      = true
 reortho     = 500
@@ -97,7 +97,8 @@ nsteps      = 10000000
 ifsave      = true
 
 nkryl   = 0
-h,θ,v  = ArnUpd(V,Bg,r,nkryl,ngs)
+block   = 1
+h,θ,v  = ArnUpd(V,block,Bg,r,nkryl,ngs)
 V[:,1] = v
 nkryl  = 0
 
@@ -157,19 +158,26 @@ while (~ifconv)
   t = t + dt;
 
 # Build the operator only the first time
+# 
   if (i==1)
-    OPg       = Cg .+ Sg .+ Lg .+ Fg
-    for j in 1:ndof
-      OPg[j,:] = OPg[j,:]./Bg[j]
-    end  
-    OPg[1,:] = bc
-    OPg[1,1] = one + im*zro        # Change operator for BC
+    if ifadjoint
+      AOPg[1,:] = bc
+      AOPg[1,1] = one + im*zro        # Change operator for BC
+    else        
+#      OPg       = Cg .+ Sg .+ Lg .+ Fg
+#      for j in 1:ndof
+#        OPg[j,:] = OPg[j,:]./Bg[j]
+#      end  
+      OPg[1,:] = bc
+      OPg[1,1] = one + im*zro        # Change operator for BC
+    end
+
   end  
 
 # Apply BC
   v[1]      = zro + im*zro
   
-  v         = RK4!(OPg,v,dt)
+  v         = RK4!(AOPg,v,dt)
 
   if (ifarnoldi)
 #   Expand Krylov space

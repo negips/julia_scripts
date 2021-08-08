@@ -3,6 +3,7 @@ println("Main interface for 1D SEM")
 using PolynomialBases
 using LinearAlgebra
 using SparseArrays
+using Printf
 # using UnicodePlots
 #using Plots
 
@@ -41,9 +42,12 @@ end
 
 # So much faster with Sparse Arrays
 # Numerical error also seems much better behaved
-ifsparse = true
+ifsparse  = true
+ifadjoint = true
 if (ifsparse)
   L,B,OP,Conv,Src,Lap,Fd = AssembleMatrixLesshafftSparse(U,γ,c0,Geom.cnv,Geom.wlp,Geom.xm1,Geom.bm1,Basis,lx1,nel,prec);
+
+  AL,AB,AOP,AConv,ASrc,ALap,AFd = AssembleAdjointLesshafftSparse(U,γ,c0,Geom.cnv,Geom.wlp,Geom.xm1,Geom.bm1,Basis,lx1,nel,prec);
 else
   L,B,OP,Conv,Src,Lap,Fd = AssembleMatrixLesshafft2(U,γ,c0,Geom.cnv,Geom.wlp,Geom.xm1,Geom.bm1,Basis,lx1,nel,prec);
 end  
@@ -75,8 +79,20 @@ if ifglobal
   Mdg   = QT*Md*Q      # Global Dialiased Weight Matrix for inner products 
   
   OPg   = QT*(L)*Q./Bg
+  @printf("Global Matrices Built\n")
+
+  if (ifadjoint)
+    ACg    = QT*AConv*Q    # Global Convection matrix
+    ALg    = QT*ALap*Q     # Global Laplacian matrix
+    ASg    = QT*ASrc*Q     # Global Src matrix
+    AFg    = QT*AFd*Q      # Global Feedback matrix
+
+    AOPg   = QT*(AL)*Q./Bg
+
+    @printf("Adjoint Global Matrices Built\n")
+   
+  end
   
-  println("Global Matrices Built")
 end
 
 
