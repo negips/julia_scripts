@@ -30,20 +30,14 @@ vimult = one./vmult
 
 xall  = vimult.*(Q*QT*Geom.xm1[:]);
 
-if prec == BigFloat
-  U   = BigFloat(6.0)
-  γ   = BigFloat(1.0) - BigFloat(1.0)*im
-  c0  = BigFloat(1.0e+02)
-else
-  U   = 6.0
-  γ   = 1.0 - 1.0*im
-  c0  = 1.0e+02
-end  
+U   = prec(6.0)
+γ   = prec(1.0) - prec(1.0)*im
+c0  = prec(0.0e-02)
+
 
 # So much faster with Sparse Arrays
 # Numerical error also seems much better behaved
 ifsparse  = true
-ifadjoint = true
 if (ifsparse)
   L,B,OP,Conv,Src,Lap,Fd = AssembleMatrixLesshafftSparse(U,γ,c0,Geom.cnv,Geom.wlp,Geom.xm1,Geom.bm1,Basis,lx1,nel,prec);
 
@@ -79,19 +73,17 @@ if ifglobal
   Mdg   = QT*Md*Q      # Global Dialiased Weight Matrix for inner products 
   
   OPg   = QT*(L)*Q./Bg
-  @printf("Global Matrices Built\n")
+  @printf("Direct Global Matrices Built\n")
 
-  if (ifadjoint)
-    ACg    = QT*AConv*Q    # Global Convection matrix
-    ALg    = QT*ALap*Q     # Global Laplacian matrix
-    ASg    = QT*ASrc*Q     # Global Src matrix
-    AFg    = QT*AFd*Q      # Global Feedback matrix
+  ACg    = QT*AConv*Q    # Global Convection matrix
+  ALg    = QT*ALap*Q     # Global Laplacian matrix
+  ASg    = QT*ASrc*Q     # Global Src matrix
+  AFg    = QT*AFd*Q      # Global Feedback matrix
 
-    AOPg   = QT*(AL)*Q./Bg
+  AOPg   = QT*(AL)*Q./Bg
 
-    @printf("Adjoint Global Matrices Built\n")
+  @printf("Adjoint Global Matrices Built\n")
    
-  end
   
 end
 

@@ -428,7 +428,8 @@ function AssembleAdjointLesshafftSparse(U,γ,c0,cnv,wlp,xm1,bm1,Basis,lx1,nel,pr
       je2 = e*lx1
 
 #     Mass matrix
-      B = bm1[:]
+      B     = bm1[:]
+      γ2    = γ'
 
       for i in 1:nel
         j1 = (i-1)*lx1 + 1;
@@ -442,13 +443,13 @@ function AssembleAdjointLesshafftSparse(U,γ,c0,cnv,wlp,xm1,bm1,Basis,lx1,nel,pr
 #       Sign for convection term changes in Adjoint        
         Conv[j1:j2,j1:j2] = U.*cnv[:,:,i]
         Src[j1:j2,j1:j2]  = Mμ
-        Lap[j1:j2,j1:j2]  = γ.*wlp[:,:,i]
+        Lap[j1:j2,j1:j2]  = γ2.*wlp[:,:,i]
         if i==nel
-          Lap[j2,j2]      = Lap[j2,j2] - U/γ
+          Lap[j2,j2]      = Lap[j2,j2] - U/γ2
         end 
 
 #       Sub matrix 
-        subm = U.*cnv[:,:,i] + Mμ + γ.*wlp[:,:,i];
+        subm = U.*cnv[:,:,i] + Mμ + γ2.*wlp[:,:,i];
         OP[:,:,i] = subm
         A[j1:j2,j1:j2] = A[j1:j2,j1:j2] + subm;
 
@@ -459,7 +460,6 @@ function AssembleAdjointLesshafftSparse(U,γ,c0,cnv,wlp,xm1,bm1,Basis,lx1,nel,pr
           bmex = bm1[:,i].*expx
           Feed = c0.*bmex*Ixs
           A[j1:j2,je1:je2] = A[j1:j2,je1:je2] + Feed
-#          OP[:,:,i] = OP[:,:,i] + Feed         # Can't do this
 
           Fd[j1:j2,je1:je2] = copy(Feed)
         end  

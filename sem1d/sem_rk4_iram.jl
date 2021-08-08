@@ -50,10 +50,6 @@ rcParams = PyPlot.PyDict(PyPlot.matplotlib."rcParams")
 ω15 = find_zero(airyai,(-17.5,-16.8))
 
 ω  = [ω1, ω2, ω3, ω4, ω5, ω6, ω7, ω8, ω9, ω10, ω11, ω12, ω13, ω14, ω15]
-# Parameters defined earlier
-#U  = 6.0
-#γ  = 1.0 - im*1.0
-
 Ω  = im*(U*U/8.0 .- U*U/(4.0*γ) .+ γ^(1.0/3.0)*(U^(4.0/3.0))/(160.0^(2.0/3.0))*ω)
 
 rcParams["markers.fillstyle"] = "none"
@@ -87,12 +83,19 @@ end
 r     = (one+one*im)sin.(5*pi*xg[:])
 r[1]  = 0.0
 
-ifarnoldi   = false
-ifplot      = true 
+ifarnoldi   = true
+ifoptimal   = false      # Calculate optimal responses
+ifadjoint   = true     # Superceded by ifoptimal
+ifplot      = false 
 verbose     = true
 eigupd      = true
 reortho     = 500
-verbosestep = reortho #500
+if (ifoptimal)
+  arnstep   = reortho*2
+else
+  arnstep   = reortho
+end  
+verbosestep = arnstep #500
 nsteps      = 10000000
 ifsave      = true
 
@@ -133,19 +136,21 @@ if (ifplot)
 end
 
 # Start iterations
+ifdirect = false
 println("Starting Iterations")
 
 while (~ifconv)
   global V,H,v
   global t, i
   global plr,pli
-  global OPg
+  global OPg, AOPg
   global nkryl
   global hλ, ax1
   global ifconv
   global major_it
   global Vold,Hold,vold
-  global ax2 
+  global ax2
+  global ifdirect
 
   local β
 
@@ -155,110 +160,131 @@ while (~ifconv)
   β = one
   i = i + 1
 
+  if (ifoptimal) 
+    if (mod(i,reortho)==1)
+#     Switch every (reortho) steps
+      ifdirect = ~ifdirect
+#      println("IfDirect: $ifdirect")
+    end        
+  elseif ifadjoint
+    ifdirect = false
+  else
+    ifdirect = true
+  end  
+
   t = t + dt;
 
 # Build the operator only the first time
 # 
   if (i==1)
-    if ifadjoint
-      AOPg[1,:] = bc
-      AOPg[1,1] = one + im*zro        # Change operator for BC
-    else        
-#      OPg       = Cg .+ Sg .+ Lg .+ Fg
-#      for j in 1:ndof
-#        OPg[j,:] = OPg[j,:]./Bg[j]
-#      end  
-      OPg[1,:] = bc
-      OPg[1,1] = one + im*zro        # Change operator for BC
-    end
+
+#   Adjoint Operator BCs    
+    AOPg[1,:] = bc
+    AOPg[1,1] = one + im*zro        # Change operator for BC
+#    OPg       = Cg .+ Sg .+ Lg .+ Fg
+#    for j in 1:ndof
+#      OPg[j,:] = OPg[j,:]./Bg[j]
+#    end  
+#   Direct Operator BCs 
+    OPg[1,:] = bc
+    OPg[1,1] = one + im*zro        # Change operator for BC
 
   end  
 
 # Apply BC
   v[1]      = zro + im*zro
-  
-  v         = RK4!(AOPg,v,dt)
+
+  if ifdirect
+    v       = RK4!(OPg,v,dt)
+  else
+    v       = RK4!(AOPg,v,dt)
+  end
 
   if (ifarnoldi)
+
+#   Plotting 
+    if ifplot && mod(i,reortho)==0
+      if (i>reortho) 
+        for lo in ax2.get_lines()
+          lo.remove()
+        end  
+      end  
+      pv1 = ax2.plot(xg,real.(v),linestyle="-")
+    end  
+
+
 #   Expand Krylov space
-    if mod(i,reortho)==0
+    if mod(i,arnstep)==0
 
-       if ifplot
-         if (i>reortho) 
-           for lo in ax2.get_lines()
-             lo.remove()
-           end  
-         end  
+      if nkryl == LKryl
+        Hold = H
+        Vold = V
+        vold = v
+      end
+      V,H,nkryl,β,major_it = IRAM!(V,H,Bg,v,nkryl,LKryl,major_it,Nev,ngs)
 
-         pv1 = ax2.plot(xg,real.(v),linestyle="-")
-       end  
+      v   = V[:,nkryl]
 
-       if nkryl == LKryl
-         Hold = H
-         Vold = V
-         vold = v
-       end
-       V,H,nkryl,β,major_it = IRAM!(V,H,Bg,v,nkryl,LKryl,major_it,Nev,ngs)
+      if (major_it>maxouter_it)
+        break
+      end  
 
-       v   = V[:,nkryl]
+      if (verbose)
+       @printf "Major Iteration: %3i, Krylov Size: %3i, β: %12e\n" major_it nkryl β
+      end
+      if (β < tol)
+        @printf "Stopping Iteration, β: %12e\n" β
+        break
+      end  
 
-       if (ifplot)
-         pv2 = ax2.plot(xg,real.(v),linestyle="--")
+#     Update Eigenvalues
+      if (eigupd) && nkryl == Nev+1
 
-         vmin = 1.5*minimum(real.(v))
-         vmax = 1.5*maximum(real.(v))
-#         ax2.set_ylim((vmin,vmax))
-         ax2.set_ylim((-1.0,1.0))
+        l0 = ax1.get_lines()
+        for il = 2:length(l0)
+          l0[il].remove()
+        end  
+        Hr = H[1:Nev,1:Nev]
+        evs = eigvals(Hr)
+
+        DT = dt*reortho 
         
-         pause(0.001)
-         draw() 
-       end  
+        λr = log.(abs.(evs))/DT
+        λi = atan.(imag(evs),real.(evs))/DT
+        
+        λ  = λr .+ im*λi
+        Lesshafft_λ = one*im*λ
+        
+        pλ = ax1.plot(real.(Lesshafft_λ),imag.(Lesshafft_λ), linestyle="none",marker=".", markersize=8)
+        if ifoptimal
+          ax1.autoscale(enable=true,axis="both")
+        else
+          ax1.set_xlim((-5.0,5.0))
+          ax1.set_ylim((-7.5,1.5))
+        end  
+           
+        draw()
+        pause(0.0001)
+      end        # eigupd
 
-       if (major_it>maxouter_it)
-         break
-       end  
-       if (verbose)
-#         println("Major Iteration: $major_it, Krylov Size: $nkryl, β: $β")
-        @printf "Major Iteration: %3i, Krylov Size: %3i, β: %12e\n" major_it nkryl β
-       end
-       if (β < tol)
-         @printf "Stopping Iteration, β: %12e\n" β
-         break
-       end  
+    end       # mod(i,arnstep)
 
-#      Update Eigenvalues
-       if (eigupd) && nkryl == Nev+1
+#   Plotting      
+    if (ifplot && mod(i,reortho)==0)
+      pv2 = ax2.plot(xg,real.(v),linestyle="--")
 
-         l0 = ax1.get_lines()
-         for il = 2:length(l0)
-           l0[il].remove()
-         end  
+      vmin = 1.5*minimum(real.(v))
+      vmax = 1.5*maximum(real.(v))
+#      ax2.set_ylim((vmin,vmax))
+      ax2.set_ylim((-1.0,1.0))
+     
+      pause(0.0001)
+      draw() 
+    end  
 
-         Hr = H[1:Nev,1:Nev]
-
-         evs = eigvals(Hr)
-
-         DT = dt*reortho 
-         
-         λr = log.(abs.(evs))/DT
-         λi = atan.(imag(evs),real.(evs))/DT
-         
-         λ  = λr .+ im*λi
-         
-         Lesshafft_λ = one*im*λ
-         
-         pλ = ax1.plot(real.(Lesshafft_λ),imag.(Lesshafft_λ), linestyle="none",marker=".", markersize=8)
-         ax1.set_xlim((-2.0,6.0))
-         ax1.set_ylim((-7.5,1.5))
-            
-         draw()
-         
-         pause(0.001)
-       end        # eigupd
-
-    end       # mod(i,reortho)
-  
+ 
   else
+#   No Arnoldi iteration      
     if verbose && mod(i,verbosestep)==0
       println("Istep=$i, Time=$t")
     end
@@ -330,7 +356,8 @@ else
   pvec = ax3.plot(xg,real.(v),linestyle="-")
 end
 
-
+vnorm = norm(eigvec'*diagm(Bg)*eigvec - I)
+@printf("Vnorm: %12e", vnorm)
 
 # if (ifsave )
 #   save("nev20_xe40_c0_tol-6.jld2"; VT,N,Nd,xs,xe,nel,U,γ,Ω,xg,vt,Nev,EKryl,LKryl,reortho,V,H,F,DT,λ,Lesshafft_λ);
