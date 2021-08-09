@@ -1,9 +1,126 @@
 # Arnoldi Implicit restart
-function ArnIRst(V::Matrix,Hes::Matrix,B::Union{Vector,Matrix},k::Int,kmax::Int,Nev::Int,ngs::Int)
+function ArnIRst(V::Matrix,Hes::Matrix,b::Int,B::Union{Vector,Matrix},k::Int,kmax::Int,Nev::Int,ngs::Int)
+
+#   V         - Krylov Vector
+#   H         - Upper Hessenberg
+#   b         - Band size
+#   B         - Weight (vector)
+#   β         - previous/new residual norm
+#   k         - Current Krylov size
+#   kmax      - Maximum Krylov size
+#   r         - Old/New residual vector for Arnoldi iteration
+#   Nev       - Eigenvalues to retain
+#   ngs       - No of Gram-Schmidt
+
+    revFrancis = false 
+
+    tol = 1.0e-24
+
+    EKryl = kmax - 1 - Nev 
+    ifconv = false
+    nkryl = k
+
+    r1 = V[:,k]*Hes[k,k-1]
+
+    rw,cl = size(V)
+
+    U     = 0.0*V
+    G     = 0.0*Hes
+
+#   Perform implicit restart      
+    if k == kmax
+
+      kk = k-1
+
+      H = deepcopy(Hes[1:kk,1:kk])
+
+      if (revFrancis)
+
+        if (b>1)
+          @printf "Banded Implicit QR not implemented yet."
+        end  
+
+#        μ,nμ  = ArnGetCustomShifts(H,Nev)
+        μ,nμ  = ArnGetUpperShifts(H,Nev)
+
+        Hs,Q  = RevFrancisSeq(H,μ,nμ)     
+        v     = V[:,1:kk]*Q[:,Nev+1]        # Part of new residual vector
+        βk    = Hs[Nev+1,Nev]               # e_k+1^T*H*e_k         # This in principle is zero
+#        println("βk After ImplicitQR: $βk")
+        @printf "βk After ImplicitQR: %12e, %12eim\n" real(βk) imag(βk)
+
+        hdiff = norm(H) - norm(Hs);
+        if (abs(hdiff)>1.0e-12)
+          @printf "Possible Forward instability: HDiff: %8e\n" hdiff
+        end  
+
+        σ     = Q[kk,Nev]                   # e_k+p^T*Q*e_k
+
+        r     = βk*v .+ σ*r1                # new residual vector
+        if ndims(B)>1
+          β     = abs(sqrt(r'*(B*r)))
+        else
+          β     = abs(sqrt(r'*(B.*r)))
+        end  
+
+        r     = r/β
+
+      else
+
+        μ,nμ  = ArnGetLowerShifts(H,EKryl)
+
+        Hs,Q  = ExplicitShiftedQR(H,μ,nμ,ngs)
+#        Hs,Q  = FrancisSeq(H,b,μ,nμ)
+#        Hs,Q  = FrancisSeqExact(H,b,μ,nμ)     
+        v     = V[:,1:kk]*Q[:,Nev+1]        # Part of new residual vector
+        βk    = Hs[Nev+1,Nev]               # e_k+1^T*H*e_k         # This in principle is zero
+        @printf "βk After ImplicitQR: %12e, %12eim\n" real(βk) imag(βk)
+
+        hdiff = norm(H) - norm(Hs);
+        if (abs(hdiff)>1.0e-12)
+          @printf "Possible Forward instability: HDiff: %8e\n" hdiff
+        end  
+
+        σ     = Q[kk,Nev]                   # e_k+p^T*Q*e_k
+        r     = βk*v .+ σ*r1                 # new residual vector
+
+        if ndims(B)>1
+          β     = abs(sqrt(r'*(B*r)))
+        else
+          β     = abs(sqrt(r'*(B.*r)))
+        end  
+
+        r     = r/β
+      end        
+
+      if abs(β)<tol
+        ifconv = true
+      end  
+
+      U[:,1:Nev]        = V[:,1:kk]*Q[:,1:Nev]        # Updated Krylov space
+      G[1:Nev,1:Nev]    = Hs[1:Nev,1:Nev]             # New Upper Hessenberg
+      G[Nev+1,Nev]      = β
+      U[:,Nev+1]        = r
+
+      nkryl = Nev+1
+
+    else
+      U           = V
+      G           = Hes
+      ifconv      = false
+      nkryl       = k
+
+    end     # k == kmax+1
+
+    return U,G,nkryl,ifconv
+end  
+#----------------------------------------------------------------------
+function ArnBIRst(V::Matrix,Hes::Matrix,b::Int,B::Union{Vector,Matrix},k::Int,kmax::Int,Nev::Int,ngs::Int)
 
 #   V         - Krylov Vector
 #   H         - Upper Hessenberg
 #   B         - Weight (vector)
+#   b         - Block Size
 #   β         - previous/new residual norm
 #   k         - Current Krylov size
 #   kmax      - Maximum Krylov size
@@ -65,8 +182,8 @@ function ArnIRst(V::Matrix,Hes::Matrix,B::Union{Vector,Matrix},k::Int,kmax::Int,
         μ,nμ  = ArnGetLowerShifts(H,EKryl)
 
         Hs,Q  = ExplicitShiftedQR(H,μ,nμ,ngs)
-#        Hs,Q  = FrancisSeq(H,μ,nμ)
-#        Hs,Q  = FrancisSeqExact(H,μ,nμ)     
+#        Hs,Q  = FrancisSeq(H,b,μ,nμ)
+#        Hs,Q  = FrancisSeqExact(H,b,μ,nμ)     
         v     = V[:,1:kk]*Q[:,Nev+1]        # Part of new residual vector
         βk    = Hs[Nev+1,Nev]               # e_k+1^T*H*e_k         # This in principle is zero
         @printf "βk After ImplicitQR: %8e\n" βk

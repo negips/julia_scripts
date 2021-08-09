@@ -33,7 +33,7 @@ function IRAM!(Vin::Matrix,Hes::Matrix,B::Union{Vector,Matrix},v::Vector,k::Int,
 
 #   Perform implicit restart      
     if k == kmax+b
-      U,G,k2,ifconv = ArnIRst(V,H,B,k,kmax+b,Nev,ngs)
+      U,G,k2,ifconv = ArnIRst(V,H,b,B,k,kmax+b,Nev,ngs)
       V = U
       H = G
       
