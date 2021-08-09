@@ -59,11 +59,11 @@ pΛ = plot(real.(Ω),imag.(Ω),linestyle="none",marker="o",markersize=8)
 
 xg    = QT*(vimult.*Geom.xm1[:])
 
-Nev   = 15               # Number of eigenvalues to calculate
-EKryl = Int64(floor(2.5*Nev))           # Additional size of Krylov space
-LKryl = Nev + EKryl     # Total Size of Krylov space    
-ngs     = 2       # Number of Gram-Schmidt
-tol     = 1.0e-08
+Nev         = 15                          # Number of eigenvalues to calculate
+EKryl       = Int64(floor(2.5*Nev))       # Additional size of Krylov space
+LKryl       = Nev + EKryl                 # Total Size of Krylov space    
+ngs         = 2                           # Number of Gram-Schmidt
+tol         = 1.0e-08
 
 vt    = Complex{prec}
 #vt    = Float64
@@ -335,8 +335,15 @@ if (ifarnoldi)
   λ  = λr .+ im*λi
   
   Lesshafft_λ = one*im*λ
-  
-  pλ = ax1.plot(real.(Lesshafft_λ),imag.(Lesshafft_λ), linestyle="none",marker=".", markersize=8)
+
+  if (eigupd)
+    l0 = ax1.get_lines()
+    for il = 2:length(l0)
+      l0[il].remove()
+    end
+  end  
+
+#  pλ = ax1.plot(real.(Lesshafft_λ),imag.(Lesshafft_λ), linestyle="none",marker=".", markersize=8)
  
 # Eigenvectors  
   eigvec = V[:,1:Nev]*F.vectors
@@ -347,9 +354,14 @@ if (ifarnoldi)
     local pvec1 = ax3.plot(xg,real.(eigvec[:,j]),linestyle="--")
 #    local pvec2 = ax3.plot(xg,imag.(eigvec[:,j]),linestyle="-.")
     local pveca = ax3.plot(xg,abs.(eigvec[:,j]),linestyle="-")
-   
-#    local pvecl = ax3.semilogy(xg,abs.(real.(eigvec[:,j])) .+ 1.0e-6,linestyle=":")
   end
+
+  Ar        = eigvec'*diagm(Bg)*OPg*eigvec
+  λ_opt     = one*im*eigvals(Ar);
+  pλ2       = ax1.plot(real.(λ_opt),imag.(λ_opt), linestyle="none",marker=".", markersize=8)
+  ax1.set_xlim((-4.0,8.0))
+  ax1.set_ylim((-7.5,2.5))
+
 else
   hev = figure(num=3,figsize=[8.,6.]);
   ax3 = gca()
