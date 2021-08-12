@@ -84,7 +84,7 @@ r     = (one+one*im)sin.(5*pi*xg[:])
 r[1]  = 0.0
 
 ifarnoldi   = true
-ifoptimal   = true      # Calculate optimal responses
+ifoptimal   = false      # Calculate optimal responses
 ifadjoint   = false     # Superceded by ifoptimal
 ifplot      = false 
 verbose     = true
@@ -356,8 +356,10 @@ else
   pvec = ax3.plot(xg,real.(v),linestyle="-")
 end
 
-vnorm = norm(eigvec'*diagm(Bg)*eigvec - I)
-@printf("Vnorm: %12e", vnorm)
+if (ifoptimal)
+  vnorm = norm(eigvec'*diagm(Bg)*eigvec - I)
+  @printf("Vnorm: %12e", vnorm)
+end  
 
 # if (ifsave )
 #   save("nev20_xe40_c0_tol-6.jld2"; VT,N,Nd,xs,xe,nel,U,γ,Ω,xg,vt,Nev,EKryl,LKryl,reortho,V,H,F,DT,λ,Lesshafft_λ);

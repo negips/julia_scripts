@@ -9,7 +9,7 @@ using Roots
 using Random
 using GenericLinearAlgebra          # For eigvals for BigFloat
 using Printf
-# using JLD2
+using JLD2
 
 
 include("ArnUpd.jl")
@@ -26,7 +26,6 @@ ifglobal = true
 
 # Include the function files
 include("sem_main.jl")
-
 
 rng = MersenneTwister(1235)
 
@@ -55,15 +54,15 @@ rcParams = PyPlot.PyDict(PyPlot.matplotlib."rcParams")
 rcParams["markers.fillstyle"] = "none"
 hλ = figure(num=1,figsize=[8.,6.]);
 ax1 = gca()
-pΛ = ax1.plot(real.(Ω),imag.(Ω),linestyle="none",marker="o",markersize=8)
+pΛ = plot(real.(Ω),imag.(Ω),linestyle="none",marker="o",markersize=8)
 
 xg    = QT*(vimult.*Geom.xm1[:])
 
-Nev         = 15                          # Number of eigenvalues to calculate
-EKryl       = Int64(floor(2.5*Nev))       # Additional size of Krylov space
-LKryl       = Nev + EKryl                 # Total Size of Krylov space    
-ngs         = 3                           # Number of Gram-Schmidt
-tol         = 1.0e-16
+Nev   = 15               # Number of eigenvalues to calculate
+EKryl = Int64(floor(2.5*Nev))           # Additional size of Krylov space
+LKryl = Nev + EKryl     # Total Size of Krylov space    
+ngs     = 2       # Number of Gram-Schmidt
+tol     = 1.0e-08
 
 vt    = Complex{prec}
 #vt    = Float64
@@ -84,10 +83,10 @@ r     = (one+one*im)sin.(5*pi*xg[:])
 r[1]  = 0.0
 
 ifarnoldi   = true
-ifoptimal   = true      # Calculate optimal responses
+ifoptimal   = false      # Calculate optimal responses
 ifadjoint   = false     # Superceded by ifoptimal
 ifplot      = false 
-verbose     = true
+verbose     = false
 eigupd      = true
 reortho     = 500
 if (ifoptimal)
@@ -97,7 +96,20 @@ else
 end  
 verbosestep = arnstep #500
 nsteps      = 10000000
-ifsave      = true
+ifsave      = false
+
+# Add corruption to the Arnoldi vector
+ifcorrupt   = true
+if (ifcorrupt)
+  dict_opt = load("nev15.jld2")
+  opt_eig  = get(dict_opt, "evs", 1);
+  opt_egv  = get(dict_opt, "eigvec", 1);
+
+  sigma    = diagm(opt_eig)
+  nopt     = length(opt_eig)
+  scale    = VT(1.0e-10)
+end  
+
 
 nkryl   = 0
 block   = 1
@@ -110,11 +122,7 @@ rgba0 = cm(0)
 rgba1 = cm(1) 
 rgba2 = cm(2) 
 
-if prec == BigFloat
-  dt = BigFloat(0.0001)
-else
-  dt = 0.0001
-end  
+dt = prec(0.0001)
 
 λn = zeros(vt,nkryl)
 
@@ -127,7 +135,7 @@ ifconv = false
 t = 0.0*dt        # Time
 i = 0             # Istep
 
-maxouter_it = 10
+maxouter_it = 200
 major_it    = 1
 
 if (ifplot)
@@ -181,10 +189,7 @@ while (~ifconv)
 #   Adjoint Operator BCs    
     AOPg[1,:] = bc
     AOPg[1,1] = one + im*zro        # Change operator for BC
-#    OPg       = Cg .+ Sg .+ Lg .+ Fg
-#    for j in 1:ndof
-#      OPg[j,:] = OPg[j,:]./Bg[j]
-#    end  
+
 #   Direct Operator BCs 
     OPg[1,:] = bc
     OPg[1,1] = one + im*zro        # Change operator for BC
@@ -201,7 +206,6 @@ while (~ifconv)
   end
 
   if (ifarnoldi)
-
 #   Plotting 
     if ifplot && mod(i,reortho)==0
       if (i>reortho) 
@@ -215,6 +219,17 @@ while (~ifconv)
 
 #   Expand Krylov space
     if mod(i,arnstep)==0
+
+#     Adding corruption to Arnoldi vector      
+      if (ifcorrupt)
+        rd     = randn(VT,nopt)
+        rd     = rd/norm(rd)
+        v_corr = scale*opt_egv*sigma*rd
+        cor_sq = abs(v_corr'*(Bg.*v_corr))
+        cnorm  = sqrt(cor_sq)
+#        @printf "IStep: %3i, Corruption amplitude: %12e\n" i cnorm
+        v      = v .+ v_corr
+      end  
 
       if nkryl == LKryl
         Hold = H
@@ -230,7 +245,7 @@ while (~ifconv)
       end  
 
       if (verbose)
-        @printf "Major Iteration: %3i, Krylov Size: %3i, β: %12e\n" major_it nkryl β
+       @printf "Major Iteration: %3i, Krylov Size: %3i, β: %12e\n" major_it nkryl β
       end
       if (β < tol)
         @printf "Stopping Iteration, β: %12e\n" β
@@ -335,15 +350,8 @@ if (ifarnoldi)
   λ  = λr .+ im*λi
   
   Lesshafft_λ = one*im*λ
-
-  if (eigupd)
-    l0 = ax1.get_lines()
-    for il = 2:length(l0)
-      l0[il].remove()
-    end
-  end  
-
-#  pλ = ax1.plot(real.(Lesshafft_λ),imag.(Lesshafft_λ), linestyle="none",marker=".", markersize=8)
+  
+  pλ = ax1.plot(real.(Lesshafft_λ),imag.(Lesshafft_λ), linestyle="none",marker=".", markersize=8)
  
 # Eigenvectors  
   eigvec = V[:,1:Nev]*F.vectors
@@ -351,29 +359,23 @@ if (ifarnoldi)
   hev = figure(num=3,figsize=[8.,6.]);
   ax3 = gca()
   for j in 1:Nev
-    local pvec1 = ax3.plot(xg,real.(eigvec[:,j]),linestyle="-")
+    local pvec1 = ax3.plot(xg,real.(eigvec[:,j]),linestyle="--")
 #    local pvec2 = ax3.plot(xg,imag.(eigvec[:,j]),linestyle="-.")
-#    local pveca = ax3.plot(xg,abs.(eigvec[:,j]),linestyle="-")
+    local pveca = ax3.plot(xg,abs.(eigvec[:,j]),linestyle="-")
+   
+#    local pvecl = ax3.semilogy(xg,abs.(real.(eigvec[:,j])) .+ 1.0e-6,linestyle=":")
   end
-
-  Ar        = eigvec'*diagm(Bg)*OPg*eigvec
-  λ_opt     = one*im*eigvals(Ar);
-  pλ2       = ax1.plot(real.(λ_opt),imag.(λ_opt), linestyle="none",marker=".", markersize=8)
-  ax1.set_xlim((-4.0,8.0))
-  ax1.set_ylim((-7.5,2.5))
-
 else
   hev = figure(num=3,figsize=[8.,6.]);
   ax3 = gca()
   pvec = ax3.plot(xg,real.(v),linestyle="-")
 end
 
-vnorm = norm(eigvec'*diagm(Bg)*eigvec - I)
-@printf("Vnorm: %12e", vnorm)
-
-if (ifsave )
-  save("nev15_1.jld2","evs",evs, "evec",eigvec);
+if (ifoptimal)
+  vnorm = norm(eigvec'*diagm(Bg)*eigvec - I)
+  @printf("Vnorm: %12e", vnorm)
 end  
+
 
 
 
