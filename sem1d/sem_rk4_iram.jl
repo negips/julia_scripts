@@ -63,11 +63,11 @@ pΛ = plot(real.(Ω),imag.(Ω),linestyle="none",marker="o",markersize=8)
 
 xg    = QT*(vimult.*Geom.xm1[:])
 
-Nev   = 10               # Number of eigenvalues to calculate
-EKryl = Int64(floor(2.5*Nev))           # Additional size of Krylov space
-LKryl = Nev + EKryl     # Total Size of Krylov space    
-ngs     = 2       # Number of Gram-Schmidt
-tol     = 1.0e-16
+Nev     = 15               # Number of eigenvalues to calculate
+EKryl   = Int64(floor(2.5*Nev))           # Additional size of Krylov space
+LKryl   = Nev + EKryl     # Total Size of Krylov space    
+ngs     = 3       # Number of Gram-Schmidt
+tol     = 1.0e-10
 
 vt    = Complex{prec}
 #vt    = Float64
@@ -88,7 +88,7 @@ r     = (one+one*im)sin.(5*pi*xg[:])
 r[1]  = 0.0
 
 ifarnoldi   = true
-ifplot      = true
+ifplot      = false
 verbose     = true
 eigupd      = true
 reortho     = 1000
@@ -96,7 +96,7 @@ verbosestep = reortho #500
 nsteps      = 10000000
 ifsave      = true
 
-nkryl   = 0
+nkryl  = 0
 h,θ,v  = ArnUpd(V,Bg,r,nkryl,ngs)
 V[:,1] = v
 nkryl  = 1
