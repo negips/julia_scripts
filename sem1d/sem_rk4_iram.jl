@@ -50,7 +50,11 @@ rcParams = PyPlot.PyDict(PyPlot.matplotlib."rcParams")
 ω15 = find_zero(airyai,(-17.5,-16.8))
 
 ω  = [ω1, ω2, ω3, ω4, ω5, ω6, ω7, ω8, ω9, ω10, ω11, ω12, ω13, ω14, ω15]
-Ω  = im*(U*U/8.0 .- U*U/(4.0*γ) .+ γ^(1.0/3.0)*(U^(4.0/3.0))/(160.0^(2.0/3.0))*ω)
+#Ω  = im*(U*U/8.0 .- U*U/(4.0*γ) .+ γ^(1.0/3.0)*(U^(4.0/3.0))/(160.0^(2.0/3.0))*ω)
+cd = imag(γ)
+μ0 = U*U/8.0
+dμ = -(U*U/8.0)*(1.0/cx0)
+Ω  = im*(μ0 .- U*U/(4.0*γ) .+ (γ*dμ*dμ)^(1.0/3.0)*ω)
 
 rcParams["markers.fillstyle"] = "none"
 hλ = figure(num=1,figsize=[8.,6.]);
@@ -63,7 +67,7 @@ Nev   = 15               # Number of eigenvalues to calculate
 EKryl = Int64(floor(2.5*Nev))           # Additional size of Krylov space
 LKryl = Nev + EKryl     # Total Size of Krylov space    
 ngs     = 2       # Number of Gram-Schmidt
-tol     = 1.0e-08
+tol     = 1.0e-09
 
 vt    = Complex{prec}
 #vt    = Float64
@@ -87,7 +91,7 @@ ifarnoldi   = true
 ifoptimal   = false      # Calculate optimal responses
 ifadjoint   = false     # Superceded by ifoptimal
 ifplot      = false 
-verbose     = true
+verbose     = false
 eigupd      = true
 reortho     = 500
 if (ifoptimal)
@@ -110,11 +114,7 @@ rgba0 = cm(0)
 rgba1 = cm(1) 
 rgba2 = cm(2) 
 
-if prec == BigFloat
-  dt = BigFloat(0.0001)
-else
-  dt = 0.0001
-end  
+dt = prec(0.0001)
 
 λn = zeros(vt,nkryl)
 
@@ -127,7 +127,7 @@ ifconv = false
 t = 0.0*dt        # Time
 i = 0             # Istep
 
-maxouter_it = 50
+maxouter_it = 500
 major_it    = 1
 
 if (ifplot)
@@ -260,7 +260,7 @@ while (~ifconv)
           ax1.autoscale(enable=true,axis="both")
         else
           ax1.set_xlim((-5.0,5.0))
-          ax1.set_ylim((-7.5,1.5))
+          ax1.set_ylim((-12.5,1.5))
         end  
            
         draw()

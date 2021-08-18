@@ -228,7 +228,7 @@ end
 
 #---------------------------------------------------------------------- 
 
-function AssembleMatrixLesshafftSparse(U,γ,c0,cnv,wlp,xm1,bm1,Basis,lx1,nel,prec)
+function AssembleMatrixLesshafftSparse(U,γ,c0,cx0,whichsrc,cnv,wlp,xm1,bm1,Basis,lx1,nel,prec)
 
 #     Building the Complex Ginzburg Landau model problem from
 #     Lutz Lesshafft (2018) Artificial eigenmodes in truncated flow domains
@@ -239,7 +239,9 @@ function AssembleMatrixLesshafftSparse(U,γ,c0,cnv,wlp,xm1,bm1,Basis,lx1,nel,pre
 #     a         = 1.0
 #     c0        = Parametrically varied.
 #
-#     μ(x)      = U²/8*(1 - x/20)
+#     cx0       = Point where system is no longer convectively unstable
+#     μ(x)      ==      1:  U²/8*(1 - x/cx0)
+#                       2:  U²/8*(1 - 0.5*tanh(x))
 #     U         = 6
 #
 #     γ         = 1. - i
@@ -255,26 +257,17 @@ function AssembleMatrixLesshafftSparse(U,γ,c0,cnv,wlp,xm1,bm1,Basis,lx1,nel,pre
 
       II  = Matrix{VT}(I,lx1,lx1)
 
-      if (prec == BigFloat)
-        xa  = BigFloat(1.0)         # Feedback destination point
-        xs  = BigFloat(39.0)        # Feedback source point
-        b   = BigFloat(0.1)         # Exponential drop off rate for feedback
+      xa    = prec(1.0)         # Feedback destination point
+      xs    = prec(39.0)        # Feedback source point
+      b     = prec(0.1)         # Exponential drop off rate for feedback
 
-        fact  = BigFloat(100.0)
-        one   = BigFloat(1.0)
-        eight = BigFloat(8.0)
-        twnty = BigFloat(20.0)
-       
-      else
-        xa  = 1.0                   # Feedback destination point
-        xs  = 39.0                  # Feedback source point
-        b   = 0.1                   # Exponential drop off rate for feedback
-
-        fact  = 100.0
-        one   = 1.0
-        eight = 8.0
-        twnty = 20.0
-      end
+      fact  = prec(100.0)
+      zro   = prec(0.0)
+      one   = prec(1.0)
+      eight = prec(8.0)
+      twnty = prec(20.0)
+      half  = prec(0.5)
+      hund  = prec(100.0)
 
       cutoff = fact*eps(prec)
 
@@ -313,7 +306,22 @@ function AssembleMatrixLesshafftSparse(U,γ,c0,cnv,wlp,xm1,bm1,Basis,lx1,nel,pre
         j2 = i*lx1;
     
 #       Standard source term
-        μ   = (U*U/eight)*(one .- xm1[:,i]./twnty)
+        if (whichsrc==1)
+          if (i==1)
+            @printf "Using Linear Decrease x/%3.2f for source term.\n" cx0 
+          end  
+          μ   = (U*U/eight)*(one .- xm1[:,i]./cx0)
+        elseif (whichsrc==2) 
+          if i==1
+            println("Using 0.5*tanh(x/20) for source term.")
+          end  
+          μ   = (U*U/eight)*(one .- half*tanh.(xm1[:,i]./twnty))
+        else
+          if i==1
+            println("whichsrc=$whichsrc not defined")
+          end  
+        end  
+
         bμ  = bm1[:,i].*μ
         Mμ  = diagm(bμ)
 
@@ -343,7 +351,7 @@ function AssembleMatrixLesshafftSparse(U,γ,c0,cnv,wlp,xm1,bm1,Basis,lx1,nel,pre
       return A, B, OP, Conv, Src, Lap, Fd
 end
 #---------------------------------------------------------------------- 
-function AssembleAdjointLesshafftSparse(U,γ,c0,cnv,wlp,xm1,bm1,Basis,lx1,nel,prec)
+function AssembleAdjointLesshafftSparse(U,γ,c0,cx0,whichsrc,cnv,wlp,xm1,bm1,Basis,lx1,nel,prec)
 
 #     Building the Complex Ginzburg Landau model problem from
 #     Lutz Lesshafft (2018) Artificial eigenmodes in truncated flow domains
@@ -351,10 +359,12 @@ function AssembleAdjointLesshafftSparse(U,γ,c0,cnv,wlp,xm1,bm1,Basis,lx1,nel,pr
 #     ∂ψ/∂t     = -U∂ψ/∂x + μ(x)ψ + γ∂∂ψ/∂x∂x + f(x)ψ(s)
 #     f(x)ψ(xs) = c0*exp(-((x-xₐ)/0.1)²)*ψ(s)
 #     xs        = 39.0
-#     a         = 1.0
+#     xa        = 1.0
 #     c0        = Parametrically varied.
 #
-#     μ(x)      = U²/8*(1 - x/20)
+#     cx0       = Point where system is no longer convectively unstable
+#     μ(x)      ==      1:  U²/8*(1 - x/cx0)
+#                       2:  U²/8*(1 - 0.5*tanh(x))
 #     U         = 6
 #
 #     γ         = 1. - i
@@ -370,28 +380,16 @@ function AssembleAdjointLesshafftSparse(U,γ,c0,cnv,wlp,xm1,bm1,Basis,lx1,nel,pr
 
       II  = Matrix{VT}(I,lx1,lx1)
 
-      if (prec == BigFloat)
-        xa  = BigFloat(1.0)         # Feedback destination point
-        xs  = BigFloat(39.0)        # Feedback source point
-        b   = BigFloat(0.1)         # Exponential drop off rate for feedback
+      xa    = prec(1.0)         # Feedback destination point
+      xs    = prec(39.0)        # Feedback source point
+      b     = prec(0.1)         # Exponential drop off rate for feedback
 
-        fact  = BigFloat(100.0)
-        zro   = BigFloat(0.0)
-        one   = BigFloat(1.0)
-        eight = BigFloat(8.0)
-        twnty = BigFloat(20.0)
-       
-      else
-        xa  = 1.0                   # Feedback destination point
-        xs  = 39.0                  # Feedback source point
-        b   = 0.1                   # Exponential drop off rate for feedback
-
-        fact  = 100.0
-        zro   = 0.0
-        one   = 1.0
-        eight = 8.0
-        twnty = 20.0
-      end
+      fact  = prec(100.0)
+      zro   = prec(0.0)
+      one   = prec(1.0)
+      eight = prec(8.0)
+      twnty = prec(20.0)
+      half  = prec(0.5)
 
       cutoff = fact*eps(prec)
 
@@ -436,7 +434,22 @@ function AssembleAdjointLesshafftSparse(U,γ,c0,cnv,wlp,xm1,bm1,Basis,lx1,nel,pr
         j2 = i*lx1;
     
 #       Standard source term
-        μ   = (U*U/eight)*(one .- xm1[:,i]./twnty)
+        if (whichsrc==1)
+          if i==1
+            @printf "Using Linear Decrease x/%3.2f for source term.\n" cx0 
+          end  
+          μ   = (U*U/eight)*(one .- xm1[:,i]./cx0)
+        elseif (whichsrc==2) 
+          if i==1
+            println("Using 0.5*tanh(x/20) for source term.")
+          end  
+          μ   = (U*U/eight)*(one .- half*tanh.(xm1[:,i]./twnty))
+        else
+          if i==1
+            println("whichsrc=$whichsrc not defined")
+          end  
+        end  
+       
         bμ  = bm1[:,i].*μ
         Mμ  = diagm(bμ)
 
