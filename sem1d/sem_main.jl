@@ -32,8 +32,8 @@ xall  = vimult.*(Q*QT*Geom.xm1[:]);
 
 U           = prec(6.0)
 γ           = prec(1.0) - prec(1.0)*im
-c0          = prec(0.0e-02)
-cx0         = prec(10.0)      # = 20 for the Lesshafft case
+c0          = prec(0.0e-02)   # Coupling
+cx0         = prec(20.0)      # = 20 for the Lesshafft case
 whichsrc    = 1            # 1: Linear Decrease; 2: Tanh(x) saturation
                         
 

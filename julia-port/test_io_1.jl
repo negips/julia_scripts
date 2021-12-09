@@ -14,6 +14,7 @@
 
       re2   = "channelp.re2"
       map   = "channelp.ma2"
+      fld   = "taylor0.f00001"
 
       nid0  = 0
       comm  = MPI.COMM_WORLD
@@ -23,5 +24,7 @@
       end
 
       hdr,version,nelgt,ldimr,nelgv = JNek_IO.read_re2(re2,MPI,nid0)
+      
+      hdr,version,wdsize,nx,ny,nz,nel,nelgt,time,istep,fid0,nfileo,rdcode,p0th,ifprmesh = JNek_IO.read_fld(fld,MPI,nid0)
 
       println("Done")

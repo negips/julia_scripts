@@ -9,7 +9,7 @@ using Roots
 using Random
 using GenericLinearAlgebra          # For eigvals for BigFloat
 using Printf
-# using JLD2
+using JLD2
 
 
 include("ArnUpd.jl")
@@ -26,7 +26,6 @@ ifglobal = true
 
 # Include the function files
 include("sem_main.jl")
-
 
 rng = MersenneTwister(1235)
 
@@ -63,10 +62,10 @@ pΛ = plot(real.(Ω),imag.(Ω),linestyle="none",marker="o",markersize=8)
 
 xg    = QT*(vimult.*Geom.xm1[:])
 
-Nev   = 15               # Number of eigenvalues to calculate
-EKryl = Int64(floor(2.5*Nev))           # Additional size of Krylov space
-LKryl = Nev + EKryl     # Total Size of Krylov space    
-ngs     = 2       # Number of Gram-Schmidt
+Nev   = 12                                # Number of eigenvalues to calculate
+EKryl = Int64(floor(3*Nev))               # Additional size of Krylov space
+LKryl = Nev + EKryl                       # Total Size of Krylov space    
+ngs     = 2                               # Number of Gram-Schmidt
 tol     = 1.0e-09
 
 vt    = Complex{prec}
@@ -88,12 +87,12 @@ r     = (one+one*im)sin.(5*pi*xg[:])
 r[1]  = 0.0
 
 ifarnoldi   = true
-ifoptimal   = false      # Calculate optimal responses
+ifoptimal   = false     # Calculate optimal responses
 ifadjoint   = false     # Superceded by ifoptimal
 ifplot      = false 
 verbose     = false
 eigupd      = true
-reortho     = 500
+reortho     = 1000
 if (ifoptimal)
   arnstep   = reortho*2
 else
@@ -109,7 +108,11 @@ h,θ,v  = ArnUpd(V,block,Bg,r,nkryl,ngs)
 V[:,1] = v
 nkryl  = 0
 
-cm    = get_cmap("tab10");
+if Nev<=20
+  cm    = get_cmap("tab20");
+else
+  cm    = get_cmap("RdYlBu",Nev);
+end  
 rgba0 = cm(0) 
 rgba1 = cm(1) 
 rgba2 = cm(2) 
@@ -127,8 +130,10 @@ ifconv = false
 t = 0.0*dt        # Time
 i = 0             # Istep
 
-maxouter_it = 500
+maxouter_it = 1000
 major_it    = 1
+
+βhist       = zeros(prec,maxouter_it)
 
 if (ifplot)
   hv  = figure(num=2,figsize=[8.,6.]);
@@ -151,6 +156,7 @@ while (~ifconv)
   global Vold,Hold,vold
   global ax2
   global ifdirect
+  global βhist
 
   local β
 
@@ -227,6 +233,10 @@ while (~ifconv)
 
       if (major_it>maxouter_it)
         break
+      end
+
+      if nkryl == Nev+1
+        βhist[major_it] = β
       end  
 
       if (verbose)
@@ -344,9 +354,9 @@ if (ifarnoldi)
   hev = figure(num=3,figsize=[8.,6.]);
   ax3 = gca()
   for j in 1:Nev
-    local pvec1 = ax3.plot(xg,real.(eigvec[:,j]),linestyle="--")
+    local pvec1 = ax3.plot(xg,real.(eigvec[:,j]),linestyle="--",color=cm(j))
 #    local pvec2 = ax3.plot(xg,imag.(eigvec[:,j]),linestyle="-.")
-    local pveca = ax3.plot(xg,abs.(eigvec[:,j]),linestyle="-")
+    local pveca = ax3.plot(xg,abs.(eigvec[:,j]),linestyle="-",color=cm(j))
    
 #    local pvecl = ax3.semilogy(xg,abs.(real.(eigvec[:,j])) .+ 1.0e-6,linestyle=":")
   end
@@ -359,6 +369,16 @@ end
 if (ifoptimal)
   vnorm = norm(eigvec'*diagm(Bg)*eigvec - I)
   @printf("Vnorm: %12e", vnorm)
+end  
+
+if (ifsave)
+  if (ifoptimal)
+    svname = "nev$(Nev)_optimal_$prec.jld2"
+  else
+    svname = "nev$(Nev)_eigs_$prec.jld2"
+  end
+  println("Saving file: $svname")
+  save(svname,"evs",evs, "evec",eigvec, "OPg", OPg, "AOPg", AOPg, "dt", dt, "reortho", reortho, "Lesshafft_λ", Lesshafft_λ);
 end  
 
 # if (ifsave )

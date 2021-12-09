@@ -63,7 +63,7 @@ pΛ = ax1.plot(real.(Ω),imag.(Ω),linestyle="none",marker="o",markersize=8)
 
 xg    = QT*(vimult.*Geom.xm1[:])
 
-Nev         = 15                          # Number of eigenvalues to calculate
+Nev         = 10                          # Number of eigenvalues to calculate
 EKryl       = Int64(floor(2.5*Nev))       # Additional size of Krylov space
 LKryl       = Nev + EKryl                 # Total Size of Krylov space    
 ngs         = 2                           # Number of Gram-Schmidt
@@ -91,9 +91,9 @@ ifarnoldi   = true
 ifoptimal   = true      # Calculate optimal responses
 ifadjoint   = false     # Superceded by ifoptimal
 ifplot      = false 
-verbose     = true
-eigupd      = true
-reortho     = 500
+verbose     = false
+eigupd      = false
+reortho     = 2000
 if (ifoptimal)
   arnstep   = reortho*2
 else

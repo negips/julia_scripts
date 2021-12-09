@@ -21,9 +21,11 @@
 
       re2   = "channelp.re2"
       map   = "channelp.ma2"
+      fld   = "taylor0.f00001"
 
       hdr,version,nelgt,ldimr,nelgv,xc,yc,ncurve,curveieg,curveiside,curveparam,curvetype,cbl,bl = JNek_IO.read_re2(re2,nid0)
 
+      hdr,version,wdsize,nx,ny,nz,nel,nelgt,time,istep,fid0,nfileo,rdcode,p0th,ifprmesh,glnum,x,y,z,u,v,w,p,t = JNek_IO.read_fld(fld,MPI,nid0)
       if rank == 0
         println("Done")
       end  

@@ -347,7 +347,7 @@ function AssembleMatrixLesshafftSparse(U,γ,c0,cx0,whichsrc,cnv,wlp,xm1,bm1,Basi
         end  
       end
 
-      println("Sparse Matrices Built")
+      println("Direct Sparse Matrices Built")
       return A, B, OP, Conv, Src, Lap, Fd
 end
 #---------------------------------------------------------------------- 
