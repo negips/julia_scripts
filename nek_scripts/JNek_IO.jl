@@ -8,7 +8,8 @@
 
       export read_re2_hdr,
              read_re2, 
-             read_ma2
+             read_ma2,
+             read_fld
 
       function __init__()
 
@@ -113,7 +114,7 @@
           close(fid)
         end 
 
-        return hdr,version,nelgt,ldimr,nelgv,xc,yc,ncurve,curveieg,curveiside,curveparam,curvetype,cbl,bl
+        return wdsizi,hdr,version,nelgt,ldimr,nelgv,xc,yc,ncurve,curveieg,curveiside,curveparam,curvetype,cbl,bl
       end     # read_re2
 
 #---------------------------------------------------------------------- 
@@ -191,29 +192,31 @@
           curveieg   = Vector{Int64}(undef,ncurve)
           curveiside = Vector{Int64}(undef,ncurve)
           curveparam = Matrix{Float64}(undef,5,ncurve)
-          curvetype  = Vector{Char}(undef,ncurve)
+          curvetype  = Vector{String}(undef,ncurve)
         end 
 
 #        len     = 2 + 1 + 5             # ieg iside curve(5) ccurve
         if (wdsizi == 4)
-          tmpi  = Vector{Int32}(undef,2)
+          tmpi  = Vector{Float32}(undef,2)
           tmpr  = Vector{Float32}(undef,5)
           tmpc  = Vector{Char}(undef,1)
         else
-          tmpi  = Vector{Int64}(undef,2)
+          tmpi  = Vector{Float64}(undef,2)
           tmpr  = Vector{Float64}(undef,5)
           tmpc  = Vector{Char}(undef,2)
         end
-       
-        for i in 1:nc
+      
+        nci = Int64(nc)
+        for i in 1:nci
           
           read!(fid,tmpi)     # Read ieg, iside
-          curveieg[i]   = tmpi[1]
+          cieg          = tmpi[1]
+          curveieg[i]   = Int64(cieg)
           curveiside[i] = tmpi[2]
           read!(fid,tmpr)     # Read Curve params 
           curveparam[:,i] = tmpr            
           read!(fid,tmpc)     # Read Curve type (ccurve)
-          curvetype[i]    = tmpc 
+          curvetype[i]    = String(tmpc)
         end  
 
         return ncurve,curveieg,curveiside,curveparam,curvetype 
