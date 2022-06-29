@@ -3,7 +3,9 @@ println("Testing Block methods")
 
 using LinearAlgebra
 using Random
+using Printf
 
+include("ArnIRst.jl")
 include("ExplicitShiftedQR.jl")
 include("BulgeChase.jl")
 include("RK4.jl")
@@ -28,7 +30,7 @@ eH  = eigvals(H)
 
 #display(H)
 
-nμ = 4 
+nμ = 1 
 μ  = eH[1:nμ]
 ngs = 2 
 
@@ -36,33 +38,38 @@ H2,Q2 = ExplicitShiftedQR(H,μ,nμ,ngs)
 β2 = H2[n-nμ+1,n-nμ]
 println("β2:$β2")
 
-a = randn(rng,VT,n,b)
-q,r = qr(a);
-U   = q[:,1:b]
-AV  = copy(U)
+H3,Q3 = FrancisSeq(H,b,μ,nμ)
+β3    = H3[n-nμ+1,n-nμ]
+println("β3:$β3")
 
-k   = 4
-V   = zeros(VT,n,b*(k+1))
-V[:,1:b] = copy(U)
-H   = zeros(VT,b*(k+1),b*k)
+# Manually Doing it
+Hn = copy(H)
+for i in 1:nμ
+  global H0,Q0,Hn,Qn
+  H0,Q0 = CreateBulge(Hn,b,μ,nμ)
 
-for i=1:2 #k
-  global V,H,AV,h
+  Hn,Qn = ChaseBulgeDown(H0,b)
+end
+Q4 = (Qn*Q0)'
+β4    = Hn[n-nμ+1,n-nμ]
+println("β4:$β4")
 
-  for j in 1:b
-    v  = V[:,(i-1)*b+j]
-    av = A*v
-    h = V[:,1:(i*b+j-1)]'*av
-    H[1:(i*b+j-1),(i-1)*b+j] = h
-    av .= av .- (V[:,1:(i*b+j-1)]*h)
-    vnorm = norm(av)
-    V[:,(i*b+j)] = av/vnorm
-    H[i*b+j,(i-1)*b+j] = vnorm
-  end  
-  
-end  
+# Super manual
+Ht = copy(H0)
+for i in 1:1
+  global Qi,w,τ,Ht,k1,x
+  local B
+  x  = Ht[:,i]
+  k1 = i+b
+  Qi,w,τ = CreateReflectorZeros(x,k1,n)
 
+  B  = Qi*Ht
+  Ht = B*(Qi')
+end
+Qm = (Qi*Q0)'
 
+j=1;
+display([Q2[:,j] Q3[:,j] Q4[:,j] Qm[:,j]])
 
 
 println("done")

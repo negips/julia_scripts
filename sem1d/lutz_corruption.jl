@@ -9,7 +9,7 @@ using Roots
 using Random
 using GenericLinearAlgebra          # For eigvals for BigFloat
 using Printf
-# using JLD2
+using JLD2
 
 
 include("ArnUpd.jl")
@@ -26,7 +26,6 @@ ifglobal = true
 
 # Include the function files
 include("sem_main.jl")
-
 
 rng = MersenneTwister(1235)
 
@@ -87,7 +86,7 @@ ifarnoldi   = true
 ifoptimal   = false      # Calculate optimal responses
 ifadjoint   = false     # Superceded by ifoptimal
 ifplot      = false 
-verbose     = true
+verbose     = false
 eigupd      = true
 reortho     = 500
 if (ifoptimal)
@@ -97,7 +96,20 @@ else
 end  
 verbosestep = arnstep #500
 nsteps      = 10000000
-ifsave      = true
+ifsave      = false
+
+# Add corruption to the Arnoldi vector
+ifcorrupt   = true
+if (ifcorrupt)
+  dict_opt = load("nev15.jld2")
+  opt_eig  = get(dict_opt, "evs", 1);
+  opt_egv  = get(dict_opt, "eigvec", 1);
+
+  sigma    = diagm(opt_eig)
+  nopt     = length(opt_eig)
+  scale    = VT(1.0e-10)
+end  
+
 
 nkryl   = 0
 block   = 1
@@ -110,11 +122,7 @@ rgba0 = cm(0)
 rgba1 = cm(1) 
 rgba2 = cm(2) 
 
-if prec == BigFloat
-  dt = BigFloat(0.0001)
-else
-  dt = 0.0001
-end  
+dt = prec(0.0001)
 
 λn = zeros(vt,nkryl)
 
@@ -127,7 +135,7 @@ ifconv = false
 t = 0.0*dt        # Time
 i = 0             # Istep
 
-maxouter_it = 50
+maxouter_it = 200
 major_it    = 1
 
 if (ifplot)
@@ -181,10 +189,7 @@ while (~ifconv)
 #   Adjoint Operator BCs    
     AOPg[1,:] = bc
     AOPg[1,1] = one + im*zro        # Change operator for BC
-#    OPg       = Cg .+ Sg .+ Lg .+ Fg
-#    for j in 1:ndof
-#      OPg[j,:] = OPg[j,:]./Bg[j]
-#    end  
+
 #   Direct Operator BCs 
     OPg[1,:] = bc
     OPg[1,1] = one + im*zro        # Change operator for BC
@@ -201,7 +206,6 @@ while (~ifconv)
   end
 
   if (ifarnoldi)
-
 #   Plotting 
     if ifplot && mod(i,reortho)==0
       if (i>reortho) 
@@ -215,6 +219,17 @@ while (~ifconv)
 
 #   Expand Krylov space
     if mod(i,arnstep)==0
+
+#     Adding corruption to Arnoldi vector      
+      if (ifcorrupt)
+        rd     = randn(VT,nopt)
+        rd     = rd/norm(rd)
+        v_corr = scale*opt_egv*sigma*rd
+        cor_sq = abs(v_corr'*(Bg.*v_corr))
+        cnorm  = sqrt(cor_sq)
+#        @printf "IStep: %3i, Corruption amplitude: %12e\n" i cnorm
+        v      = v .+ v_corr
+      end  
 
       if nkryl == LKryl
         Hold = H
@@ -361,9 +376,6 @@ if (ifoptimal)
   @printf("Vnorm: %12e", vnorm)
 end  
 
-# if (ifsave )
-#   save("nev20_xe40_c0_tol-6.jld2"; VT,N,Nd,xs,xe,nel,U,γ,Ω,xg,vt,Nev,EKryl,LKryl,reortho,V,H,F,DT,λ,Lesshafft_λ);
-# end  
 
 
 

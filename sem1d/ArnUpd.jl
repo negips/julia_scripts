@@ -1,9 +1,10 @@
 # Arnoldi Update
-function ArnUpd(V::Matrix,b::Vector,v::Vector,k::Int,ngs::Int)
+function ArnUpd(V::Matrix,b::Int,B::Vector,v::Vector,k::Int,ngs::Int)
 
 # V         - Krylov Vector
 # H         - Upper Hessenberg
-# b         - Weight (vector)
+# b         - Block Size
+# B         - Weight (vector)
 # β         - previous/new residual norm
 # k         - Current Krylov size
 # kmax      - Maximum Krylov size
@@ -11,28 +12,36 @@ function ArnUpd(V::Matrix,b::Vector,v::Vector,k::Int,ngs::Int)
 # ngs       - No of Gram-Schmidt
 
 
-  h = zeros(typeof(v[1]),k)
-  β   = 0.
+  h   = zeros(eltype(v),k)
+  a   = real(v[1])
+  if (typeof(a)==Float64)
+    β   = 0.
+    fac = 1000.0
+  else
+    β   = BigFloat(0.)
+    fac = BigFloat(1000.0)
+  end  
+ 
   r = copy(v)
 
-  tol = 1.0e-12
+  tol = eps(fac)
 
 # New Arnoldi Vector
   if k > 0
-    h = V[:,1:k]'*(b.*r)
+    h = V[:,1:k]'*(B.*r)
     q  = similar(r)
     mul!(q,V[:,1:k],h)
     r  .= r .- q
     if ngs>1
       for j in 2:ngs
-        g = V[:,1:k]'*(b.*r)
+        g = V[:,1:k]'*(B.*r)
         mul!(q,V[:,1:k],g)
         r .= r .- q
         h .= h .+ g
       end
     elseif ngs <=0 
       while true
-        g   = V[:,1:k]'*(b.*r)
+        g   = V[:,1:k]'*(B.*r)
         res = abs(g'*g)
         if res<tol
           break
@@ -41,11 +50,11 @@ function ArnUpd(V::Matrix,b::Vector,v::Vector,k::Int,ngs::Int)
         r = r - V[:,1:k]*g
       end  
     end
-    β        = norm(sqrt(r'*(b.*r)))
+    β        = norm(sqrt(r'*(B.*r)))
     r        = r/β
   else
-    β           = norm(sqrt(r'*(b.*r)))
-    r           = r/β
+    β        = norm(sqrt(r'*(B.*r)))
+    r        = r/β
   end
 
   return h,β,r
@@ -53,10 +62,11 @@ function ArnUpd(V::Matrix,b::Vector,v::Vector,k::Int,ngs::Int)
 end
 
 #----------------------------------------------------------------------
-function ArnUpd(V::Matrix,B::Matrix,v::Vector,k::Int,ngs::Int)
+function ArnUpd(V::Matrix,b::Int,B::Matrix,v::Vector,k::Int,ngs::Int)
 
 # V         - Krylov Vector
 # H         - Upper Hessenberg
+# b         - Block Size
 # B         - Weight (Matrix)
 # β         - previous/new residual norm
 # k         - Current Krylov size
@@ -65,14 +75,21 @@ function ArnUpd(V::Matrix,B::Matrix,v::Vector,k::Int,ngs::Int)
 # ngs       - No of Gram-Schmidt
 
 
-  h = zeros(typeof(v[1]),k)
-  β   = 0.
+  h = zeros(eltype(v),k)
+  a   = real(v[1])
+  if (typeof(a)==Float64)
+    β   = 0.
+    fac = 1000.0
+  else
+    β   = BigFloat(0.)
+    fac = BigFloat(1000.0)
+  end  
   r = copy(v)
 
-  tol = 1.0e-12
+  tol = eps(fac)
 
 # New Arnoldi Vector
-  if k > 0
+  if k >= b
     h = V[:,1:k]'*(B*r)
     q  = similar(r)
     mul!(q,V[:,1:k],h)
@@ -98,8 +115,8 @@ function ArnUpd(V::Matrix,B::Matrix,v::Vector,k::Int,ngs::Int)
     β        = norm(sqrt(r'*(B*r)))
     r        = r/β
   else
-    β           = norm(sqrt(r'*(B*r)))
-    r           = r/β
+    β        = norm(sqrt(r'*(B*r)))
+    r        = r/β
   end
 
   return h,β,r

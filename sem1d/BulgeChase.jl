@@ -1,15 +1,16 @@
 # Bulge Chase Algorithm
-function FrancisAlg(H::Matrix,μ::Vector,nμ::Int)
+function FrancisAlg(H::Matrix,b::Int,μ::Vector,nμ::Int)
 # Also known as BulgeChase Algorithm  
 
+  # H       - Upper Hessenberg Matrix (Banded)
+  # b       - Band size
   # nμ      - No of Shifts
   # μ       - Shifts
-  # H       - Hessenberg Matrix
 
   r,c   = size(H)
 
-# Create a bulge in the matrix 
-  H0,Q0 = CreateBulge(H,μ,nμ)
+# Create a bulge in the matrix
+  H0,Q0 = CreateBulge(H,b,μ,nμ)
 
 # Chase Bulge and return to Hessenberg form  
 # Should probably code it manually  
@@ -19,19 +20,20 @@ function FrancisAlg(H::Matrix,μ::Vector,nμ::Int)
 ## Collect Left multipliers 
 #  Q     = Qn'*Q0                    # Hn = Q'*H*Q
 
-  Hn,Qn  = ChaseBulgeDown(H0,nμ)
+  Hn,Qn  = ChaseBulgeDown(H0,b)
 # Collect Left multipliers 
   mul!(Q,Qn,Q0)       # Q = Qn*Q0
 
   return Hn,Q'
 end
 #----------------------------------------------------------------------
-function FrancisSeq(H::Matrix,μ0::Vector,nμ::Int)
+function FrancisSeq(H::Matrix,b::Int,μ0::Vector,nμ::Int)
 # Sequential Bulge Chase
 
+  # H       - Hessenberg Matrix
+  # b       - Band Size
   # nμ      - No of Shifts
   # μ       - Shifts
-  # H       - Hessenberg Matrix
 
   r,n = size(H)
 
@@ -51,16 +53,21 @@ function FrancisSeq(H::Matrix,μ0::Vector,nμ::Int)
 #   Create a bulge in the top left of the matrix
     λ     = μ[i:i]
     nλ    = 1
-    H0,Q0 = CreateBulge(Hn,λ,nλ)
+    H0,Q0 = CreateBulge(Hn,b,λ,nλ)
 
 #   Collect Left multipliers 
     mul!(Qn,Q0,Q)       # Qn = Q0*Q
                         # H0 = Q0*Hn*Q0'
 
-    Hn,Q0  = ChaseBulgeDown1(H0,λ,nλ)         # Hn = Q0*H0*Q0' 
-##   Collect Left multipliers 
-    mul!(Q,Q0,Qn)       # Q = Q0*Qn
+    if b==1                        
+      Hn,Q0  = ChaseBulgeDown1(H0,λ,nλ)         # Hn = Q0*H0*Q0' 
+#     Collect Left multipliers 
+    else
+      Hn,Q0  = ChaseBulgeDown(H0,b)             # Hn = Q0*H0*Q0' 
+#     Collect Left multipliers 
+    end  
 
+    mul!(Q,Q0,Qn)       # Q = Q0*Qn
   end
 #  println("Francis Algorithm nloops: $j")
 
@@ -68,7 +75,7 @@ function FrancisSeq(H::Matrix,μ0::Vector,nμ::Int)
 end
 
 #----------------------------------------------------------------------
-function FrancisSeqExact(H::Matrix,μ0::Vector,nμ::Int)
+function FrancisSeqExact(H::Matrix,b::Int,μ0::Vector,nμ::Int)
 # Sequential Bulge Chase
 # Francis Algorithm for exact Shifts
 # Using Tolerance to control how many times
@@ -105,14 +112,17 @@ function FrancisSeqExact(H::Matrix,μ0::Vector,nμ::Int)
 #    for j in 1:nloops       
       λ     = μ[i:i]
       nλ    = 1
-      H0,Q0 = CreateBulge(Hn,λ,nλ)
+      H0,Q0 = CreateBulge(Hn,b,λ,nλ)
 
 #     Collect Left multipliers 
       mul!(Qn,Q0,Q)       # Qn = Q0*Q
                           # H0 = Q0*Hn*Q0'
-
-      Hn,Q0  = ChaseBulgeDown1(H0,λ,nλ)         # Hn = Q0*H0*Q0' 
-##     Collect Left multipliers 
+      if b==1
+        Hn,Q0  = ChaseBulgeDown1(H0,λ,nλ)         # Hn = Q0*H0*Q0' 
+      else 
+        Hn,Q0  = ChaseBulgeDown(H0,b)             # Hn = Q0*H0*Q0' 
+      end  
+#     Collect Left multipliers 
       mul!(Q,Q0,Qn)       # Q = Q0*Qn
       γ = abs(Hn[n-i+1,n-i])
       j  = j+1
@@ -128,9 +138,9 @@ end
 function RevFrancisSeq(H::Matrix,μ0::Vector,nμ::Int)
 # Sequential Bulge Chase
 
+  # H       - Hessenberg Matrix
   # nμ      - No of Shifts
   # μ       - Shifts
-  # H       - Hessenberg Matrix
 
   r,n = size(H)
 
@@ -179,17 +189,17 @@ end
 
 #----------------------------------------------------------------------
 
-function CreateBulge(H::Matrix,μ::Vector,nμ::Int)
+function CreateBulge(H::Matrix,b::Int,μ::Vector,nμ::Int)
 
+  # H       - Hessenberg Matrix
+  # b       - Block Size
   # nμ      - No of Shifts
   # μ       - Shifts
-  # H       - Hessenberg Matrix
 
 # x = p(H)*e1 = (H - μnI)...(H - μ2I)(H - μ1I)*e1
-  x         = polyHe1(H,μ,nμ)
+  x         = polyHe1(H,b,μ,nμ)
   n         = length(x)
-  k1        = 1         # Zeros after this
-  k2        = k1+nμ     # Last non-zero entry position
+  k1        = 1        # Zeros after this
   Q0,y,τ    = CreateReflectorZeros(x,k1,n)
 #  Q0,y,τ    = CreateReflectorZeros2(x,k1,k2,n)
 
@@ -205,6 +215,7 @@ function CreateBulge(H::Matrix,μ::Vector,nμ::Int)
 end
 
 #----------------------------------------------------------------------
+
 function CreateLowerBulge(H::Matrix,μ::Vector,nμ::Int)
 
   # nμ      - No of Shifts
@@ -230,15 +241,15 @@ end
 
 #----------------------------------------------------------------------
 
-#
-function polyHe1(H::Matrix,μ0::Vector,nμ::Int)
+function polyHe1(H::Matrix,b::Int,μ0::Vector,nμ::Int)
 
 # calculate x = p(H)*e1 = (H - μnI)...(H - μ2I)(H - μ1I)*e1
 # when H is has a Hessenberg Structure
 
+  # H       - Hessenberg Matrix
+  # b       - Block Size
   # nμ      - No of Shifts
   # μ0      - Shifts
-  # H       - Hessenberg Matrix
 
   r,c = size(H)    
 
@@ -256,7 +267,7 @@ function polyHe1(H::Matrix,μ0::Vector,nμ::Int)
 
   # calculate x = p(A)*e1 = (A - μnI)...(A-μ2I)(A-μ1I)*e1
   for i in 1:nμ
-    for j in 1:i+1
+    for j in 1:(i*b+1)
       x[j] = sum(H[j,1:i].*x0[1:i]) - μ[i]*x0[j]
     end  
     x0 = 1.0*x
@@ -470,7 +481,6 @@ function CreateReflectorZeros2(x::Vector,k1::Int,k2::Int,n::Int)
 end
 #----------------------------------------------------------------------
 
-
 function TransposeReflectorZeros(x::Vector,k::Int,n::Int)
 
 # Create Unitary matrix which introduces zeros up to the
@@ -531,7 +541,7 @@ function AdjointReflectorZeros(x::Vector,k::Int,n::Int)
 end
 #----------------------------------------------------------------------
 function BandedHessenberg(H0::Matrix,b::Int)
-#   Chase the Bulge in the Francis Algorithm
+#  Chase the Bulge in the Francis Algorithm
 
 #  H0  - Matrix to transform into a (banded) upper Hessenberg
 #  b   - Band Size.
@@ -540,15 +550,15 @@ function BandedHessenberg(H0::Matrix,b::Int)
    H   = deepcopy(H0)
    A   = deepcopy(H0)
    B   = deepcopy(H0)
-   Q   = Matrix{eltype(H0)}(I,r,c)
-   T   = Matrix{eltype(H0)}(I,r,c)
+   Q   = Matrix{eltype(H0)}(1.0I,r,c)
+   T   = Matrix{eltype(H0)}(1.0I,r,c)
 
    if b<1 || b>c
      println("Illegal band size b: $b")
      return H,Q
    end   
 
-   for i in 1:7 #c-b
+   for i in 1:c-b
      x        = H[:,i]
      Qi,w,τ   = CreateReflectorZeros(x,i+b,r)
 
@@ -565,34 +575,34 @@ function BandedHessenberg(H0::Matrix,b::Int)
 end
 #----------------------------------------------------------------------
 
-function ChaseBulgeDown(H0::Matrix,nμ::Int)
+function ChaseBulgeDown(H0::Matrix,b::Int)
 #   Chase the Bulge in the Francis Algorithm
+
+   # H0     - Matrix with Bulge
+   # b      - Band of the Hessenberg Matrix to convert back to
 
    r,c = size(H0)
    H   = deepcopy(H0)
    A   = deepcopy(H0)
    B   = deepcopy(H0)
-   Q   = Matrix{typeof(H0[1,1])}(1.0I,r,c)
-   T   = Matrix{typeof(H0[1,1])}(1.0I,r,c)      # tmp
+   Q   = Matrix{eltype(H0)}(I,r,c)
+   T   = Matrix{eltype(H0)}(I,r,c)      # tmp
 
    tol = 1.0e-12
 
-   for i in 1:c-1
-     x        = H[:,i]
-     xnorm    = norm(x[i+1])
-     if (xnorm<tol)
-       println("$i: Need Deflation: $xnorm")
-     end  
+   for i in 1:c-b
+     x       = H[:,i]
 
-#     Qi,w,τ   = CreateReflectorZeros(x,i+1,r)
+     k1      = i+b
+     Qi,w,τ  = CreateReflectorZeros(x,k1,r)
      
-     k1       = i+1
-     Qi    = CreateGivens(x,k1,c)
+#     k1    = i+1
+#     Qi    = CreateGivens(x,k1,c)
 
      A = Qi*H
      H = A*(Qi')
 
-#     Collect Left Multipliers      
+#    Collect Left Multipliers      
      mul!(T,Qi,Q)
      Q = 1.0*T
 
@@ -604,14 +614,14 @@ end
 function ChaseBulgeDown1(H0::Matrix,μ,nμ::Int)
 #   Chase the Bulge in the Francis Algorithm
 #   Here I am assuming we have a bulge size of 1
-#   i.e. nμ=1 was used for creating the Bulge
+#   i.e. nμ=1 was used for creating the Bulge and band size = 1
 
    r,c = size(H0)
    H   = deepcopy(H0)
    A   = deepcopy(H0)
    B   = deepcopy(H0)
-   Q   = Matrix{typeof(H0[1,1])}(1.0I,r,c)
-   T   = Matrix{typeof(H0[1,1])}(1.0I,r,c)      # tmp
+   Q   = Matrix{eltype(H0)}(I,r,c)
+   T   = Matrix{eltype(H0)}(I,r,c)      # tmp
 
    tol = 1.0e-12
 
@@ -658,14 +668,13 @@ function ChaseBulgeDown1(H0::Matrix,μ,nμ::Int)
 
      else  
 
-
        if i<c-2
 #        Create Bulge in the next column
 
-#         println("Invariant subspace reached: ($(i+1),$i): $xb")
-#         println("Generating new Lower Bulge for i=$(i+1)")
+#        println("Invariant subspace reached: ($(i+1),$i): $xb")
+#        println("Generating new Lower Bulge for i=$(i+1)")
          j = i+1
-         hs,qs = CreateBulge(H[j:r,j:c],μ,nμ)
+         hs,qs = CreateBulge(H[j:r,j:c],1,μ,nμ)
 
          Qi = Matrix{eltype(H)}(I,r,c)
          Qi[j:r,j:c] = qs
@@ -674,11 +683,10 @@ function ChaseBulgeDown1(H0::Matrix,μ,nμ::Int)
          mul!(H,A,Qi')
 #         Collect Left Multipliers      
          mul!(T,Qi,Q)
-         Q = 1.0*T
+         Q = copy(T)
 
        end
      end  
-     
 
    end      # for i in 1:c-1 
 

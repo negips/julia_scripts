@@ -3,6 +3,7 @@ println("Main interface for 1D SEM")
 using PolynomialBases
 using LinearAlgebra
 using SparseArrays
+using Printf
 # using UnicodePlots
 #using Plots
 
@@ -29,21 +30,18 @@ vimult = one./vmult
 
 xall  = vimult.*(Q*QT*Geom.xm1[:]);
 
-if prec == BigFloat
-  U   = BigFloat(6.0)
-  γ   = BigFloat(1.0) - BigFloat(1.0)*im
-  c0  = BigFloat(0.0e-10)
-else
-  U   = 6.0
-  γ   = 1.0 - 1.0*im
-  c0  = 0.0e+00
-end  
+U   = prec(6.0)
+γ   = prec(1.0) - prec(1.0)*im
+c0  = prec(0.0e-02)
+
 
 # So much faster with Sparse Arrays
 # Numerical error also seems much better behaved
-ifsparse = true
+ifsparse  = true
 if (ifsparse)
   L,B,OP,Conv,Src,Lap,Fd = AssembleMatrixLesshafftSparse(U,γ,c0,Geom.cnv,Geom.wlp,Geom.xm1,Geom.bm1,Basis,lx1,nel,prec);
+
+  AL,AB,AOP,AConv,ASrc,ALap,AFd = AssembleAdjointLesshafftSparse(U,γ,c0,Geom.cnv,Geom.wlp,Geom.xm1,Geom.bm1,Basis,lx1,nel,prec);
 else
   L,B,OP,Conv,Src,Lap,Fd = AssembleMatrixLesshafft2(U,γ,c0,Geom.cnv,Geom.wlp,Geom.xm1,Geom.bm1,Basis,lx1,nel,prec);
 end  
@@ -75,8 +73,18 @@ if ifglobal
   Mdg   = QT*Md*Q      # Global Dialiased Weight Matrix for inner products 
   
   OPg   = QT*(L)*Q./Bg
+  @printf("Direct Global Matrices Built\n")
+
+  ACg    = QT*AConv*Q    # Global Convection matrix
+  ALg    = QT*ALap*Q     # Global Laplacian matrix
+  ASg    = QT*ASrc*Q     # Global Src matrix
+  AFg    = QT*AFd*Q      # Global Feedback matrix
+
+  AOPg   = QT*(AL)*Q./Bg
+
+  @printf("Adjoint Global Matrices Built\n")
+   
   
-  println("Global Matrices Built")
 end
 
 
