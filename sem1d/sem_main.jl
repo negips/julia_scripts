@@ -30,18 +30,21 @@ vimult = one./vmult
 
 xall  = vimult.*(Q*QT*Geom.xm1[:]);
 
-U   = prec(6.0)
-γ   = prec(1.0) - prec(1.0)*im
-c0  = prec(0.0e-02)
+U           = prec(6.0)
+γ           = prec(1.0) - prec(1.0)*im
+c0          = prec(0.0e-02)   # Coupling
+cx0         = prec(20.0)      # = 20 for the Lesshafft case
+whichsrc    = 1            # 1: Linear Decrease; 2: Tanh(x) saturation
+                        
 
 
 # So much faster with Sparse Arrays
 # Numerical error also seems much better behaved
 ifsparse  = true
 if (ifsparse)
-  L,B,OP,Conv,Src,Lap,Fd = AssembleMatrixLesshafftSparse(U,γ,c0,Geom.cnv,Geom.wlp,Geom.xm1,Geom.bm1,Basis,lx1,nel,prec);
+  L,B,OP,Conv,Src,Lap,Fd = AssembleMatrixLesshafftSparse(U,γ,c0,cx0,whichsrc,Geom.cnv,Geom.wlp,Geom.xm1,Geom.bm1,Basis,lx1,nel,prec);
 
-  AL,AB,AOP,AConv,ASrc,ALap,AFd = AssembleAdjointLesshafftSparse(U,γ,c0,Geom.cnv,Geom.wlp,Geom.xm1,Geom.bm1,Basis,lx1,nel,prec);
+  AL,AB,AOP,AConv,ASrc,ALap,AFd = AssembleAdjointLesshafftSparse(U,γ,c0,cx0,whichsrc,Geom.cnv,Geom.wlp,Geom.xm1,Geom.bm1,Basis,lx1,nel,prec);
 else
   L,B,OP,Conv,Src,Lap,Fd = AssembleMatrixLesshafft2(U,γ,c0,Geom.cnv,Geom.wlp,Geom.xm1,Geom.bm1,Basis,lx1,nel,prec);
 end  

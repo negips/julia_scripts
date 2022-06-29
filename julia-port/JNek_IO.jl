@@ -42,7 +42,7 @@
 
       function read_re2_hdr(fid::IOStream, rank)
 
-        println("Reading Header on rank $(rank)")
+        println("Re2: Reading Header on rank $(rank)")
         
         nbytes  = 20*4
         hdrutf  = read(fid,nbytes)
@@ -305,6 +305,303 @@
 
 #----------------------------------------------------------------------
 
+      function read_fld(f::String, MPI::Module, nid0::Int64)
+
+
+        comm = MPI.COMM_WORLD
+
+        if MPI.Comm_rank(comm) == nid0
+          println("Reading $(f) on rank $(MPI.Comm_rank(comm))\n")
+        end
+        
+        MPI.Barrier(comm)
+
+        fid = open(f, "r")
+
+        rank = MPI.Comm_rank(comm)
+
+        hdr,version,wdsizi,nx,ny,nz,nel,nelgt,time,istep,fid0,nfileo,rdcode,p0th,ifprmesh,if_byte_swap = read_fld_std_hdr(fid,rank,nid0)
+
+        buf = MPI.Buffer(hdr,length(hdr),MPI.CHAR)
+        MPI.Bcast!(buf,       nid0,comm)
+
+        buf = MPI.Buffer(version,length(version),MPI.CHAR)
+        MPI.Bcast!(buf,       nid0,comm)
+
+        wdsizi          = MPI.bcast(wdsizi,           nid0,comm)
+        nx              = MPI.bcast(nx,               nid0,comm)
+        ny              = MPI.bcast(ny,               nid0,comm)
+        nz              = MPI.bcast(nz,               nid0,comm)
+        nel             = MPI.bcast(nel,              nid0,comm)
+        nelgt           = MPI.bcast(nelgt,            nid0,comm)
+        time            = MPI.bcast(time,             nid0,comm)
+        istep           = MPI.bcast(istep,            nid0,comm)
+        fid0            = MPI.bcast(fid0,             nid0,comm)
+        nfileo          = MPI.bcast(nfileo,           nid0,comm)
+
+        buf             = MPI.Buffer(rdcode,length(rdcode),MPI.CHAR)
+        MPI.Bcast!(buf,       nid0,comm)
+        p0th            = MPI.bcast(p0th,             nid0,comm)
+        ifprmesh        = MPI.bcast(ifprmesh,         nid0,comm)
+        if_byte_swap    = MPI.bcast(if_byte_swap,     nid0,comm)
+
+#       Read the data here        
+        glnum,x,y,z,u,v,w,p,t = read_fld_data(fid, nid0,nx,ny,nz,nelgt,rdcode,wdsizi)
+
+        close(fid)
+
+        return hdr,version,wdsizi,nx,ny,nz,nel,nelgt,time,istep,fid0,nfileo,rdcode,p0th,ifprmesh,glnum,x,y,z,u,v,w,p,t
+      end     # read_fld
+
+#---------------------------------------------------------------------- 
+
+      function read_fld_std_hdr(fid::IOStream, rank, nid0)
+
+#        comm = MPI.COMM_WORLD
+        
+        hdr           = repeat(" ", 132)
+        version       = repeat(" ", 5)
+        wdsize        = 0 
+        nx            = 0
+        ny            = 0
+        nz            = 0
+        nel           = 0
+        nelgt         = 0
+        time          = 0.0
+        istep         = 0
+        fid0          = 0
+        nfileo        = 0
+        rdcode        = repeat(" ",10)
+        p0th          = 0.0 
+        ifprmesh      = false
+
+        if rank == nid0
+          println("Fld: Reading Header on rank $(rank)")
+        
+          nbytes        = 132
+          hdrutf        = read(fid,nbytes)
+          hdrC          = Char.(hdrutf)
+          
+          st            = 2         # step
+          i             = 1
+          j             = 4
+          version       = String(hdrC[i:j])
+          i             = j+st # 7 
+          j             = i+0
+          wdsizS        = String(hdrC[i:j])
+          i             = j+st # 
+          j             = i+1
+          nxS           = String(hdrC[i:j])
+          i             = j+st # 
+          j             = i+1
+          nyS           = String(hdrC[i:j])
+          i             = j+st # 
+          j             = i+1
+          nzS           = String(hdrC[i:j])
+          i             = j+st # 
+          j             = i+9
+          nelS          = String(hdrC[i:j])
+          i             = j+st # 
+          j             = i+9
+          nelgS         = String(hdrC[i:j])
+          i             = j+st # 
+          j             = i+19
+          timeS         = String(hdrC[i:j])
+          i             = j+st # 
+          j             = i+8
+          istepS        = String(hdrC[i:j])
+          i             = j+st # 
+          j             = i+5
+          fid0S         = String(hdrC[i:j])
+          i             = j+st # 
+          j             = i+5
+          nfileoS       = String(hdrC[i:j])
+          i             = j+st # 
+          j             = i+9
+          rdcodeS       = String(hdrC[i:j])
+          i             = j+st # 
+          j             = i+14
+          p0thS         = String(hdrC[i:j])
+          i             = j+st # 
+          j             = i+0
+          ifpr_meshS    = String(hdrC[i:j])
+    
+          wdsize        = parse(Int, wdsizS)
+          nx            = parse(Int, nxS)
+          ny            = parse(Int, nyS)
+          nz            = parse(Int, nzS)
+          nel           = parse(Int, nelS)
+          nelgt         = parse(Int, nelgS)
+          time          = parse(Float64, timeS)
+          istep         = parse(Int, istepS)
+          fid0          = parse(Int, fid0S)
+          nfileo        = parse(Int, nfileoS)
+          rdcode        = rdcodeS
+          p0th          = parse(Float64, p0thS)
+          if (ifpr_meshS == "T")
+            ifprmesh = true
+          else
+            ifprmesh = false
+          end  
+          hdr           = String(hdrC) 
+        end
+
+        test    = read(fid,Float32)
+
+        if_byte_swap = byte_swap_test(test)
+
+        return hdr,version,wdsize,nx,ny,nz,nel,nelgt,time,istep,fid0,nfileo,rdcode,p0th,ifprmesh,if_byte_swap
+      end     # read_fld_std_hdr
+#---------------------------------------------------------------------- 
+      function read_fld_data(fid::IOStream, nid0::Int64,nx::Int64,ny::Int64,nz::Int64,nelgt::Int64,rdcode::String,wdsizi::Int64)
+
+#       Pointer to re2 data in file.
+#       Header + test pattern byte length
+        recpos  = 132+4
+        seek(fid,recpos)
+
+        comm = MPI.COMM_WORLD
+        rank = MPI.Comm_rank(comm)
+
+        if (wdsizi==4)
+          gnum     = Vector{Int32}(undef,nelgt)
+        else
+          gnum     = Vector{Int64}(undef,nelgt)
+        end
+        glnum      = Vector{Int64}(undef,nelgt)
+
+        read!(fid,gnum)
+        glnum = gnum
+
+        ldim = 3
+        if nz == 1
+          ldim = 2
+        end  
+
+        nxyz    = nx*ny*nz
+        len     = ldim*(nxyz)
+        nbytes  = len*wdsizi                    
+       
+        if (wdsizi == 4)
+          tmp   = Array{Float32}(undef,nx,ny,nz)
+          tmpv  = Array{Float32}(undef,nx,ny,nz,ldim)
+        else
+          tmp   = Array{Float64}(undef,nx,ny,nz)
+          tmpv  = Array{Float64}(undef,nx,ny,nz,ldim)
+        end
+        tmp64   = Array{Float64}(undef,nx,ny,nz)
+        tmpv64  = Array{Float64}(undef,nx,ny,nz,ldim)
+
+        ifxo      = false
+        ifuo      = false
+        ifpo      = false
+        ifto      = false
+        ifpso     = false
+        nt        = 0
+        nps       = 0
+
+        i = 0
+        for s in rdcode
+          i = i+1
+          if s=='X'
+            ifxo = true
+          end
+          if s=='U'
+            ifuo = true
+          end
+          if s=='P'
+            ifpo = true
+          end
+          if s=='T'
+            ifto = true
+            nt   = 1
+          end
+          if s=='S'
+            ifpso = true
+            nps   = parse(Int64,rdcode[i+1:i+2])
+          end
+        end  
+
+        nt = nt+nps
+        x   = Array{Float64,4}(undef,nx,ny,nz,nelgt)
+        y   = Array{Float64,4}(undef,nx,ny,nz,nelgt)
+        z   = Array{Float64,4}(undef,nx,ny,nz,nelgt)
+
+        u   = Array{Float64,4}(undef,nx,ny,nz,nelgt)
+        v   = Array{Float64,4}(undef,nx,ny,nz,nelgt)
+        w   = Array{Float64,4}(undef,nx,ny,nz,nelgt)
+
+        p   = Array{Float64,4}(undef,nx,ny,nz,nelgt)
+
+       
+        t   = Array{Float64,5}(undef,nx,ny,nz,nelgt,nt)
+
+        if (ifxo)
+          for e = 1:nelgt
+            if rank == nid0
+              read!(fid,tmpv)
+              tmpv64 = tmpv
+            end        
+            if ldim == 2
+#             In principle I should broadcast the data to different processors 
+              x[:,:,:,e]  = tmpv64[:,:,:,1]
+              y[:,:,:,e]  = tmpv64[:,:,:,2]
+            else
+              x[:,:,:,e]  = tmpv64[:,:,:,1]
+              y[:,:,:,e]  = tmpv64[:,:,:,2]
+              z[:,:,:,e]  = tmpv64[:,:,:,3]
+            end
+          end
+        end  # ifxo  
+
+        if (ifuo)
+          for e = 1:nelgt
+            if rank == nid0
+              read!(fid,tmpv)
+              tmpv64 = tmpv
+            end        
+            if ldim == 2
+#             In principle I should broadcast the data to different processors 
+              u[:,:,:,e]  = tmpv64[:,:,:,1]
+              v[:,:,:,e]  = tmpv64[:,:,:,2]
+            else
+              u[:,:,:,e]  = tmpv64[:,:,:,1]
+              v[:,:,:,e]  = tmpv64[:,:,:,2]
+              w[:,:,:,e]  = tmpv64[:,:,:,3]
+            end
+          end
+        end  # ifuo  
+
+        if (ifpo)
+          for e = 1:nelgt
+            if rank == nid0
+              read!(fid,tmp)
+              tmp64 = tmp
+            end        
+#           In principle I should broadcast the data to different processors 
+            p[:,:,:,e]  = tmp64
+          end
+        end  # ifpo  
+
+        if (ifto || ifpso)
+          for i = 1:nt
+            for e = 1:nelgt
+              if rank == nid0
+                read!(fid,tmp)
+                tmp64 = tmp
+              end        
+#             In principle I should broadcast the data to different processors 
+              t[:,:,:,e,i]  = tmp64
+            end
+          end 
+        end  # ifto || ifpso 
+
+       return glnum,x,y,z,u,v,w,p,t
+      end     # read_fld_data
+
+#---------------------------------------------------------------------- 
+
+#---------------------------------------------------------------------- 
       end   # Module JNek_IO
 
 
