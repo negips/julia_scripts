@@ -8,8 +8,8 @@ function mygmres(A,b,ngs,ifmod,tol,maxit,xexact,ifcomplex)
     end
 
     if (ifcomplex)
-      Q=zeros(Complex,n,m+1);
-      H=zeros(Complex,m+1,m);
+      Q=zeros(ComplexF64,n,m+1);
+      H=zeros(ComplexF64,m+1,m);
     else
       Q=zeros(Float64,n,m+1);
       H=zeros(Float64,m+1,m);
