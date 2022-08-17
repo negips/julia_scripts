@@ -416,7 +416,7 @@ function CreateGivens(x::Vector,k::Int,n::Int)
 # k   -     Position after which we want zeros
 #
 
-  tol = 1.0e-12
+  tol = 1.0e-14
  
   Q         = Matrix{typeof(x[1])}(1.0I,n,n)
   if k>n
@@ -425,11 +425,15 @@ function CreateGivens(x::Vector,k::Int,n::Int)
 
   θ         = 0.0*π/4.0
   if k<n
-    xnorm   = sqrt(x[k]'*x[k] + x[k+1]'*x[k+1])
-    xnorm2  = sqrt(x[k]'*x[k] + x[k+1]'*x[k+1])
-   
-    cs      = x[k]/xnorm
-    sn      = x[k+1]/xnorm
+    xnorm   = abs(sqrt(x[k]'*x[k] + x[k+1]'*x[k+1]))
+  
+    if abs(xnorm)<tol
+      cs    = 1.0
+      sn    = 0.0
+    else  
+      cs    = x[k]/xnorm
+      sn    = x[k+1]/xnorm
+    end  
 
     Q[k,k]        = cs'
     Q[k,k+1]      = sn'
