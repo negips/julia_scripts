@@ -80,7 +80,7 @@ Binv        = one./Bdssum
 
 ntot        = npts
 
-Nev         = 15                    # Number of eigenvalues to calculate
+Nev         = 10                    # Number of eigenvalues to calculate
 EKryl       = Int64(floor(2.5*Nev)) # Additional size of Krylov space
 LKryl       = Nev + EKryl           # Total Size of Krylov space    
 ngs         = 2                   # Number of Gram-Schmidt
