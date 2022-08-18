@@ -18,15 +18,17 @@ function sem_geom(Basis,Basisd,xc,N,Nd,nel,dxm1,dxtm1,prec)
 #     GLL Points
       xm1         = zeros(VT,lx1,nel);
       ym1         = zeros(VT,lx1,nel);           # Tagging this along to make sense of derivatives
+      zgm         = Basis.nodes;
+      wzm         = Basis.weights;
       for i in 1:nel
 #        global xm1, ym1
        
         xi              = zeros(VT,lx1);
         x0              = xc[i];
         x1              = xc[i+1];
-        map_from_canonical!(xi,zgm1,x0,x1,Basis);
+        map_from_canonical!(xi,zgm,x0,x1,Basis);
         xm1[:,i]        = xi;
-        ym1[:,i]        = zgm1;
+        ym1[:,i]        = zgm;
       end 
       
 #     Local Geometric Matrices
@@ -66,7 +68,7 @@ function sem_geom(Basis,Basisd,xc,N,Nd,nel,dxm1,dxtm1,prec)
       sxm1  = -jacmi.*(xsm1);
       
 #     Diagonal Mass matrix (as a vector)
-      bm1   = jacm1.*wzm1;
+      bm1   = jacm1.*wzm;
       
       
 #     Gradient operator
@@ -83,7 +85,7 @@ function sem_geom(Basis,Basisd,xc,N,Nd,nel,dxm1,dxtm1,prec)
       
 #     Matrices for Convection operator
       jacm1d  = intpm1d*jacm1;
-      bm1d    = jacm1d.*wzm1d;            # Mass matrix on the de-aliased grid
+      bm1d    = jacm1d.*Basisd.weights;            # Mass matrix on the de-aliased grid
       
       gradxd = zeros(VT,lx1d,lx1,nel);
       bmd_matrix = zeros(VT,lx1d,lx1d,nel);
