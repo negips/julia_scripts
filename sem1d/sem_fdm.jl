@@ -25,7 +25,7 @@ N           = 7 ;                               # polynomial degree
 lx1         = N+1;                              # No of points
 Basis       = LobattoLegendre(N, prec)          # Polynomial Basis
 
-Nd          = Int64(floor(N*1.5)+1)             # polynomial degree
+Nd          = Int64(floor(N*3)+1)             # polynomial degree
 lx1d        = Nd+1;                             # No of points
 Basisd      = LobattoLegendre(Nd, prec)         # Polynomial Basis
 
@@ -33,11 +33,11 @@ N2          = N-2;                              # polynomial degree (Mesh 2)
 lx2         = N2+1;                             # No of points
 Basis2      = GaussLegendre(N2, prec)           # Polynomial Basis
 
-xs          = prec(0.)                          # Domain start
-xe          = prec(2.0)                         # Domain end
+xs          = prec(-1.)                          # Domain start
+xe          = prec(1.0)                         # Domain end
 
-ys          = prec(0.)                          # Domain start
-ye          = prec(2.0)                         # Domain end
+ys          = prec(-1.)                          # Domain start
+ye          = prec(1.0)                         # Domain end
 
 nel         = 1                                 # No of elements
 nnodes      = nel+1;                            # No of nodes
@@ -64,6 +64,7 @@ println("Reference Matrices Initialized")
 
 Geomx  = sem_geom(Basis,Basisd,xc,N,Nd,nel,dxm1,dxtm1,prec)
 Geom2x = sem_geom(Basis2,Basis,xc,N2,N,nel,dxm2,dxtm2,prec)
+Geom12x = sem_geom(Basis,Basis2,xc,N,N2,nel,dxm1,dxtm1,prec)
 Geomy  = sem_geom(Basis,Basisd,yc,N,Nd,nel,dxm1,dxtm1,prec)
 Geom2y = sem_geom(Basis2,Basis,yc,N2,N,nel,dxm2,dxtm2,prec)
 
@@ -140,26 +141,14 @@ end
 λbig,Sbig = eigen(As[:,:,1],Bs[:,:,1])
 
 
-jgl = zeros(prec,lx1,lx2)
-for i in 1:lx1
-  z = zgm1[i]
-  for j in 1:lx2
-    u = zeros(prec,lx2)
-    u[j] = 1.0
-    jgl[i,j] = derivative_at(z,u,zgm2,Basis2.baryweights)
-  end
-end  
-
-lap = jgl'*BMx[:,:,1]*jgl 
-
 # This is what Nek does:
 dgl = zeros(prec,lx2,lx1)
 for i in 1:lx2
   z = zgm2[i]
   for j in 1:lx1
-    u = zeros(prec,lx1)
-    u[j] = 1.0
-    dgl[i,j] = derivative_at(z,u,zgm1,Basis.baryweights)
+    v = zeros(prec,lx1)
+    v[j] = 1.0
+    dgl[i,j] = derivative_at(z,v,zgm1,Basis.baryweights)
   end
 end  
 
@@ -185,7 +174,37 @@ for j=1:n-1
     lapnek[i+1,j+1] = s
   end
 end
+lapnek[1,1]       = 1.0
+lapnek[lx1,lx1]   = 1.0
 
+#Interpolation operator to Mesh2
+intpm12 = zeros(VT,lx1,lx1);
+
+jgl  = interpolation_matrix(zgm2,Basis.nodes,Basis.baryweights);
+bjgl = bm2*jgl  
+
+massnek = zeros(prec,lx1,lx1)
+b0 = 0
+b1 = (lx1-1) - 0
+
+n = lx1-1
+for j=1:n-1
+  for i=1:n-1
+    s = 0.0
+    for k=b0:b1
+      bb = (1.0/wzm1[k+1])
+      s1 = bjgl[i,k+1]*bb*bjgl[j,k+1]
+#      println("$i $j $k $bb $s1")
+      s = s + s1 
+    end  
+    massnek[i+1,j+1] = s
+  end
+end
+massnek[1,1]       = 1.0
+massnek[lx1,lx1]   = 1.0
+
+
+# Nek Declaration
 #g(0:lx1-1,0:lx1-1)
 #jgl(1:lx2,0:lx1-1)
 #bm(0:lx1-1)
@@ -199,6 +218,35 @@ end
 #   enddo
 #enddo
 
+
+# Solving the linear System
+α     = 2.0
+x     = XM1[:,1];
+x12   = copy(x);
+x12[2:lx1-1] = Geom2x.xm1;
+f     = -Geomx.bm1[:,1].*((α*π)^2).*sin.(α*π*x);
+A     = LAPx[:,:,1];
+B     = BMx[:,:,1];
+# Set Boundary conditions:
+d      = 1.0
+A[1,:] = zeros(prec,1,lx1)
+A[1,1] = 1.0
+B[1,:] = zeros(prec,1,lx1)
+B[1,1] = 1.0
+f[1]   = d
+
+A[lx1,:]    = zeros(prec,1,lx1)
+A[lx1,lx1]  = 1.0
+B[lx1,:]    = zeros(prec,1,lx1)
+B[lx1,lx1]  = 1.0
+f[lx1]      = d
+
+u           = inv(A)*f
+unek        = inv(lapnek)*f
+
+plot(x,u)
+plot(x12, unek)
+plot(x,d .- sin.(α*π*x),linestyle="--",linewidth=2)
 
 println("Done")
 
