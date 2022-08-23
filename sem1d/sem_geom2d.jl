@@ -75,7 +75,8 @@ function sem_geom2d(Bx,By,xc,yc,nel,prec)
       sx  = -jaci.*(yr);
       
 #     Diagonal Mass matrix (as a vector)
-      b   = jac.*kron(wzx,wzy');
+      wz2  = kron(wzx,wzy');
+      b    = jac.*wz2;
 #      
 ##     Gradient operator
 #      gradx  = zeros(VT,lx,lx,nel);            # d/dx
@@ -136,7 +137,7 @@ function sem_geom2d(Bx,By,xc,yc,nel,prec)
 #        wlp[:,:,i]  = -dv1*gradx[:,:,i];
 #      end
       
-      Geom = GeomMatrices2d(x,y,xr,xs,yr,ys,jac,jaci,rx,ry,sx,sy,b);
+      Geom = GeomMatrices2d(x,y,xr,xs,yr,ys,jac,jaci,rx,ry,sx,sy,wz2,b);
 
       println("SEM Geom: Done")
 
@@ -149,16 +150,17 @@ end
 mutable struct GeomMatrices2d
       x;
       y;
-      xr;
-      xs;
-      yr;
-      ys;
+      dxdr;
+      dxds;
+      dydr;
+      dyds;
       jac;
       jaci;
-      rx;
-      ry;
-      sx;
-      sy;
+      drdx;
+      drdy;
+      dsdx;
+      dsdy;
+      wz2;
       b;
 #      rx;
 #      jac;

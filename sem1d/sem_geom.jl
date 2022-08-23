@@ -40,6 +40,7 @@ function sem_geom(Basis,Basisd,xc,N,Nd,nel,dxm1,dxtm1,prec)
       
       rxm1   = zeros(VT,lx1,nel);                # dr/dx
       rym1   = zeros(VT,lx1,nel);                # dr/dy
+
       sxm1   = zeros(VT,lx1,nel);                # ds/dx
       sym1   = zeros(VT,lx1,nel);                # ds/dy
       
@@ -64,8 +65,8 @@ function sem_geom(Basis,Basisd,xc,N,Nd,nel,dxm1,dxtm1,prec)
       rxm1  = jacmi.*(ysm1);
       sym1  = jacmi.*(xrm1);
       
-      rym1  = -jacmi.*(yrm1);
-      sxm1  = -jacmi.*(xsm1);
+      rym1  = -jacmi.*(xsm1);
+      sxm1  = -jacmi.*(yrm1);
       
 #     Diagonal Mass matrix (as a vector)
       bm1   = jacm1.*wzm;
