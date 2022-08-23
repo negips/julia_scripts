@@ -70,14 +70,16 @@ function sem_geom(Basis,Basisd,xc,N,Nd,nel,dxm1,dxtm1,prec)
 #     Diagonal Mass matrix (as a vector)
       bm1   = jacm1.*wzm;
       
-      
 #     Gradient operator
       gradx  = zeros(VT,lx1,lx1,nel);            # d/dx
       for i in 1:nel
-        for j in 1:lx1
-          gradx[j,:,i] = rxm1[j].*dxm1[j,:];
-        end  
-      end
+        gradx[:,:,i]  = Diagonal(rxm1[:,i])*dxm1
+      end  
+#      for i in 1:nel
+#        for j in 1:lx1
+#          gradx[j,:,i] = rxm1[j,i].*dxm1[j,:];
+#        end  
+#      end
       
 #     Interpolation operator to de-aliased grid
       intpm1d = zeros(VT,lx1d,lx1);
