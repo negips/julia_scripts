@@ -8,6 +8,7 @@ using SpecialFunctions
 using Roots
 using Random
 using GenericLinearAlgebra          # For eigvals for BigFloat
+using DoubleFloats
 using Printf
 using JLD2
 
@@ -26,7 +27,6 @@ ifglobal = true
 
 # Include the function files
 include("sem_main.jl")
-
 
 rng = MersenneTwister(1235)
 
@@ -63,13 +63,13 @@ pΛ = ax1.plot(real.(Ω),imag.(Ω),linestyle="none",marker="o",markersize=8)
 
 xg    = QT*(vimult.*Geom.xm1[:])
 
-Nev         = 10                          # Number of eigenvalues to calculate
+Nev         = 15                          # Number of eigenvalues to calculate
 EKryl       = Int64(floor(2.5*Nev))       # Additional size of Krylov space
 LKryl       = Nev + EKryl                 # Total Size of Krylov space    
 ngs         = 2                           # Number of Gram-Schmidt
-tol         = 1.0e-24
+tol         = prec(1.0e-24)
 
-vt    = Complex{prec}
+vt    = VT # Complex{prec}
 #vt    = Float64
 
 V     = zeros(vt,ndof,LKryl+1)
@@ -78,22 +78,24 @@ Vold  = zeros(vt,ndof,LKryl+1)
 H     = zeros(vt,LKryl+1,LKryl)
 Hold  = zeros(vt,LKryl+1,LKryl)
 
-if prec == BigFloat
-  r   = rand(prec,ndof) + im*rand(prec,ndof);
-else
-  r   = randn(vt,ndof);
-end  
+r = randn(vt,ndof)
+
+#if prec == BigFloat
+#  r   = rand(prec,ndof) + im*rand(prec,ndof);
+#else
+#  r   = randn(vt,ndof);
+#end  
 
 r     = (one+one*im)sin.(5*pi*xg[:])
 r[1]  = 0.0
 
 ifarnoldi   = true
-ifoptimal   = true      # Calculate optimal responses
+ifoptimal   = false     # Calculate optimal responses
 ifadjoint   = false     # Superceded by ifoptimal
 ifplot      = false 
-verbose     = false
-eigupd      = false
-reortho     = 2000
+verbose     = true
+eigupd      = true
+reortho     = 500
 if (ifoptimal)
   arnstep   = reortho*2
 else
@@ -127,7 +129,7 @@ ifconv = false
 t = 0.0*dt        # Time
 i = 0             # Istep
 
-maxouter_it = 5
+maxouter_it = 100
 major_it    = 1
 
 if (ifplot)
@@ -212,7 +214,6 @@ while (~ifconv)
       pv1 = ax2.plot(xg,real.(v),linestyle="-")
     end  
 
-
 #   Expand Krylov space
     if mod(i,arnstep)==0
 
@@ -230,7 +231,7 @@ while (~ifconv)
       end  
 
       if (verbose)
-        @printf "Major Iteration: %3i, Krylov Size: %3i, β: %12e\n" major_it nkryl β
+        @printf "Major Iteration: %3i, Krylov Size: %3i/%3i, β: %12e\n" major_it nkryl LKryl β
       end
       if (β < tol)
         @printf "Stopping Iteration, β: %12e\n" β
@@ -259,8 +260,8 @@ while (~ifconv)
         if ifoptimal
           ax1.autoscale(enable=true,axis="both")
         else
-          ax1.set_xlim((-5.0,5.0))
-          ax1.set_ylim((-7.5,1.5))
+          ax1.set_xlim((-5.0,8.0))
+          ax1.set_ylim((-7.5,2.5))
         end  
            
         draw()

@@ -7,15 +7,9 @@ using PolynomialBases
 
 #VT = Float64
 #VT = ComplexF64
-<<<<<<< HEAD
-setprecision(128)
-prec = BigFloat
-#prec = Float64
-=======
 #setprecision(90)
 #prec = BigFloat
-prec = Float64
->>>>>>> 1293d08 (local)
+prec = Float64 #Double64 # Float64
 
 VT  = Complex{prec}
 
@@ -36,7 +30,7 @@ Basisd      = LobattoLegendre(Nd, prec)         # Polynomial Basis
 xs          = prec(0.)                          # Domain start
 xe          = prec(40.0)                        # Domain end
 
-nel         = 51                                # No of elements
+nel         = 31                                # No of elements
 nnodes      = nel+1;                            # No of nodes
 xc          = range(xs,stop=xe,length=nnodes)   # Element coordinates
 

@@ -87,6 +87,8 @@ function FrancisSeqExact(H::Matrix,b::Int,μ0::Vector,nμ::Int)
 
   r,n = size(H)
 
+  localprec = eltype(H[1])
+
   Q   = Matrix{eltype(H)}(I,n,n)
   Qn  = Matrix{eltype(H)}(I,n,n)
   Hn  = deepcopy(H)    
@@ -101,7 +103,7 @@ function FrancisSeqExact(H::Matrix,b::Int,μ0::Vector,nμ::Int)
   j      = 0
   nloops = 5 
   γ      = 1.0
-  tol    = 1.0e-10
+  tol    = abs(localprec(1.0e-10))
 
 #  println("Francis' Algorithm: nμ=$nμ, MaxLoops:$nloops, Tol=$tol")
   for i in 1:nμ

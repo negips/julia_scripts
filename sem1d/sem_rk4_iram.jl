@@ -68,7 +68,7 @@ LKryl = Nev + EKryl                       # Total Size of Krylov space
 ngs     = 2                               # Number of Gram-Schmidt
 tol     = 1.0e-09
 
-vt    = Complex{prec}
+vt    = VT # Complex{prec}
 #vt    = Float64
 
 V     = zeros(vt,ndof,LKryl+1)
@@ -77,11 +77,13 @@ Vold  = zeros(vt,ndof,LKryl+1)
 H     = zeros(vt,LKryl+1,LKryl)
 Hold  = zeros(vt,LKryl+1,LKryl)
 
-if prec == BigFloat
-  r   = rand(prec,ndof) + im*rand(prec,ndof);
-else
-  r   = randn(vt,ndof);
-end  
+r   = randn(vt,ndof);
+
+#if prec == BigFloat
+#  r   = rand(prec,ndof) + im*rand(prec,ndof);
+#else
+#  r   = randn(vt,ndof);
+#end  
 
 r     = (one+one*im)sin.(5*pi*xg[:])
 r[1]  = 0.0

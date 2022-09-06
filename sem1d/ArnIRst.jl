@@ -14,7 +14,8 @@ function ArnIRst(V::Matrix,Hes::Matrix,b::Int,B::Union{Vector,Matrix},k::Int,kma
 
     revFrancis = false 
 
-    tol = 1.0e-24
+    localprec = eltype(V[1])
+    tol = abs(localprec(1.0e-24))
 
     EKryl = kmax - 1 - Nev 
     ifconv = false
