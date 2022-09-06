@@ -14,13 +14,17 @@ function ArnUpd(V::Matrix,b::Int,B::Vector,v::Vector,k::Int,ngs::Int)
 
   h   = zeros(eltype(v),k)
   a   = real(v[1])
-  if (typeof(a)==Float64)
-    β   = 0.
-    fac = 1000.0
-  else
-    β   = BigFloat(0.)
-    fac = BigFloat(1000.0)
-  end  
+  localprec = typeof(a)
+  β   = localprec(0)
+  fac = localprec(1000)
+
+#  if (typeof(a)==Float64)
+#    β   = 0.
+#    fac = 1000.0
+#  else
+#    β   = BigFloat(0.)
+#    fac = BigFloat(1000.0)
+#  end  
  
   r = copy(v)
 
@@ -77,13 +81,17 @@ function ArnUpd(V::Matrix,b::Int,B::Matrix,v::Vector,k::Int,ngs::Int)
 
   h = zeros(eltype(v),k)
   a   = real(v[1])
-  if (typeof(a)==Float64)
-    β   = 0.
-    fac = 1000.0
-  else
-    β   = BigFloat(0.)
-    fac = BigFloat(1000.0)
-  end  
+  localprec = typeof(a)
+  β   = localprec(0)
+  fac = localprec(1000)
+
+#  if (typeof(a)==Float64)
+#    β   = 0.
+#    fac = 1000.0
+#  else
+#    β   = BigFloat(0.)
+#    fac = BigFloat(1000.0)
+#  end  
   r = copy(v)
 
   tol = eps(fac)

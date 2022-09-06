@@ -50,12 +50,13 @@ function Sem_Global_Num(xm1,prec)
       ii    = sortperm(xtmp)
       sort!(xtmp)
 
-      gno   = 0 
-      if prec==BigFloat
-        y0 = BigFloat(10000.0)
-      else
-        y0 = 10000.0
-      end  
+      gno   = 0
+      y0 = prec(10000)
+#      if prec==BigFloat
+#        y0 = BigFloat(10000.0)
+#      else
+#        y0 = 10000.0
+#      end  
       x0    = xtmp[1] - y0
       diff  = 0.
       for k in 1:n

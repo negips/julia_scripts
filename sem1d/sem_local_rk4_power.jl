@@ -83,11 +83,13 @@ Vold  = zeros(vt,ntot,LKryl+1)
 H     = zeros(vt,LKryl+1,LKryl)
 Hold  = zeros(vt,LKryl+1,LKryl)
 
-if prec == BigFloat
-  r0   = rand(prec,ntot) + im*rand(prec,ntot);
-else
-  r0   = randn(vt,ntot);
-end  
+r0   = randn(vt,ntot);
+
+#if prec == BigFloat
+#  r0   = rand(prec,ntot) + im*rand(prec,ntot);
+#else
+#  r0   = randn(vt,ntot);
+#end  
 
 r0     = (one+one*im)sin.(2*pi*xall)
 r0[1]  = zro
@@ -112,11 +114,13 @@ rgba0 = cm(0)
 rgba1 = cm(1) 
 rgba2 = cm(2) 
 
-if prec == BigFloat
-  dt = BigFloat(0.0001)
-else
-  dt = 0.00002
-end  
+dt = prec(0.0001)
+
+#if prec == BigFloat
+#  dt = BigFloat(0.0001)
+#else
+#  dt = 0.00002
+#end  
 
 λn = zeros(vt,nkryl)
 

@@ -158,6 +158,8 @@ end
 bm2 = Diagonal(wzm2)
 bdgl = bm2*dgl
 
+bdglt = bdgl'
+
 lap2 = dgl'*bdgl 
 
 lapnek = zeros(prec,lx1,lx1)
@@ -170,7 +172,7 @@ for j=1:n-1
     s = 0.0
     for k=b0:b1
       bb = (1.0/wzm1[k+1])
-      s1 = bdgl[i,k+1]*bb*bdgl[j,k+1]
+      s1 = bdgl[i,k+1]*bb*bdglt[k+1,j]
 #      println("$i $j $k $bb $s1")
       s = s + s1 
     end  

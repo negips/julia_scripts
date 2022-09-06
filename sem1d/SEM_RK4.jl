@@ -6,17 +6,10 @@ function SEM_RK4!(v,dt,nel,lx1,OP,B,Binv,Q,QT,prec)
   v2 = copy(v)
   v3 = copy(v)
 
-  if prec==BigFloat
-    zro = BigFloat(0.0)
-    one = BigFloat(1.0)
-    two = BigFloat(2.0)
-    six = BigFloat(6.0)
-  else
-    zro = 0.0
-    one = 1.0
-    two = 2.0
-    six = 6.0
-  end  
+  zro = prec(0.0)
+  one = prec(1.0)
+  two = prec(2.0)
+  six = prec(6.0)
  
 #  Bdssum = Q*(QT*B)
 #  Binv   = one./Bdssum
