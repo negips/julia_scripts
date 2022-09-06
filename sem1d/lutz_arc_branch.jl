@@ -87,7 +87,7 @@ r = randn(vt,ndof)
 #end  
 
 r     = (one+one*im)sin.(5*pi*xg[:])
-r[1]  = 0.0
+r[1]  = prec(0)
 
 ifarnoldi   = true
 ifoptimal   = false     # Calculate optimal responses

@@ -9,7 +9,7 @@ using PolynomialBases
 #VT = ComplexF64
 #setprecision(90)
 #prec = BigFloat
-prec = Float64 #Double64 # Float64
+prec = Double64 # Float64
 
 VT  = Complex{prec}
 

@@ -25,8 +25,10 @@ function ArnIRst(V::Matrix,Hes::Matrix,b::Int,B::Union{Vector,Matrix},k::Int,kma
 
     rw,cl = size(V)
 
-    U     = 0.0*V
-    G     = 0.0*Hes
+    zro   = localprec(0)
+
+    U     = zro*V
+    G     = zro*Hes
 
 #   Perform implicit restart      
     if k == kmax
@@ -131,7 +133,8 @@ function ArnBIRst(V::Matrix,Hes::Matrix,b::Int,B::Union{Vector,Matrix},k::Int,km
 
     revFrancis = false 
 
-    tol = 1.0e-24
+    localprec = eltype(V[1])
+    tol = abs(localprec(1.0e-24))
 
     EKryl = kmax - 1 - Nev 
     ifconv = false
@@ -141,8 +144,10 @@ function ArnBIRst(V::Matrix,Hes::Matrix,b::Int,B::Union{Vector,Matrix},k::Int,km
 
     rw,cl = size(V)
 
-    U     = 0.0*V
-    G     = 0.0*Hes
+    zro   = localprec(0)
+
+    U     = zro*V
+    G     = zro*Hes
 
 #   Perform implicit restart      
     if k == kmax

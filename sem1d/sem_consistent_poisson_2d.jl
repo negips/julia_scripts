@@ -313,11 +313,14 @@ h2 = figure(num=2)
 evnek_matrix = reshape(Fcp_nek_ρ.vectors,lx2,lx2,lx2*lx2)
 evnew_matrix = reshape(Fcp_132_ρ.vectors,lx2,lx2,lx2*lx2)
 
-i = 10
+evnek_matrix = reshape(Fcp_nek.vectors,lx2,lx2,lx2*lx2)
+evnew_matrix = reshape(Fcp_132.vectors,lx2,lx2,lx2*lx2)
+
+i = 1
 evneki       = jf*evnek_matrix[:,:,i]*jf'
 evnewi       = jf*evnew_matrix[:,:,i]*jf'
 
-surf(xf,yf,evneki)
+h2 = figure(num=2)
 surf(xf,yf,evnewi)
 
 #surf(G2D_M2.x[:,:,1],G2D_M2.y[:,:,1],(soldm .- solmnek))

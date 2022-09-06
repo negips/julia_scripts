@@ -51,13 +51,17 @@ function SEM_Local_Apply(v,nel,lx1,OP,Binv,Q,QT,prec)
   vi   = copy(v)
   vout = copy(v)
 
-  if prec==BigFloat
-    zro = BigFloat(0.0)
-    one = BigFloat(1.0)
-  else
-    zro = 0.0
-    one = 1.0
-  end  
+  zro = prec(0)
+  one = prec(1)
+
+
+#  if prec==BigFloat
+#    zro = BigFloat(0.0)
+#    one = BigFloat(1.0)
+#  else
+#    zro = 0.0
+#    one = 1.0
+#  end  
 
   for i in 1:nel
     j1 = (i-1)*lx1+1 

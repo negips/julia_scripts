@@ -18,26 +18,34 @@ function AssembleMatrixLesshafft(U,γ,c0,cnv,wlp,xm1,bm1,Basis,lx1,nel,prec)
       VT  = Complex{prec}
 
       II  = Matrix{VT}(I,lx1,lx1)
+      xa  = prec(1)                     # Feedback destination point
+      xs  = prec(39)                    # Feedback source point
+      b   = prec(0.1)                   # Exponential drop off rate for feedback
 
-      if (prec == BigFloat)
-        xa  = BigFloat(1.0)         # Feedback destination point
-        xs  = BigFloat(39.0)        # Feedback source point
-        b   = BigFloat(0.1)         # Exponential drop off rate for feedback
+      fact  = prec(100)
+      one   = prec(1)
+      eight = prec(8)
+      twnty = prec(20)
 
-        fact = BigFloat(100.0)
-        one   = BigFloat(1.0)
-        eight = BigFloat(8.0)
-        twnty = BigFloat(20.0)
-      else
-        xa  = 1.0                   # Feedback destination point
-        xs  = 39.0                  # Feedback source point
-        b   = 0.1                   # Exponential drop off rate for feedback
-
-        fact = 100.0
-        one   = 1.0
-        eight = 8.0
-        twnty = 20.0
-      end
+#      if (prec == BigFloat)
+#        xa  = BigFloat(1.0)         # Feedback destination point
+#        xs  = BigFloat(39.0)        # Feedback source point
+#        b   = BigFloat(0.1)         # Exponential drop off rate for feedback
+#
+#        fact = BigFloat(100.0)
+#        one   = BigFloat(1.0)
+#        eight = BigFloat(8.0)
+#        twnty = BigFloat(20.0)
+#      else
+#        xa  = 1.0                   # Feedback destination point
+#        xs  = 39.0                  # Feedback source point
+#        b   = 0.1                   # Exponential drop off rate for feedback
+#
+#        fact = 100.0
+#        one   = 1.0
+#        eight = 8.0
+#        twnty = 20.0
+#      end
 
       cutoff = fact*eps(prec)
 
@@ -137,27 +145,35 @@ function AssembleMatrixLesshafft2(U,γ,c0,cnv,wlp,xm1,bm1,Basis,lx1,nel,prec)
       VT  = Complex{prec}
 
       II  = Matrix{VT}(I,lx1,lx1)
+      xa  = prec(1)                     # Feedback destination point
+      xs  = prec(39)                    # Feedback source point
+      b   = prec(0.1)                   # Exponential drop off rate for feedback
 
-      if (prec == BigFloat)
-        xa  = BigFloat(1.0)         # Feedback destination point
-        xs  = BigFloat(39.0)        # Feedback source point
-        b   = BigFloat(0.1)         # Exponential drop off rate for feedback
+      fact  = prec(100)
+      one   = prec(1)
+      eight = prec(8)
+      twnty = prec(20)
 
-        fact  = BigFloat(100.0)
-        one   = BigFloat(1.0)
-        eight = BigFloat(8.0)
-        twnty = BigFloat(20.0)
-       
-      else
-        xa  = 1.0                   # Feedback destination point
-        xs  = 39.0                  # Feedback source point
-        b   = 0.1                   # Exponential drop off rate for feedback
-
-        fact  = 100.0
-        one   = 1.0
-        eight = 8.0
-        twnty = 20.0
-      end
+#      if (prec == BigFloat)
+#        xa  = BigFloat(1.0)         # Feedback destination point
+#        xs  = BigFloat(39.0)        # Feedback source point
+#        b   = BigFloat(0.1)         # Exponential drop off rate for feedback
+#
+#        fact  = BigFloat(100.0)
+#        one   = BigFloat(1.0)
+#        eight = BigFloat(8.0)
+#        twnty = BigFloat(20.0)
+#       
+#      else
+#        xa  = 1.0                   # Feedback destination point
+#        xs  = 39.0                  # Feedback source point
+#        b   = 0.1                   # Exponential drop off rate for feedback
+#
+#        fact  = 100.0
+#        one   = 1.0
+#        eight = 8.0
+#        twnty = 20.0
+#      end
 
       cutoff = fact*eps(prec)
 
@@ -257,17 +273,17 @@ function AssembleMatrixLesshafftSparse(U,γ,c0,cx0,whichsrc,cnv,wlp,xm1,bm1,Basi
 
       II  = Matrix{VT}(I,lx1,lx1)
 
-      xa    = prec(1.0)         # Feedback destination point
-      xs    = prec(39.0)        # Feedback source point
+      xa    = prec(1)           # Feedback destination point
+      xs    = prec(39)          # Feedback source point
       b     = prec(0.1)         # Exponential drop off rate for feedback
 
-      fact  = prec(100.0)
-      zro   = prec(0.0)
-      one   = prec(1.0)
-      eight = prec(8.0)
-      twnty = prec(20.0)
+      fact  = prec(100)
+      zro   = prec(0)
+      one   = prec(1)
+      eight = prec(8)
+      twnty = prec(20)
       half  = prec(0.5)
-      hund  = prec(100.0)
+      hund  = prec(100)
 
       cutoff = fact*eps(prec)
 
@@ -380,15 +396,15 @@ function AssembleAdjointLesshafftSparse(U,γ,c0,cx0,whichsrc,cnv,wlp,xm1,bm1,Bas
 
       II  = Matrix{VT}(I,lx1,lx1)
 
-      xa    = prec(1.0)         # Feedback destination point
-      xs    = prec(39.0)        # Feedback source point
+      xa    = prec(1)           # Feedback destination point
+      xs    = prec(39)          # Feedback source point
       b     = prec(0.1)         # Exponential drop off rate for feedback
 
-      fact  = prec(100.0)
-      zro   = prec(0.0)
-      one   = prec(1.0)
-      eight = prec(8.0)
-      twnty = prec(20.0)
+      fact  = prec(100)
+      zro   = prec(0)
+      one   = prec(1)
+      eight = prec(8)
+      twnty = prec(20)
       half  = prec(0.5)
 
       cutoff = fact*eps(prec)
