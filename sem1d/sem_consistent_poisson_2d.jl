@@ -27,7 +27,7 @@ zro = prec(0.0)
 close("all")
 
 # define nodal bases
-N           = 20 ;                              # polynomial degree
+N           = 9 ;                              # polynomial degree
 lx1         = N+1;                              # No of points
 Basis       = LobattoLegendre(N, prec)          # Polynomial Basis
 
@@ -35,9 +35,9 @@ N2          = N-2;                              # polynomial degree (Mesh 2)
 lx2         = N2+1;                             # No of points
 Basis2      = GaussLegendre(N2, prec)           # Polynomial Basis
 
-N3          = N+10 ;                              # polynomial degree
+N3          = N ;                              # polynomial degree
 lx3         = N3+1;                              # No of points
-Basis3      = GaussLegendre(N3, prec)            # Polynomial Basis
+Basis3      = LobattoLegendre(N3, prec)            # Polynomial Basis
 
 N4          = floor(Int64,1.5*N) ;                              # polynomial degree
 lx4         = N4+1;                              # No of points
@@ -169,14 +169,55 @@ CPoisson2D_13d2,Mass_13d2 = ConsistentPoisson2D_Dealias(Basis,Basis2,binv,gradno
 Fcp_13d2  = eigen(CPoisson2D_13d2,Matrix(Mass_13d2))
 
 
+# Projecting out the null-space
 #-------------------------------------------------- 
 
+p0  = ones(prec,length(G2D_M2.x))
+vol = p0'*Mass_nek*p0
+p0n = p0./sqrt(vol)
+Pr0 = p0n*p0n'*Mass_nek       # Projector on to the null space
+U   = I - Pr0                 # Projector orthogonal to the null space
+
+CPoisson2D_nek0   = U'*CPoisson2D_nek*U
+Fcp_nek0   = eigen(CPoisson2D_nek0,Matrix(Mass_nek))
+
+
+# Projecting out the null-space (without Mass Matrix)
+#-------------------------------------------------- 
+
+p01  = ones(prec,length(G2D_M2.x))
+vol1 = p01'*p01 + 0.0
+p01n = p01./sqrt(vol1)
+Pr01 = p01n*p01n'             # Projector on to the null space
+U1   = I - Pr01               # Projector orthogonal to the null space
+
+CPoisson2D_nek1   = U1'*CPoisson2D_nek*U1
+Fcp_nek1   = eigen(CPoisson2D_nek1,Matrix(Mass_nek))
+
+
+# Projecting out the null-space of 132
+#-------------------------------------------------- 
+
+#p0  = ones(prec,length(G2D_M2.x))
+#vol = p0'*Mass_nek*p0
+#p0n = p0./sqrt(vol)
+#Pr0 = p0n*p0n'*Mass_nek       # Projector on to the null space
+#U   = I - Pr0                 # Projector orthogonal to the null space
+
+CPoisson2D_1320   = U'*CPoisson2D_132*U
+Fcp_1320   = eigen(CPoisson2D_1320,Matrix(Mass_132))
+
+
+#-------------------------------------------------- 
 
 plot(Fcp_nek.values,linestyle="none",marker="o",label="nek")
-plot(Fcp_132.values,linestyle="none",marker="o",label="132")
+plot(Fcp_nek0.values,linestyle="none",marker="o",label="nek-0")
+plot(Fcp_nek1.values,linestyle="none",marker="o",label="nek-1")
+plot(Fcp_1320.values,linestyle="none",marker="o",label="132-0")
+#plot(Fcp_132.values,linestyle="none",marker="o",label="132")
 #plot(Fcp_1342.values,linestyle="none",marker="o",label="D. 1342")
 #plot(Fcp_1442.values,linestyle="none",marker="o",label="D. 1442")
-plot(Fcp_13d2.values,linestyle="none",marker="o",label="D. 13d2")
+#plot(Fcp_13d2.values,linestyle="none",marker="o",label="D. 13d2")
 
 legend(fontsize=12)
 
@@ -192,8 +233,8 @@ solm       = reshape(sol,lx2,lx2)
 solnek     = gmres(CPoisson2D_nek,bf)
 solmnek    = reshape(solnek,lx2,lx2)
 
-sold3      = gmres(CPoisson2D_13d2,bf)
-sold3m     = reshape(sold3,lx2,lx2)
+solnek0    = gmres(CPoisson2D_nek0,bf)
+solmnek0   = reshape(solnek0,lx2,lx2)
 
 Nf = 50
 zxf = Vector(range(xs,xe,length=Nf))
@@ -202,13 +243,24 @@ jf = interpolation_matrix(zxf,Basis2.nodes,Basis2.baryweights);
 xf = jf*G2D_M2.x[:,:,1]*(jf');
 yf = jf*G2D_M2.y[:,:,1]*(jf');
 
-sfm = jf*solm*(jf');
-sfnek = jf*solmnek*(jf');
-sfd3 = jf*sold3m*(jf');
+sfm    = jf*solm*(jf');
+sfnek  = jf*solmnek*(jf');
+sfnek0 = jf*solmnek0*(jf');
+
+evnek = real.(reshape(Fcp_1320.vectors,lx2,lx2,lx2*lx2))
+
+i = 1
+evi   = evnek[:,:,i]; 
+
+evf = jf*evi*(jf');
+h2 = figure(num=2)
+surf(xf,yf,evf)
+
+
 
 #surf(G2D_M2.x[:,:,1],G2D_M2.y[:,:,1],(soldm .- solmnek))
 #surf(G2D_M2.x[:,:,1],G2D_M2.y[:,:,1],soldm)
-#surf(xf,yf,(sfd3 .- sfnek))
+#surf(xf,yf,sfnek)
 
 println("Done")
 
