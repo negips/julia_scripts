@@ -35,7 +35,7 @@ N2          = N-2;                              # polynomial degree (Mesh 2)
 lx2         = N2+1;                             # No of points
 Basis2      = GaussLegendre(N2, prec)           # Polynomial Basis
 
-N3          = N ;                              # polynomial degree
+N3          = 3*N ;                              # polynomial degree
 lx3         = N3+1;                              # No of points
 Basis3      = LobattoLegendre(N3, prec)            # Polynomial Basis
 
@@ -94,6 +94,9 @@ G2D_M4  = sem_geom2d(Basis4,Basis4,xc,yc,nel,prec)
 G2D_M5  = sem_geom2d(Basis5,Basis5,xc,yc,nel,prec)
 
 
+## Nek Pseudo-Laplacian (2D)
+#--------------------------------------------------
+
 gradnodes   = Basis2.nodes
 gradweights = Basis2.weights
 divnodes    = Basis2.nodes
@@ -126,10 +129,95 @@ divnodes    = Basis3.nodes
 divweights  = Basis3.weights
 dealnodes   = Basis5.nodes
 dealweights = Basis5.weights
+binv        = 1.0./G2D_M1.b
 
 CPoisson2D_13d2,Mass_13d2 = ConsistentPoisson2D_Dealias(Basis,Basis2,binv,gradnodes,gradweights,divnodes,divweights,dealnodes,dealweights,prec)
 Fcp_13d2  = eigen(CPoisson2D_13d2,Matrix(Mass_13d2))
 
+## Nek Pseudo-Laplacian (2D) with variable density
+#--------------------------------------------------
+
+gradnodes   = Basis2.nodes
+gradweights = Basis2.weights
+divnodes    = Basis2.nodes
+divweights  = Basis2.weights
+
+x0          = -ones(prec,size(G2D_M1.x))
+μ           = (1.0/0.7)
+ρ           = exp.(-(μ.*(G2D_M1.x .- x0)).^2)
+binv        = 1.0./(G2D_M1.b.*ρ)
+
+CPoisson2D_nek_ρ,Mass_nek_ρ = ConsistentPoisson2D(Basis,Basis2,binv,gradnodes,gradweights,divnodes,divweights,prec)
+
+Fcp_nek_ρ   = eigen(CPoisson2D_nek_ρ,Matrix(Mass_nek_ρ))
+
+## Nek Pseudo-Laplacian (2D) with variable density
+#--------------------------------------------------
+
+gradnodes   = Basis2.nodes
+gradweights = Basis2.weights
+divnodes    = Basis2.nodes
+divweights  = Basis2.weights
+
+x0          = -ones(prec,size(G2D_M1.x))
+μ           = (1.0/0.7)
+ρ           = exp.(-(μ.*(G2D_M1.x .- x0)).^2)
+binv        = 1.0./(G2D_M1.b)
+
+CPoisson2D_nek_ρρ,Mass_nek_ρρ = ConsistentPoisson2D_ρ(Basis,Basis2,binv,ρ,gradnodes,gradweights,divnodes,divweights,prec)
+
+Fcp_nek_ρρ   = eigen(CPoisson2D_nek_ρρ,Matrix(Mass_nek_ρρ))
+
+## Consistent Integration (2D) with variable density
+#--------------------------------------------------
+
+gradnodes   = Basis3.nodes
+gradweights = Basis3.weights
+divnodes    = Basis3.nodes
+divweights  = Basis3.weights
+
+x0          = -ones(prec,size(G2D_M1.x))
+μ           = (1.0/0.7)
+ρ           = exp.(-(μ.*(G2D_M1.x .- x0)).^2)
+binv        = 1.0./(G2D_M1.b.*ρ)
+CPoisson2D_132_ρ,Mass_132_ρ = ConsistentPoisson2D(Basis,Basis2,binv,gradnodes,gradweights,divnodes,divweights,prec)
+
+Fcp_132_ρ   = eigen(CPoisson2D_132_ρ,Matrix(Mass_132_ρ))
+
+## Consistent Integration (2D) with variable density
+#--------------------------------------------------
+
+gradnodes   = Basis3.nodes
+gradweights = Basis3.weights
+divnodes    = Basis3.nodes
+divweights  = Basis3.weights
+
+x0          = -ones(prec,size(G2D_M1.x))
+μ           = (1.0/0.7)
+ρ           = exp.(-(μ.*(G2D_M1.x .- x0)).^2)
+binv        = 1.0./(G2D_M1.b)
+
+CPoisson2D_132_ρρ,Mass_132_ρρ = ConsistentPoisson2D_ρ(Basis,Basis2,binv,ρ,gradnodes,gradweights,divnodes,divweights,prec)
+
+Fcp_132_ρρ   = eigen(CPoisson2D_132_ρρ,Matrix(Mass_132_ρρ))
+
+
+# Consistent Poisson with Dealiased Integration (2D) only for product
+#--------------------------------------------------
+
+gradnodes   = Basis3.nodes
+gradweights = Basis3.weights
+divnodes    = Basis3.nodes
+divweights  = Basis3.weights
+dealnodes   = Basis5.nodes
+dealweights = Basis5.weights
+x0          = -ones(prec,size(G2D_M1.x))
+μ           = (1.0/0.7)
+ρ           = exp.(-(μ.*(G2D_M1.x .- x0)).^2)
+binv        = 1.0./G2D_M1.b
+
+CPoisson2D_13d2_ρ,Mass_13d2_ρ = ConsistentPoisson2D_Dealias_ρ(Basis,Basis2,binv,ρ,gradnodes,gradweights,divnodes,divweights,dealnodes,dealweights,prec)
+Fcp_13d2_ρ    = eigen(CPoisson2D_13d2_ρ,Matrix(Mass_13d2_ρ))
 
 # Projecting out the null-space
 #-------------------------------------------------- 
@@ -172,10 +260,13 @@ Fcp_1320   = eigen(CPoisson2D_1320,Matrix(Mass_132))
 
 #-------------------------------------------------- 
 
-plot(Fcp_nek.values,linestyle="none",marker="o",label="nek")
-plot(Fcp_nek0.values,linestyle="none",marker="o",label="nek-0")
-plot(Fcp_nek1.values,linestyle="none",marker="o",label="nek-1")
-plot(Fcp_1320.values,linestyle="none",marker="o",label="132-0")
+#plot(Fcp_nek.values,linestyle="none",marker="o",label="nek")
+#plot(Fcp_nek0.values,linestyle="none",marker="o",label="nek-0")
+#plot(Fcp_nek1.values,linestyle="none",marker="o",label="nek-1")
+plot(Fcp_nek_ρρ.values,linestyle="none",marker="o",label="nek-ρ")
+#plot(Fcp_132_ρ.values,linestyle="none",marker="o",label="132-ρ")
+plot(Fcp_132_ρρ.values,linestyle="none",marker="o",label="132-ρρ")
+#plot(Fcp_13d2_ρ.values,linestyle="none",marker="o",label="13d2-ρ")
 #plot(Fcp_132.values,linestyle="none",marker="o",label="132")
 #plot(Fcp_1342.values,linestyle="none",marker="o",label="D. 1342")
 #plot(Fcp_1442.values,linestyle="none",marker="o",label="D. 1442")
@@ -216,23 +307,22 @@ evi   = evnek[:,:,i];
 
 evf = jf*evi*(jf');
 h2 = figure(num=2)
-surf(xf,yf,evf)
+#surf(xf,yf,evf)
 
 
+evnek_matrix = reshape(Fcp_nek_ρ.vectors,lx2,lx2,lx2*lx2)
+evnew_matrix = reshape(Fcp_132_ρ.vectors,lx2,lx2,lx2*lx2)
 
-evnek_matrix = reshape(Fcp_nek.vectors,lx2,lx2,lx2*lx2)
-evnew_matrix = reshape(Fcp_132.vectors,lx2,lx2,lx2*lx2)
-
-i = 5
+i = 10
 evneki       = jf*evnek_matrix[:,:,i]*jf'
 evnewi       = jf*evnew_matrix[:,:,i]*jf'
 
+surf(xf,yf,evneki)
 surf(xf,yf,evnewi)
 
 #surf(G2D_M2.x[:,:,1],G2D_M2.y[:,:,1],(soldm .- solmnek))
 #surf(G2D_M2.x[:,:,1],G2D_M2.y[:,:,1],soldm)
 #surf(xf,yf,sfnek)
-
 
 
 println("Done")
