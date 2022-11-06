@@ -4,7 +4,7 @@ println("Testing Jacobi Davidson Method")
 
 using LinearAlgebra
 using Random
-using PyPlot,Blink,PyCall
+using PyPlot,PyCall
 using IterativeSolvers
 
 close("all")
@@ -32,7 +32,7 @@ u0 = randn(ComplexF64,n)
 
 v = u0/norm(u0);
 
-m = 30      # Search Space
+m = 10      # Search Space
 
 V = zeros(ComplexF64,n,m)
 W = zeros(ComplexF64,n,m)
@@ -52,7 +52,7 @@ err    = 1.0
 tol    = 1.0e-6
 
 globit = 0
-maxglobit = 200
+maxglobit = 1
 while err>tol && globit<=maxglobit        # Restarts
 
   global V,W,H,t,r,u,v,w,θ

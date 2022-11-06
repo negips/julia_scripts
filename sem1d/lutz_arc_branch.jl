@@ -102,7 +102,7 @@ else
   arnstep   = reortho
 end  
 verbosestep = arnstep #500
-nsteps      = 10000000
+nsteps      = 50000000
 ifsave      = true
 
 nkryl   = 0
@@ -126,10 +126,10 @@ Rhs = similar(v)
 rcParams["markers.fillstyle"] = "full"
 
 ifconv = false
-t = 0.0*dt        # Time
+t = zro*dt        # Time
 i = 0             # Istep
 
-maxouter_it = 100
+maxouter_it = 150
 major_it    = 1
 
 if (ifplot)
@@ -231,7 +231,7 @@ while (~ifconv)
       end  
 
       if (verbose)
-        @printf "Major Iteration: %3i, Krylov Size: %3i/%3i, β: %12e\n" major_it nkryl LKryl β
+        @printf "Major Iteration: %3i/%3i, Krylov Size: %3i/%3i, β: %12e\n" major_it maxouter_it nkryl LKryl β
       end
       if (β < tol)
         @printf "Stopping Iteration, β: %12e\n" β
@@ -279,7 +279,7 @@ while (~ifconv)
 #      ax2.set_ylim((vmin,vmax))
       ax2.set_ylim((-1.0,1.0))
      
-      pause(0.0001)
+      pause(0.00001)
       draw() 
     end  
 
@@ -313,7 +313,7 @@ end       # while ...
 if (ifarnoldi)
   Hr = H[1:Nev,1:Nev]
 
-  if prec == BigFloat
+  if prec != Float64
 #   eigvals works for BigFloat
 #   But eigvecs does not. So if we want the eigenvectors
 #   Need to come back to Float64/ComplexF64
@@ -344,7 +344,7 @@ if (ifarnoldi)
     end
   end  
 
-#  pλ = ax1.plot(real.(Lesshafft_λ),imag.(Lesshafft_λ), linestyle="none",marker=".", markersize=8)
+  pλ = ax1.plot(real.(Lesshafft_λ),imag.(Lesshafft_λ), linestyle="none",marker=".", markersize=8)
  
 # Eigenvectors  
   eigvec = V[:,1:Nev]*F.vectors
@@ -357,11 +357,11 @@ if (ifarnoldi)
 #    local pveca = ax3.plot(xg,abs.(eigvec[:,j]),linestyle="-")
   end
 
-  Ar        = eigvec'*diagm(Bg)*OPg*eigvec
-  λ_opt     = one*im*eigvals(Ar);
-  pλ2       = ax1.plot(real.(λ_opt),imag.(λ_opt), linestyle="none",marker=".", markersize=8)
-  ax1.set_xlim((-4.0,8.0))
-  ax1.set_ylim((-7.5,2.5))
+#  Ar        = eigvec'*diagm(Bg)*OPg*eigvec
+#  λ_opt     = one*im*eigvals(Ar);
+#  pλ2       = ax1.plot(real.(λ_opt),imag.(λ_opt), linestyle="none",marker=".", markersize=8)
+#  ax1.set_xlim((-4.0,8.0))
+#  ax1.set_ylim((-7.5,2.5))
 
 else
   hev = figure(num=3,figsize=[8.,6.]);
@@ -373,7 +373,7 @@ vnorm = norm(eigvec'*diagm(Bg)*eigvec - I)
 @printf("Vnorm: %12e", vnorm)
 
 if (ifsave)
-  save("nev15_1.jld2","evs",evs, "evec",eigvec);
+  save("nev15_corr_e-2_double64.jld2","evs",evs, "evec",eigvec);
 end  
 
 

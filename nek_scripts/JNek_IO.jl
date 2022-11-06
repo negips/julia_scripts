@@ -703,15 +703,11 @@
         comm = MPI.COMM_WORLD
         rank = MPI.Comm_rank(comm)
 
-        if (wdsizi==4)
-          gnum     = Vector{Int32}(undef,nelgt)
-        else
-          gnum     = Vector{Int64}(undef,nelgt)
-        end
-        glnum      = Vector{Int64}(undef,nelgt)
+        glnum    = Vector{Int32}(undef,nelgt)
+#        glnum    = Vector{Int64}(undef,nelgt)
 
-        read!(fid,gnum)
-        glnum = gnum
+        read!(fid,glnum)
+#        glnum = gnum
 
         ldim = 3
         if nz == 1

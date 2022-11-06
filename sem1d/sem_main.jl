@@ -30,11 +30,11 @@ vimult = one./vmult
 
 xall  = vimult.*(Q*QT*Geom.xm1[:]);
 
-U           = prec(6.0)
-γ           = prec(1.0) - prec(1.0)*im
-c0          = prec(0.0e-02)   # Coupling
-cx0         = prec(20.0)      # = 20 for the Lesshafft case
-whichsrc    = 1            # 1: Linear Decrease; 2: Tanh(x) saturation
+U           = prec(6)
+γ           = prec(1) - prec(1)*im
+c0          = prec(1.0e-02)   # Coupling
+cx0         = prec(20)        # = 20 for the Lesshafft case
+whichsrc    = 1               # 1: Linear Decrease; 2: Tanh(x) saturation
                         
 
 
@@ -86,7 +86,6 @@ if ifglobal
   AOPg   = QT*(AL)*Q./Bg
 
   @printf("Adjoint Global Matrices Built\n")
-   
   
 end
 

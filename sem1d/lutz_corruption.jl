@@ -62,9 +62,9 @@ Nev   = 15               # Number of eigenvalues to calculate
 EKryl = Int64(floor(2.5*Nev))           # Additional size of Krylov space
 LKryl = Nev + EKryl     # Total Size of Krylov space    
 ngs     = 2       # Number of Gram-Schmidt
-tol     = 1.0e-08
+tol     = prec(1.0e-24)
 
-vt    = Complex{prec}
+vt    = VT # Complex{prec}
 #vt    = Float64
 
 V     = zeros(vt,ndof,LKryl+1)
@@ -73,14 +73,16 @@ Vold  = zeros(vt,ndof,LKryl+1)
 H     = zeros(vt,LKryl+1,LKryl)
 Hold  = zeros(vt,LKryl+1,LKryl)
 
-if prec == BigFloat
-  r   = rand(prec,ndof) + im*rand(prec,ndof);
-else
-  r   = randn(vt,ndof);
-end  
+r     = randn(vt,ndof)
+
+#if prec == BigFloat
+#  r   = rand(prec,ndof) + im*rand(prec,ndof);
+#else
+#  r   = randn(vt,ndof);
+#end  
 
 r     = (one+one*im)sin.(5*pi*xg[:])
-r[1]  = 0.0
+r[1]  = zro # 0.0
 
 ifarnoldi   = true
 ifoptimal   = false      # Calculate optimal responses
@@ -132,7 +134,7 @@ Rhs = similar(v)
 rcParams["markers.fillstyle"] = "full"
 
 ifconv = false
-t = 0.0*dt        # Time
+t = zro*dt        # Time
 i = 0             # Istep
 
 maxouter_it = 200
@@ -245,7 +247,7 @@ while (~ifconv)
       end  
 
       if (verbose)
-       @printf "Major Iteration: %3i, Krylov Size: %3i, β: %12e\n" major_it nkryl β
+        @printf "Major Iteration: %3i/%3i, Krylov Size: %3i/%3i, β: %12e\n" major_it maxouter_it nkryl LKryl β
       end
       if (β < tol)
         @printf "Stopping Iteration, β: %12e\n" β

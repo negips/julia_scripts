@@ -228,7 +228,7 @@ p0n = p0./sqrt(vol)
 Pr0 = p0n*p0n'*Mass_nek       # Projector on to the null space
 U   = I - Pr0                 # Projector orthogonal to the null space
 
-CPoisson2D_nek0   = U'*CPoisson2D_nek*U
+CPoisson2D_nek0   = U*CPoisson2D_nek*U
 Fcp_nek0   = eigen(CPoisson2D_nek0,Matrix(Mass_nek))
 
 
@@ -260,6 +260,7 @@ Fcp_1320   = eigen(CPoisson2D_1320,Matrix(Mass_132))
 
 #-------------------------------------------------- 
 
+<<<<<<< HEAD
 #plot(Fcp_nek.values,linestyle="none",marker="o",label="nek")
 #plot(Fcp_nek0.values,linestyle="none",marker="o",label="nek-0")
 #plot(Fcp_nek1.values,linestyle="none",marker="o",label="nek-1")
@@ -267,6 +268,12 @@ plot(Fcp_nek_ρρ.values,linestyle="none",marker="o",label="nek-ρ")
 #plot(Fcp_132_ρ.values,linestyle="none",marker="o",label="132-ρ")
 plot(Fcp_132_ρρ.values,linestyle="none",marker="o",label="132-ρρ")
 #plot(Fcp_13d2_ρ.values,linestyle="none",marker="o",label="13d2-ρ")
+=======
+plot(Fcp_nek.values,linestyle="none",marker="o",label="nek")
+plot(Fcp_nek0.values,linestyle="none",marker="o",label="nek-B0")
+plot(Fcp_nek1.values,linestyle="none",marker="o",label="nek-I0")
+#plot(Fcp_1320.values,linestyle="none",marker="o",label="132-0")
+>>>>>>> 429b6a0 (updating from workstation)
 #plot(Fcp_132.values,linestyle="none",marker="o",label="132")
 #plot(Fcp_1342.values,linestyle="none",marker="o",label="D. 1342")
 #plot(Fcp_1442.values,linestyle="none",marker="o",label="D. 1442")
@@ -300,6 +307,7 @@ sfm    = jf*solm*(jf');
 sfnek  = jf*solmnek*(jf');
 sfnek0 = jf*solmnek0*(jf');
 
+<<<<<<< HEAD
 evnek = real.(reshape(Fcp_1320.vectors,lx2,lx2,lx2*lx2))
 
 i = 1
@@ -315,13 +323,27 @@ evnew_matrix = reshape(Fcp_132_ρ.vectors,lx2,lx2,lx2*lx2)
 
 evnek_matrix = reshape(Fcp_nek.vectors,lx2,lx2,lx2*lx2)
 evnew_matrix = reshape(Fcp_132.vectors,lx2,lx2,lx2*lx2)
+=======
+#evnek = real.(reshape(Fcp_nek1.vectors,lx2,lx2,lx2*lx2))
+#
+#i = 1
+#evi   = evnek[:,:,i]; 
+#
+#evf = jf*evi*(jf');
+#h2 = figure(num=2)
+#surf(xf,yf,evf)
+
+
+evnek_matrix = real.(reshape(Fcp_nek0.vectors,lx2,lx2,lx2*lx2))
+evnew_matrix = real.(reshape(Fcp_132.vectors,lx2,lx2,lx2*lx2))
+>>>>>>> 429b6a0 (updating from workstation)
 
 i = 1
 evneki       = jf*evnek_matrix[:,:,i]*jf'
 evnewi       = jf*evnew_matrix[:,:,i]*jf'
 
 h2 = figure(num=2)
-surf(xf,yf,evnewi)
+surf(xf,yf,evneki)
 
 #surf(G2D_M2.x[:,:,1],G2D_M2.y[:,:,1],(soldm .- solmnek))
 #surf(G2D_M2.x[:,:,1],G2D_M2.y[:,:,1],soldm)
