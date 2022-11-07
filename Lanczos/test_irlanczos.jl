@@ -3,14 +3,14 @@ println("Testing Implicitly Restarted Lanczos method")
 
 using LinearAlgebra
 using Random
-using Pseudospectra
+#using Pseudospectra
 using Printf
 using PyPlot
 
-include("ArnUpd.jl")
-include("ArnIRst.jl")
-include("ExplicitShiftedQR.jl")
-include("IRAM.jl")
+include("LanczosUpd.jl")
+#include("ArnIRst.jl")
+#include("ExplicitShiftedQR.jl")
+#include("IRAM.jl")
 
 close("all")
 
@@ -19,7 +19,9 @@ rng = MersenneTwister(1234)
 vt = ComplexF64
 #vt = Float64
 
-n = 100     # Matrix size
+zro   = vt(0.0)
+
+n = 10     # Matrix size
 
 λ  = randn(rng,vt,n)
 #λ .= λ.^3
@@ -37,8 +39,8 @@ AT = A';
 λr = real.(λ)
 ind = sortperm(λr,rev=true)
 
-Nev   = 20             # Number of eigenvalues to calculate
-EKryl = 36            # Additional size of Krylov space
+Nev   = 4             # Number of eigenvalues to calculate
+EKryl = 0            # Additional size of Krylov space
 LKryl = Nev + EKryl   # Total Size of Krylov space    
 
 Q     = zeros(vt,n,LKryl+1)   # Left Krylov space
@@ -50,83 +52,64 @@ w     = randn(rng,vt,n)
 
 ngs     = 2       # Number of Gram-Schmidt
 nkryl   = 0
-β       = norm(u)      # ||u0||
-ϵ       = v'*w/β0
-α       = 0.0
+
+α       = zro 
+β       = zro 
+δ       = zro 
+
+γ       = [α; δ; β]
 
 ifconv = false
 
-for i = 1:Nev
+LanczosUpd!(Q,P,u,w,γ,nkryl)
+display(γ)
+
+nkryl       = nkryl+1
+Q[:,nkryl]  = u
+P[:,nkryl]  = w
+# Hes[1,1] = β
+# Hes[1,2] = δ
+
+for i = 1:1 #Nev
   global P,Q,Hes,nkryl
-  local h,α,β,ϵ,w,u
+  global γ,u,w
+  local α,β,δ
 
-  q  = u./β
-  p  = w./ϵ
+  u           = A*u
+  w           = AT*w
 
-  Q[:,i] = q
-  P[:,i] = p
- 
-    u  = A*q
-    w  = AT*p
-  
-  if (i>1)
-    u = u .- Q[:,i-1]*ϵ
-    w = w .- P[:,i-1]*β
-  end
+  LanczosUpd!(Q,P,u,w,γ,nkryl)
+  nkryl            = nkryl+1
+  α   = γ[1]
+  δ   = γ[2]
+  β   = γ[3]
 
-  α = p'*u
-  u = u .- q*α
-  w = w .- p*α
+  k = nkryl -1 
+  if k==1
+    Hes[k,k]      = δ
+    Hes[k+1,k]    = β
+    Hes[k+1,k]    = β
 
-  β = norm(u)
-  ϵ = u'*w./β
+  elseif k==LKryl
+    Hes[k-1,k]    = α
+    Hes[k,k]      = δ
+  else
+    Hes[k-1,k]    = α
+    Hes[k,k]      = δ
+    Hes[k+1,k]    = β
+  end  
 
+  if (nkryl<LKryl)
+    Q[:,nkryl]     = u
+    P[:,nkryl]     = w
+  end 
+
+   
 
 end  
   
 
 
-#  α,β,ϵ  = LanczosUpd(W,V,y,x,nkryl,ngs)
-#  Hes[1:nkryl,nkryl] = h
-#  Hes[nkryl+1,nkryl] = β
-#  V[:,nkryl+1]       = r
-#  nkryl              = nkryl + 1
-
-
-#while ~ifconv
-
-## Major Iterations
-#for mi in 1:500
-#  global V,Hes,nkryl,ifconv
-#  local U,G
-#  local β
-#
-#  for i in Nev+1:LKryl
-#
-#    local h,β,r,v
-#
-#    r = V[:,nkryl]
-#    v = A*r
-#
-#    V,Hes,nkryl,β,mi2 = IRAM!(V,Hes,Bg,v,nkryl,LKryl,mi,Nev,ngs)
-#
-#  end
-#
-#  β   = abs(Hes[Nev+1,Nev])
-#
-#  if β < 1.0e-12
-#    break
-#  end
-# 
-#end  
-
-#Ht = Hes[1:Nev,1:Nev]
-#F = eigen(Ht)
-#ind2 = sortperm(real.(F.values),rev=true)
-
-#display(F.values[ind2])
-
-#plot(real.(F.values),imag.(F.values),linestyle="none",marker="o")
 
 
 
