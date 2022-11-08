@@ -21,34 +21,34 @@ function LanczosUpd!(Av::Vector,AHw::Vector,V::Matrix,W::Matrix,γ::Vector,j::In
 # New Lanczos Vectors
   if j > 0
 
-    α        = W[:,j]'*Av                # <w,Au>
     if (j > 1) 
-      Av     = Av  .- (β )*V[:,j-1]      # ̂v =  A*v_j   - β_j*v_j-1
-      AHw    = AHw .- (δ')*W[:,j-1]      # ̂w = (A')w_j  - δ_j*w_j-1
+      Av     .= Av  .- (β )*V[:,j-1]      # ̂v =  A*v_j   - β_j*v_j-1
+      AHw    .= AHw .- (δ')*W[:,j-1]      # ̂w = (A')w_j  - δ_j*w_j-1
     end  
 
-    Av       = Av  .- (α )*V[:,j]        # ̂v =  A*v_j   - β_j*v_j-1 -  α_j*v_j
-    AHw      = AHw .- (α')*W[:,j]        # ̂w = (A')w_j  - δ_j*w_j-1  - (α_j')*w_j
+    α        = W[:,j]'*Av                # <w,Au>
+    Av       .= Av  .- (α )*V[:,j]        # ̂v =  A*v_j   - β_j*v_j-1 -  α_j*v_j
+    AHw      .= AHw .- (α')*W[:,j]        # ̂w = (A')w_j  - δ_j*w_j-1  - (α_j')*w_j
 
     θ        = AHw'*Av                   # <̂w,̂v>
 
     δ        = sqrt(abs(θ))
     β        = θ/δ
 
-    Av       = Av./δ
-    AHw      = AHw./(β')
+    Av       .= Av./δ
+    AHw      .= AHw./(β')
 
   else
 
     θ        = AHw'*Av                   # <̂w,̂v>
-
     δ        = sqrt(abs(θ))
     β        = θ/δ
 
 #   Normalized s.t. <w,v> = 1
-    Av       = Av./δ
-    AHw      = AHw./(β')
-    α        = zro
+    Av       .= Av./δ
+    AHw      .= AHw./(β')
+    α        = AHw'*Av
+    println(α)
     β        = zro
     δ        = zro
   end
