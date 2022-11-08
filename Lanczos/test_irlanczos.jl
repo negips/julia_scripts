@@ -16,8 +16,8 @@ close("all")
 
 rng = MersenneTwister(1234)
 
-vt = ComplexF64
-#vt = Float64
+#vt = ComplexF64
+vt = Float64
 
 zro   = vt(0.0)
 
@@ -34,7 +34,7 @@ UQ = u.Q
 A = inv(UQ)*λm*UQ
 
 #A = Pseudospectra.grcar(n)
-AT = A';
+AH = A';
 
 λr = real.(λ)
 ind = sortperm(λr,rev=true)
@@ -61,7 +61,7 @@ nkryl   = 0
 
 ifconv = false
 
-LanczosUpd!(Q,P,u,w,γ,nkryl)
+LanczosUpd!(u,w,Q,P,γ,nkryl)
 display(γ)
 
 nkryl       = nkryl+1
@@ -70,41 +70,34 @@ P[:,nkryl]  = w
 # Hes[1,1] = β
 # Hes[1,2] = δ
 
-for i = 1:1 #Nev
+while nkryl<LKryl+1
   global P,Q,Hes,nkryl
   global γ,u,w
   local α,β,δ
 
-  u           = A*u
-  w           = AT*w
+  Au           = A*Q[:,nkryl]
+  AHw          = AH*P[:,nkryl]
 
-  LanczosUpd!(Q,P,u,w,γ,nkryl)
-  nkryl            = nkryl+1
+  LanczosUpd!(Au,AHw,Q,P,γ,nkryl)
   α   = γ[1]
   δ   = γ[2]
   β   = γ[3]
 
-  k = nkryl -1 
-  if k==1
-    Hes[k,k]      = δ
-    Hes[k+1,k]    = β
-    Hes[k+1,k]    = β
-
-  elseif k==LKryl
-    Hes[k-1,k]    = α
-    Hes[k,k]      = δ
+  k = nkryl 
+  if k==LKryl
+    Hes[k,k]      = α
+    Hes[k+1,k]    = δ
   else
-    Hes[k-1,k]    = α
-    Hes[k,k]      = δ
-    Hes[k+1,k]    = β
+    Hes[k,k]      = α
+    Hes[k+1,k]    = δ
+    Hes[k,k+1]    = β
   end  
 
-  if (nkryl<LKryl)
-    Q[:,nkryl]     = u
-    P[:,nkryl]     = w
+  nkryl = nkryl+1
+  if (nkryl<LKryl+1)
+    Q[:,nkryl]     = Au
+    P[:,nkryl]     = AHw
   end 
-
-   
 
 end  
   
