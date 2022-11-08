@@ -1,5 +1,5 @@
 # Lanczos Update
-function BiorthoUpd!(Av::Vector,AHw::Vector,V::Matrix,W::Matrix,γv::Vector,γw::Vector,j::Int)
+function BiOrthoUpd!(Av::Vector,AHw::Vector,V::Matrix,W::Matrix,γv::Vector,γw::Vector,j::Int)
 
 # Yousef Saad - Numerical Methods for large eigenvalue problems (2011) 2nd Edition
 # Algorithm 6.6: The non-Hermitian Lanczos Algorithm
