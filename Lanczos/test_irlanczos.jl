@@ -45,7 +45,7 @@ LKryl = Nev + EKryl   # Total Size of Krylov space
 
 Q     = zeros(vt,n,LKryl+1)   # Left Krylov space
 P     = zeros(vt,n,LKryl+1)   # Right Krylov space
-Hes   = zeros(vt,LKryl+1,LKryl)
+Tj    = zeros(vt,LKryl,LKryl)
 
 u     = randn(rng,vt,n)
 w     = randn(rng,vt,n)
@@ -57,7 +57,7 @@ nkryl   = 0
 β       = zro 
 δ       = zro 
 
-γ       = [α; δ; β]
+γ       = [α; β; δ]
 
 ifconv = false
 
@@ -80,21 +80,20 @@ while nkryl<LKryl+1
 
   LanczosUpd!(Au,AHw,Q,P,γ,nkryl)
   α   = γ[1]
-  δ   = γ[2]
-  β   = γ[3]
+  β   = γ[2]
+  δ   = γ[3]
 
   k = nkryl 
   if k==LKryl
-    Hes[k,k]      = α
-    Hes[k+1,k]    = δ
+    Tj[k,k]      = α
   else
-    Hes[k,k]      = α
-    Hes[k+1,k]    = δ
-    Hes[k,k+1]    = β
+    Tj[k,k]      = α
+    Tj[k+1,k]    = δ
+    Tj[k,k+1]    = β
   end  
 
   nkryl = nkryl+1
-  if (nkryl<LKryl+1)
+  if (nkryl<=LKryl+1)
     Q[:,nkryl]     = Au
     P[:,nkryl]     = AHw
   end 

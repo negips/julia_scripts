@@ -15,8 +15,8 @@ function LanczosUpd!(Av::Vector,AHw::Vector,V::Matrix,W::Matrix,γ::Vector,j::In
   el  = eltype(u)
   zro = el(0.0)
   α   = γ[1]
-  δ   = γ[2]
-  β   = γ[3]
+  β   = γ[2]
+  δ   = γ[3]
 
 # New Lanczos Vectors
   if j > 0
@@ -54,8 +54,8 @@ function LanczosUpd!(Av::Vector,AHw::Vector,V::Matrix,W::Matrix,γ::Vector,j::In
   end
 
   γ[1] = α
-  γ[2] = δ
-  γ[3] = β
+  γ[2] = β
+  γ[3] = δ
 
 #  return α,β,δ,u,w
 
