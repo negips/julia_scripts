@@ -22,7 +22,7 @@ vt = ComplexF64
 
 zro   = vt(0.0)
 
-n = 20     # Matrix size
+n = 100     # Matrix size
 
 λ  = randn(rng,vt,n)
 #λ .= λ.^3
@@ -42,7 +42,7 @@ AH = A';
 ind = sortperm(λr,rev=true)
 
 Nev   = 5             # Number of eigenvalues to calculate
-EKryl = 5             # Additional size of Krylov space
+EKryl = 12             # Additional size of Krylov space
 Lk = Nev + EKryl   # Total Size of Krylov space    
 
 V     = zeros(vt,n,Lk+1)   # Right Krylov space
@@ -67,7 +67,7 @@ W[:,nk]  = w
 
 # Major Iterations
 mi = 1
-while mi < 2
+while mi < 18
   global V,W,Hv,Hw,nk,mi
 
   Av           = A*V[:,nk]
@@ -75,17 +75,14 @@ while mi < 2
 
   ngs = 2
   nk,mi = IRBiOrtho!(V,W,Hv,Hw,Av,AHw,nk,Lk,mi,Nev,ngs)
-  println("nk=$nk, Major Iteration=$mi")
  
 end  
 
-Hu    = copy(Hv[1:Lk,1:Lk])
+Hu    = copy(Hv[1:Nev,1:Nev])
 λu    = eigvals(Hu)
+ind2  = sortperm(real.(λu),rev=true)   
 
-Hl    = copy(Hw[1:Lk,1:Lk])
-λl    = eigvals(Hl')
-
-display([λu λl])
+display([λu[ind2] λ[ind[1:Nev]]])
 println("Done.")
 
 
