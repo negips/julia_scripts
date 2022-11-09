@@ -21,6 +21,8 @@ function IRBiOrtho!(Vin::Matrix,Win::Matrix,Hv::Matrix,Hw::Matrix,Av::Vector,AHw
 
     Hv[:,k] = γv
     Hw[:,k] = γw
+#    Hw[k,:] = γw
+
 
     V[:,k+1]  = Av
     W[:,k+1]  = AHw
@@ -30,7 +32,7 @@ function IRBiOrtho!(Vin::Matrix,Win::Matrix,Hv::Matrix,Hw::Matrix,Av::Vector,AHw
 
 #   Perform implicit restart      
     if k2 == kmax+1
-#      k2,ifconv = BiOrthoIRst!(V,W,Hv,Hw,Av,AHw,k2,kmax,Nev,ngs)
+      k2,ifconv = BiOrthoIRst2!(V,W,Hv,Hw,Av,AHw,k2,kmax,Nev,ngs)
       
       v = V[:,k2]
       β = abs(Hv[Nev+1,Nev])

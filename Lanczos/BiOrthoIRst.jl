@@ -1,4 +1,124 @@
 # BiOrtho Implicit restart
+function BiOrthoIRst2!(V::Matrix,W::Matrix,Hv::Matrix,Hw::Matrix,fv::Vector,fw::Vector,k::Int,kmax::Int,Nev::Int,ngs::Int)
+
+#   V         - Right Krylov Vector
+#   W         - Left Krylov Vector
+#   Hv        - Right Upper Hessenberg
+#   Hw        - Left Upper Hessenberg
+#   β         - previous/new residual norm
+#   k         - Current Krylov size
+#   kmax      - Maximum Krylov size
+#   fv        - Old/New residual vector for Right subspace
+#   fw        - Old/New residual vector for Left subspace
+#   Nev       - Eigenvalues to retain
+
+
+    el        = eltype(V[1])
+    tol       = eps(abs(V[1]))
+
+    zro       = el(0.0) 
+
+    ekryl = kmax - Nev 
+    ifconv = false
+    nkryl = k
+
+
+    rv = V[:,k]*Hv[k,k-1]
+    rw = W[:,k]*Hw[k,k-1]
+
+    Vcopy = zro*V
+    Wcopy = zro*W
+    Hcopy = zro*Hv
+
+#   Perform implicit restart      
+    if k == kmax+1
+
+      kk = k-1
+
+      H = copy(Hv[1:kk,1:kk])
+
+#     Perform QR operations      
+      μ,nμ   = GetLowerShifts(H,ekryl)
+      Hsv,Qv  = ExplicitShiftedQR(H,μ,nμ,ngs)
+
+#      Hs,Q  = FrancisSeq(H,b,μ,nμ)
+#      Hs,Q  = FrancisSeqExact(H,b,μ,nμ)
+
+      v     = V[:,1:kk]*Qv[:,Nev+1]        # Part of new residual vector
+      βv    = Hsv[Nev+1,Nev]               # e_k+1^T*H*e_k         # This in principle is zero
+
+      @printf "βv After ImplicitQR: %12e, %12eim\n" real(βv) imag(βv) 
+
+      Hsw   = Qv'*Hw[1:kk,1:kk]*Qv
+
+      w     = W[:,1:kk]*Qv[:,Nev+1]        # Part of new residual vector
+      βw    = Hsw[Nev+1,Nev]               # e_k+1^T*H*e_k         # This in principle is zero
+
+      @printf "βw After ImplicitQR: %12e, %12eim\n" real(βw) imag(βw) 
+
+#      hdiff = norm(H) - norm(Hs);
+#      if (abs(hdiff)>1.0e-12)
+#        @printf "Possible Forward instability: HDiff: %8e\n" hdiff
+#      end  
+
+      σv     = Qv[kk,Nev]                   # e_k+p^T*Q*e_k
+      fv    .= βv*v .+ σv*rv                # new residual vector
+
+      σw     = Qv[kk,Nev]                   # e_k+p^T*Q*e_k
+      fw    .= βw*w .+ σw*rw                # new residual vector
+
+      v1      = copy(fv)
+      w1      = copy(fw)
+
+      θ       = fw'*fv                   # <̂w,̂v>
+      θa      = abs(θ) 
+      δ       = sqrt(θa)
+      β       = θ/δ
+
+      fv     .= fv./δ
+      fw     .= fw./(β')
+
+      δv      = (fv'*v1)/(fv'*fv)
+      δw      = (fw'*w1)/(fw'*fw)
+
+      if abs(θ)<tol
+        println("Possible Orthogonal subspaces: <w,v> = $θa")
+        ifconv = true
+      end  
+
+#     Update Krylov spaces      
+      Vcopy[:,1:Nev]    = V[:,1:kk]*Qv[:,1:Nev]        # Updated Right Krylov space
+      V                .= zro.*V
+      V[:,1:Nev]        = Vcopy[:,1:Nev]
+      V[:,Nev+1]        = fv
+
+      Vcopy[:,1:Nev]    = W[:,1:kk]*Qv[:,1:Nev]       # Updated Left Krylov space
+      W                .= zro.*W
+      W[:,1:Nev]        = Vcopy[:,1:Nev]
+      W[:,Nev+1]        = fw
+
+#     Update Hessenberg Matrices      
+      Hcopy[1:Nev,1:Nev]  = Hsv[1:Nev,1:Nev]           # New Upper Hessenberg
+      Hv                 .= zro*Hv
+      Hv[1:Nev,1:Nev]    .= Hcopy[1:Nev,1:Nev]
+      Hv[Nev+1,Nev]       = δv
+
+      Hcopy[1:Nev,1:Nev]  = Hsw[1:Nev,1:Nev]           # New Upper Hessenberg
+      Hw                 .= zro*Hw
+      Hw[1:Nev,1:Nev]    .= Hsw[1:Nev,1:Nev]
+      Hw[Nev+1,Nev]       = δw
+
+      nkryl = Nev+1
+
+    else
+      ifconv      = false
+      nkryl       = k
+
+    end     # k == kmax+1
+
+    return nkryl,ifconv
+end  
+#----------------------------------------------------------------------
 function BiOrthoIRst!(V::Matrix,W::Matrix,Hv::Matrix,Hw::Matrix,fv::Vector,fw::Vector,k::Int,kmax::Int,Nev::Int,ngs::Int)
 
 #   V         - Right Krylov Vector

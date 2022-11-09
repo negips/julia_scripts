@@ -64,24 +64,24 @@ BiOrthoUpd!(u,w,V,W,γv,γw,nkryl)
 nkryl       = nkryl+1
 V[:,nkryl]  = u
 W[:,nkryl]  = w
-
-while nkryl<Nev+1
-  global V,W,Hv,Hw,nkryl
-
-  Av           = A*V[:,nkryl]
-  AHw          = AH*W[:,nkryl]
-
-  BiOrthoUpd!(Av,AHw,V,W,γv,γw,nkryl)
-
-  k = nkryl
-  Hv[:,k] = γv
-  Hw[:,k] = γw
-
-  V[:,k+1]  = Av
-  W[:,k+1]  = AHw
-  nkryl     = nkryl+1
-
-end  
+#
+#while nkryl<Nev+1
+#  global V,W,Hv,Hw,nkryl
+#
+#  Av           = A*V[:,nkryl]
+#  AHw          = AH*W[:,nkryl]
+#
+#  BiOrthoUpd!(Av,AHw,V,W,γv,γw,nkryl)
+#
+#  k = nkryl
+#  Hv[:,k] = γv
+#  Hw[:,k] = γw'
+#
+#  V[:,k+1]  = Av
+#  W[:,k+1]  = AHw
+#  nkryl     = nkryl+1
+#
+#end  
   
 
 
