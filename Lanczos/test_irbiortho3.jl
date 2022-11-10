@@ -52,7 +52,8 @@ Hw    = zeros(vt,Lk+1,Lk)  #
 γw    = zeros(vt,Lk+1)
 
 u     = randn(rng,vt,n)
-w     = randn(rng,vt,n)
+#w     = randn(rng,vt,n)
+w     = copy(u)
 
 nk   = 0
 
@@ -64,7 +65,7 @@ W[:,nk]  = w
 
 # Major Iterations
 mi = 1
-mimax = 500 
+mimax = 50 
 while mi < mimax
   global V,W,Hv,Hw,nk,mi
 
