@@ -10,18 +10,18 @@ function IRBiOrtho!(Vin::Matrix,Win::Matrix,Hv::Matrix,Hw::Matrix,Av::Vector,AHw
 # Nev       - No of Requested Eigenvalues/Vectors
 # ngs       - No of Gram-Schmidt orthogonalizations
 
+    ifconv = false
     el  = eltype(Av)
     zro = el(0.0)
 
-    γv .= zeros(el,kmax+1)
-    γw .= zeros(el,kmax+1)
+    γv = zeros(el,kmax+1)
+    γw = zeros(el,kmax+1)
 
 #   Update Biorthogonal Vectors
-    BiOrthoUpd!(Av,AHw,V,W,γv,γw,k)
+    BiOrthoUpd!(Av,AHw,V,W,γv,γw,k,ngs)
 
     Hv[:,k] = γv
     Hw[:,k] = γw
-#    Hw[k,:] = γw
 
 
     V[:,k+1]  = Av
@@ -33,9 +33,10 @@ function IRBiOrtho!(Vin::Matrix,Win::Matrix,Hv::Matrix,Hw::Matrix,Av::Vector,AHw
 #   Perform implicit restart      
     if k2 == kmax+1
 
-      k2,ifconv = BiOrthoIRst3!(V,W,Hv,Hw,Av,AHw,k2,kmax,Nev,ngs)
+      Av    .= Hv[k2,k]*Av
+      AHw   .= Hw[k2,k]*AHw
+      k2,ifconv = BiOrthoIRst2!(V,W,Hv,Hw,Av,AHw,k2,kmax,Nev,ngs)
       
-      v = V[:,k2]
       β = abs(Hv[Nev+1,Nev])
       @printf "Major Iteration: %3i; β: %8e\n" Mi β
 
@@ -44,6 +45,50 @@ function IRBiOrtho!(Vin::Matrix,Win::Matrix,Hv::Matrix,Hw::Matrix,Av::Vector,AHw
 
     nkryl = k2  
 
-    return nkryl,mi 
+    return nkryl,mi,ifconv 
 
-end  
+end
+#---------------------------------------------------------------------- 
+
+function BiorthoReortho!(V::Matrix,W::Matrix,j::Int,ngs::Int)
+
+# V         - Right Krylov Space
+# W         - Left Krylov Space
+# γv        - Oblique Projections onto V along W
+# γw        - Oblique Projections onto W along V
+# j         - Current Krylov size
+# jmax      - Maximum Krylov size
+
+  el  = eltype(u)
+  zro = el(0.0)
+
+  γr = zeros(el,j)
+  γl = zeros(el,j)
+
+# New Lanczos Vectors
+  for l in 1:j
+    for g = 1:ngs
+      for k in 1:l-1
+        γr[k]  = W[:,k]'*V[:,l]
+      end
+  
+      for k in 1:l-1
+        V[:,l] .= V[:,l] .- γr[k]*V[:,k]      # ̂v =  A*v_j+1   - β_j*v
+      end 
+    end     # g =1:ngs 
+    
+    v1      = copy(V[:,l])
+    w1      = copy(AHw)
+
+    θ       = W[:,l]'*V[:,l]            # <̂w,̂v>
+    δ       = sqrt(abs(θ))
+    β       = (θ/δ)'
+
+    V[:,l] .= Av./δ
+    W[:,l] .= AHw./β
+
+  end  
+
+end
+
+
