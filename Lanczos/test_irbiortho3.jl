@@ -3,7 +3,7 @@ println("Testing Implicitly Restarted BiOrthogonal method")
 
 using LinearAlgebra
 using Random
-#using Pseudospectra
+using Pseudospectra
 using Printf
 using PyPlot
 
@@ -22,7 +22,7 @@ vt = ComplexF64
 
 zro   = vt(0.0)
 
-n = 300     # Matrix size
+n = 40     # Matrix size
 
 λ  = randn(rng,vt,n)
 λm = diagm(0 => λ)
@@ -34,7 +34,8 @@ UQ = u.Q
 A = inv(UQ)*λm*UQ
 #A = inv(U)*λm*U
 
-#A = Pseudospectra.grcar(n)
+A = Pseudospectra.grcar(n)
+λ = eigvals(A);
 AH = A';
 
 λr = real.(λ)
@@ -57,7 +58,8 @@ w     = copy(u)
 
 nk   = 0
 
-BiOrthoUpd!(u,w,V,W,γv,γw,nk)
+ngs = 2
+BiOrthoUpd!(u,w,V,W,γv,γw,nk,ngs)
 
 nk       = nk+1
 V[:,nk]  = u
@@ -65,7 +67,7 @@ W[:,nk]  = w
 
 # Major Iterations
 mi = 1
-mimax = 50 
+mimax = 200 
 while mi < mimax
   global V,W,Hv,Hw,nk,mi
 
@@ -97,35 +99,9 @@ ind3  = sortperm(real.(λl),rev=true)
 
 display([λu[ind2] λ[ind[1:Nev]]])
 
-#ekryl = Lk - Nev;
-#
-#
-#H = copy(Hv[1:Lk,1:Lk])
-#
-##Perform QR operations
-#ngs     = 2
-#μ,nμ    = GetLowerShifts(H,ekryl)
-#
-#Hsv,Qv  = ExplicitShiftedQR(H,μ,nμ,ngs)   # Hsv = Q'*H*Q; H = Q*Hsv*Q'
-#
-#Hsw     = Qv'*Hw[1:Lk,1:Lk]*Qv 
-#
-#Vp      = V[:,1:Lk]*Qv
-#Wp      = W[:,1:Lk]*Qv
-#
-#vk1     = Hv[Lk+1,Lk]*V[:,Lk+1];
-#wk1     = Hw[Lk+1,Lk]*W[:,Lk+1];
-#
-#ek      = zeros(vt,Lk)
-#ek[Lk]  = vt(1.0)
-#
-#ektQ    = transpose(Qv[Lk,:])
-#
-#rMv     = vk1*ektQ      # residual matrix v
-#rMw     = wk1*ektQ      # residual matrix w
-#
-#rv2     = rMv[:,Nev]    # residual vector
-#rw2     = rMw[:,Nev]    # residual vector
+
+plot(imag.(λ),real.(λ),linestyle="none", marker="o")
+plot(imag(λu),real(λu),linestyle="none", marker="s")
 
 
 println("Done.")
