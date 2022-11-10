@@ -32,8 +32,8 @@ U = randn(rng,vt,n,n)
 u = qr(U)
 UQ = u.Q
 
-A = inv(UQ)*λm*UQ
-#A = inv(U)*λm*U
+#A = inv(UQ)*λm*UQ
+A = inv(U)*λm*U
 
 #A = Pseudospectra.grcar(n)
 AH = A';
@@ -42,7 +42,7 @@ AH = A';
 ind = sortperm(λr,rev=true)
 
 Nev   = 5             # Number of eigenvalues to calculate
-EKryl = 12             # Additional size of Krylov space
+EKryl = 5             # Additional size of Krylov space
 Lk = Nev + EKryl   # Total Size of Krylov space    
 
 V     = zeros(vt,n,Lk+1)   # Right Krylov space
