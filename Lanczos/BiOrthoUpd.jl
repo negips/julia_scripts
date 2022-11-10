@@ -1,5 +1,5 @@
 # Lanczos Update
-function BiOrthoUpd!(Av::Vector,AHw::Vector,V::Matrix,W::Matrix,γv::Vector,γw::Vector,j::Int)
+function BiOrthoUpd!(Av::Vector,AHw::Vector,V::Matrix,W::Matrix,γv::Vector,γw::Vector,j::Int,ngs::Int)
 
 # Yousef Saad - Numerical Methods for large eigenvalue problems (2011) 2nd Edition
 # Algorithm 6.6: The non-Hermitian Lanczos Algorithm
@@ -12,6 +12,7 @@ function BiOrthoUpd!(Av::Vector,AHw::Vector,V::Matrix,W::Matrix,γv::Vector,γw:
 # γw        - Oblique Projections onto W along V
 # j         - Current Krylov size
 # jmax      - Maximum Krylov size
+# ngs       - No of oblique Gram-Schmid procedures
 
   el  = eltype(u)
   zro = el(0.0)
@@ -19,28 +20,35 @@ function BiOrthoUpd!(Av::Vector,AHw::Vector,V::Matrix,W::Matrix,γv::Vector,γw:
   γv .= zro.*γv
   γw .= zro.*γw
 
+  γr = zro.*γv
+  γl = zro.*γw
+
 # New Lanczos Vectors
   if j > 0
 
-    for k in 1:j
-      γv[k]  = W[:,k]'*Av
-      γw[k]  = V[:,k]'*AHw
-    end
-
-    for k in 1:j
-      Av    .= Av  .- γv[k]*V[:,k]      # ̂v =  A*v_j+1   - β_j*v
-      AHw   .= AHw .- γw[k]*W[:,k]      # ̂w = (A')w_j+1  - δ_j*w
-    end 
+    for g = 1:ngs
+      for k in 1:j
+        γr[k]  = W[:,k]'*Av
+        γl[k]  = V[:,k]'*AHw
+      end
+  
+      for k in 1:j
+        Av    .= Av  .- γr[k]*V[:,k]      # ̂v =  A*v_j+1   - β_j*v
+        AHw   .= AHw .- γl[k]*W[:,k]      # ̂w = (A')w_j+1  - δ_j*w
+      end 
+      γv    .= γv .+ γr
+      γw    .= γw .+ γl
+    end     # g =1:ngs 
     
     v1      = copy(Av)
     w1      = copy(AHw)
 
     θ       = AHw'*Av                   # <̂w,̂v>
     δ       = sqrt(abs(θ))
-    β       = θ/δ
+    β       = (θ/δ)'
 
     Av      .= Av./δ
-    AHw     .= AHw./(β')
+    AHw     .= AHw./β
 
     γv[j+1] = (Av'*v1)/(Av'*Av)
     γw[j+1] = (AHw'*w1)/(AHw'*AHw)
