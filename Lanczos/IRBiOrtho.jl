@@ -40,6 +40,14 @@ function IRBiOrtho!(Vin::Matrix,Win::Matrix,Hv::Matrix,Hw::Matrix,Av::Vector,AHw
       β = abs(Hv[Nev+1,Nev])
       @printf "Major Iteration: %3i; β: %8e\n" Mi β
 
+      if ~ifconv
+        orthonorm = norm(W[:,1:Nev+1]'*V[:,1:Nev+1] - I)
+        if orthonorm>1.0e-10
+          @printf "Reorthogonalizing OrthoNorm = %8e\n" orthonorm
+          BiorthoReortho!(V,W,k2,ngs)
+        end 
+      end  
+
       mi    = mi + 1
     end  
 
@@ -70,22 +78,16 @@ function BiorthoReortho!(V::Matrix,W::Matrix,j::Int,ngs::Int)
     for g = 1:ngs
       for k in 1:l-1
         γr[k]  = W[:,k]'*V[:,l]
+        γl[k]  = V[:,k]'*W[:,l]
       end
   
       for k in 1:l-1
         V[:,l] .= V[:,l] .- γr[k]*V[:,k]      # ̂v =  A*v_j+1   - β_j*v
+        W[:,l] .= W[:,l] .- γl[k]*W[:,k]      # ̂v =  A*v_j+1   - β_j*v
       end 
     end     # g =1:ngs 
     
-    v1      = copy(V[:,l])
-    w1      = copy(AHw)
-
-    θ       = W[:,l]'*V[:,l]            # <̂w,̂v>
-    δ       = sqrt(abs(θ))
-    β       = (θ/δ)'
-
-    V[:,l] .= Av./δ
-    W[:,l] .= AHw./β
+    αv,αw = BiorthoScale_vw!(V[:,l],W[:,l])  
 
   end  
 
