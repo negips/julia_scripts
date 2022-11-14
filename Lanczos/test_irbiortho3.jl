@@ -22,7 +22,7 @@ vt = ComplexF64
 
 zro   = vt(0.0)
 
-n = 20     # Matrix size
+n = 400     # Matrix size
 
 λ  = randn(rng,vt,n)
 λm = diagm(0 => λ)
@@ -34,23 +34,21 @@ UQ = u.Q
 A = inv(UQ)*λm*UQ
 #A = inv(U)*λm*U
 
-#A = Pseudospectra.grcar(n)
+A = Pseudospectra.grcar(n)
 λ = eigvals(A);
 AH = A';
 
 λr = real.(λ)
 ind = sortperm(λr,rev=true)
 
-Nev   = 2            # Number of eigenvalues to calculate
-EKryl = 6            # Additional size of Krylov space
-Lk = Nev + EKryl   # Total Size of Krylov space    
+Nev   = 1            # Number of eigenvalues to calculate
+EKryl = 5            # Additional size of Krylov space
+Lk = Nev + EKryl     # Total Size of Krylov space    
 
-V     = zeros(vt,n,Lk+1)   # Right Krylov space
-W     = zeros(vt,n,Lk+1)   # Left  Krylov space
+Vg    = zeros(vt,n,Lk+1)   # Right Krylov space
+Wg    = zeros(vt,n,Lk+1)   # Left  Krylov space
 Hv    = zeros(vt,Lk+1,Lk)
 Hw    = zeros(vt,Lk+1,Lk)  #
-γv    = zeros(vt,Lk+1)
-γw    = zeros(vt,Lk+1)
 
 u     = randn(rng,vt,n)
 w     = randn(rng,vt,n)
@@ -58,23 +56,20 @@ w     = randn(rng,vt,n)
 
 nk   = 0
 
-ngs = 2
-BiOrthoUpd!(u,w,V,W,γv,γw,nk,ngs)
+ngs = 1
+mi        = 1     # Major iteration
+nk,mi,ifc = IRBiOrtho!(Vg,Wg,Hv,Hw,u,w,nk,Lk,mi,Nev,ngs)
 
-nk       = nk+1
-V[:,nk]  = u
-W[:,nk]  = w
 
 # Major Iterations
-mi = 1
-mimax = 350 
+mimax = 5 
 while mi < mimax
   global V,W,Hv,Hw,nk,mi
 
-  Av           = A*V[:,nk]
-  AHw          = AH*W[:,nk]
+  Av           = A*Vg[:,nk]
+  AHw          = AH*Wg[:,nk]
 
-  nk,mi,ifconv = IRBiOrtho!(V,W,Hv,Hw,Av,AHw,nk,Lk,mi,Nev,ngs)
+  nk,mi,ifconv = IRBiOrtho!(Vg,Wg,Hv,Hw,Av,AHw,nk,Lk,mi,Nev,ngs)
 
   if (ifconv)
     break
@@ -82,7 +77,7 @@ while mi < mimax
  
 end  
 
-inp   = W'*V;
+inp   = Wg'*Vg;
 
 inp_red = inp[1:nk,1:nk];
 ortho   = norm(inp_red - I)

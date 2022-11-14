@@ -28,7 +28,7 @@ function BiOrthoIRst2!(V::Matrix,W::Matrix,Hv::Matrix,Hw::Matrix,fv::Vector,fw::
     ek      = zeros(el,k-1)
     ek[k-1] = el(1.0)
 
-#   Perform implicit restart      
+#   Perform implicit restart 
     if k == kmax+1
 
       kk = k-1
@@ -36,17 +36,17 @@ function BiOrthoIRst2!(V::Matrix,W::Matrix,Hv::Matrix,Hw::Matrix,fv::Vector,fw::
       H = copy(Hv[1:kk,1:kk])
 
 #     Perform QR operations 
-      μ,nμ   = GetLowerShifts(H,ekryl)          # Unwanted shifts
+      μ,nμ   = GetLowerShifts(H,ekryl)                # Unwanted shifts
       Hsv,Qv = ExplicitShiftedQR(H,μ,nμ,ngs)
 
-      ektQ   = transpose(Qv[kk,:]);        # Making sure this is a row vector
+      ektQ   = transpose(Qv[kk,:]);                   # Making sure this is a row vector
       rMv    = fv*ektQ
       rMw    = fw*ektQ
 
-      βv    = Hsv[Nev+1,Nev]               # e_k+1^T*H*e_k         # This in principle is zero
+      βv     = Hsv[Nev+1,Nev]                         # e_k+1^T*H*e_k         # This in principle is zero
 
 #     Update Krylov spaces      
-      Vcopy[:,1:Nev]    = V[:,1:kk]*Qv[:,1:Nev]        # Updated Right Krylov space
+      Vcopy[:,1:Nev]    = V[:,1:kk]*Qv[:,1:Nev]       # Updated Right Krylov space
       V                .= zro.*V
       V[:,1:Nev]        = Vcopy[:,1:Nev]
 
@@ -55,19 +55,19 @@ function BiOrthoIRst2!(V::Matrix,W::Matrix,Hv::Matrix,Hw::Matrix,fv::Vector,fw::
       W[:,1:Nev]        = Vcopy[:,1:Nev]
 
 #     Update Hessenberg Matrices      
-      H[1:Nev,1:Nev]      = Hsv[1:Nev,1:Nev]           # New Upper Hessenberg
-      Hv                 .= zro*Hv
-      Hv[1:Nev,1:Nev]    .= H[1:Nev,1:Nev]
+      H[1:Nev,1:Nev]    = Hsv[1:Nev,1:Nev]            # New Upper Hessenberg
+      Hv               .= zro*Hv
+      Hv[1:Nev,1:Nev]  .= H[1:Nev,1:Nev]
 
-      Hw                 .= zro*Hw
-      Hw[1:Nev,1:Nev]    .= (Hsv[1:Nev,1:Nev])'
+      Hw               .= zro*Hw
+      Hw[1:Nev,1:Nev]  .= (Hsv[1:Nev,1:Nev])'
 
 #      @printf "βv After ImplicitQR: %12e, %12eim\n" real(βv) imag(βv) 
 
-      fv    .= rMv[:,Nev]           # new right residual vector
-      fw    .= rMw[:,Nev]           # new left  residual vector
+      fv    .= rMv[:,Nev]                             # new right residual vector
+      fw    .= rMw[:,Nev]                             # new left  residual vector
 
-      θ       = fw'*fv                   # <̂w,̂v>
+      θ       = fw'*fv                                # <̂w,̂v>
       θa      = abs(θ)
 
       vn      = norm(fv)
@@ -89,8 +89,8 @@ function BiOrthoIRst2!(V::Matrix,W::Matrix,Hv::Matrix,Hw::Matrix,fv::Vector,fw::
       end  
 
       if (ifconv)
-        V[:,Nev+1]        = fv
-        W[:,Nev+1]        = fw
+        V[:,Nev+1]      = fv
+        W[:,Nev+1]      = fw
         
         nkryl = Nev+1
 
@@ -99,21 +99,19 @@ function BiOrthoIRst2!(V::Matrix,W::Matrix,Hv::Matrix,Hw::Matrix,fv::Vector,fw::
 
       δv,δw = BiorthoScale_vw!(fv,fw)
 
-#     Update Krylov spaces      
+#     Update Krylov spaces 
       V[:,Nev+1]        = fv
-
       W[:,Nev+1]        = fw
 
 #     Update Hessenberg Matrices      
-      Hv[Nev+1,Nev]       = δv
-
-      Hw[Nev,Nev+1]       = δw
+      Hv[Nev+1,Nev]     = δv
+      Hw[Nev,Nev+1]     = δw
 
       nkryl = Nev+1
 
     else
-      ifconv      = false
-      nkryl       = k
+      ifconv            = false
+      nkryl             = k
 
     end     # k == kmax+1
 

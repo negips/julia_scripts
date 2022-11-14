@@ -1,4 +1,4 @@
-function IRBiOrtho!(Vin::Matrix,Win::Matrix,Hv::Matrix,Hw::Matrix,Av::Vector,AHw::Vector,k::Int,kmax::Int,Mi::Int,Nev::Int,ngs::Int)
+function IRBiOrtho!(V::Matrix,W::Matrix,Hv::Matrix,Hw::Matrix,Av::Vector,AHw::Vector,k::Int,kmax::Int,Mi::Int,Nev::Int,ngs::Int)
 
 # V         - Right Krylov Space
 # W         - Left Krylov Space
@@ -20,12 +20,13 @@ function IRBiOrtho!(Vin::Matrix,Win::Matrix,Hv::Matrix,Hw::Matrix,Av::Vector,AHw
 #   Update Biorthogonal Vectors
     BiOrthoUpd!(Av,AHw,V,W,γv,γw,k,ngs)
 
-    Hv[:,k] = γv
-    Hw[:,k] = γw
+    if k>0
+      Hv[:,k] = γv
+      Hw[:,k] = γw
+    end  
 
-
-    V[:,k+1]  = Av
-    W[:,k+1]  = AHw
+    V[:,k+1] .= Av
+    W[:,k+1] .= AHw
     k2        = k+1
 
     mi        = Mi
@@ -40,13 +41,13 @@ function IRBiOrtho!(Vin::Matrix,Win::Matrix,Hv::Matrix,Hw::Matrix,Av::Vector,AHw
       β = abs(Hv[Nev+1,Nev])
       @printf "Major Iteration: %3i; β: %8e\n" Mi β
 
-      if ~ifconv
-        orthonorm = norm(W[:,1:Nev+1]'*V[:,1:Nev+1] - I)
-        if orthonorm>1.0e-10
-          @printf "Reorthogonalizing OrthoNorm = %8e\n" orthonorm
-          BiorthoReortho!(V,W,k2,ngs)
-        end 
-      end  
+#      if ~ifconv
+#        orthonorm = norm(W[:,1:Nev+1]'*V[:,1:Nev+1] - I)
+#        if orthonorm>1.0e-10
+#          @printf "Reorthogonalizing OrthoNorm = %8e\n" orthonorm
+#          BiorthoReortho!(V,W,k2,ngs)
+#        end 
+#      end  
 
       mi    = mi + 1
     end  

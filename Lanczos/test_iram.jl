@@ -29,16 +29,16 @@ U = randn(rng,vt,n,n)
 u = qr(U)
 UQ = u.Q
 
-A = inv(UQ)*λm*UQ
-
-#A = Pseudospectra.grcar(n)
+#A = inv(UQ)*λm*UQ
+A = Pseudospectra.grcar(n)
 AT = A';
 
+λ = eigvals(A);
 λr = real.(λ)
 ind = sortperm(λr,rev=true)
 
 Nev   = 20             # Number of eigenvalues to calculate
-EKryl = 36            # Additional size of Krylov space
+EKryl = 10            # Additional size of Krylov space
 LKryl = Nev + EKryl   # Total Size of Krylov space    
 
 V     = zeros(vt,n,LKryl+1)
@@ -78,7 +78,7 @@ end
 #while ~ifconv
 
 # Major Iterations
-for mi in 1:500
+for mi in 1:1000
   global V,Hes,nkryl,ifconv
   local U,G
   local β
@@ -129,12 +129,16 @@ ind2 = sortperm(real.(F.values),rev=true)
 
 display(F.values[ind2])
 
-plot(real.(F.values),imag.(F.values),linestyle="none",marker="o")
+plot(imag.(λ),real.(λ),linestyle="none", marker="o")
+plot(imag.(F.values),real.(F.values),linestyle="none",marker="s")
+
+#λe, ϕe = eigs(A, nev=20, ncv=30, which=:LR, tol=0.0, maxiter=300)
+#plot(imag.(λe),real.(λe),linestyle="none", marker="x")
 
 #errnorm = norm(λ[ind[1:Nev]]-F.values[ind2]) 
 #display("Err Norm: $errnorm")
 
-
+println("Done.")
 
 
 

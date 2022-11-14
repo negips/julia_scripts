@@ -14,7 +14,7 @@ function BiOrthoUpd!(Av::Vector,AHw::Vector,V::Matrix,W::Matrix,γv::Vector,γw:
 # jmax      - Maximum Krylov size
 # ngs       - No of oblique Gram-Schmid procedures
 
-  el  = eltype(u)
+  el  = eltype(Av[1])
   zro = el(0.0)
 
   γv .= zro.*γv
@@ -33,8 +33,8 @@ function BiOrthoUpd!(Av::Vector,AHw::Vector,V::Matrix,W::Matrix,γv::Vector,γw:
       end
   
       for k in 1:j
-        Av    .= Av  .- γr[k]*V[:,k]      # ̂v =  A*v_j+1   - β_j*v
-        AHw   .= AHw .- γl[k]*W[:,k]      # ̂w = (A')w_j+1  - δ_j*w
+        Av    .= Av  .- γr[k]*V[:,k]      # ̂v =  A*v_k+1   - γv_k*v
+        AHw   .= AHw .- γl[k]*W[:,k]      # ̂w = (A')w_k+1  - γw_k*w
       end 
       γv    .= γv .+ γr
       γw    .= γw .+ γl
@@ -53,8 +53,6 @@ function BiOrthoUpd!(Av::Vector,AHw::Vector,V::Matrix,W::Matrix,γv::Vector,γw:
     γw[j+1] = αw
    
   end
-
-#  return α,β,δ,u,w
 
 end
 
@@ -75,18 +73,17 @@ function BiOrthoUpd2!(Av::Vector,AHw::Vector,V::Matrix,W::Matrix,γv::Vector,γw
 # jmax      - Maximum Krylov size
 # ngs       - No of oblique Gram-Schmid procedures
 
-  el  = eltype(u)
+  el  = eltype(Av[1])
   zro = el(0.0)
 
   γv .= zro.*γv
   γw .= zro.*γw
 
-  γr = zro.*copy(γv)
-  γl = zro.*copy(γw)
+  γr = zro.*γv
+  γl = zro.*γw
 
 # New Lanczos Vectors
   if j > 0
-
     for g = 1:ngs
       for k in 1:j
         γr[k]  = W[:,k]'*Av
@@ -94,22 +91,23 @@ function BiOrthoUpd2!(Av::Vector,AHw::Vector,V::Matrix,W::Matrix,γv::Vector,γw
       end
   
       for k in 1:j
-        Av    .= Av  .- γr[k]*V[:,k]      # ̂v =  A*v_j+1   - β_j*v
-        AHw   .= AHw .- γl[k]*W[:,k]      # ̂w = (A')w_j+1  - δ_j*w
+        Av    .= Av  .- γr[k]*V[:,k]      # ̂v =  A*v_k+1   - γv_k*v
+        AHw   .= AHw .- γl[k]*W[:,k]      # ̂w = (A')w_k+1  - γw_k*w
       end 
       γv    .= γv .+ γr
       γw    .= γw .+ γl
     end     # g =1:ngs 
 
-    γv[j+1],γw[j+1] = BiorthoScale_vw!(Av,AHw)
-   
+    αv,αw = BiorthoScale_vw!(Av,AHw)
+    γv[j+1] = αv
+    γw[j+1] = αw
+  
   else
 
 #   Normalized s.t. <w,v> = 1
     αv,αw = BiorthoScale_vw!(Av,AHw)
     γv[j+1] = αv
     γw[j+1] = αw
-
 
   end
 
@@ -126,15 +124,22 @@ function BiorthoScale_vw!(v::Vector,w::Vector)
     δ       = sqrt(abs(θ))
     β       = (θ/δ)'
 
-#    θ       = w'*v                   # <̂w,̂v>
-#    β       = norm(w)
-#    δ       = θ/(β')
-
     v      .= v./δ
-    w      .= w./β
+    w      .= w./β   
 
     αv      = (v'*v1)/(v'*v)
     αw      = (w'*w1)/(w'*w)
+
+##   ||w|| = 1.0 
+#    
+#    β       = norm(w)
+#    w      .= w./β
+#    θ       = w'*v                    # <̂w,̂v>
+#    δ       = θ
+#    v      .= v./δ
+#
+#    αv      = δ
+#    αw      = β
 
     return αv,αw
 
