@@ -3,7 +3,7 @@ println("Testing Implicitly Restarted BiOrthogonal method")
 
 using LinearAlgebra
 using Random
-using Pseudospectra
+#using Pseudospectra
 using Printf
 using PyPlot
 
@@ -12,6 +12,7 @@ include("BiOrthoIRst.jl")
 include("ExplicitShiftedQR.jl")
 include("IRBiOrtho.jl")
 include("BulgeChase.jl")
+include("UpperHessenbergReduction.jl")
 
 close("all")
 
@@ -22,7 +23,7 @@ vt = ComplexF64
 
 zro   = vt(0.0)
 
-n = 400     # Matrix size
+n = 20     # Matrix size
 
 λ  = randn(rng,vt,n)
 λm = diagm(0 => λ)
@@ -34,15 +35,15 @@ UQ = u.Q
 A = inv(UQ)*λm*UQ
 #A = inv(U)*λm*U
 
-A = Pseudospectra.grcar(n)
+#A = Pseudospectra.grcar(n)
 λ = eigvals(A);
 AH = A';
 
 λr = real.(λ)
 ind = sortperm(λr,rev=true)
 
-Nev   = 1            # Number of eigenvalues to calculate
-EKryl = 5            # Additional size of Krylov space
+Nev   = 5            # Number of eigenvalues to calculate
+EKryl = 2            # Additional size of Krylov space
 Lk = Nev + EKryl     # Total Size of Krylov space    
 
 Vg    = zeros(vt,n,Lk+1)   # Right Krylov space
@@ -62,7 +63,7 @@ nk,mi,ifc = IRBiOrtho!(Vg,Wg,Hv,Hw,u,w,nk,Lk,mi,Nev,ngs)
 
 
 # Major Iterations
-mimax = 5 
+mimax = 2 
 while mi < mimax
   global V,W,Hv,Hw,nk,mi
 
@@ -98,7 +99,21 @@ plot(imag.(λ),real.(λ),linestyle="none", marker="o")
 plot(imag(λu),real(λu),linestyle="none", marker="s")
 
 
+H0 = copy(Hw[1:Nev,1:Nev])
+H1 = copy(H0)
+
+VV = UpperHessenbergReduction(H1)
+
+
+
 println("Done.")
+
+
+
+
+
+
+
 
 
 
