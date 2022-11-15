@@ -102,9 +102,20 @@ plot(imag(λu),real(λu),linestyle="none", marker="s")
 H0 = copy(Hw[1:Nev,1:Nev])
 H1 = copy(H0)
 
-VV = UpperHessenbergReduction(H1)
+#VV = UpperHessenbergReduction(H1)
+
+k = 1
+v = copy(H0[:,k])
+v[1:k] = zeros(vt,k)
+w = zeros(vt,1,Nev)
+w[k+1] = H0[k,k+1]
+v[k+1] = 1.0/w[k+1]
+β = w*H0[:,k]
+
+Q = I - v*w./β
 
 
+Vi,Wi = LowerHessenbergtoTriDiagonal!(H1)
 
 println("Done.")
 
