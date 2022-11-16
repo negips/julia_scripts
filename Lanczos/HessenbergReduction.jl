@@ -41,10 +41,11 @@ end
 function LowerHessenbergtoTriDiagonal!(H::Matrix)
 
   el = eltype(H[1])
+  one = el(1)
 
   r,c = size(H)
   if r!=c
-    display("H needs to be a square matrix: size(A)= $r,$c")
+    display("H needs to be a square matrix: size(H)= $r,$c")
   end
 
   W  = zeros(el,r,c)
@@ -55,22 +56,64 @@ function LowerHessenbergtoTriDiagonal!(H::Matrix)
     w[1:i]  = zeros(el,1,i)
     v       = H[:,i]
     v[1:i]  = zeros(el,i)
-    v[i+1]  = 1.0/w[i+1]
+    v[i+1]  = one/w[i+1]
     β       = w*H[:,i]
     w       = w./β
     Q       = I - v*w
     A       = Q*H
-    V[:,i+1] = v*w[i+1]
-    display(Q)
+    V[:,i+1] = -v*w[i+1]
+    V[i+1,i+1] = one + V[i+1,i+1]
 
 #   Build and store inverse Q as vectors in W
-    W[i+1,i+1]  = 1.0/V[i+1,i+1]
+    W[i+1,i+1]  = one/V[i+1,i+1]
     for j in i+2:r
       W[j,i+1] = - V[j,i+1]/V[i+1,i+1] 
     end
 
     Q[:,i+1]  = W[:,i+1]
     H      .= A*Q
+    
+  end
+
+  return V,W
+end
+#----------------------------------------------------------------------
+function UpperHessenbergtoTriDiagonal!(H::Matrix)
+
+  el = eltype(H[1])
+  one = el(1)
+
+  r,c = size(H)
+  if r!=c
+    display("H needs to be a square matrix: size(H)= $r,$c")
+  end
+
+  W  = zeros(el,r,c)
+  V  = zeros(el,r,c)
+
+  for i in 1:r-2
+    w       = transpose(H[i,:])
+    w[1:i]  = zeros(el,1,i)
+    v       = H[:,i]
+    v[1:i]  = zeros(el,i)
+    w[i+1]  = one/v[i+1]
+    β       = transpose(H[i,:])*v
+    v       = v./β
+    Q       = I - v*w
+    A       = H*Q
+    W[i+1,:] = -v[i+1]*w
+    W[i+1,i+1] = one + W[i+1,i+1]
+
+#    H      .= A 
+
+#   Build and store inverse Q as vectors in W
+    V[i+1,i+1]  = one/W[i+1,i+1]
+    for j in i+2:c
+      V[i+1,j] = - W[i+1,j]/W[i+1,i+1] 
+    end
+
+    Q[i+1,:]  = V[i+1,:]
+    H      .= Q*A
     
   end
 

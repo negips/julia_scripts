@@ -12,7 +12,7 @@ include("BiOrthoIRst.jl")
 include("ExplicitShiftedQR.jl")
 include("IRBiOrtho.jl")
 include("BulgeChase.jl")
-include("UpperHessenbergReduction.jl")
+include("HessenbergReduction.jl")
 
 close("all")
 
@@ -104,18 +104,28 @@ H1 = copy(H0)
 
 #VV = UpperHessenbergReduction(H1)
 
-k = 1
-v = copy(H0[:,k])
-v[1:k] = zeros(vt,k)
-w = zeros(vt,1,Nev)
-w[k+1] = H0[k,k+1]
-v[k+1] = 1.0/w[k+1]
-β = w*H0[:,k]
-
-Q = I - v*w./β
-
+#k = 1
+#v = copy(H0[:,k])
+#v[1:k] = zeros(vt,k)
+#w = zeros(vt,1,Nev)
+#w[k+1] = H0[k,k+1]
+#v[k+1] = 1.0/w[k+1]
+#β = w*H0[:,k]
+#
+#Q = I - v*w./β
 
 Vi,Wi = LowerHessenbergtoTriDiagonal!(H1)
+
+I0 = Matrix{vt}(I,Nev,Nev)
+
+v1 = copy(I0)
+v1[:,2] = Vi[:,2]
+
+
+H2 = copy(Hv[1:Nev,1:Nev])
+H3 = copy(H2)
+V2i,W2i = UpperHessenbergtoTriDiagonal!(H3)
+
 
 println("Done.")
 
