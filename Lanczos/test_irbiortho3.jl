@@ -127,6 +127,33 @@ H3 = copy(H2)
 V2i,W2i = UpperHessenbergtoTriDiagonal!(H3)
 
 
+ν = eigvals(H3)
+#Hbulge,qbulge = CreateBulge(H3,1,ν,1)
+#h1    = copy(Hbulge)
+#v1,w1 = LowerHessenbergtoTriDiagonal!(h1)
+
+x = zeros(vt,Nev)
+
+h1 = copy(H3) - ν[1]*I
+h1[1,1] = h1[1,1] #- ν[1]
+x[1] = zro # H3[1,1] - ν[1]
+x[2] = h1[2,1]
+
+y = transpose(h1[1,:])
+
+α = y*x
+y = y./α
+
+β = y*h1[:,1] 
+Q = I - x*y./β
+Qinv = copy(Q)
+
+h2 = Q*h1*Qinv
+h3 = copy(h2)
+
+v2,w2 = LowerHessenbergtoTriDiagonal!(h2)
+
+
 println("Done.")
 
 
