@@ -92,7 +92,7 @@ Hl    = copy(Hw[1:Nev,1:Nev])
 ind2  = sortperm(real.(λu),rev=true)   
 ind3  = sortperm(real.(λl),rev=true)   
 
-display([λu[ind2] λ[ind[1:Nev]]])
+#display([λu[ind2] λ[ind[1:Nev]]])
 
 
 plot(imag.(λ),real.(λ),linestyle="none", marker="o")
@@ -137,6 +137,7 @@ x = zeros(vt,Nev)
 h1 = copy(H3) - ν[1]*I
 h1[1,1] = h1[1,1] #- ν[1]
 x[1] = zro # H3[1,1] - ν[1]
+#x[1] = h1[1,1]
 x[2] = h1[2,1]
 
 y = transpose(h1[1,:])
@@ -153,6 +154,32 @@ h3 = copy(h2)
 
 v2,w2 = LowerHessenbergtoTriDiagonal!(h2)
 
+
+#
+rng = MersenneTwister(1254)
+
+n     = 10
+A     = randn(rng,vt,n,n)
+q     = HessenbergReduction!(A)
+v0,w0 = UpperHessenbergtoTriDiagonal!(A)
+
+B     = copy(A)
+θ     = eigvals(A)
+
+close("all")
+
+for i in 1:1
+  local λ
+  global v,w
+  global A
+  λ     = A[n,n]
+  A,v,w = NegiAlg(A,λ)
+  er    = A[n,n-1]
+  l     = A[n,n]
+  println("$er,   $l")
+end  
+
+display([eigvals(B) eigvals(A)])
 
 println("Done.")
 

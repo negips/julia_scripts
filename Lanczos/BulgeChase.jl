@@ -728,6 +728,26 @@ function ChaseBulgeUp(H0::Matrix)
 end
 #----------------------------------------------------------------------
 
+function HessenbergReduction!(H::Matrix)
+
+# H       - Input Matrix/Output Hessenberg
+
+  r,c   = size(H)
+  el    = eltype(H[1])
+  Qn    = Matrix{el}(I,r,c)
+  wk    = zeros(el,r,c)
+
+  for i in 1:c-2
+    x     = H[:,i] 
+    Q,w,τ = CreateReflectorZeros2(x,i+1,r,r)
+    Qn    = Q*Qn       
+    mul!(wk,Q,H)
+    mul!(H,wk,Q')
+  end
+
+  return Qn
+end
+#----------------------------------------------------------------------
 
 
 

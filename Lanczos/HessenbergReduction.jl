@@ -71,7 +71,7 @@ function LowerHessenbergtoTriDiagonal!(H::Matrix)
     end
 
     Q[:,i+1]  = W[:,i+1]
-    H      .= A*Q
+    H        .= A*Q
     
   end
 
@@ -120,6 +120,89 @@ function UpperHessenbergtoTriDiagonal!(H::Matrix)
   return V,W
 end
 #----------------------------------------------------------------------
+# Bulge Chase Algorithm with Oblique projectors
+function NegiAlg(T::Matrix,λ)
+# Also known as BulgeChase Algorithm  
+
+  # H       - Tridiagonal Matrix
+  # λ       - Shift
+
+  r,c   = size(T)
+
+# Create a bulge in the matrix
+  T,V0,W0  = CreateLowerBulgeOblique!(T,λ)
+  Vi,Wi    = LowerHessenbergtoTriDiagonal!(T)
+
+# Collect Left multipliers 
+  V = Vi*V0
+# Collect Right multipliers
+  W = W0*Wi
+
+  return T,V0,W0
+end
+#----------------------------------------------------------------------
+function CreateLowerBulgeOblique(T::Matrix,λ)
+
+  # T       - Tri-diagonal Matrix
+  # λ       - Shifts
+
+  T         = T - λ*I
+  el        = eltype(T[1])
+  zro       = el(0)
+  one       = el(1)
+  r,c       = size(T)
+  x         = zeros(el,r)
+  x[1]      = zro
+  x[2]      = T[2,1]
+  y         = transpose(T[1,:])
+  α         = (y*x)[1]
+  y         = y/α      # This makes <y,x> = 1.0
+  β         = (y*T[:,1])[1]
+  V         = I - (x*y)/β      # => <y,x/β> = 1.0/β
+  Vi        = I + (x*y)/(β*(one - one/β))
+
+# This creates the Bulge  
+# A = Q0*H*Q0  
+  tmp       = V*T
+  T        .= tmp*Vi
+  T         = T + λ*I
+
+  return T,V,Vi
+end
+
+#----------------------------------------------------------------------
+function CreateUpperBulgeOblique(T::Matrix,λ)
+
+  # T       - Tri-diagonal Matrix
+  # λ       - Shifts
+
+  T         = T - λ*I
+  el        = eltype(T[1])
+  zro       = el(0)
+  one       = el(1)
+  r,c       = size(T)
+  y         = zeros(el,1,c)
+  y[1]      = zro
+  y[2]      = T[1,2]
+  x         = T[:,1]
+  α         = (y*x)[1]
+  y         = y/α      # This makes <y,x> = 1.0
+  β         = (transpose(T[1,:])*x)[1]
+  W         = I - (x*y)/β      # => <y,x/β> = 1.0/β
+  Wi        = I + (x*y)/β/(one - one/β)
+
+# This creates the Bulge  
+# A = Q0*H*Q0  
+  tmp       = T*W
+  T        .= Wi*tmp
+  T         = T + λ*I
+
+  return T,Wi,W
+end
+
+#----------------------------------------------------------------------
+
+
 
 
 
