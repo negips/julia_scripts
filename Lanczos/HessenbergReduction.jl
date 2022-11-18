@@ -130,7 +130,7 @@ function NegiAlg(T::Matrix,λ)
   r,c   = size(T)
 
 # Create a bulge in the matrix
-  T,V0,W0  = CreateLowerBulgeOblique!(T,λ)
+  T,V0,W0  = CreateLowerBulgeOblique(T,λ)
   Vi,Wi    = LowerHessenbergtoTriDiagonal!(T)
 
 # Collect Left multipliers 

@@ -158,7 +158,7 @@ v2,w2 = LowerHessenbergtoTriDiagonal!(h2)
 #
 rng = MersenneTwister(1254)
 
-n     = 10
+n     = 20
 A     = randn(rng,vt,n,n)
 q     = HessenbergReduction!(A)
 v0,w0 = UpperHessenbergtoTriDiagonal!(A)
@@ -167,8 +167,11 @@ B     = copy(A)
 θ     = eigvals(A)
 
 close("all")
+#λ     = A[n,n]
+#T,v0,v0 = CreateLowerBulgeOblique(A,λ)
+#vi,wi   = LowerHessenbergtoTriDiagonal!(T)
 
-for i in 1:1
+for i in 1:5
   local λ
   global v,w
   global A
