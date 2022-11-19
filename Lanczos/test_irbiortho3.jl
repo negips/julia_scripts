@@ -158,12 +158,13 @@ v2,w2 = LowerHessenbergtoTriDiagonal!(h2)
 #
 rng = MersenneTwister(1254)
 
-n     = 20
+n     = 10
 A     = randn(rng,vt,n,n)
 q     = HessenbergReduction!(A)
 v0,w0 = UpperHessenbergtoTriDiagonal!(A)
 
 B     = copy(A)
+C     = copy(A)
 θ     = eigvals(A)
 
 close("all")
@@ -171,16 +172,38 @@ close("all")
 #T,v0,v0 = CreateLowerBulgeOblique(A,λ)
 #vi,wi   = LowerHessenbergtoTriDiagonal!(T)
 
-for i in 1:5
-  local λ
+for i in 1:1
+  local λ,μ
   global v,w
-  global A
+  global A,C
   λ     = A[n,n]
   A,v,w = NegiAlg(A,λ)
   er    = A[n,n-1]
   l     = A[n,n]
-  println("$er,   $l")
+
+  μ     = zeros(vt,1)
+  μ[1]  = C[n,n]
+  C,Q   = FrancisAlg(C,1,μ,1) 
+
+  erb   = C[n,n-1]
+  lb    = C[n,n]
+ 
+  println("$er,   $l, $erb,   $lb")
 end  
+
+#C = copy(A[1:n-1,1:n-1])
+#
+#m = n-1
+#for i in 1:4
+#  local λ
+#  local v,w
+#  global C
+#  λ     = C[m,m]
+#  C,v,w = NegiAlg(C,λ)
+#  er    = C[m,m-1]
+#  l     = C[m,m]
+#  println("$er,   $l")
+#end  
 
 display([eigvals(B) eigvals(A)])
 

@@ -8,6 +8,7 @@ function FrancisAlg(H::Matrix,b::Int,μ::Vector,nμ::Int)
   # μ       - Shifts
 
   r,c   = size(H)
+  Q   = Matrix{eltype(H)}(I,r,c)
 
 # Create a bulge in the matrix
   H0,Q0 = CreateBulge(H,b,μ,nμ)
