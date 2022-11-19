@@ -1,5 +1,5 @@
 # Testing Eigenvalue algorithm implementation
-println("Testing BiOrthogonal QR method")
+println("Testing Triangular QR method")
 
 using LinearAlgebra
 using Random
@@ -21,7 +21,7 @@ zro   = vt(0.0)
 
 rng = MersenneTwister(1254)
 
-n     = 200
+n     = 50
 A     = randn(rng,vt,n,n)
 
 AH    = copy(A)
@@ -42,7 +42,7 @@ C     = copy(AT)
 θ     = eigvals(AT)
 
 
-niter = 5 
+niter = 5
 ern   = zeros(Float64,niter+1)
 erqr  = zeros(Float64,niter+1)
 
@@ -56,8 +56,13 @@ for i in 1:niter
   global ern,erqr
 
   λ         = AT[n,n]
-  AT,v,w    = NegiAlg2(AT,λ)
-  er        = AT[n,n-1]
+#  if (mod(i,2)==0)
+    AT,v,w    = NegiAlg2(AT,λ)
+    er        = AT[n,n-1]
+#  else
+#    AT,v,w    = NegiAlg3(AT,λ)
+#    er        = AT[n-1,n]
+#  end
   l         = AT[n,n]
   ern[i+1]  = abs(er)
 
@@ -82,16 +87,11 @@ b = copy(B) - λ*I
 #c,wi,w = CreateUpperBulgeOblique(b,λ)
 #d,x,y  = CreateUpperBulgeRightOblique(b,λ)
 
-c,x,y   = CreateLowerBulgeOblique(b,λ)
-α       = norm(x[2]*y)
-y       = y/α
-#x       = x./(10*abs(α))
-q       = I - x*y
-qi      = inv(q)
-d       = q*b*qi
+c,x1,y1   = CreateLowerBulgeOblique(b,λ)
+v1,w1   = ChaseBulgeTriDiagonal2!(c)
 
-d       = copy(c)
-e       = copy(c)
+d,x2,y2 = CreateUpperBulgeOblique(b,λ)
+v2,w2   = ChaseBulgeTriDiagonal3!(d)
 
 #v1,w1     = ChaseBulgeTriDiagonal!(d)
 #

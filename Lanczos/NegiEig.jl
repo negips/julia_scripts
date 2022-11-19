@@ -19,7 +19,7 @@ function NegiAlg(T::Matrix,λ)
   return T,V,W
 end
 #----------------------------------------------------------------------
-# Bulge Chase Algorithm with Oblique projectors
+# Lower Bulge Chase Algorithm with Oblique projectors
 function NegiAlg2(T::Matrix,λ)
 # Also known as BulgeChase Algorithm  
 
@@ -40,7 +40,27 @@ function NegiAlg2(T::Matrix,λ)
   return T,V,W
 end
 #----------------------------------------------------------------------
+# Upper Bulge Chase Algorithm with Oblique projectors
+function NegiAlg3(T::Matrix,λ)
+# Also known as BulgeChase Algorithm  
 
+  # H       - Tridiagonal Matrix
+  # λ       - Shift
+
+  r,c   = size(T)
+
+# Create a bulge in the matrix
+  T,v,w     = CreateUpperBulgeOblique(T,λ)
+  Vi,Wi     = ChaseBulgeTriDiagonal3!(T)
+
+# Collect Left multipliers 
+  V = Vi
+# Collect Right multipliers
+  W = Wi
+
+  return T,V,W
+end
+#----------------------------------------------------------------------
 
 function CreateLowerBulgeOblique(T::Matrix,λ)
 
@@ -290,10 +310,18 @@ function ChaseBulgeTriDiagonal2!(H::Matrix)
     else
       z2 = zro
     end
+    if i+3<=col
+      w1 = H[i+2,i+3]
+    else
+      w1 = zro
+    end  
+   
     α    = H[i,i]
     β    = H[i+1,i+1]
     γ    = H[i+2,i+2]
 
+#   Ensure that the determinant is one.
+#   Otherwise we need to factor that in the inverse
     a = one
     b = zro
     d = one
@@ -311,7 +339,7 @@ function ChaseBulgeTriDiagonal2!(H::Matrix)
 
 #   Right multiplication
     Q[i+2,i+1] = -c
-    V       = V*Q
+    V          = V*Q
 
     H[i+1,i]      = a*x1
     H[i+2,i]      = zro
@@ -324,6 +352,106 @@ function ChaseBulgeTriDiagonal2!(H::Matrix)
     if (i<col-2)
       H[i+3,i+1]  = -c*z2
       H[i+3,i+2]  = a*z2
+    end  
+
+    if i+3<=col
+      H[i+2,i+3]  = d*w1
+    end  
+   
+  end
+
+  return V,W
+end
+#----------------------------------------------------------------------
+function ChaseBulgeTriDiagonal3!(H::Matrix)
+
+# Chase Upper Bulge  
+# Modify individual entries
+# I assume the the bulge size is 1
+
+  el = eltype(H[1])
+  one = el(1)
+
+  tol = 1000*eps(abs.(one))
+
+  row,col = size(H)
+  if row!=col
+    display("H needs to be a square matrix: size(H)= $r,$c")
+  end
+
+  W  = Matrix{vt}(I,row,col)
+  V  = Matrix{vt}(I,row,col)
+  I0 = Matrix{vt}(I,row,col)
+
+  one = vt(1)
+  zro = vt(0)
+
+  for i in 1:col-2
+
+    x1 = H[i,i+1]
+    x2 = H[i,i+2]  
+
+    y1 = H[i+1,i]
+    y2 = H[i+1,i+2]
+
+    z1 = H[i+2,i+1]
+    if (i+2<col)
+      z2 = H[i+2,i+3]
+    else
+      z2 = zro
+    end
+    if i+3<=col
+      w1 = H[i+3,i+2]
+    else
+      w1 = zro
+    end  
+
+    α    = H[i,i]
+    β    = H[i+1,i+1]
+    γ    = H[i+2,i+2]
+
+#   Ensure that the determinant is one.
+#   Otherwise we need to factor that in the inverse
+    a = one
+    c = zro
+    d = one
+    b = a*x2/x1
+    if abs(x1)<tol
+      x1a = abs(x1)
+      println("Possible Division by 0 abs(x1)=$x1a")
+    end  
+   
+#   Left Multiplication      
+    Q          = copy(I0)
+    Q[i+1,i+1] = a
+    Q[i+1,i+2] = b
+    Q[i+1,i+1] = d
+   
+    W       = Q*W
+
+#   Right multiplication
+    Q[i+1,i+1] = d
+    Q[i+1,i+2] = -b
+    Q[i+1,i+1] = a
+
+    V       = V*Q
+
+    H[i,i+1]      = d*x1
+    H[i,i+2]      = zro
+   
+    H[i+1,i]      = a*y1
+    H[i+1,i+1]    = a*β*d + d*b*z1
+    H[i+1,i+2]    = a*(a*y2 + b*γ) - b*(b*z1 + a*β)
+    if (i+2<col)
+      H[i+1,i+3]  = b*z2
+      H[i+2,i+3]  = d*z2
+    end
+
+    H[i+2,i+1]    = d*d*z1
+    H[i+2,i+2]    = (a*γ - b*z1)*d
+
+    if i+3<=col
+      H[i+3,i+2]  = a*w1
     end  
     
   end
