@@ -84,6 +84,8 @@ end
 #----------------------------------------------------------------------
 function CreateLowerBulgeOblique(T::Matrix,λ)
 
+# Create bulge in the sub diagonal  
+
   # T       - Tri-diagonal Matrix
   # λ       - Shifts
 
@@ -151,6 +153,8 @@ end
 
 function CreateUpperBulgeOblique(T::Matrix,λ)
 
+# For creating a bulge in the super diagonal elements  
+
   # T       - Tri-diagonal Matrix
   # λ       - Shifts
 
@@ -181,6 +185,9 @@ end
 
 #----------------------------------------------------------------------
 function CreateLowerRightBulgeOblique(T::Matrix,λ)
+
+# For creating a bulge in the subdiagonal 
+# on the lower right side of the matrix
 
   # T       - Tri-diagonal Matrix
   # λ       - Shifts
@@ -437,23 +444,6 @@ function ChaseBulgeTriDiagonal2!(H::Matrix,λ)
 
     x1 = H[i+1,i]
     x2 = H[i+2,i]
-    y1 = H[i,i+1]
-    y2 = H[i+2,i+1]
-    z1 = H[i+1,i+2]
-    if (i<col-2)
-      z2 = H[i+3,i+2]
-    else
-      z2 = zro
-    end
-    if i+3<=col
-      w1 = H[i+2,i+3]
-    else
-      w1 = zro
-    end  
-   
-    α    = H[i,i]
-    β    = H[i+1,i+1]
-    γ    = H[i+2,i+2]
 
     if abs(x1)<tol
       x1a = abs(x1)
@@ -461,51 +451,18 @@ function ChaseBulgeTriDiagonal2!(H::Matrix,λ)
       println("Possible Division by 0 in Chase2 abs(x1)=$x1a, abs(x2)=$x2a, i=$i")
     end
 
-
-    if abs(x2)<tol
-      println("Recreating Reflector")
-      H,x,y = CreateLowerBulgeOblique2(H,λ,i+1)
-      Q         = I - (x*y)
-      W         = Q*W         
-      Q         = I + (x*y)/(one - one/β)
-      V         = V*Q
-      continue
-    end
-
-
-#   Ensure that the determinant is one.
-#   Otherwise we need to factor that in the inverse
-    a = one
-    b = zro
-    d = one
-    c = -d*x2/x1
-  
-#   Left Multiplication      
-    Q       = copy(I0)
-    Q[i+2,i+1] = c
-    
-    W       = Q*W
-
-#   Right multiplication
-    Q[i+2,i+1] = -c
-    V          = V*Q
-
-    H[i+1,i]      = a*x1
-    H[i+2,i]      = zro
-
-    H[i,i+1]      = d*y1
-    H[i+1,i+1]    = a*β*d - a*c*z1
-    H[i+2,i+1]    = d*(c*β + d*y2) - c*(c*z1 + γ*d)
-
-    H[i+2,i+2]    = a*(c*z1 + γ*d)
-    if (i<col-2)
-      H[i+3,i+1]  = -c*z2
-      H[i+3,i+2]  = a*z2
-    end  
-
-    if i+3<=col
-      H[i+2,i+3]  = d*w1
-    end  
+#    if abs(x2)<tol
+#      println("Recreating Reflector")
+#      H,x,y = CreateLowerBulgeOblique2(H,λ,i+1)
+#      Q         = I - (x*y)
+#      W         = Q*W
+#      β         = (y*x)[1]
+#      Q         = I + (x*y)/(one - one/β)
+#      V         = V*Q
+#      continue
+#    end
+      
+    Ql,Qr   = SimilarityTransform!(H,i,col)  
    
   end
 
@@ -805,12 +762,125 @@ function ChaseBulgeTriDiagonal5!(H::Matrix)
   return V,W
 end
 #----------------------------------------------------------------------
+function SimilarityTransform!(H::Matrix,i::Int,n::Int)
 
+#   ( I  0  0  0 )   ( α   y1  0   0  )   (I   0   0   0 )
+#   ( 0  a  b  0 ) X ( x1  β   z1  0  ) X (0   a  -b   0 )
+#   ( 0  c  d  0 )   ( x2  y2  γ   w1 )   (0  -c   d   0 ) X 1/(ad - bc)
+#   ( 0  0  0  I )   ( 0   0   z2  δ  )   (0   0   0   I )
 
+    el  = eltype(H[1])
+    zro = el(0)
+    one = el(1)
 
+    tol = 1000*eps(abs(one))
+    I0 = Matrix{el}(I,n,n)
 
+#   Left Multiplication
+    α    = H[i,i]
+    β    = H[i+1,i+1]
+    γ    = H[i+2,i+2]
+  
+    x1 = H[i+1,i]
+    x2 = H[i+2,i]
+    y1 = H[i,i+1]
+    y2 = H[i+2,i+1]
+    z1 = H[i+1,i+2]
+    if (i+3<=n)
+      z2 = H[i+3,i+2]
+      δ  = H[i+3,i+3]
+      w1 = H[i+2,i+3]
+      y3 = H[i+3,i+1]
+    else
+      z2 = zro
+      δ  = zro
+      w1 = zro
+      y3 = zro
+    end
 
+    if abs(x1)<tol
+      x1a = abs(x1)
+      x2a = abs(x2)
+      println("Division by 0 abs(x1)=$x1a, abs(x2)=$x2a, i=$i")
+    end
 
+    b = zro
+    d = one
+    c = -d*x2/x1
+    a = one
+    D0 = a*d - b*c
+  
+    H[i,i]        = α
+    H[i+1,i]      = a*x1 + b*x2
+    H[i+2,i]      = c*x1 + d*x2
 
+    H[i,i+1]      = y1
+    H[i+1,i+1]    = a*β + b*y2
+    H[i+2,i+1]    = c*β + d*y2
+
+    H[i+1,i+2]    = a*z1 + b*γ
+    H[i+2,i+2]    = c*z1 + γ*d
+
+    if (i+3<=n)
+      H[i+1,i+3]  = b*w1
+      H[i+2,i+3]  = d*w1
+    end  
+
+    Ql            = copy(I0)
+    Ql[i+1,i+1]   = a
+    Ql[i+2,i+1]   = c
+    Ql[i+1,i+2]   = b
+    Ql[i+2,i+2]   = d
+#----------------------------------------
+
+#   Right Multiplication
+    α    = H[i,i]
+    β    = H[i+1,i+1]
+    γ    = H[i+2,i+2]
+  
+    x1   = H[i+1,i]
+    x2   = H[i+2,i]
+    y1   = H[i,i+1]
+    y2   = H[i+2,i+1]
+    z1   = H[i+1,i+2]
+    if (i+3<=n)
+      z2 = H[i+3,i+2]
+      δ  = H[i+3,i+3]
+      w1 = H[i+2,i+3]
+      y3 = H[i+3,i+1]
+    else
+      z2 = zro
+      δ  = zro
+      w1 = zro
+    end
+
+    dold = d
+    b    = -b/D0
+    c    = -c/D0
+    d    = a/D0
+    a    = dold/D0
+
+#   Right multiplication
+    H[i,i+1]      = a*y1
+    H[i+1,i+1]    = a*β  + c*z1
+    H[i+2,i+1]    = a*y2 + c*γ
+
+    H[i,i+2]      = b*y1
+    H[i+1,i+2]    = d*z1 + b*β
+    H[i+2,i+2]    = d*γ  + b*y2
+
+    if (i+3<=n)
+      H[i+3,i+1]  = a*y3 + c*z2
+      H[i+3,i+2]  = d*z2 + b*y3
+    end  
+
+    Qr            = copy(I0)
+    Qr[i+1,i+1]   = a
+    Qr[i+2,i+1]   = c
+    Qr[i+1,i+2]   = b
+    Qr[i+2,i+2]   = d
+
+   return Ql,Qr
+end
 
 

@@ -21,7 +21,7 @@ zro   = vt(0.0)
 
 rng = MersenneTwister(1254)
 
-n     = 6
+n     = 500
 A     = randn(rng,vt,n,n)
 
 AH    = copy(A)
@@ -42,7 +42,7 @@ C     = copy(AT)
 θ     = eigvals(AT)
 
 
-niter = 2
+niter = 20
 ern   = zeros(Float64,niter+1)
 erqr  = zeros(Float64,niter+1)
 
@@ -58,16 +58,10 @@ for i in 1:niter
   global ern,erqr
   global nconv
 
-  j = n - nconv
-#  if (mod(i,2)==0)
-    λ         = AT[j,j]
-    AT,v,w    = NegiAlg2(AT,λ)
-    er        = AT[j,j-1]
-#  else
-#    λ         = AT[1,1]
-#    AT,v,w    = NegiAlg4(AT,λ)
-#    er        = AT[2,1]
-#  end
+  j = n #- nconv
+  λ         = AT[j,j]
+  AT,v,w    = NegiAlg2(AT,λ)
+  er        = AT[j,j-1]
   l         = AT[j,j]
   ern[i+1]  = abs(er)
 
@@ -80,36 +74,39 @@ for i in 1:niter
   erqr[i+1] = abs(erb)
 
   if (abs(ern[i+1])<1.0e-12)
-    nconv = nconv + 1
+#    nconv = nconv + 1
 #    break
-  end  
- 
+  end
+
+  superd = diag(AT,1)
+  subd   = diag(AT,-1)
+
+  plot(abs.(superd), linestyle="-")
+  plot(abs.(subd), linestyle="--")
+
+  pause(0.000001)
 #  println("$er,   $l, $erb,   $lb")
 end  
 
 #display([eigvals(B) eigvals(AT) eigvals(C)])
 
+figure(num=2)
 semilogy(ern)
-semilogy(erqr)
+#semilogy(erqr)
 
-λ = zro #B[n,n]
-b = copy(B) - λ*I
-#c,wi,w = CreateUpperBulgeOblique(b,λ)
-#d,x,y  = CreateUpperBulgeRightOblique(b,λ)
-
-g        = copy(b)
-g[n,n-1] = zro
-T,x,y    = CreateUpperRightBulgeOblique(g,zro)
-#T,x,y    = CreateLowerBulgeOblique(g,zro)
-
-
-#v1,w1     = ChaseBulgeTriDiagonal!(d)
+#λ = zro #B[n,n]
+#b = copy(B) - λ*I
 #
-#v2,w2     = ChaseBulgeTriDiagonal2!(e)
+#g        = copy(b)
+##g[n,n-1] = zro
+##T,x,y    = CreateUpperRightBulgeOblique(g,zro)
+#T,x,y    = CreateLowerBulgeOblique(g,zro)
+#
+#G        = copy(T)
+#ql,qr    = SimilarityTransform!(G,1,n)
+#
+#v1,w1     = ChaseBulgeTriDiagonal!(d)
 
-#V,W     = LowerHessenbergtoTriDiagonal2!(c)
-#norm(W*V - I)
-#spy(d,precision=1.0e-12)
 
 
 
