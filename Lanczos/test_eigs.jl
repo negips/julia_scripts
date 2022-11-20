@@ -21,7 +21,7 @@ zro   = vt(0.0)
 
 rng = MersenneTwister(1254)
 
-n     = 30
+n     = 6
 A     = randn(rng,vt,n,n)
 
 AH    = copy(A)
@@ -42,7 +42,7 @@ C     = copy(AT)
 θ     = eigvals(AT)
 
 
-niter = 5
+niter = 2
 ern   = zeros(Float64,niter+1)
 erqr  = zeros(Float64,niter+1)
 
@@ -98,9 +98,9 @@ b = copy(B) - λ*I
 #d,x,y  = CreateUpperBulgeRightOblique(b,λ)
 
 g        = copy(b)
-k        = 4
-g[k+1,k] = zro
-T,x,y    = CreateLowerBulgeOblique2(g,zro,k+1)
+g[n,n-1] = zro
+T,x,y    = CreateUpperRightBulgeOblique(g,zro)
+#T,x,y    = CreateLowerBulgeOblique(g,zro)
 
 
 #v1,w1     = ChaseBulgeTriDiagonal!(d)

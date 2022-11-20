@@ -115,6 +115,9 @@ end
 #----------------------------------------------------------------------
 function CreateLowerBulgeOblique2(T::Matrix,λ,k::Int)
 
+# For creating a new bulge in the middle of the 
+# matrix
+
   # T       - Tri-diagonal Matrix
   # λ       - Shifts
 
@@ -188,7 +191,7 @@ function CreateLowerRightBulgeOblique(T::Matrix,λ)
   one       = el(1)
   r,c       = size(T)
   y         = transpose(zeros(el,c))
-  y[c-1]    = T[c-1,r]
+  y[c-1]    = T[r,c-1]
 
   x         = T[:,c]
  
@@ -198,6 +201,53 @@ function CreateLowerRightBulgeOblique(T::Matrix,λ)
   x         = x/β      # => <y,x> = 1.0/β
   V         = I - (x*y)
   Vi        = I + (x*y)/(one - one/β)
+
+# This creates the Bulge  
+# A = Q0*H*Q0  
+  tmp       = T*V
+  T        .= Vi*tmp
+  T         = T + λ*I
+
+  return T,x,y
+end
+
+#----------------------------------------------------------------------
+function CreateUpperRightBulgeOblique(T::Matrix,λ)
+
+# Unfortunate nomenclature.
+# Creates a bulge in the 2nd superdiagonal
+# at the bottom of the matrix
+
+  # T       - Tri-diagonal Matrix
+  # λ       - Shifts
+
+  T         = T - λ*I
+  el        = eltype(T[1])
+  zro       = el(0)
+  one       = el(1)
+  r,c       = size(T)
+
+  tol       = 1000*eps(abs(one))
+
+  V          = Matrix{vt}(I,r,c)
+  Vi         = Matrix{vt}(I,r,c)
+  cs         = T[r,c]
+  sn         = -T[r-1,c]
+  rad        = sqrt(cs*cs + sn*sn)
+  V[r-1,c-1] = cs
+  V[r-1,c]   = -sn
+  V[r,c]     = 1.0/cs
+
+  Vi[r-1,c-1] = one/cs
+  Vi[r-1,c]   = sn
+  Vi[r,c]     = cs
+    
+  x           = zeros(vt,r)
+  x[r]        = cs
+  x[r-1]      = -sn    
+
+  y           = transpose(zeros(vt,c))
+  y[c]        = one
 
 # This creates the Bulge  
 # A = Q0*H*Q0  
@@ -657,6 +707,104 @@ function ChaseBulgeTriDiagonal4!(H::Matrix)
 end
 #----------------------------------------------------------------------
 
+function ChaseBulgeTriDiagonal5!(H::Matrix)
+
+# Chase Bottom Right to top 
+# Modify individual entries
+# I assume the the bulge size is 1
+
+  el = eltype(H[1])
+  one = el(1)
+
+  tol = 1000*eps(abs.(one))
+
+  row,col = size(H)
+  if row!=col
+    display("H needs to be a square matrix: size(H)= $r,$c")
+  end
+
+  W  = Matrix{vt}(I,row,col)
+  V  = Matrix{vt}(I,row,col)
+  I0 = Matrix{vt}(I,row,col)
+
+  one = vt(1)
+  zro = vt(0)
+
+  for i in col:-1:3
+
+    x1 = H[i-1,i]
+    x2 = H[i-1,i]  
+
+    y1 = H[i,i-1]
+    y2 = H[i-2,i-1]
+
+    z1 = H[i-1,i-2]
+    if (i-2>1)
+      z2 = H[i-3,i-2]
+    else
+      z2 = zro
+    end
+
+    if i-3>1
+      w1 = H[i-2,i-3]
+    else
+      w1 = zro
+    end  
+
+    α    = H[i,i]
+    β    = H[i-1,i-1]
+    γ    = H[i-2,i-2]
+
+#   Ensure that the determinant is one.
+#   Otherwise we need to factor that in the inverse
+    a = one
+    b = zro
+    d = one
+    c = -d*x2/x1
+    if abs(x1)<tol
+      x1a = abs(x1)
+      println("Possible Division by 0 in Chase5, abs(x1)=$x1a")
+    end  
+   
+#   Left Multiplication      
+    Q          = copy(I0)
+    Q[i-1,i-1] = d
+    Q[i-1,i-2] = c
+    Q[i-2,i-2] = a
+   
+    W       = Q*W
+
+#   Right multiplication
+    Q[i-1,i-1] = a
+    Q[i-1,i-2] = -c
+    Q[i-2,i-2] = d
+
+
+    V       = V*Q
+
+    H[i-1,i]      = a*x1
+    H[i-2,i]      = zro
+   
+    H[i,i-1]      = d*y1
+    H[i-1,i-1]    = a*β*d - a*c*z1
+    H[i-2,i-1]    = d*(d*y2 + c*β) - c*(c*z1 + d*γ)
+    if (i-2>1)
+      H[i-3,i-1]  = -c*z2
+      H[i-3,i-2]  = a*z2
+    end
+
+    H[i-1,i-2]    = a*a*z1
+    H[i-2,i-2]    = a*(d*γ + c*z1)
+
+    if i-3>1
+      H[i-2,i-3]  = d*w1
+    end  
+    
+  end
+
+  return V,W
+end
+#----------------------------------------------------------------------
 
 
 
