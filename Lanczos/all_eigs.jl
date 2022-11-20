@@ -18,6 +18,9 @@ vt = ComplexF64
 #vt = Float64
 
 zro   = vt(0.0)
+one   = vt(1.0)
+
+tol   = 100*eps(abs(one))
 
 rng = MersenneTwister(1254)
 
@@ -38,11 +41,8 @@ A     = copy(AT)
 
 
 B     = copy(AT)
-C     = copy(AT)
-θ     = eigvals(AT)
 
-
-niter = 20
+niter = 300
 ern   = zeros(Float64,niter+1)
 erqr  = zeros(Float64,niter+1)
 
@@ -58,55 +58,33 @@ for i in 1:niter
   global ern,erqr
   global nconv
 
-  j = n #- nconv
+  j = n - nconv
   λ         = AT[j,j]
-  AT,v,w    = NegiAlg2(AT,λ)
+  AT[1:j,1:j],v,w    = NegiAlg2(AT[1:j,1:j],λ)
   er        = AT[j,j-1]
   l         = AT[j,j]
   ern[i+1]  = abs(er)
 
-  μ         = zeros(vt,1)
-  μ[1]      = C[j,j]
-  C,Q       = FrancisAlg(C,1,μ,1) 
+  if abs(er)<tol
+    nconv = nconv + 1
 
-  erb       = C[j,j-1]
-  lb        = C[j,j]
-  erqr[i+1] = abs(erb)
+    if nconv == n
+      break
+    end  
+  end  
 
-  if (abs(ern[i+1])<1.0e-12)
-#    nconv = nconv + 1
-#    break
-  end
-
-  superd = diag(AT,1)
-  subd   = diag(AT,-1)
-
-  plot(abs.(superd), linestyle="-")
-  plot(abs.(subd), linestyle="--")
-
-  pause(0.000001)
 #  println("$er,   $l, $erb,   $lb")
 end  
 
 #display([eigvals(B) eigvals(AT) eigvals(C)])
 
-figure(num=2)
+figure(num=1)
 semilogy(ern)
 #semilogy(erqr)
 
-#λ = zro #B[n,n]
-#b = copy(B) - λ*I
-#
-#g        = copy(b)
-##g[n,n-1] = zro
-##T,x,y    = CreateUpperRightBulgeOblique(g,zro)
-#T,x,y    = CreateLowerBulgeOblique(g,zro)
-#
-#G        = copy(T)
-#ql,qr    = SimilarityTransform!(G,1,n)
-#
-#v1,w1     = ChaseBulgeTriDiagonal!(d)
-
+d = diag(AT,-1)
+figure(num=2)
+semilogy(abs.(d))
 
 
 
