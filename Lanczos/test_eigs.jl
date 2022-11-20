@@ -1,5 +1,5 @@
 # Testing Eigenvalue algorithm implementation
-println("Testing Triangular QR method")
+println("Testing TriDiagonal QR method")
 
 using LinearAlgebra
 using Random
@@ -21,7 +21,7 @@ zro   = vt(0.0)
 
 rng = MersenneTwister(1254)
 
-n     = 100
+n     = 30
 A     = randn(rng,vt,n,n)
 
 AH    = copy(A)
@@ -42,7 +42,7 @@ C     = copy(AT)
 θ     = eigvals(AT)
 
 
-niter = 50
+niter = 5
 ern   = zeros(Float64,niter+1)
 erqr  = zeros(Float64,niter+1)
 
@@ -81,12 +81,13 @@ for i in 1:niter
 
   if (abs(ern[i+1])<1.0e-12)
     nconv = nconv + 1
+#    break
   end  
  
 #  println("$er,   $l, $erb,   $lb")
 end  
 
-display([eigvals(B) eigvals(AT) eigvals(C)])
+#display([eigvals(B) eigvals(AT) eigvals(C)])
 
 semilogy(ern)
 semilogy(erqr)
@@ -96,21 +97,10 @@ b = copy(B) - λ*I
 #c,wi,w = CreateUpperBulgeOblique(b,λ)
 #d,x,y  = CreateUpperBulgeRightOblique(b,λ)
 
-c,x1,y1   = CreateLowerBulgeOblique(b,λ)
-v1,w1   = ChaseBulgeTriDiagonal2!(c)
-
-d,x2,y2 = CreateUpperBulgeOblique(b,λ)
-v2,w2   = ChaseBulgeTriDiagonal3!(d)
-
-e        = copy(b)
-e[n,n-2] = rand(vt)
-f        = copy(e)
-
 g        = copy(b)
-t,x,y    = CreateLowerRightBulgeOblique(g,λ)
-u        = copy(t)
-v3,w3    = ChaseBulgeTriDiagonal4!(u)
-
+k        = 4
+g[k+1,k] = zro
+T,x,y    = CreateLowerBulgeOblique2(g,zro,k+1)
 
 
 #v1,w1     = ChaseBulgeTriDiagonal!(d)

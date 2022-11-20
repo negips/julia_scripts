@@ -30,7 +30,7 @@ function NegiAlg2(T::Matrix,λ)
 
 # Create a bulge in the matrix
   T,v,w     = CreateLowerBulgeOblique(T,λ)
-  Vi,Wi     = ChaseBulgeTriDiagonal2!(T)
+  Vi,Wi     = ChaseBulgeTriDiagonal2!(T,λ)
 
 # Collect Left multipliers 
   V = Vi
@@ -82,7 +82,6 @@ function NegiAlg4(T::Matrix,λ)
   return T,V,W
 end
 #----------------------------------------------------------------------
-
 function CreateLowerBulgeOblique(T::Matrix,λ)
 
   # T       - Tri-diagonal Matrix
@@ -96,11 +95,42 @@ function CreateLowerBulgeOblique(T::Matrix,λ)
   x         = zeros(el,r)
   x[1]      = zro
   x[2]      = T[2,1]
-  x         = x
   y         = transpose(T[1,:])
   α         = (y*x)[1]
   y         = y/α      # This makes <y,x> = 1.0
   β         = (y*T[:,1])[1]
+  y         = y/β      # => <y,x> = 1.0/β
+  V         = I - (x*y)
+  Vi        = I + (x*y)/(one - one/β)
+
+# This creates the Bulge  
+# A = Q0*H*Q0  
+  tmp       = V*T
+  T        .= tmp*Vi
+  T        .= T + λ*I
+
+  return T,x,y
+end
+
+#----------------------------------------------------------------------
+function CreateLowerBulgeOblique2(T::Matrix,λ,k::Int)
+
+  # T       - Tri-diagonal Matrix
+  # λ       - Shifts
+
+  T         = T - λ*I
+  el        = eltype(T[1])
+  zro       = el(0)
+  one       = el(1)
+  r,c       = size(T)
+  x         = zeros(el,r)
+  x[k]      = zro
+  x[k+1]    = T[k+1,k]
+  y         = transpose(zeros(vt,r)) 
+  y[k:c]    = transpose(T[k,k:c])
+  α         = (y*x)[1]
+  y         = y/α      # This makes <y,x> = 1.0
+  β         = (y*T[:,k])[1]
   y         = y/β      # => <y,x> = 1.0/β
   V         = I - (x*y)
   Vi        = I + (x*y)/(one - one/β)
@@ -115,6 +145,7 @@ function CreateLowerBulgeOblique(T::Matrix,λ)
 end
 
 #----------------------------------------------------------------------
+
 function CreateUpperBulgeOblique(T::Matrix,λ)
 
   # T       - Tri-diagonal Matrix
@@ -178,7 +209,6 @@ function CreateLowerRightBulgeOblique(T::Matrix,λ)
 end
 
 #----------------------------------------------------------------------
-
 
 function LowerHessenbergtoTriDiagonal2!(H::Matrix)
 
@@ -291,7 +321,7 @@ function ChaseBulgeTriDiagonal!(H::Matrix)
   el = eltype(H[1])
   one = el(1)
 
-  tol = 1000*eps(abs.(one))
+  tol = 100*eps(abs.(one))
 
   r,c = size(H)
   if r!=c
@@ -331,7 +361,7 @@ function ChaseBulgeTriDiagonal!(H::Matrix)
   return V,W
 end
 #----------------------------------------------------------------------
-function ChaseBulgeTriDiagonal2!(H::Matrix)
+function ChaseBulgeTriDiagonal2!(H::Matrix,λ)
 
 # Modify individual entries
 # I assume the the bulge size is 1
@@ -375,17 +405,31 @@ function ChaseBulgeTriDiagonal2!(H::Matrix)
     β    = H[i+1,i+1]
     γ    = H[i+2,i+2]
 
+    if abs(x1)<tol
+      x1a = abs(x1)
+      x2a = abs(x2)
+      println("Possible Division by 0 in Chase2 abs(x1)=$x1a, abs(x2)=$x2a, i=$i")
+    end
+
+
+    if abs(x2)<tol
+      println("Recreating Reflector")
+      H,x,y = CreateLowerBulgeOblique2(H,λ,i+1)
+      Q         = I - (x*y)
+      W         = Q*W         
+      Q         = I + (x*y)/(one - one/β)
+      V         = V*Q
+      continue
+    end
+
+
 #   Ensure that the determinant is one.
 #   Otherwise we need to factor that in the inverse
     a = one
     b = zro
     d = one
     c = -d*x2/x1
-    if abs(x1)<tol
-      x1a = abs(x1)
-      println("Possible Division by 0 in Chase2 abs(x1)=$x1a")
-    end  
-   
+  
 #   Left Multiplication      
     Q       = copy(I0)
     Q[i+2,i+1] = c
@@ -570,7 +614,7 @@ function ChaseBulgeTriDiagonal4!(H::Matrix)
     c = d*x2/x1
     if abs(x1)<tol
       x1a = abs(x1)
-      println("Possible Division by 0, abs(x1)=$x1a")
+      println("Possible Division by 0 in Chase4, abs(x1)=$x1a")
     end  
    
 #   Left Multiplication      
