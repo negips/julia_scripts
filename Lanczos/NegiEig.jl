@@ -61,6 +61,27 @@ function NegiAlg3(T::Matrix,λ)
   return T,V,W
 end
 #----------------------------------------------------------------------
+# Lower Right Bulge Chase (up) Algorithm with Oblique projectors
+function NegiAlg4(T::Matrix,λ)
+# Also known as BulgeChase Algorithm  
+
+  # H       - Tridiagonal Matrix
+  # λ       - Shift
+
+  r,c   = size(T)
+
+# Create a bulge in the matrix
+  T,v,w     = CreateLowerRightBulgeOblique(T,λ)
+  Vi,Wi     = ChaseBulgeTriDiagonal4!(T)
+
+# Collect Left multipliers 
+  V = Vi
+# Collect Right multipliers
+  W = Wi
+
+  return T,V,W
+end
+#----------------------------------------------------------------------
 
 function CreateLowerBulgeOblique(T::Matrix,λ)
 
@@ -125,6 +146,40 @@ function CreateUpperBulgeOblique(T::Matrix,λ)
 end
 
 #----------------------------------------------------------------------
+function CreateLowerRightBulgeOblique(T::Matrix,λ)
+
+  # T       - Tri-diagonal Matrix
+  # λ       - Shifts
+
+  T         = T - λ*I
+  el        = eltype(T[1])
+  zro       = el(0)
+  one       = el(1)
+  r,c       = size(T)
+  y         = transpose(zeros(el,c))
+  y[c-1]    = T[c-1,r]
+
+  x         = T[:,c]
+ 
+  α         = (y*x)[1]
+  x         = x/α      # This makes <y,x> = 1.0
+  β         = (transpose(T[r,:])*x)[1]
+  x         = x/β      # => <y,x> = 1.0/β
+  V         = I - (x*y)
+  Vi        = I + (x*y)/(one - one/β)
+
+# This creates the Bulge  
+# A = Q0*H*Q0  
+  tmp       = T*V
+  T        .= Vi*tmp
+  T         = T + λ*I
+
+  return T,x,y
+end
+
+#----------------------------------------------------------------------
+
+
 function LowerHessenbergtoTriDiagonal2!(H::Matrix)
 
   el = eltype(H[1])
@@ -328,7 +383,7 @@ function ChaseBulgeTriDiagonal2!(H::Matrix)
     c = -d*x2/x1
     if abs(x1)<tol
       x1a = abs(x1)
-      println("Possible Division by 0 abs(x1)=$x1a")
+      println("Possible Division by 0 in Chase2 abs(x1)=$x1a")
     end  
    
 #   Left Multiplication      
@@ -418,21 +473,21 @@ function ChaseBulgeTriDiagonal3!(H::Matrix)
     b = a*x2/x1
     if abs(x1)<tol
       x1a = abs(x1)
-      println("Possible Division by 0 abs(x1)=$x1a")
+      println("Possible Division by 0 in Chase3 abs(x1)=$x1a")
     end  
    
 #   Left Multiplication      
     Q          = copy(I0)
     Q[i+1,i+1] = a
     Q[i+1,i+2] = b
-    Q[i+1,i+1] = d
+    Q[i+2,i+2] = d
    
     W       = Q*W
 
 #   Right multiplication
     Q[i+1,i+1] = d
     Q[i+1,i+2] = -b
-    Q[i+1,i+1] = a
+    Q[i+2,i+2] = a
 
     V       = V*Q
 
@@ -452,6 +507,104 @@ function ChaseBulgeTriDiagonal3!(H::Matrix)
 
     if i+3<=col
       H[i+3,i+2]  = a*w1
+    end  
+    
+  end
+
+  return V,W
+end
+#----------------------------------------------------------------------
+function ChaseBulgeTriDiagonal4!(H::Matrix)
+
+# Chase Bottom Left to top 
+# Modify individual entries
+# I assume the the bulge size is 1
+
+  el = eltype(H[1])
+  one = el(1)
+
+  tol = 1000*eps(abs.(one))
+
+  row,col = size(H)
+  if row!=col
+    display("H needs to be a square matrix: size(H)= $r,$c")
+  end
+
+  W  = Matrix{vt}(I,row,col)
+  V  = Matrix{vt}(I,row,col)
+  I0 = Matrix{vt}(I,row,col)
+
+  one = vt(1)
+  zro = vt(0)
+
+  for i in col:-1:3
+
+    x1 = H[i,i-1]
+    x2 = H[i,i-2]  
+
+    y1 = H[i-1,i]
+    y2 = H[i-1,i-2]
+
+    z1 = H[i-2,i-1]
+    if (i-2>1)
+      z2 = H[i-2,i-3]
+    else
+      z2 = zro
+    end
+
+    if i-3>1
+      w1 = H[i-3,i-2]
+    else
+      w1 = zro
+    end  
+
+    α    = H[i,i]
+    β    = H[i-1,i-1]
+    γ    = H[i-2,i-2]
+
+#   Ensure that the determinant is one.
+#   Otherwise we need to factor that in the inverse
+    a = one
+    b = zro
+    d = one
+    c = d*x2/x1
+    if abs(x1)<tol
+      x1a = abs(x1)
+      println("Possible Division by 0, abs(x1)=$x1a")
+    end  
+   
+#   Left Multiplication      
+    Q          = copy(I0)
+    Q[i-1,i-1] = d
+    Q[i-1,i-2] = c
+    Q[i-2,i-2] = a
+   
+    W       = Q*W
+
+#   Right multiplication
+    Q[i-1,i-1] = a
+    Q[i-1,i-2] = -c
+    Q[i-2,i-2] = d
+
+
+    V       = V*Q
+
+    H[i,i-1]      = a*x1
+    H[i,i-2]      = zro
+   
+    H[i-1,i]      = d*y1
+    H[i-1,i-1]    = a*β*d + a*c*z1
+    H[i-1,i-2]    = d*(d*y2 + c*γ) - c*(c*z1 + d*β)
+    if (i-2>1)
+      H[i-1,i-3]  = c*z2
+      H[i-2,i-3]  = a*z2
+    end
+
+    H[i-2,i-1]    = a*a*z1
+    H[i-2,i-2]    = a*(d*γ - c*z1)
+
+    if i-3>1
+      H[i-3,i-2]  = d*w1
     end  
     
   end
