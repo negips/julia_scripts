@@ -21,7 +21,7 @@ zro   = vt(0.0)
 
 rng = MersenneTwister(1254)
 
-n     = 100
+n     = 7
 A     = randn(rng,vt,n,n)
 
 AH    = copy(A)
@@ -42,7 +42,7 @@ C     = copy(AT)
 θ     = eigvals(AT)
 
 
-niter = 10
+niter = 0
 ern   = zeros(Float64,niter+1)
 erqr  = zeros(Float64,niter+1)
 
@@ -91,7 +91,7 @@ end
 #display([eigvals(B) eigvals(AT) eigvals(C)])
 
 figure(num=2)
-semilogy(ern)
+#semilogy(ern)
 #semilogy(erqr)
 
 #λ = zro #B[n,n]
@@ -102,8 +102,14 @@ semilogy(ern)
 ##T,x,y    = CreateUpperRightBulgeOblique(g,zro)
 #T,x,y    = CreateLowerBulgeOblique(g,zro)
 #
-#G        = copy(T)
-#ql,qr    = SimilarityTransform!(G,1,n)
+g        = copy(AT)
+h        = copy(g)
+λ        = g[n,n]
+j        = 1
+#ql,qr    = SimilarityTransformBulge!(g,λ,j)
+#ql,qr    = SmallX1_fix!(g,j)
+ql,qr    = CreateBulgeMiddle!(g,λ,j)
+
 #
 #v1,w1     = ChaseBulgeTriDiagonal!(d)
 

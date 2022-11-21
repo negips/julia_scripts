@@ -27,15 +27,29 @@ function NegiAlg2(T::Matrix,λ)
   # λ       - Shift
 
   r,c   = size(T)
+  el    = eltype(T[1])
+  tol   = 1.0e-4
 
-# Create a bulge in the matrix
-  T,v,w     = CreateLowerBulgeOblique(T,λ)
+  V     = Matrix{el}(I,r,c)
+  W     = Matrix{el}(I,r,c)
+
+## Create a bulge in the matrix
+#  if abs(T[2,1])<tol
+#    Wi,Vi = SmallX1_fix!(T,1)
+##   Collect Right multipliers 
+#    V = V*Vi
+##   Collect Left multipliers
+#    W = Wi*W
+#  end  
+
+#  T,v,w     = CreateLowerBulgeOblique(T,λ)
+  w,v       = SimilarityTransformBulge!(T,λ,1) 
   Vi,Wi     = ChaseBulgeTriDiagonal2!(T,λ)
 
-# Collect Left multipliers 
-  V = Vi
-# Collect Right multipliers
-  W = Wi
+# Collect Right multipliers 
+  V = V*Vi
+# Collect Left multipliers
+  W = Wi*W
 
   return T,V,W
 end
@@ -82,6 +96,8 @@ function NegiAlg4(T::Matrix,λ)
   return T,V,W
 end
 #----------------------------------------------------------------------
+
+
 function CreateLowerBulgeOblique(T::Matrix,λ)
 
 # Create bulge in the sub diagonal  
@@ -303,7 +319,7 @@ function LowerHessenbergtoTriDiagonal2!(H::Matrix)
     end  
     w       = w/β             # <w,v> = 1.0/β
 
-#   Left Multiplication      
+#   Left Multiplication 
     Q       = I - v*w
     A       = Q*H
     W       = Q*W
@@ -449,21 +465,18 @@ function ChaseBulgeTriDiagonal2!(H::Matrix,λ)
       x1a = abs(x1)
       x2a = abs(x2)
       println("Possible Division by 0 in Chase2 abs(x1)=$x1a, abs(x2)=$x2a, i=$i")
-      Ql,Qr = SmallX1_fix!(H,i)
-      V = V*Qr
-      W = Ql*W
+#      Ql,Qr = SmallX1_fix!(H,i)
+#      Ql,Qr = SimilarityTransformBulge!(H,λ,i+1)     
+#      V = V*Qr
+#      W = Ql*W
     end
 
-#    if abs(x2)<tol
+    if abs(x2)<tol
 #      println("Recreating Reflector")
-#      H,x,y = CreateLowerBulgeOblique2(H,λ,i+1)
-#      Q         = I - (x*y)
-#      W         = Q*W
-#      β         = (y*x)[1]
-#      Q         = I + (x*y)/(one - one/β)
-#      V         = V*Q
-#      continue
-#    end
+#      Ql,Qr = SmallX1_fix!(H,i)
+#      V = V*Qr
+#      W = Ql*W
+    end
       
     Ql,Qr   = SimilarityTransform!(H,i,col)
     V = V*Qr
@@ -889,14 +902,17 @@ function SimilarityTransform!(H::Matrix,i::Int,n::Int)
    return Ql,Qr
 end
 #---------------------------------------------------------------------- 
-function SmallX1_fix!(H::Matrix,i::Int)
+function SmallX1_fix!(H::Matrix)
 
 #   ( I  0  0  0 )   ( α   y1  0   0  )   ( I    0    0   0 )
 #   ( b  a  0  0 ) X ( x1  β   z1  0  ) X ( -b   1    0   0 )
 #   ( 0  0  I  0 )   ( x2  y2  γ   w1 )   ( 0    0    I   0 ) X 1/a
 #   ( 0  0  0  I )   ( 0   0   z2  δ  )   ( 0    0    0   I )
 
+    i = 1
+
     el  = eltype(H[1])
+    n,n1 = size(H)
     zro = el(0)
     one = el(1)
 
@@ -969,7 +985,234 @@ function SmallX1_fix!(H::Matrix,i::Int)
 
    return Ql,Qr
 end
+#----------------------------------------------------------------------
+function CreateBulgeMiddle!(H::Matrix,λ,i::Int)
+
+#   ( I  0  0  0 )   ( δ   x1  0   0  )   ( I    0    0   0 )
+#   ( 0  I  0  0 ) X ( w2  α   y1  0  ) X ( 0    1    0   0 )
+#   ( 0  c  I  0 )   ( 0   x2  β   z1 )   ( 0   -c    I   0 )
+#   ( 0  0  0  I )   ( 0   0   y2  γ  )   ( 0    0    0   I )
+
+#   Use this when x2 (above) is small
+
+#   The index "i" here corresponds to the H[i,i] == α
+
+    el  = eltype(H[1])
+    n,n1 = size(H)
+    zro = el(0)
+    one = el(1)
+
+    I0 = Matrix{el}(I,n,n)
+
+#   Left Multiplication
+    α    = H[i,i]       - λ
+    β    = H[i+1,i+1]   - λ
+    γ    = H[i+2,i+2]   - λ
+
+    if (i>1)
+      x1 = H[i-1,i]
+      w2 = H[i,i-1]
+    else
+      x1 = zro
+      w2 = zro
+    end  
+
+    x2 = H[i+1,i]
+    y1 = H[i,i+1]
+    y2 = H[i+2,i+1]
+    if i+2<=n 
+      z1 = H[i+1,i+2]
+    else
+      z1 = zro
+    end  
+
+    a  = one
+    c  = one
+    d  = one
+    D0 = a*d
+
+    if (i>1)
+      H[i,i-1]    = a*w2
+      H[i+1,i-1]  = c*w2
+    end  
+
+    H[i,i]        = a*α
+    H[i+1,i]      = c*α  + d*x2
+
+    H[i,i+1]      =        a*y1
+    H[i+1,i+1]    = d*β  + c*y1
+
+    if i+2<=n
+      H[i+1,i+2]  =        d*z1
+      H[i+2,i+2]  = γ
+    end
+
+    Ql            = copy(I0)
+    Ql[i+1,i+1]   = a
+    Ql[i+1,i+1]   = d
+    Ql[i+1,i]     = c
+#----------------------------------------
+#   Right Multiplication
+    α    = H[i,i]    
+    β    = H[i+1,i+1]
+    γ    = H[i+2,i+2]
+
+    if (i>1)
+      x1 = H[i-1,i]
+      w2 = H[i,i-1]
+      w3 = H[i+1,i-1]
+    else
+      x1 = zro
+      w2 = zro
+      w3 = zro
+    end  
+
+    x2 = H[i+1,i]
+    y1 = H[i,i+1]
+    y2 = H[i+2,i+1]
+    if i+2<=n 
+      z1 = H[i+1,i+2]
+    else
+      z1 = zro
+    end  
+
+    aold = a
+    a  = d/D0
+    c  = -c/D0
+    d  = aold/D0
+
+    if (i>1)
+      H[i-1,i]    = a*x1
+    end  
+
+    H[i,i]        = a*α  + c*y1
+    H[i+1,i]      = c*β  + a*x2
+
+    H[i,i+1]      =        d*y1
+    H[i+1,i+1]    = d*β
+
+    if i+2<=n
+      H[i+1,i+2]  =          z1
+      H[i+2,i+2]  = γ
+     
+      H[i+2,i]    =        c*y2
+      H[i+2,i+1]  =        d*y2
+    end  
+
+#   Remove shifts
+    H[i,i]        = H[i,i]     + λ  
+    H[i+1,i+1]    = H[i+1,i+1] + λ  
+    H[i+2,i+2]    = H[i+2,i+2] + λ  
+
+    Qr            = copy(I0)
+    Qr[i+1,i+1]   = a
+    Qr[i+1,i+1]   = d
+    Qr[i+1,i]     = c
+
+   return Ql,Qr
+end
 #---------------------------------------------------------------------- 
+
+function SimilarityTransformBulge!(H::Matrix,λ,i::Int)
+
+#   Create bulge in the sub diagonal via similarity transform
+#   ( a  0  0 )   ( α   y1  0  )   (d   0  0 )
+#   ( c  d  0 ) X ( x1  β   z1 ) X (-c  a  0 ) X 1/(ad - 0)
+#   ( 0  0  I )   ( 0   y2  γ  )   (0   0  I )
+
+    el  = eltype(H[1])
+    zro = el(0)
+    one = el(1)
+
+    I0 = Matrix{el}(I,size(H))
+
+#   Left Multiplication
+    α    = H[i,i]       - λ
+    β    = H[i+1,i+1]   - λ
+    γ    = H[i+2,i+2]   - λ
+  
+    x1 = H[i+1,i]
+    x2 = H[i+2,i]       # This should be zero
+    y1 = H[i,i+1]
+    y2 = H[i+2,i+1]
+    z1 = H[i+1,i+2]
+
+    if (i>1)
+      w2 = H[i,i-1]
+    end  
+
+    b = zro
+    d = one
+    c = -d*x1/α
+    a = one
+    D0 = a*d - b*c
+  
+    H[i,i]        = a*α
+    H[i+1,i]      = zro       # Forcing exact zero
+
+    H[i,i+1]      = a*y1
+    H[i+1,i+1]    = c*y1 + d*β
+
+    H[i+1,i+2]    = d*z1
+
+    H[i+2,i+2]    = γ
+
+    if (i>1)
+      H[i,i-1]    = a*w2
+      H[i+1,i-1]  = c*w2
+    end  
+
+    Ql            = copy(I0)
+    Ql[i,i]       = a
+    Ql[i+1,i]     = c
+    Ql[i,i+1]     = b
+    Ql[i+1,i+1]   = d
+#----------------------------------------
+
+#   Right Multiplication
+    α    = H[i,i]
+    β    = H[i+1,i+1]
+    γ    = H[i+2,i+2]
+  
+    x1 = H[i+1,i]
+    x2 = H[i+2,i]       # This should be zero
+    y1 = H[i,i+1]
+    y2 = H[i+2,i+1]
+    z1 = H[i+1,i+2]
+
+    dold = d
+    b    = zro
+    c    = -c/D0
+    d    = a/D0
+    a    = dold/D0
+
+#   Right multiplication
+    H[i,i]        = a*α  + c*y1
+    H[i+1,i]      = c*β
+    H[i+2,i]      = c*y2
+
+    H[i,i+1]      = d*y1
+    H[i+1,i+1]    = d*β
+    H[i+2,i+1]    = d*y2
+
+    H[i+2,i+2]    = γ
+
+#   Remove shifts
+    H[i,i]        = H[i,i]     + λ  
+    H[i+1,i+1]    = H[i+1,i+1] + λ  
+    H[i+2,i+2]    = H[i+2,i+2] + λ  
+
+    Qr            = copy(I0)
+    Qr[i,i]       = a
+    Qr[i+1,i]     = c
+    Qr[i,i+1]     = b
+    Qr[i+1,i+1]   = d
+
+    return Ql,Qr
+
+end
+
+#----------------------------------------------------------------------
 
 
 

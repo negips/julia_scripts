@@ -20,7 +20,7 @@ vt = ComplexF64
 zro   = vt(0.0)
 one   = vt(1.0)
 
-tol   = 100*eps(abs(one))
+tol   = 10*eps(abs(one))
 
 rng = MersenneTwister(1254)
 
@@ -39,15 +39,14 @@ dl    = randn(rng,vt,n-1)
 AT    = Matrix(Tridiagonal(dl,d0,du))
 A     = copy(AT)
 
-
 B     = copy(AT)
 
-niter = 300
-ern   = zeros(Float64,niter+1)
+niter = 200
+ern   = zeros(Float64,niter+1) .+ 1.0e-26
 erqr  = zeros(Float64,niter+1)
 
 ern[1]  = abs(AT[n,n-1])
-erqr[1] = abs(C[n,n-1])
+erqr[1] = abs(B[n,n-1])
 
 nconv   = 0
 
@@ -65,10 +64,16 @@ for i in 1:niter
   l         = AT[j,j]
   ern[i+1]  = abs(er)
 
+#  j = n - nconv
+#  λ         = AT[j,j]
+#  AT,v,w    = NegiAlg2(AT,λ)
+#  er        = AT[j,j-1]
+#  ern[i+1]  = abs(er)
+
   if abs(er)<tol
     nconv = nconv + 1
 
-    if nconv == n
+    if nconv == n-2
       break
     end  
   end  
@@ -86,8 +91,10 @@ d = diag(AT,-1)
 figure(num=2)
 semilogy(abs.(d))
 
+δ = eigvals(B) .- eigvals(AT)
 
-
+display(δ)
+display(norm(δ))
 println("Done.")
 
 
