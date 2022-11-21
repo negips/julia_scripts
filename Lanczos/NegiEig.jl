@@ -445,10 +445,13 @@ function ChaseBulgeTriDiagonal2!(H::Matrix,λ)
     x1 = H[i+1,i]
     x2 = H[i+2,i]
 
-    if abs(x1)<tol
+    if abs(x1)<1.0e-4  #tol
       x1a = abs(x1)
       x2a = abs(x2)
       println("Possible Division by 0 in Chase2 abs(x1)=$x1a, abs(x2)=$x2a, i=$i")
+      Ql,Qr = SmallX1_fix!(H,i)
+      V = V*Qr
+      W = Ql*W
     end
 
 #    if abs(x2)<tol
@@ -462,7 +465,9 @@ function ChaseBulgeTriDiagonal2!(H::Matrix,λ)
 #      continue
 #    end
       
-    Ql,Qr   = SimilarityTransform!(H,i,col)  
+    Ql,Qr   = SimilarityTransform!(H,i,col)
+    V = V*Qr
+    W = Ql*W
    
   end
 
@@ -812,7 +817,8 @@ function SimilarityTransform!(H::Matrix,i::Int,n::Int)
   
     H[i,i]        = α
     H[i+1,i]      = a*x1 + b*x2
-    H[i+2,i]      = c*x1 + d*x2
+#    H[i+2,i]      = c*x1 + d*x2
+    H[i+2,i]      = zro       # Forcing exact zero      
 
     H[i,i+1]      = y1
     H[i+1,i+1]    = a*β + b*y2
@@ -882,5 +888,89 @@ function SimilarityTransform!(H::Matrix,i::Int,n::Int)
 
    return Ql,Qr
 end
+#---------------------------------------------------------------------- 
+function SmallX1_fix!(H::Matrix,i::Int)
+
+#   ( I  0  0  0 )   ( α   y1  0   0  )   ( I    0    0   0 )
+#   ( b  a  0  0 ) X ( x1  β   z1  0  ) X ( -b   1    0   0 )
+#   ( 0  0  I  0 )   ( x2  y2  γ   w1 )   ( 0    0    I   0 ) X 1/a
+#   ( 0  0  0  I )   ( 0   0   z2  δ  )   ( 0    0    0   I )
+
+    el  = eltype(H[1])
+    zro = el(0)
+    one = el(1)
+
+    I0 = Matrix{el}(I,n,n)
+
+#   Left Multiplication
+    α    = H[i,i]
+    β    = H[i+1,i+1]
+    γ    = H[i+2,i+2]
+  
+    x1 = H[i+1,i]
+    x2 = H[i+2,i]
+    y1 = H[i,i+1]
+    y2 = H[i+2,i+1]
+    z1 = H[i+1,i+2]
+
+    b = one
+    a = one       # Diagonal element. Can't be zero
+    D0 = a
+  
+    H[i,i]        = α
+    H[i+1,i]      = a*x1 + b*α
+
+    H[i+1,i+1]    = a*β + b*y1
+
+    H[i+1,i+2]    = a*z1
+
+    Ql            = copy(I0)
+    Ql[i+1,i+1]   = a
+    Ql[i+1,i]     = b
+#----------------------------------------
+
+#   Right Multiplication
+    α    = H[i,i]
+    β    = H[i+1,i+1]
+    γ    = H[i+2,i+2]
+  
+    x1 = H[i+1,i]
+    x2 = H[i+2,i]
+    y1 = H[i,i+1]
+    y2 = H[i+2,i+1]
+    z1 = H[i+1,i+2]
+
+    b = one
+    a = one       # Diagonal element. Can't be zero
+    D0 = a
+  
+    H[i,i]        = α
+    H[i+1,i]      = a*x1 + b*α
+
+    H[i+1,i+1]    = a*β + b*y1
+
+    H[i+1,i+2]    = a*z1
+
+    b    = -b/D0
+    a    =  1/D0
+
+#   Right multiplication
+    H[i,i]        = α + b*y1     
+    H[i+1,i]      = b*β + x1
+    H[i+2,i]      = b*y2 + x2
+
+    H[i,i+1]      = a*y1
+    H[i+1,i+1]    = a*β
+    H[i+2,i+1]    = a*y2
+
+    Qr            = copy(I0)
+    Qr[i+1,i+1]   = a
+    Qr[i+1,i]     = b
+
+   return Ql,Qr
+end
+#---------------------------------------------------------------------- 
+
+
 
 

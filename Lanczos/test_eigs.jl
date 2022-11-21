@@ -42,7 +42,7 @@ C     = copy(AT)
 θ     = eigvals(AT)
 
 
-niter = 20
+niter = 10
 ern   = zeros(Float64,niter+1)
 erqr  = zeros(Float64,niter+1)
 
