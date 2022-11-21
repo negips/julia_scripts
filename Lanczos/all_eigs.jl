@@ -41,12 +41,14 @@ A     = copy(AT)
 
 B     = copy(AT)
 
-niter = 200
+niter = 400
 ern   = zeros(Float64,niter+1) .+ 1.0e-26
 erqr  = zeros(Float64,niter+1)
+mnorm = zeros(Float64,niter+1)
 
 ern[1]  = abs(AT[n,n-1])
 erqr[1] = abs(B[n,n-1])
+mnorm[1]= norm(AT)
 
 nconv   = 0
 
@@ -54,7 +56,7 @@ for i in 1:niter
   local λ,μ
   global v,w
   global AT,C
-  global ern,erqr
+  global ern,erqr,mnorm
   global nconv
 
   j = n - nconv
@@ -64,6 +66,7 @@ for i in 1:niter
   l         = AT[j,j]
   ern[i+1]  = abs(er)
 
+  mnorm[i+1] = norm(AT)
 #  j = n - nconv
 #  λ         = AT[j,j]
 #  AT,v,w    = NegiAlg2(AT,λ)
@@ -91,10 +94,15 @@ d = diag(AT,-1)
 figure(num=2)
 semilogy(abs.(d))
 
+figure(num=3)
+plot(mnorm,linestyle="none",marker="o")
+
+
 δ = eigvals(B) .- eigvals(AT)
 
 display(δ)
-display(norm(δ))
+normδ = norm(δ)
+println("Eigenvalues error norm = $normδ")
 println("Done.")
 
 
