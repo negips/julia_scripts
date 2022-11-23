@@ -527,7 +527,7 @@ function AdjointReflectorZeros(x::Vector,k::Int,n::Int)
 # n   -     Length of the vector
 # k   -     Position after which we want zeros
  
-  Q         = Matrix{typeof(x[1])}(1.0I,n,n)
+  Q         = Matrix{typeof(x[1])}(I,n,n)
   w         = 0.0*x
   τ         = 0.0
  
@@ -547,6 +547,40 @@ function AdjointReflectorZeros(x::Vector,k::Int,n::Int)
   return Q,w,τ
 end
 #----------------------------------------------------------------------
+function AdjointReflectorZerosBottom(x::Vector,k::Int,n::Int)
+
+# Create Unitary matrix which introduces zeros after the
+# kth position in the vector x
+# General Function for Real or Complex vectors
+# The resulting zeros are in a vector: 
+#     y = x'*Q
+#
+# x   -     Vector to Reflect
+# n   -     Length of the vector
+# k   -     Position after which we want zeros
+ 
+  Q         = Matrix{typeof(x[1])}(I,n,n)
+  w         = 0.0*x
+  τ         = 0.0
+ 
+  if k>n
+    return Q,w,τ
+  end
+
+  θ         = 0.0*π/4.0
+
+  w         = 0.0*x
+  w[k]      = x[k] - norm(x[1:k])*exp(im*θ)
+  w[k+1:n]  = x[k+1:n]
+  β         = 1.0/(w'*x)
+  τ         = β'    
+  Q         = I - τ*w*w'
+
+  return Q,w,τ
+end
+#----------------------------------------------------------------------
+
+
 function BandedHessenberg(H0::Matrix,b::Int)
 #  Chase the Bulge in the Francis Algorithm
 
@@ -764,6 +798,32 @@ function ChaseBulgeDownOneStep!(H::Matrix,i::Int)
 
    k1      = i+1
    Q,w,τ   = CreateReflectorZeros(x,k1,r)
+
+   A  = Q*H
+   H .= A*(Q')
+
+   return Q
+end
+#----------------------------------------------------------------------
+function ChaseUpperBulgeDownOneStep!(H::Matrix,i::Int)
+#   Chase the Bulge in the Francis Algorithm
+
+   # H0     - Matrix with Bulge
+   # i      - Column number
+
+   r,c = size(H)
+   el  = eltype(H[1])
+   Q   = Matrix{el}(I,r,c)
+
+   tol = 1.0e-12
+
+   x       = H[:,i]
+#   k1      = i+1
+#   Q,w,τ   = CreateReflectorZeros(x,k1,r)
+
+   y        = adjoint.(H[i,:])
+   k        = i+1
+   Q,w,τ    = AdjointReflectorZerosBottom(y,k,c)
 
    A  = Q*H
    H .= A*(Q')
