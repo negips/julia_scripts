@@ -1123,6 +1123,7 @@ function SimilarityTransformBulge!(H::Matrix,λ,i::Int)
     el  = eltype(H[1])
     zro = el(0)
     one = el(1)
+    tol = 1.0e-2
 
     I0 = Matrix{el}(I,size(H))
 

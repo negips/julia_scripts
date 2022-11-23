@@ -192,7 +192,7 @@ end
 
 #----------------------------------------------------------------------
 
-function CreateBulge(H::Matrix,b::Int,μ::Vector,nμ::Int)
+function CreateBulge(H::Matrix,b::Int,μ,nμ::Int)
 
   # H       - Hessenberg Matrix
   # b       - Block Size
@@ -219,7 +219,7 @@ end
 
 #----------------------------------------------------------------------
 
-function CreateLowerBulge(H::Matrix,μ::Vector,nμ::Int)
+function CreateLowerBulge(H::Matrix,μ,nμ::Int)
 
   # nμ      - No of Shifts
   # μ       - Shifts
@@ -244,7 +244,7 @@ end
 
 #----------------------------------------------------------------------
 
-function polyHe1(H::Matrix,b::Int,μ0::Vector,nμ::Int)
+function polyHe1(H::Matrix,b::Int,μ0,nμ::Int)
 
 # calculate x = p(H)*e1 = (H - μnI)...(H - μ2I)(H - μ1I)*e1
 # when H is has a Hessenberg Structure
@@ -280,7 +280,7 @@ function polyHe1(H::Matrix,b::Int,μ0::Vector,nμ::Int)
 end
 
 #----------------------------------------------------------------------
-function enpolyH(H::Matrix,μ0::Vector,nμ::Int)
+function enpolyH(H::Matrix,μ0,nμ::Int)
 
 # calculate x = en'*p(H) = en'*(H - μ1I)(H - μ2I)...(H - μnI)
 # when H is has a Hessenberg Structure
@@ -316,7 +316,7 @@ end
 
 #----------------------------------------------------------------------
 
-function polyAe1(A::Matrix,μ0::Vector,nμ::Int)
+function polyAe1(A::Matrix,μ0,nμ::Int)
 
 # calculate x = p(A)*e1 = (A - μnI)...(A-μ2I)(A-μ1I)*e1
 # for a general A
@@ -747,6 +747,28 @@ function HessenbergReduction!(H::Matrix)
   end
 
   return Qn
+end
+#----------------------------------------------------------------------
+function ChaseBulgeDownOneStep!(H::Matrix,i::Int)
+#   Chase the Bulge in the Francis Algorithm
+
+   # H0     - Matrix with Bulge
+   # i      - Column number
+
+   r,c = size(H)
+   Q   = Matrix{eltype(H)}(I,r,c)
+
+   tol = 1.0e-12
+
+   x       = H[:,i]
+
+   k1      = i+1
+   Q,w,τ   = CreateReflectorZeros(x,k1,r)
+
+   A  = Q*H
+   H .= A*(Q')
+
+   return Q
 end
 #----------------------------------------------------------------------
 
