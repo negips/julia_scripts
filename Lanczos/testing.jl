@@ -12,7 +12,7 @@ vt = Float64
 tol = 1000*eps(vt)
 ϵ = 1.0e-8
 
-n  = 8
+n  = 6
 A  = randn(vt,n,n)
 H  = copy(A) 
 vh = UpperHessenbergReduction!(H)
@@ -31,38 +31,39 @@ D0,Q0 = CreateBulge(C,1,λ,1)
 SetZero!(D0,tol)
 
 D     = copy(D0)
+v,w   = HybridBulgeChase!(D)
 
-i = 1
-q = ChaseBulgeDownOneStep!(D,i)
-SetZero!(D,tol)
-
-E   = copy(D)
-v,w = ChaseUpperBulgeObliqueOneStep!(E,i)
-SetZero!(E,tol)
-
-i   = 2
-F   = copy(F)
-q   = ChaseUpperBulgeDownOneStep!(F,i)
-SetZero!(F,tol)
-
-G = copy(F)
-q = ChaseBulgeDownOneStep!(G,i)
-SetZero!(G,tol)
-
-#for i in 2:0 #n-2
-##  v,w = ChaseUpperBulgeObliqueOneStep!(H0,i)
-##  SetZero!(H0,tol)
-##  v,w = ChaseLowerBulgeObliqueOneStep!(H0,i)
-##  SetZero!(H0,tol)
+#i = 1
+#q = ChaseBulgeDownOneStep!(D,i)
+#SetZero!(D,tol)
 #
-#  q1 = ChaseBulgeDownOneStep!(H0,i)
-#  SetZero!(H0,tol)
-#  #i = 2
-#  #q = ChaseBulgeDownOneStep!(H0,i)
-#  v1,w1 = ChaseUpperBulgeObliqueOneStep!(H0,i)
-#  SetZero!(H0,tol)
+#E   = copy(D)
+#v,w = ChaseUpperBulgeObliqueOneStep!(E,i)
+#SetZero!(E,tol)
+
+#i   = 2
+#F   = copy(E)
+#q   = ChaseUpperBulgeDownOneStep!(F,i)
+#SetZero!(F,tol)
 #
-#end
+#G = copy(F)
+#q = ChaseBulgeDownOneStep!(G,i)
+#SetZero!(G,tol)
+
+for i in 2:n-2
+#  v,w = ChaseUpperBulgeObliqueOneStep!(H0,i)
+#  SetZero!(H0,tol)
+#  v,w = ChaseLowerBulgeObliqueOneStep!(H0,i)
+#  SetZero!(H0,tol)
+
+  q1 = ChaseBulgeDownOneStep!(E,i)
+  SetZero!(E,tol)
+  #i = 2
+  #q = ChaseBulgeDownOneStep!(H0,i)
+  v1,w1 = ChaseUpperBulgeObliqueOneStep!(E,i)
+  SetZero!(E,tol)
+
+end
 
 
 println("Done")

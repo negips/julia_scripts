@@ -28,7 +28,9 @@ function NegiAlg2(T::Matrix,λ)
 
   r,c   = size(T)
   el    = eltype(T[1])
-  tol   = 1.0e-4
+  one   = el(1)
+  tol   = 1000.0*eps(abs(one))
+  αtol   = 1.0e-2
 
   V     = Matrix{el}(I,r,c)
   W     = Matrix{el}(I,r,c)
@@ -43,8 +45,20 @@ function NegiAlg2(T::Matrix,λ)
 #  end  
 
 #  T,v,w     = CreateLowerBulgeOblique(T,λ)
-  w,v       = SimilarityTransformBulge!(T,λ,1) 
-  Vi,Wi     = ChaseBulgeTriDiagonal2!(T,λ)
+  if  (abs(T[1,1]-λ) > αtol && abs(T[2,2]-λ) > αtol)
+    if (abs(T[2,1])< tol)
+      Vi,Wi = SmallX1_fix!(T)
+      V = V*Vi
+      W = Wi*W
+    else  
+      w,v       = SimilarityTransformBulge!(T,λ,1)
+    end  
+    Vi,Wi     = ChaseBulgeTriDiagonal2!(T,λ)
+  else
+    println("Small α. Hybrid Chase")
+    T,Q       = CreateBulge(T,1,λ,1)    
+    Vi,Wi     = HybridBulgeChase!(T)  
+  end  
 
 # Collect Right multipliers 
   V = V*Vi
@@ -54,6 +68,45 @@ function NegiAlg2(T::Matrix,λ)
   return T,V,W
 end
 #----------------------------------------------------------------------
+# Lower Bulge Chase Algorithm with Oblique projectors
+function NegiAlgHybrid(T::Matrix,λ)
+# Also known as BulgeChase Algorithm  
+
+  # H       - Tridiagonal Matrix
+  # λ       - Shift
+
+  r,c   = size(T)
+  el    = eltype(T[1])
+  one   = el(1)
+  tol   = 1000.0*eps(abs(one))
+  αtol   = 1.0e-2
+
+  V     = Matrix{el}(I,r,c)
+  W     = Matrix{el}(I,r,c)
+
+## Create a bulge in the matrix
+#  if abs(T[2,1])<tol
+#    Wi,Vi = SmallX1_fix!(T,1)
+##   Collect Right multipliers 
+#    V = V*Vi
+##   Collect Left multipliers
+#    W = Wi*W
+#  end  
+
+#  T,v,w     = CreateLowerBulgeOblique(T,λ)
+  T,Q       = CreateBulge(T,1,λ,1)    
+  Vi,Wi     = HybridBulgeChase!(T)  
+
+# Collect Right multipliers 
+  V = V*Vi
+# Collect Left multipliers
+  W = Wi*W
+
+  return T,V,W
+end
+#----------------------------------------------------------------------
+
+
 # Upper Bulge Chase Algorithm with Oblique projectors
 function NegiAlg3(T::Matrix,λ)
 # Also known as BulgeChase Algorithm  
@@ -96,7 +149,6 @@ function NegiAlg4(T::Matrix,λ)
   return T,V,W
 end
 #----------------------------------------------------------------------
-
 
 function CreateLowerBulgeOblique(T::Matrix,λ)
 
@@ -388,6 +440,39 @@ function UpperHessenbergtoTriDiagonal2!(H::Matrix)
   return V,W
 end
 #----------------------------------------------------------------------
+function HybridBulgeChase!(H::Matrix)
+
+  el = eltype(H[1])
+  one = el(1)
+
+  tol = 100*eps(abs.(one))
+
+  r,c = size(H)
+  if r!=c
+    display("H needs to be a square matrix: size(H)= $r,$c")
+  end
+
+  W  = Matrix{vt}(I,r,c)
+  V  = Matrix{vt}(I,r,c)
+  I0 = Matrix{vt}(I,r,c)
+
+  for i in 1:c-2
+
+    Q       = ChaseBulgeDownOneStep!(H,i)  
+#   Left Multiplication      
+    W       = Q*W
+#   Right multiplication
+    V       = V*Q
+
+    Vi,Wi   = ChaseUpperBulgeObliqueOneStep!(H,i)
+    V       = V*Vi
+    W       = Wi*W
+    
+  end
+
+  return V,W
+end
+#----------------------------------------------------------------------
 
 function ChaseBulgeTriDiagonal!(H::Matrix)
 
@@ -464,7 +549,7 @@ function ChaseBulgeTriDiagonal2!(H::Matrix,λ)
     if abs(x1)<1.0e-4  #tol
       x1a = abs(x1)
       x2a = abs(x2)
-      println("Possible Division by 0 in Chase2 abs(x1)=$x1a, abs(x2)=$x2a, i=$i")
+#      println("Possible Division by 0 in Chase2 abs(x1)=$x1a, abs(x2)=$x2a, i=$i")
 #      Ql,Qr = SmallX1_fix!(H,i)
 #      Ql,Qr = SimilarityTransformBulge!(H,λ,i+1)     
 #      V = V*Qr
@@ -819,7 +904,7 @@ function SimilarityTransform!(H::Matrix,i::Int,n::Int)
     if abs(x1)<tol
       x1a = abs(x1)
       x2a = abs(x2)
-      println("Division by 0 abs(x1)=$x1a, abs(x2)=$x2a, i=$i")
+#      println("Division by 0 abs(x1)=$x1a, abs(x2)=$x2a, i=$i")
     end
 
     b = zro

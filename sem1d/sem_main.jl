@@ -35,7 +35,6 @@ U           = prec(6)
 c0          = prec(1.0e-02)   # Coupling
 cx0         = prec(20)        # = 20 for the Lesshafft case
 whichsrc    = 1               # 1: Linear Decrease; 2: Tanh(x) saturation
-                        
 
 
 # So much faster with Sparse Arrays

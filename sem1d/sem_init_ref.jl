@@ -9,7 +9,8 @@ using PolynomialBases
 #VT = ComplexF64
 #setprecision(90)
 #prec = BigFloat
-prec = Double64 # Float64
+#prec = Double64
+prec  = Float64
 
 VT  = Complex{prec}
 
@@ -17,7 +18,7 @@ one = prec(1.0)
 zro = prec(0.0)
 
 # define nodal bases
-N           = 11 ;                              # polynomial degree
+N           = 6 ;                              # polynomial degree
 lx1         = N+1;                              # No of points
 Basis       = LobattoLegendre(N, prec)          # Polynomial Basis
 

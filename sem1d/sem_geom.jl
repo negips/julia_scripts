@@ -21,8 +21,6 @@ function sem_geom(Basis,Basisd,xc,N,Nd,nel,dxm1,dxtm1,prec)
       zgm         = Basis.nodes;
       wzm         = Basis.weights;
       for i in 1:nel
-#        global xm1, ym1
-       
         xi              = zeros(VT,lx1);
         x0              = xc[i];
         x1              = xc[i+1];
@@ -76,11 +74,6 @@ function sem_geom(Basis,Basisd,xc,N,Nd,nel,dxm1,dxtm1,prec)
       for i in 1:nel
         gradx[:,:,i]  = Diagonal(rxm1[:,i])*dxm1
       end  
-#      for i in 1:nel
-#        for j in 1:lx1
-#          gradx[j,:,i] = rxm1[j,i].*dxm1[j,:];
-#        end  
-#      end
       
 #     Interpolation operator to de-aliased grid
       intpm1d = zeros(VT,lx1d,lx1);
@@ -129,8 +122,15 @@ function sem_geom(Basis,Basisd,xc,N,Nd,nel,dxm1,dxtm1,prec)
         
         wlp[:,:,i]  = -dv1*gradx[:,:,i];
       end
+
+#     Laplacian (without integration by parts)      
+      lap   = zeros(VT,lx1,lx1,nel);
       
-      Geom = GeomMatrices(xm1,xrm1,rxm1,jacm1,jacmi,bm1,gradx,intpm1d,gradxd,bm1d,bintpd,cnv,wlp,dvdx);
+      for i in 1:nel
+        lap[:,:,i] = Diagonal(bm1[:,i])*gradx[:,:,i]*gradx[:,:,i]
+      end
+
+      Geom = GeomMatrices(xm1,xrm1,rxm1,jacm1,jacmi,bm1,gradx,intpm1d,gradxd,bm1d,bintpd,cnv,wlp,lap,dvdx);
 
       println("SEM Geom: Done")
 
@@ -154,6 +154,7 @@ struct GeomMatrices
       bintpd;
       cnv;
       wlp;
+      lap;
       dvdx;
 end
 

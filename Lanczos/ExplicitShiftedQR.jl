@@ -5,9 +5,10 @@ function ExplicitShiftedQR(Hs,μ0,nμ,ngs)
   H   = copy(Hs)
 
   r,c = size(H)
+  el  = eltype(H[1,1])
 
-  Q         = Matrix{eltype(H)}(I,r,c)    # Identity
-  Qtmp      = Matrix{eltype(H)}(I,r,c)    # Identity
+  Q         = Matrix{el}(I,r,c)    # Identity
+  Qtmp      = Matrix{el}(I,r,c)    # Identity
 
   R   = zeros(eltype(H),r,c)
 
@@ -28,7 +29,7 @@ function ExplicitShiftedQR(Hs,μ0,nμ,ngs)
     for m in 2:r
       R[m,1]    = 0.
     end  
-    for j in 2:c
+    for j in 2:2 #c
       q  = Hj[:,j]
       h  = Qj[:,1:j-1]'*q
       q .= q .- Qj[:,1:j-1]*h
