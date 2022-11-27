@@ -18,7 +18,7 @@ one = prec(1.0)
 zro = prec(0.0)
 
 # define nodal bases
-N           = 6 ;                              # polynomial degree
+N           = 12 ;                              # polynomial degree
 lx1         = N+1;                              # No of points
 Basis       = LobattoLegendre(N, prec)          # Polynomial Basis
 

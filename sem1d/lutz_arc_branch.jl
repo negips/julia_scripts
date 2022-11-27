@@ -63,7 +63,7 @@ pΛ = ax1.plot(real.(Ω),imag.(Ω),linestyle="none",marker="o",markersize=8)
 
 xg    = QT*(vimult.*Geom.xm1[:])
 
-Nev         = 15                          # Number of eigenvalues to calculate
+Nev         = 10                          # Number of eigenvalues to calculate
 EKryl       = Int64(floor(2.5*Nev))       # Additional size of Krylov space
 LKryl       = Nev + EKryl                 # Total Size of Krylov space    
 ngs         = 2                           # Number of Gram-Schmidt
@@ -89,10 +89,10 @@ r = randn(vt,ndof)
 r     = (one+one*im)sin.(5*pi*xg[:])
 r[1]  = prec(0)
 
-ifarnoldi   = true
+ifarnoldi   = false
 ifoptimal   = false     # Calculate optimal responses
 ifadjoint   = false     # Superceded by ifoptimal
-ifplot      = false 
+ifplot      = true 
 verbose     = true
 eigupd      = true
 reortho     = 500
@@ -103,7 +103,7 @@ else
 end  
 verbosestep = arnstep #500
 nsteps      = 50000000
-ifsave      = true
+ifsave      = false
 
 nkryl   = 0
 block   = 1
@@ -277,7 +277,7 @@ while (~ifconv)
       vmin = 1.5*minimum(real.(v))
       vmax = 1.5*maximum(real.(v))
 #      ax2.set_ylim((vmin,vmax))
-      ax2.set_ylim((-1.0,1.0))
+      ax2.set_ylim((-2.0,2.0))
      
       pause(0.00001)
       draw() 
@@ -298,9 +298,12 @@ while (~ifconv)
      
       pv1 = ax2.plot(xg,real.(v),linestyle="-")
 
-      vmin = 1.5*minimum(real.(v))
-      vmax = 1.5*maximum(real.(v))
-      ax2.set_ylim((vmin,vmax))
+      vmin = 2.0*minimum(real.(v))
+      vmax = 2.0*maximum(real.(v))
+      dv   = abs(vmax-vmin)
+#      ax2.set_ylim((vmin,vmax))
+      ax2.set_ylim((-dv,dv))
+     
     end 
   
     if i==nsteps

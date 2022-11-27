@@ -14,6 +14,8 @@ include("AssembleMatrix.jl")
 
 include("AssembleMatrixLesshafft.jl")
 
+include("AssembleMatrixModifiedDiffusion.jl")
+
 include("sem_init_ref.jl")
 
 include("Sem_QQT.jl")
@@ -40,10 +42,20 @@ whichsrc    = 1               # 1: Linear Decrease; 2: Tanh(x) saturation
 # So much faster with Sparse Arrays
 # Numerical error also seems much better behaved
 ifsparse  = true
+ifmoddiff = false
 if (ifsparse)
-  L,B,OP,Conv,Src,Lap,Fd = AssembleMatrixLesshafftSparse(U,γ,c0,cx0,whichsrc,Geom.cnv,Geom.wlp,Geom.xm1,Geom.bm1,Basis,lx1,nel,prec);
+  if (ifmoddiff)
+#   Diffusion without integration by parts    
+    L,B,OP,Conv,Src,Lap,Fd = AssembleMatrixModDiffSparse(U,γ,c0,cx0,whichsrc,Geom.cnv,Geom.lap,Geom.xm1,Geom.bm1,Basis,lx1,nel,prec);
 
-  AL,AB,AOP,AConv,ASrc,ALap,AFd = AssembleAdjointLesshafftSparse(U,γ,c0,cx0,whichsrc,Geom.cnv,Geom.wlp,Geom.xm1,Geom.bm1,Basis,lx1,nel,prec);
+    AL,AB,AOP,AConv,ASrc,ALap,AFd = AssembleAdjointModDiffSparse(U,γ,c0,cx0,whichsrc,Geom.cnv,Geom.lap,Geom.xm1,Geom.bm1,Basis,lx1,nel,prec);
+
+  else
+#   Diffusion term with integration by parts    
+    L,B,OP,Conv,Src,Lap,Fd = AssembleMatrixLesshafftSparse(U,γ,c0,cx0,whichsrc,Geom.cnv,Geom.wlp,Geom.xm1,Geom.bm1,Basis,lx1,nel,prec);
+
+    AL,AB,AOP,AConv,ASrc,ALap,AFd = AssembleAdjointLesshafftSparse(U,γ,c0,cx0,whichsrc,Geom.cnv,Geom.wlp,Geom.xm1,Geom.bm1,Basis,lx1,nel,prec);
+  end
 else
   L,B,OP,Conv,Src,Lap,Fd = AssembleMatrixLesshafft2(U,γ,c0,Geom.cnv,Geom.wlp,Geom.xm1,Geom.bm1,Basis,lx1,nel,prec);
 end  
