@@ -70,7 +70,6 @@ end
 #----------------------------------------------------------------------
 # Lower Bulge Chase Algorithm with Oblique projectors
 function NegiAlgHybrid(T::Matrix,λ)
-# Also known as BulgeChase Algorithm  
 
   # H       - Tridiagonal Matrix
   # λ       - Shift

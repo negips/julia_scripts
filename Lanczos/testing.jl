@@ -2,6 +2,7 @@ println("Testing Reductions")
 
 using LinearAlgebra
 using Random
+using PyPlot
 
 include("HessenbergReduction.jl")
 include("NegiEig.jl")
@@ -12,7 +13,7 @@ vt = Float64
 tol = 1000*eps(vt)
 ϵ = 1.0e-8
 
-n  = 6
+n  = 12
 A  = randn(vt,n,n)
 H  = copy(A) 
 vh = UpperHessenbergReduction!(H)
@@ -50,21 +51,28 @@ v,w   = HybridBulgeChase!(D)
 #q = ChaseBulgeDownOneStep!(G,i)
 #SetZero!(G,tol)
 
-for i in 2:n-2
-#  v,w = ChaseUpperBulgeObliqueOneStep!(H0,i)
-#  SetZero!(H0,tol)
-#  v,w = ChaseLowerBulgeObliqueOneStep!(H0,i)
-#  SetZero!(H0,tol)
+#for i in 2:n-2
+##  v,w = ChaseUpperBulgeObliqueOneStep!(H0,i)
+##  SetZero!(H0,tol)
+##  v,w = ChaseLowerBulgeObliqueOneStep!(H0,i)
+##  SetZero!(H0,tol)
+#
+#  q1 = ChaseBulgeDownOneStep!(E,i)
+#  SetZero!(E,tol)
+#  #i = 2
+#  #q = ChaseBulgeDownOneStep!(H0,i)
+#  v1,w1 = ChaseUpperBulgeObliqueOneStep!(E,i)
+#  SetZero!(E,tol)
+#
+#end
 
-  q1 = ChaseBulgeDownOneStep!(E,i)
-  SetZero!(E,tol)
-  #i = 2
-  #q = ChaseBulgeDownOneStep!(H0,i)
-  v1,w1 = ChaseUpperBulgeObliqueOneStep!(E,i)
-  SetZero!(E,tol)
-
-end
-
+close("all")
+h1 = figure(num=1)
+s = spy(H,precision=1.0e-10,marker="o",markersize=6.0)
+ax = gca()
+ax.xaxis.set_visible(false)
+ax.yaxis.set_visible(false)
+savefig("spyfigure.png")
 
 println("Done")
 

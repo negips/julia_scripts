@@ -12,6 +12,7 @@ include("BulgeChase.jl")
 include("HessenbergReduction.jl")
 include("NegiEig.jl")
 include("ImplicitLR.jl")
+include("BiOrthoIRst.jl")
 
 close("all")
 
@@ -22,14 +23,7 @@ zro   = vt(0.0)
 
 rng = MersenneTwister(1254)
 
-n     = 7
-A     = randn(rng,vt,n,n)
-
-AH    = copy(A)
-q     = HessenbergReduction!(AH)
-
-#AT    = copy(AH)
-#v0,w0 = UpperHessenbergtoTriDiagonal2!(AT)
+n     = 20
 
 d0    = randn(rng,vt,n)
 du    = randn(rng,vt,n-1)
@@ -43,7 +37,7 @@ C     = copy(AT)
 θ     = eigvals(AT)
 
 
-niter = 1
+niter = 2
 ern   = zeros(Float64,niter+1)
 erqr  = zeros(Float64,niter+1)
 
@@ -68,24 +62,10 @@ for i in 1:niter
   l         = AT[j,j]
   ern[i+1]  = abs(er)
 
-  μ         = zeros(vt,1)
-  μ[1]      = C[j,j]
-  C,Q       = FrancisAlg(C,1,μ,1) 
-
-  erb       = C[j,j-1]
-  lb        = C[j,j]
-  erqr[i+1] = abs(erb)
-
   if (abs(ern[i+1])<1.0e-12)
 #    nconv = nconv + 1
 #    break
   end
-
-#  superd = diag(AT,1)
-#  subd   = diag(AT,-1)
-
-#  plot(abs.(superd), linestyle="-")
-#  plot(abs.(subd), linestyle="--")
 
 #  pause(0.000001)
 #  println("$er,   $l, $erb,   $lb")
@@ -95,28 +75,12 @@ end
 
 figure(num=2)
 semilogy(ern)
-semilogy(erqr)
+#semilogy(erqr)
 
-#λ = zro #B[n,n]
-#b = copy(B) - λ*I
-#
-#g        = copy(b)
-##g[n,n-1] = zro
-##T,x,y    = CreateUpperRightBulgeOblique(g,zro)
-#T,x,y    = CreateLowerBulgeOblique(g,zro)
-#
-g        = copy(AT)
-h        = copy(g)
-λ        = g[n,n]
-j        = 1
-#ql,qr    = SimilarityTransformBulge!(g,λ,j)
-#ql,qr    = SmallX1_fix!(g,j)
-#ql,qr    = CreateBulgeMiddle!(g,λ,j)
+μ,nμ = GetLowerShifts(AT,3);
 
-#
-#v1,w1     = ChaseBulgeTriDiagonal!(d)
-
-
+vi,wi = ImplicitLRSeq!(AT,μ,nμ)
+#vi,wi = ImplicitLRSeq!(AT,μ,nμ)
 
 
 println("Done.")

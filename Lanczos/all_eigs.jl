@@ -41,7 +41,7 @@ A     = copy(AT)
 
 B     = copy(AT)
 
-niter = 400
+niter = 5
 ern   = zeros(Float64,niter+1) .+ 1.0e-26
 erqr  = zeros(Float64,niter+1)
 mnorm = zeros(Float64,niter+1)
@@ -61,7 +61,9 @@ for i in 1:niter
 
   j = n - nconv
   λ         = AT[j,j]
-  AT[1:j,1:j],v,w    = NegiAlg2(AT[1:j,1:j],λ)
+#  AT[1:j,1:j],v,w    = NegiAlg2(AT[1:j,1:j],λ)
+  v,w       = ImplicitLR!(AT,λ)
+
   er        = AT[j,j-1]
   l         = AT[j,j]
   ern[i+1]  = abs(er)
@@ -74,7 +76,7 @@ for i in 1:niter
 #  ern[i+1]  = abs(er)
 
   if abs(er)<tol
-    nconv = nconv + 1
+#    nconv = nconv + 1
 
     if nconv == n-2
       break
