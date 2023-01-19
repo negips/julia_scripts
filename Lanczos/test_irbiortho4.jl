@@ -27,7 +27,7 @@ vt = ComplexF64
 zro   = vt(0.0)
 one   = vt(1.0)
 
-n = 15     # Matrix size
+n = 60     # Matrix size
 
 λ  = randn(rng,vt,n)
 λm = diagm(0 => λ)
@@ -39,15 +39,15 @@ UQ = u.Q
 A = inv(UQ)*λm*UQ
 #A = inv(U)*λm*U
 
-#A = Pseudospectra.grcar(n)
+A = Pseudospectra.grcar(n)
 λ = eigvals(A);
 AH = A';
 
 λr = real.(λ)
 ind = sortperm(λr,rev=true)
 
-Nev   = 3            # Number of eigenvalues to calculate
-EKryl = 5            # Additional size of Krylov space
+Nev   = 10            # Number of eigenvalues to calculate
+EKryl = 10            # Additional size of Krylov space
 Lk = Nev + EKryl     # Total Size of Krylov space    
 
 Vg    = zeros(vt,n,Lk+1)   # Right Krylov space
@@ -61,20 +61,38 @@ w     = randn(rng,vt,n)
 
 nk   = 0
 
-ngs = 1
+ngs = 2
 mi        = 1     # Major iteration
-nk,mi,ifc = IRBiOrtho!(Vg,Wg,Hv,Hw,u,w,nk,Lk,mi,Nev,ngs)
-
+nk,mi,ifc = IRBiOrtho2!(Vg,Wg,Hv,Hw,u,w,nk,Lk,mi,Nev,ngs)
 
 # Major Iterations
-mimax = 3 
+mimax = 35 
 while mi < mimax
   global V,W,Hv,Hw,nk,mi
 
+  miold        = mi
   Av           = A*Vg[:,nk]
   AHw          = AH*Wg[:,nk]
 
-  nk,mi,ifconv = IRBiOrtho!(Vg,Wg,Hv,Hw,Av,AHw,nk,Lk,mi,Nev,ngs)
+  nk,mi,ifconv = IRBiOrtho2!(Vg,Wg,Hv,Hw,Av,AHw,nk,Lk,mi,Nev,ngs)
+
+  if (mi>miold)
+
+#    BiorthoReortho!(Vg,Wg,nk,2)
+    BiorthoReortho2!(Vg,Wg,nk,2)
+#    BiorthoReortho3!(Vg,Wg,nk,2)
+
+    inp   = Wg'*Vg;
+    
+    inp_red = inp[1:nk,1:nk];
+    ortho   = norm(inp_red - I)
+    
+    println("Subspace BiOrthogonality: $mi: $ortho")
+#    Vg .= Vg .- Vg*(inp - I)
+#    Wg .= Wg .- Wg*(inp' - I)
+
+  end  
+
 
   if (ifconv)
     break
@@ -82,46 +100,41 @@ while mi < mimax
  
 end  
 
-#H = Hv[1:Lk,1:Lk]
-#SetZero!(H,1.0e-13)
-#Hsv = copy(H)
-#μ,nμ = GetLowerShifts(Hsv,EKryl);
-#vi,wi = ImplicitLRSeq!(Hsv,μ,nμ);   # wi*H*vi = Hsv
-#SetZero!(Hsv,1.0e-12)
-#
-#
-#Vp   = Vg[:,1:Lk]*vi;
-#Wp   = Wg[:,1:Lk]*(wi');
-#
-#
-#av = Vg[:,Lk+1]*Hv[Lk+1,Lk]
-#aw = Wg[:,Lk+1]*Hw[Lk+1,Lk]
-#
-#ekt = zeros(vt,1,Lk)
-#ekt[Lk] = one
-#
-#rvM = av*ekt*vi
-#rwM = aw*ekt*(wi')
-#
-#vv  = Hsv[Nev+1,Nev]*Vp[:,Nev] .+ rvM[:,Nev] 
-#ww  = Hsv'[Nev+1,Nev]*Wp[:,Nev] .+ rwM[:,Nev] 
-#
-#
-#H2 = copy(Hsv');
-#v2,w2 = ImplicitLRSeq!(H2,adjoint.(μ),nμ);   # wi*H*vi = Hsv
-#
-#tst1 = vi*(w2')
-#
-#tst2 = wi'*v2
-
-
+H = Hv[1:Nev,1:Nev]
+θ = eigvals(H)
 
 inp   = Wg'*Vg;
 
 inp_red = inp[1:nk,1:nk];
 ortho   = norm(inp_red - I)
 
-println("Subspace Orthogonality: $ortho")
+println("Subspace BiOrthogonality1: $ortho")
+
+close("all")
+
+plot(imag.(λ),real.(λ),linestyle="none",marker="o")
+plot(imag.(θ),real.(θ),linestyle="none",marker="*",markersize=8)
+
+BiorthoReortho2!(Vg,Wg,nk,2)
+
+#Verr = Vg*(inp - I)
+#Vg2  = Vg .- Verr
+inp2 = Wg'*Vg;
+inp_red2 = inp2[1:nk,1:nk]
+
+ortho2   = norm(inp_red2 - I)
+println("Subspace BiOrthogonality2: $ortho2")
+
+BiorthoReortho2!(Vg,Wg,nk,2)
+
+#Verr2 = Vg2*(inp2 - I)
+#Vg3   = Vg2 .- Verr2
+inp3  = Wg'*Vg;
+
+inp_red3 = inp3[1:nk,1:nk]
+ortho3   = norm(inp_red3 - I)
+println("Subspace BiOrthogonality3: $ortho3")
+
 
 
 println("Done.")

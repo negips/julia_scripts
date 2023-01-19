@@ -1,4 +1,196 @@
 # BiOrtho Implicit restart
+function BiOrthoIRst3!(V::Matrix,W::Matrix,Tv::Matrix,Tw::Matrix,fv::Vector,fw::Vector,k::Int,kmax::Int,Nev::Int,ngs::Int)
+
+#   V         - Right Krylov Vector
+#   W         - Left Krylov Vector
+#   Tv        - Tridiagonal Matrix
+#   Tw        - Tridiagonal Matrix (Slaved)
+#   β         - previous/new residual norm
+#   k         - Current Krylov size
+#   kmax      - Maximum Krylov size
+#   fv        - Old/New residual vector for Right subspace (scaled)
+#   fw        - Old/New residual vector for Left subspace  (scaled)
+#   Nev       - Eigenvalues to retain
+
+
+    el        = eltype(V[1])
+    tol       = 10000.0*eps(abs(V[1]))
+
+    zro       = el(0.0) 
+
+    ekryl = kmax - Nev 
+    ifconv = false
+    nkryl = k
+
+    Vcopy = zro*copy(V)
+    Wcopy = zro*copy(W)
+
+    ekt     = zeros(el,1,k-1)
+    ekt[k-1] = el(1.0)
+
+#   Perform implicit restart 
+    if k == kmax+1
+
+      kk = k-1
+
+      T = copy(Tv[1:kk,1:kk])
+
+#     Perform QR operations 
+      μ,nμ   = GetLowerShifts(T,ekryl)                # Unwanted shifts
+#      Hsv,Qv = ExplicitShiftedQR(H,μ,nμ,ngs)
+      Tp    = copy(T)
+      Tpa   = copy(T')
+
+#      v1,w1  = ImplicitLRSeq!(Tp,μ,nμ)
+      ektv = copy(ekt)
+      ektw = copy(ekt)
+ 
+      Vcopy = V[:,1:kk]                     # Updated Right Krylov space
+      Wcopy = W[:,1:kk]                     # Updated Right Krylov space
+
+      for j in 1:nμ
+        λ       = μ[j]
+        wi,vi   = SimilarityTransformBulge!(Tp,λ,1)
+
+        Vcopy .= Vcopy*vi
+        Wcopy .= Wcopy*(wi')
+
+        ektv  .= ektv*vi
+        ektw  .= ektw*(wi')
+ 
+        for i in 1:kk-2
+          wi,vi  = SimilarityTransform!(Tp,i,kk)
+          Vcopy .= Vcopy*vi
+          Wcopy .= Wcopy*(wi')
+
+          ektv  .= ektv*vi
+          ektw  .= ektw*(wi')
+        end
+
+#       Adjoint Matrix        
+        Tpa     = copy(Tp')
+        λ       = μ[j]'
+        wi,vi   = SimilarityTransformBulge!(Tpa,λ,1)
+
+        Vcopy .= Vcopy*(wi')
+        Wcopy .= Wcopy*vi
+
+        ektv  .= ektv*(wi')
+        ektw  .= ektw*vi
+ 
+        for i in 1:kk-2
+          wi,vi  = SimilarityTransform!(Tpa,i,kk)
+          Vcopy .= Vcopy*(wi')
+          Wcopy .= Wcopy*vi
+
+          ektv  .= ektv*(wi')
+          ektw  .= ektw*vi
+        end
+
+        Tp     = copy(Tpa')
+
+      end   # j in 1:nμ 
+
+
+#      Tpa    = copy(Tp')
+#      μs     = adjoint.(μ)
+#      v2,w2  = ImplicitLRSeq!(Tpa,μs,nμ)
+#
+#      Tp    .= Tpa'
+#
+#      # This is a row vector
+#      ektv   = ekt*v1
+#      ektvw  = ektv*(w2')
+#
+#      # This is a row vector
+#      ektw   = ekt*(w1')
+#      ektwv  = ektw*(v2)
+
+      rv     = fv*ektv[Nev]
+      rw     = fw*ektw[Nev] 
+
+      βv     = Tp[Nev+1,Nev]                         # e_k+1^T*(Tp^T)*e_k         # This in principle is zero
+      βw     = Tpa[Nev+1,Nev]                        # e_k+1^T*(Tp^T)*e_k         # This in principle is zero
+
+#     Update Krylov spaces      
+#      Vcopy             = V[:,1:kk]*(v1*w2')                     # Updated Right Krylov space
+      V                .= zro.*V
+      V[:,1:Nev]       .= Vcopy[:,1:Nev]
+      rV                = Vcopy[:,Nev+1]
+
+#      Vcopy             = W[:,1:kk]*(w1'*v2)                     # Updated Left Krylov space
+      W                .= zro.*W
+      W[:,1:Nev]       .= Wcopy[:,1:Nev]
+      rW                = Wcopy[:,Nev+1]
+
+#     Update Triangular Matrices
+      Tv               .= zro.*Tv     
+      Tv[1:Nev,1:Nev]   = Tp[1:Nev,1:Nev]                   # New Tridiagonal Matrix
+
+      Tw               .= zro.*Tw
+      Tw[1:Nev,1:Nev]   = Tpa[1:Nev,1:Nev]                  # New Tridiagonal Matrix
+
+      @printf "βv After ImplicitLR: %12e, %12eim\n" real(βv) imag(βv) 
+
+      fv    .= rv .+ βv*rV                     # new right residual vector
+      fw    .= rw .+ βw*rW                     # new left  residual vector
+
+      θ       = fw'*fv                         # <̂w,̂v>
+      θa      = abs(θ)
+
+      vn      = norm(fv)
+      wn      = norm(fw)
+
+      if vn<tol
+        println("Possible Right subspace convergence ||v|| = $vn")
+        ifconv = true
+      end  
+
+      if wn<tol
+        println("Possible Left subspace convergence ||w|| = $wn")
+        ifconv = true
+      end  
+
+      if abs(θ)<tol
+        println("Possible Orthogonal subspaces: |<w,v>| = $θa, ||v|| = $vn, ||w|| = $wn ")
+        ifconv = true
+      end  
+
+      if (ifconv)
+        V[:,Nev+1]      = fv
+        W[:,Nev+1]      = fw
+        
+        nkryl = Nev+1
+
+        return nkryl,ifconv
+      end  
+
+      δv,δw = BiorthoScale_vw!(fv,fw)
+#      println("θ  = $θ")
+#      println("δv = $δv")
+#      println("δw = $δw")
+
+#     Update Krylov spaces 
+      V[:,Nev+1]        = fv
+      W[:,Nev+1]        = fw
+
+#     Update Hessenberg Matrices      
+      Tv[Nev+1,Nev]     = δv
+      Tw[Nev+1,Nev]     = δw
+
+      nkryl = Nev+1
+
+    else
+      ifconv            = false
+      nkryl             = k
+
+    end     # k == kmax+1
+
+    return nkryl,ifconv
+end  
+#----------------------------------------------------------------------
+
+# BiOrtho Implicit restart
 function BiOrthoIRst2!(V::Matrix,W::Matrix,Tv::Matrix,Tw::Matrix,fv::Vector,fw::Vector,k::Int,kmax::Int,Nev::Int,ngs::Int)
 
 #   V         - Right Krylov Vector
@@ -52,7 +244,7 @@ function BiOrthoIRst2!(V::Matrix,W::Matrix,Tv::Matrix,Tw::Matrix,fv::Vector,fw::
       ektvw  = ektv*(w2')
 
       # This is a row vector
-      ektw   = ekt*(wi')
+      ektw   = ekt*(w1')
       ektwv  = ektw*(v2)
 
 #     If we build the full residual matrix      
@@ -66,16 +258,29 @@ function BiOrthoIRst2!(V::Matrix,W::Matrix,Tv::Matrix,Tw::Matrix,fv::Vector,fw::
       βv     = Tp[Nev+1,Nev]                         # e_k+1^T*(Tp^T)*e_k         # This in principle is zero
       βw     = Tpa[Nev+1,Nev]                        # e_k+1^T*(Tp^T)*e_k         # This in principle is zero
 
+      red    = (v2'*w1)*(v1*w2')
+
+      redn1   = norm(w1*v1 - I)
+      redn2   = norm(v2'*w2' - I)
+      rednorm = norm(red - I)
+
+#      if redn2>1.0e-8
+#        display(Tp)
+#      end  
+
 #     Update Krylov spaces      
       Vcopy             = V[:,1:kk]*(v1*w2')                     # Updated Right Krylov space
       V                .= zro.*V
       V[:,1:Nev]       .= Vcopy[:,1:Nev]
       rV                = Vcopy[:,Nev+1]
 
-      Vcopy             = W[:,1:kk]*(w1'*v2)                     # Updated Left Krylov space
+      invm              = inv(v1*w2')
+
+      Wcopy             = W[:,1:kk]*(w1'*v2)                     # Updated Left Krylov space
+#      Wcopy             = W[:,1:kk]*(invm')                       # Updated Left Krylov space
       W                .= zro.*W
-      W[:,1:Nev]       .= Vcopy[:,1:Nev]
-      rW                = Vcopy[:,Nev]
+      W[:,1:Nev]       .= Wcopy[:,1:Nev]
+      rW                = Wcopy[:,Nev+1]
 
 #     Update Triangular Matrices
       Tv               .= zro.*Tv     
@@ -84,22 +289,24 @@ function BiOrthoIRst2!(V::Matrix,W::Matrix,Tv::Matrix,Tw::Matrix,fv::Vector,fw::
       Tw               .= zro.*Tw
       Tw[1:Nev,1:Nev]   = Tpa[1:Nev,1:Nev]                  # New Tridiagonal Matrix
 
-      @printf "βv After ImplicitLR: %12e, %12eim\n" real(βv) imag(βv) 
+#      @printf "βv After ImplicitLR: %12e, %12eim\n" real(βv) imag(βv) 
 
       fv    .= rv .+ βv*rV                     # new right residual vector
       fw    .= rw .+ βw*rW                     # new left  residual vector
 
-      rvn   = norm(rv)
-      println("Norm rv = $rvn")
+      fvo    = norm(W'*fv)
+      fwo    = norm(V'*fw)
+
+      βvn    = abs(βv)
+      βwn    = abs(βw)
+
+      println("LU norm = $redn1, $redn2 $rednorm $fvo $fwo $βvn $βwn")
 
       θ       = fw'*fv                                # <̂w,̂v>
       θa      = abs(θ)
 
       vn      = norm(fv)
       wn      = norm(fw)
-
-      println("||v|| = $vn")
-      println("||w|| = $wn")
 
       if vn<tol
         println("Possible Right subspace convergence ||v|| = $vn")
@@ -126,9 +333,9 @@ function BiOrthoIRst2!(V::Matrix,W::Matrix,Tv::Matrix,Tw::Matrix,fv::Vector,fw::
       end  
 
       δv,δw = BiorthoScale_vw!(fv,fw)
-      println("θ  = $θ")
-      println("δv = $δv")
-      println("δw = $δw")
+#      println("θ  = $θ")
+#      println("δv = $δv")
+#      println("δw = $δw")
 
 #     Update Krylov spaces 
       V[:,Nev+1]        = fv

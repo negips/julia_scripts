@@ -115,7 +115,6 @@ tst1 = vi*(w2')
 tst2 = wi'*v2
 
 
-
 inp   = Wg'*Vg;
 
 inp_red = inp[1:nk,1:nk];

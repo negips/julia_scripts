@@ -105,7 +105,6 @@ function NegiAlgHybrid(T::Matrix,λ)
 end
 #----------------------------------------------------------------------
 
-
 # Upper Bulge Chase Algorithm with Oblique projectors
 function NegiAlg3(T::Matrix,λ)
 # Also known as BulgeChase Algorithm  
@@ -217,7 +216,6 @@ function CreateLowerBulgeOblique2(T::Matrix,λ,k::Int)
 end
 
 #----------------------------------------------------------------------
-
 function CreateUpperBulgeOblique(T::Matrix,λ)
 
 # For creating a bulge in the super diagonal elements  
@@ -248,6 +246,38 @@ function CreateUpperBulgeOblique(T::Matrix,λ)
   T         = T + λ*I
 
   return T,Wi,W
+end
+
+#----------------------------------------------------------------------
+function CreateSuperBulgeBottomOblique(T::Matrix,λ)
+
+  # For creating a bulge in the super diagonal elements  
+
+  # T       - Tri-diagonal Matrix
+  # λ       - Shifts
+
+  T        .= T - λ*I
+  el        = eltype(T[1])
+  zro       = el(0)
+  one       = el(1)
+  r,c       = size(T)
+  y         = zeros(el,1,c)
+  y[r]      = one
+  x         = T[:,c]
+  α         = (y*x)[1]
+  x         = x/α      # This makes <y,x> = 1.0
+  β         = (transpose(T[r-1,:])*x)[1]/T[r-1,c]
+  x         = x/β      # => <y,x> = 1.0/β
+  V         = I - (x*y)
+  W         = I + (x*y)/(one - one/β)
+
+# This creates the Bulge  
+# A = W*T*V  
+  tmp       = T*V
+  T        .= W*tmp
+  T        .= T + λ*I
+
+  return W,V
 end
 
 #----------------------------------------------------------------------
@@ -346,10 +376,8 @@ function LowerHessenbergtoTriDiagonal2!(H::Matrix)
     display("H needs to be a square matrix: size(H)= $r,$c")
   end
 
-  W  = Matrix{vt}(I,r,c)
-  V  = Matrix{vt}(I,r,c)
-
-  one = vt(1)
+  W  = Matrix{el}(I,r,c)
+  V  = Matrix{el}(I,r,c)
 
   for i in 1:c-2
     w       = transpose(H[i,:])
@@ -533,12 +561,12 @@ function ChaseBulgeTriDiagonal2!(H::Matrix,λ)
     display("H needs to be a square matrix: size(H)= $r,$c")
   end
 
-  W  = Matrix{vt}(I,row,col)
-  V  = Matrix{vt}(I,row,col)
-  I0 = Matrix{vt}(I,row,col)
+  W  = Matrix{el}(I,row,col)
+  V  = Matrix{el}(I,row,col)
+  I0 = Matrix{el}(I,row,col)
 
-  one = vt(1)
-  zro = vt(0)
+  one = el(1)
+  zro = el(0)
 
   for i in 1:col-2
 
@@ -563,6 +591,39 @@ function ChaseBulgeTriDiagonal2!(H::Matrix,λ)
     end
       
     Ql,Qr   = SimilarityTransform!(H,i,col)
+    V = V*Qr
+    W = Ql*W
+   
+  end
+
+  return V,W
+end
+#----------------------------------------------------------------------
+function ChaseBulgeUpTriDiagonal!(H::Matrix,λ)
+
+# Modify individual entries
+# I assume the the bulge size is 1
+
+  el = eltype(H[1])
+  one = el(1)
+
+  tol = 1000*eps(abs.(one))
+
+  row,col = size(H)
+  if row!=col
+    display("H needs to be a square matrix: size(H)= $r,$c")
+  end
+
+  W  = Matrix{el}(I,row,col)
+  V  = Matrix{el}(I,row,col)
+  I0 = Matrix{el}(I,row,col)
+
+  one = el(1)
+  zro = el(0)
+
+  for j in col:-1:3
+      
+    Ql,Qr   = SimilarityTransformUp!(H,j,col)
     V = V*Qr
     W = Ql*W
    
@@ -985,7 +1046,126 @@ function SimilarityTransform!(H::Matrix,i::Int,n::Int)
 
    return Ql,Qr
 end
+#----------------------------------------------------------------------
+function SimilarityTransformUp!(H::Matrix,j::Int,n::Int)
+
+#   ( I  0  0  0 )   ( α   y1  0   0  )   (I   0   0   0 )
+#   ( 0  a  b  0 ) X ( x1  β   z1  w2 ) X (0   a  -b   0 )
+#   ( 0  c  d  0 )   ( 0   y2  γ   w1 )   (0  -c   d   0 ) X 1/(ad - bc)
+#   ( 0  0  0  I )   ( 0   0   z2  δ  )   (0   0   0   I )
+
+    el  = eltype(H[1])
+    zro = el(0)
+    one = el(1)
+
+    tol = 1000*eps(abs(one))
+    I0 = Matrix{el}(I,n,n)
+
+    i = j-3 
+
+#   Left Multiplication
+    α  = zro   
+    x1 = zro 
+    y1 = zro
+
+    β    = H[i+1,i+1]
+    γ    = H[i+2,i+2]
+
+    if i>=1
+      α  = H[i,i]
+      x1 = H[i+1,i]
+      y1 = H[i,i+1]
+    end  
+
+    y2 = H[i+2,i+1]
+    z1 = H[i+1,i+2]
+    z2 = H[i+3,i+2]
+    δ  = H[i+3,i+3]
+    w1 = H[i+2,i+3]
+    w2 = H[i+1,i+3]
+
+#   Left multiplication parameters
+    a = one
+    d = one
+    c = zro
+    b = -a*w2/w1
+    D0 = a*d - b*c
+
+    if i>=1
+      H[i,i]        = α
+      H[i+1,i]      = a*x1
+      H[i,i+1]      = y1
+    end
+
+    H[i+1,i+1]    = a*β + b*y2
+    H[i+2,i+1]    = c*β + d*y2
+
+    H[i+1,i+2]    = a*z1 + b*γ
+    H[i+2,i+2]    = c*z1 + γ*d
+
+    H[i+1,i+3]    = zro       # Force zero (a*w2 + b*w1)      
+    H[i+2,i+3]    = c*w2 + d*w1
+    H[i+3,i+3]    = δ
+
+    Ql            = copy(I0)
+    Ql[i+1,i+1]   = a
+    Ql[i+2,i+1]   = c
+    Ql[i+1,i+2]   = b
+    Ql[i+2,i+2]   = d
+#----------------------------------------
+
+#   Right Multiplication
+    α  = zro   
+    x1 = zro 
+    y1 = zro
+
+    β    = H[i+1,i+1]
+    γ    = H[i+2,i+2]
+    if i>=1
+      α  = H[i,i]
+      x1 = H[i+1,i]
+      y1 = H[i,i+1]
+    end  
+
+    y2   = H[i+2,i+1]
+    z1   = H[i+1,i+2]
+    z2   = H[i+3,i+2]
+    δ    = H[i+3,i+3]
+    w1   = H[i+2,i+3]
+    w2   = H[i+1,i+3]   # Should be zero
+
+#   Right multiplication parameters
+    dold = d
+    b    = -b/D0
+    c    = -c/D0
+    d    = a/D0
+    a    = dold/D0
+
+    if i>=1
+      H[i,i]      = α
+      H[i,i+1]    = a*y1
+      H[i,i+2]    = b*y1
+    end        
+
+    H[i+1,i+1]    = a*β  + c*z1
+    H[i+2,i+1]    = a*y2 + c*γ
+
+    H[i+1,i+2]    = d*z1 + b*β
+    H[i+2,i+2]    = d*γ  + b*y2
+
+    H[i+3,i+1]    = c*z2      # c = 0
+    H[i+3,i+2]    = d*z2
+
+    Qr            = copy(I0)
+    Qr[i+1,i+1]   = a
+    Qr[i+2,i+1]   = c
+    Qr[i+1,i+2]   = b
+    Qr[i+2,i+2]   = d
+
+   return Ql,Qr
+end
 #---------------------------------------------------------------------- 
+
 function SmallX1_fix!(H::Matrix)
 
 #   ( I  0  0  0 )   ( α   y1  0   0  )   ( I    0    0   0 )
