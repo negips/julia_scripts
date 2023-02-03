@@ -33,7 +33,7 @@ function ArnIRst(V::Matrix,Hes::Matrix,b::Int,B::Union{Vector,Matrix},k::Int,kma
 
       kk = k-1
 
-      H = deepcopy(Hes[1:kk,1:kk])
+      H = copy(Hes[1:kk,1:kk])
 
       if (revFrancis)
 
@@ -71,6 +71,7 @@ function ArnIRst(V::Matrix,Hes::Matrix,b::Int,B::Union{Vector,Matrix},k::Int,kma
         μ,nμ  = ArnGetLowerShifts(H,EKryl)
 
         Hs,Q  = ExplicitShiftedQR(H,μ,nμ,ngs)
+
 #        Hs,Q  = FrancisSeq(H,b,μ,nμ)
 #        Hs,Q  = FrancisSeqExact(H,b,μ,nμ)     
         v     = V[:,1:kk]*Q[:,Nev+1]        # Part of new residual vector

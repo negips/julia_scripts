@@ -66,15 +66,15 @@ v,w   = HybridBulgeChase!(D)
 #
 #end
 
-close("all")
-h1 = figure(num=1)
-s = spy(H,precision=1.0e-10,marker="o",markersize=6.0)
-ax = gca()
-ax.xaxis.set_visible(false)
-ax.yaxis.set_visible(false)
-savefig("spyfigure.png")
-
-println("Done")
+#close("all")
+#h1 = figure(num=1)
+#s = spy(H,precision=1.0e-10,marker="o",markersize=6.0)
+#ax = gca()
+#ax.xaxis.set_visible(false)
+#ax.yaxis.set_visible(false)
+#savefig("spyfigure.png")
+#
+#println("Done")
 
 
 

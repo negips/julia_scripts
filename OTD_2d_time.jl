@@ -1,7 +1,6 @@
 #!/usr/bin/julia
 # Source code for Exercise 2 of Homework 1
 
-
 println("Visualizing the changing approximated eigenvector/eigenvalue")
 println("from the OTD method in a 2x2 system, for a single OTD mode")
 

@@ -39,7 +39,9 @@ function IRBiOrtho2!(V::Matrix,W::Matrix,Hv::Matrix,Hw::Matrix,Av::Vector,AHw::V
       k2,ifconv = BiOrthoIRst3!(V,W,Hv,Hw,Av,AHw,k2,kmax,Nev,ngs)
       
       β = abs(Hv[Nev+1,Nev])
-#      @printf "Major Iteration: %3i; β: %8e\n" Mi β
+      δ = abs(Hw[Nev+1,Nev])
+     
+      @printf "Major Iteration: %3i; β: %8e; δ: %8e \n" Mi β δ
 
 #      if ~ifconv
 #        orthonorm = norm(W[:,1:Nev+1]'*V[:,1:Nev+1] - I)

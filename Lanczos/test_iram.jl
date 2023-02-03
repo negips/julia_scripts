@@ -19,7 +19,7 @@ rng = MersenneTwister(1234)
 vt = ComplexF64
 #vt = Float64
 
-n = 100     # Matrix size
+n = 60     # Matrix size
 
 λ  = randn(rng,vt,n)
 #λ .= λ.^3
@@ -37,7 +37,7 @@ AT = A';
 λr = real.(λ)
 ind = sortperm(λr,rev=true)
 
-Nev   = 20             # Number of eigenvalues to calculate
+Nev   = 10             # Number of eigenvalues to calculate
 EKryl = 10            # Additional size of Krylov space
 LKryl = Nev + EKryl   # Total Size of Krylov space    
 
@@ -78,7 +78,7 @@ end
 #while ~ifconv
 
 # Major Iterations
-for mi in 1:1000
+for mi in 1:1 #20
   global V,Hes,nkryl,ifconv
   local U,G
   local β
@@ -90,7 +90,7 @@ for mi in 1:1000
     r = V[:,nkryl]
     v = A*r
 
-     V,Hes,nkryl,β,mi2 = IRAM!(V,Hes,Bg,v,nkryl,LKryl,mi,Nev,ngs)
+    V,Hes,nkryl,β,mi2 = IRAM!(V,Hes,Bg,v,nkryl,LKryl,mi,Nev,ngs)
 #     nkryl = nk
 #     V   = U
 #     Hes = G

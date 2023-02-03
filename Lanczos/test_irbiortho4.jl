@@ -3,7 +3,7 @@ println("Testing Implicitly Restarted BiOrthogonal method")
 
 using LinearAlgebra
 using Random
-#using Pseudospectra
+using Pseudospectra
 using Printf
 using PyPlot
 
@@ -27,7 +27,7 @@ vt = ComplexF64
 zro   = vt(0.0)
 one   = vt(1.0)
 
-n = 60     # Matrix size
+n = 40     # Matrix size
 
 λ  = randn(rng,vt,n)
 λm = diagm(0 => λ)
@@ -55,20 +55,22 @@ Wg    = zeros(vt,n,Lk+1)   # Left  Krylov space
 Hv    = zeros(vt,Lk+1,Lk)
 Hw    = zeros(vt,Lk+1,Lk)  #
 
-u     = randn(rng,vt,n)
-w     = randn(rng,vt,n)
-#w     = copy(u)
+#v     = randn(rng,vt,n)
+#w     = randn(rng,vt,n)
+
+v     = randn(vt,n)
+w     = randn(vt,n)
 
 nk   = 0
 
 ngs = 2
 mi        = 1     # Major iteration
-nk,mi,ifc = IRBiOrtho2!(Vg,Wg,Hv,Hw,u,w,nk,Lk,mi,Nev,ngs)
+nk,mi,ifc = IRBiOrtho2!(Vg,Wg,Hv,Hw,v,w,nk,Lk,mi,Nev,ngs)
 
 # Major Iterations
-mimax = 35 
+mimax = 65 
 while mi < mimax
-  global V,W,Hv,Hw,nk,mi
+  global Vg,Wg,Hv,Hw,nk,mi
 
   miold        = mi
   Av           = A*Vg[:,nk]
@@ -79,15 +81,27 @@ while mi < mimax
   if (mi>miold)
 
 #    BiorthoReortho!(Vg,Wg,nk,2)
-    BiorthoReortho2!(Vg,Wg,nk,2)
+#    BiorthoReortho2!(Vg,Wg,nk,2)
 #    BiorthoReortho3!(Vg,Wg,nk,2)
 
     inp   = Wg'*Vg;
-    
     inp_red = inp[1:nk,1:nk];
     ortho   = norm(inp_red - I)
     
     println("Subspace BiOrthogonality: $mi: $ortho")
+
+    epsi  = inp - I;
+#    Ipert = (I - epsi)';            # Using this as approximate inverse
+#    Wg    = Wg*Ipert
+
+#    Wg[:,1:nk] = Wg[:,1:nk]*(inv(inp_red)')
+#
+#    inp   = Wg'*Vg;
+#    inp_red = inp[1:nk,1:nk];
+#    ortho   = norm(inp_red - I)
+#   
+#    println("Subspace BiOrthogonality (corrected): $mi: $ortho")
+
 #    Vg .= Vg .- Vg*(inp - I)
 #    Wg .= Wg .- Wg*(inp' - I)
 
@@ -112,10 +126,13 @@ println("Subspace BiOrthogonality1: $ortho")
 
 close("all")
 
-plot(imag.(λ),real.(λ),linestyle="none",marker="o")
-plot(imag.(θ),real.(θ),linestyle="none",marker="*",markersize=8)
+#plot(imag.(λ),real.(λ),linestyle="none",marker="o")
+#plot(imag.(θ),real.(θ),linestyle="none",marker="*",markersize=8)
 
-BiorthoReortho2!(Vg,Wg,nk,2)
+plot(real.(λ),imag.(λ),linestyle="none",marker="o")
+plot(real.(θ),imag.(θ),linestyle="none",marker="*",markersize=8)
+
+#BiorthoReortho2!(Vg,Wg,nk,2)
 
 #Verr = Vg*(inp - I)
 #Vg2  = Vg .- Verr

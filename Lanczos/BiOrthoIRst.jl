@@ -36,7 +36,9 @@ function BiOrthoIRst3!(V::Matrix,W::Matrix,Tv::Matrix,Tw::Matrix,fv::Vector,fw::
       T = copy(Tv[1:kk,1:kk])
 
 #     Perform QR operations 
-      μ,nμ   = GetLowerShifts(T,ekryl)                # Unwanted shifts
+#      μ,nμ   = GetLowerShifts(T,ekryl)                # Unwanted shifts
+      μ,nμ   = GetLowerImaginaryShifts(T,ekryl)                # Unwanted shifts
+
 #      Hsv,Qv = ExplicitShiftedQR(H,μ,nμ,ngs)
       Tp    = copy(T)
       Tpa   = copy(T')
@@ -130,7 +132,7 @@ function BiOrthoIRst3!(V::Matrix,W::Matrix,Tv::Matrix,Tw::Matrix,fv::Vector,fw::
       Tw               .= zro.*Tw
       Tw[1:Nev,1:Nev]   = Tpa[1:Nev,1:Nev]                  # New Tridiagonal Matrix
 
-      @printf "βv After ImplicitLR: %12e, %12eim\n" real(βv) imag(βv) 
+#      @printf "βv After ImplicitLR: %12e, %12eim\n" real(βv) imag(βv) 
 
       fv    .= rv .+ βv*rV                     # new right residual vector
       fw    .= rw .+ βw*rW                     # new left  residual vector
@@ -230,6 +232,8 @@ function BiOrthoIRst2!(V::Matrix,W::Matrix,Tv::Matrix,Tw::Matrix,fv::Vector,fw::
 #     Perform QR operations 
       μ,nμ   = GetLowerShifts(T,ekryl)                # Unwanted shifts
 #      Hsv,Qv = ExplicitShiftedQR(H,μ,nμ,ngs)
+      μ,nμ   = GetLowerImaginaryShifts(T,ekryl)                # Unwanted shifts
+
       Tp    = copy(T)      
       v1,w1  = ImplicitLRSeq!(Tp,μ,nμ)
 
@@ -300,7 +304,7 @@ function BiOrthoIRst2!(V::Matrix,W::Matrix,Tv::Matrix,Tw::Matrix,fv::Vector,fw::
       βvn    = abs(βv)
       βwn    = abs(βw)
 
-      println("LU norm = $redn1, $redn2 $rednorm $fvo $fwo $βvn $βwn")
+#      println("LU norm = $redn1, $redn2 $rednorm $fvo $fwo $βvn $βwn")
 
       θ       = fw'*fv                                # <̂w,̂v>
       θa      = abs(θ)
@@ -509,38 +513,22 @@ function GetLowerShifts(H::Matrix,EKryl::Int)
 end
 
 #----------------------------------------------------------------------
+function GetLowerImaginaryShifts(H::Matrix,EKryl::Int)
 
-function LutzCustomShifts(H::Matrix,Nev::Int)
-
-#     Analytical Eigenvalues
-      ω1 = find_zero(airyai,(-3.0,-0.0))
-      ω2 = find_zero(airyai,(-5.0,-3.0))
-      ω3 = find_zero(airyai,(-6.0,-5.0))
-      ω4 = find_zero(airyai,(-7.0,-6.0))
-      ω5 = find_zero(airyai,(-8.0,-7.0))
-      ω6 = find_zero(airyai,(-9.5,-8.0))
-      ω7 = find_zero(airyai,(-10.5,-9.5))
-      ω8 = find_zero(airyai,(-11.8,-10.5))
-      ω9 = find_zero(airyai,(-12.0,-11.8))
-      ω10 = find_zero(airyai,(-12.9,-12.0))
-      ω11 = find_zero(airyai,(-13.8,-12.9))
-      ω12 = find_zero(airyai,(-14.8,-13.8))
-      ω13 = find_zero(airyai,(-15.8,-14.8))
-      ω14 = find_zero(airyai,(-16.8,-15.8))
-      ω15 = find_zero(airyai,(-17.5,-16.8))
-      
-      ω  = [ω1, ω2, ω3, ω4, ω5, ω6, ω7, ω8, ω9, ω10, ω11, ω12, ω13, ω14, ω15]
-      U  = 6.0
-      γ  = 1.0 - im*1.0
-      
-      Ω  = im*(U*U/8.0 .- U*U/(4.0*γ) .+ γ^(1.0/3.0)*(U^(4.0/3.0))/(160.0^(2.0/3.0))*ω)
-
-      i         = 1
-      μ         = Ω[i:i+Nev-1]
-      nμ        = length(μ)
+      r,c = size(H)
+      f  = eigvals(H)          # Uses Lapack routine (dgeev/zgeev)
+      fr = real.(f)
+      fi = imag.(f)
+      fi_sort_i = sortperm(fi,rev=false)   # Increasing order
+      μ0        = f[fi_sort_i[1:EKryl]]
+      nμ        = length(μ0)
+#      μ         = μ0[nμ:-1:1]
+      μ         = μ0      
 
       return μ,nμ
 end
+
+#----------------------------------------------------------------------
 
 #----------------------------------------------------------------------
 
