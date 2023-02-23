@@ -252,7 +252,9 @@ function ArnGetLowerShifts(H::Matrix,EKryl::Int)
       r,c = size(H)
       f  = eigvals(H)          # Uses Lapack routine (dgeev/zgeev)
       fr = real.(f)
-      fr_sort_i = sortperm(fr,rev=false)   # Increasing order
+      fi = imag.(f)
+#      fr_sort_i = sortperm(fr,rev=false)   # Increasing order
+      fr_sort_i = sortperm(fi,rev=false)   # Increasing order
       μ0        = f[fr_sort_i[1:EKryl]]
       nμ        = length(μ0)
 #      μ         = μ0[nμ:-1:1]

@@ -37,7 +37,8 @@ function IRBiOrtho2!(V::Matrix,W::Matrix,Hv::Matrix,Hw::Matrix,Av::Vector,AHw::V
       Av    .= Hv[k2,k]*Av
       AHw   .= Hw[k2,k]*AHw
       k2,ifconv = BiOrthoIRst3!(V,W,Hv,Hw,Av,AHw,k2,kmax,Nev,ngs)
-      
+#      k2,ifconv = BiOrthoIRst2!(V,W,Hv,Hw,Av,AHw,k2,kmax,Nev,ngs)
+     
       β = abs(Hv[Nev+1,Nev])
       δ = abs(Hw[Nev+1,Nev])
      

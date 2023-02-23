@@ -60,7 +60,7 @@ function BiOrthoIRst3!(V::Matrix,W::Matrix,Tv::Matrix,Tw::Matrix,fv::Vector,fw::
         ektv  .= ektv*vi
         ektw  .= ektw*(wi')
  
-        for i in 1:kk-2
+        for i in 1:kk-2 - (j-1)
           wi,vi  = SimilarityTransform!(Tp,i,kk)
           Vcopy .= Vcopy*vi
           Wcopy .= Wcopy*(wi')
@@ -80,7 +80,7 @@ function BiOrthoIRst3!(V::Matrix,W::Matrix,Tv::Matrix,Tw::Matrix,fv::Vector,fw::
         ektv  .= ektv*(wi')
         ektw  .= ektw*vi
  
-        for i in 1:kk-2
+        for i in 1:kk-2 - (j-1)
           wi,vi  = SimilarityTransform!(Tpa,i,kk)
           Vcopy .= Vcopy*(wi')
           Wcopy .= Wcopy*vi

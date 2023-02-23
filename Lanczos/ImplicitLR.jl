@@ -1,8 +1,9 @@
-function ImplicitLR!(T::Matrix,λ)
+function ImplicitLR!(T::Matrix,λ,nc)
 # Lower Bulge Chase Algorithm with Oblique projectors
 
   # H       - Tridiagonal Matrix
   # λ       - Shift
+  # nc      - no of columns to go through
 
   r,c   = size(T)
   el    = eltype(T[1])
@@ -17,7 +18,7 @@ function ImplicitLR!(T::Matrix,λ)
 #  W[1:2,1:2] = w
 #  V[1:2,1:2] = v
 
-  Vi,Wi = ChaseBulgeTriDiagonal2!(T,λ)
+  Vi,Wi = ChaseBulgeTriDiagonalLR!(T,λ,nc)
 
 # Collect Right multipliers 
   V = V*Vi
@@ -80,7 +81,8 @@ function ImplicitLRSeq!(T::Matrix,μ0,nμ::Int)
   for j in 1:npass
   for i in 1:nμ
     λ     = μ[i]
-    Vi,Wi = ImplicitLR!(T,λ)  
+    cm    = n - (i-1)
+    Vi,Wi = ImplicitLR!(T,λ,cm)  
 
 #   Collect Left multipliers
     W = Wi*W  
@@ -134,4 +136,59 @@ function ImplicitULSeq!(T::Matrix,μ0,nμ::Int)
 end
 
 #----------------------------------------------------------------------
+function ChaseBulgeTriDiagonalLR!(H::Matrix,λ,cmax)
+
+# Modify individual entries
+# I assume the the bulge size is 1
+# cmax  - Maximum column number
+
+  el = eltype(H[1])
+  one = el(1)
+
+  tol = 1000*eps(abs.(one))
+
+  row,col = size(H)
+  if row!=col
+    display("H needs to be a square matrix: size(H)= $r,$c")
+  end
+
+  W  = Matrix{el}(I,row,col)
+  V  = Matrix{el}(I,row,col)
+  I0 = Matrix{el}(I,row,col)
+
+  one = el(1)
+  zro = el(0)
+
+  for i in 1:cmax-2
+
+    x1 = H[i+1,i]
+    x2 = H[i+2,i]
+
+    if abs(x1)<1.0e-4  #tol
+      x1a = abs(x1)
+      x2a = abs(x2)
+#      println("Possible Division by 0 in Chase2 abs(x1)=$x1a, abs(x2)=$x2a, i=$i")
+#      Ql,Qr = SmallX1_fix!(H,i)
+#      Ql,Qr = SimilarityTransformBulge!(H,λ,i+1)     
+#      V = V*Qr
+#      W = Ql*W
+    end
+
+    if abs(x2)<tol
+#      println("Recreating Reflector")
+#      Ql,Qr = SmallX1_fix!(H,i)
+#      V = V*Qr
+#      W = Ql*W
+    end
+      
+    Ql,Qr   = SimilarityTransform!(H,i,col)
+    V = V*Qr
+    W = Ql*W
+   
+  end
+
+  return V,W
+end
+#----------------------------------------------------------------------
+
 
