@@ -3,7 +3,7 @@ function AssembleMatrixLesshafft(U,γ,c0,cnv,wlp,xm1,bm1,Basis,lx1,nel,prec)
 #     Building the Complex Ginzburg Landau model problem from
 #     Lutz Lesshafft (2018) Artificial eigenmodes in truncated flow domains
 #     
-#     ∂ψ/∂t     = -U∂ψ/∂x + μ(x)ψ + γ∂(∂ψ/∂x)/∂x + f(x)ψ(s)
+#     ∂ψ/∂t     = -U∂ψ/∂x + μ(x)ψ + γ∂∂ψ/∂x∂x + f(x)ψ(s)
 #     f(x)ψ(xs) = c0*exp(-((x-xₐ)/0.1)²)*ψ(s)
 #     xs        = 39.0
 #     a         = 1.0
@@ -269,7 +269,8 @@ function AssembleMatrixLesshafftSparse(U,γ,c0,cx0,whichsrc,cnv,wlp,xm1,bm1,Basi
 #     Fd    - Feedback Matrix:                  F(x,s)ψ
 #     A     - Combined operator:    -Udψ/dx + μ(x)ψ + γd²ψ/dx² + F(x,s)ψ
 
-      VT  = Complex{prec}
+#      VT  = Complex{prec}
+      VT  = prec      
 
       II  = Matrix{VT}(I,lx1,lx1)
 
@@ -392,7 +393,8 @@ function AssembleAdjointLesshafftSparse(U,γ,c0,cx0,whichsrc,cnv,wlp,xm1,bm1,Bas
 #     Fd    - Feedback Matrix:                  F(x,s)ψ
 #     A     - Combined operator:    -Udψ/dx + μ(x)ψ + γd²ψ/dx² + F(x,s)ψ
 
-      VT  = Complex{prec}
+#      VT  = Complex{prec}
+      VT  = prec
 
       II  = Matrix{VT}(I,lx1,lx1)
 

@@ -40,13 +40,13 @@ U  = Ωm*ri                    # (m/s) Azimuthal Velocity of Inner Cylinder
 # 20° C Values for Water
 ρ  = 998.19                   # (kg/m3) Density of Water at 20° C
 ν  = 1.0023e-6                # (m2/s) Kinematic Viscosity of Water at 20° C
-μ  = ρ*ν                      # (kg/m-s) Dynamic Viscosity of Water at 4° C
+μ  = ρ*ν                      # (kg/m-s) Dynamic Viscosity of Water at 20° C
 σ  = 0.0728                   # (kg/s2) Surface Tension of Water at 4° C
 
 # 20° C Values for Air
 ρa  = 1.204                    # (kg/m3) Density of Air at 20° C
 νa  = 15.06e-6                 # (m2/s) Kinematic Viscosity of Air at 20° C
-μa  = ρa*νa                    # (kg/m-s) Dynamic Viscosity of Air at 4° C
+μa  = ρa*νa                    # (kg/m-s) Dynamic Viscosity of Air at 20° C
 σa  = 0.0                      # (kg/s2) Surface Tension of Air at 4° C
 
 # Non-Dimensional Parameters

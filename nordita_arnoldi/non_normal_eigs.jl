@@ -90,14 +90,14 @@ if ifnormal
   outfile = "normal.jpg"
 else
   tit = "Non-Normal Matrix"
-  outfile = "non_normal.jpg"
+  outfile = "non_normal_2.jpg"
 end
 
 
 h1 = figure(num=1)
 plot(real(λpert1),imag(λpert1),linestyle="none",marker="o",markersize=5, color="blue",markeredgewidth=2,fillstyle="none", label="Orthogonal")
 
-#plot(real(λpert2),imag(λpert2),linestyle="none",marker="o",markersize=5, color="red",markeredgewidth=2,fillstyle="none", label="Oblique")
+plot(real(λpert2),imag(λpert2),linestyle="none",marker="o",markersize=5, color="red",markeredgewidth=2,fillstyle="none", label="Oblique")
 
 plot(λr,λi,linestyle="none",marker="x",markersize=10, color="black",markeredgewidth=2,fillstyle="none")
 
@@ -107,10 +107,10 @@ title(tit)
 dλ = abs(λ2 - λ1)
 xlim1 = minimum(real.(λ)) - dλ/2
 xlim2 = maximum(real.(λ)) + dλ/2
-#legend(fontsize=lgfs)
+legend(fontsize=lgfs)
 ax = gca();
 
-ax.set_ylim((0.7997, 0.8003))
+#ax.set_ylim((0.7997, 0.8003))
 
 h1.set_figwidth(8.0)
 h1.set_figheight(6.0)
