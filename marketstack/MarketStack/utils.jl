@@ -39,7 +39,7 @@ function _parse_response(data, datatype::Union{String, Nothing})
         return readdlm(data.body, ',', header=true)
     elseif datatype == "json"
         body = copy(data.body)  # TODO: re-write to avoid copying
-        return JSON.Parser.parse(String(body))
+        return JSON.parse(String(body))
     else
       @assert false "Data type not recognized, $datatype"
         raw = readdlm(data.body, ',', header=true)

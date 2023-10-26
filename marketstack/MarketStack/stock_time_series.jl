@@ -1,27 +1,35 @@
-function MS_stock_quote(symbol::String, endpoint::String; client = MSGlobal[], outputsize::String="compact", datatype::Union{String, Nothing}=nothing, parser = "default", exchange::String="")
-#    @argcheck in(interval, ["1min", "5min", "15min", "30min", "60min"])
-#    @argcheck in(endpoint, ["eod", "intraday", "splits", "dividends", "tickers", "exchanges", "currencies", "timezones"])   
+function MS_stock_quote(symbol::String, endpoint::String; client = MSGlobal[], outputsize::String="compact", datatype::Union{String, Nothing}=nothing, parser = "default", Options::Dict=Dict(), datein::Date=today())
+
     @argcheck in(endpoint,MSEndPoints)
-    if !isempty(exchange)
-      @argcheck in(exchange,ExchangeCodes)
-    end  
+#    if !isempty(exchange)
+#      @argcheck in(exchange,ExchangeCodes)
+#    end  
     @argcheck in(outputsize, ["compact", "full"])
     @argcheck in(datatype, ["json", "csv", nothing])
 
     params = Dict(
         "access_key"=>key(client),
-        "symbols"=>symbol
+        "symbols"=>symbol,
     )
 
-    if !isempty(exchange)
-      ep = "exchange/$exchange/$endpoint"
+    if !isempty(Options)
+      merge!(params,Options)
+    end   
+
+    if datein!=today()
+      ep = "$endpoint/$datein"
     else
       ep = endpoint
     end
+#    if !isempty(exchange)
+#      ep = "exchange/$exchange/$endpoint"
+#    else
+#      ep = endpoint
+#    end
 
     uri = _build_uri(client.scheme, client.host, ep, params)
     println(uri)
-    data = retry(_get_request, delays=Base.ExponentialBackOff(n=3, first_delay=5, max_delay=30))(uri)
+    data = retry(_get_request, delays=Base.ExponentialBackOff(n=1, first_delay=5, max_delay=30))(uri)
     p = _parser(parser, datatype)
     return p(data)
 end

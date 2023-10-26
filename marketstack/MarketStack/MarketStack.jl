@@ -7,6 +7,7 @@ using ArgCheck
 using DelimitedFiles
 using HTTP
 using JSON
+using Dates
 
 
 MSEndPoints = ["eod", "intraday", "splits", "dividends", "tickers", "exchanges", "currencies", "timezones"];

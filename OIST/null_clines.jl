@@ -10,7 +10,7 @@ using PyPlot,PyCall
 #-------------------------------------------------- 
 function Adot(a,b,s,ra,ba)
 
-  adot = s*(a.^2 ./b .- ba) .- ra*a
+  adot = s*(a.^2 ./b .+ ba) .- ra*a
 
   return adot
 end
@@ -30,25 +30,24 @@ function Translate(a,b,dt,s,ra,ba,rb,bb)
   return anew,bnew
 end  
 
-
 #-------------------------------------------------- 
 
 close("all")
 
 ra = 1.0
 s  = 1.0
-ba = 2.0
+ba = 0.1
 
 ca = ra/(2*s)
 
-rb = 5.0
-bb = 5.0
+rb = 1.0
+bb = 1.0
 cb = rb/s
 
-x1 = 0:0.01:5
+x1 = 1.0:0.01:5
 
-A1  = ca*x1 .+ sqrt.(ca*ca*x1.*x1 .+ ba*x1)
-A2  = ca*x1 .- sqrt.(ca*ca*x1.*x1 .+ ba*x1)
+A1  = ca*x1 .+ sqrt.(ca*ca*x1.*x1 .- ba*x1)
+A2  = ca*x1 .- sqrt.(ca*ca*x1.*x1 .- ba*x1)
 
 
 
@@ -76,10 +75,10 @@ adot1 = Adot(ai,bi,s,ra,ba)
 bdot1 = Bdot(ai,bi,s,rb,bb)
 
 
-nstep = 400
-dt    = 0.01
+nstep = 400000
+dt    = 0.1
 
-a     = -4.12
+a     = 4.12
 b     = 2.00
 
 ahist = zeros(nstep,1)

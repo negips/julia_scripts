@@ -4,51 +4,89 @@ include("MarketStack.jl")
 
 using .MarketStack
 using DataFrames, PyPlot, Dates
-using JSON
+using JSON,HTTP
 
-sym = "NVDA"
+close("all")
+
+sym = "TITAN.XBOM"
 endpoint = "eod"
-exchange = "XNAS"
 
-stock_quote = MS_stock_quote(sym,endpoint,datatype="json")
+dts = today() #Date("2023-09-06")
+dte = Date("2023-09-05")
+options = Dict(
+                "exchange"    => "XBOM",
+                "limit"       => "1",
+                "offset"      => "0",
+               ) 
 
-data = DataFrame(stock_quote["data"])
+stock_quote = MS_stock_quote(sym,endpoint,datatype="json",Options=options)
 
+data  = DataFrame(stock_quote["data"])
 
-# #gr(size=(800,470))
-# # Get daily S&P 500 data
-# spy = time_series_daily("SPY");
-# # Convert to a DataFrame
-# data = DataFrame(spy);
-# # Convert timestamp column to Date type
-# data[!, :timestamp] = Dates.Date.(data[!, :timestamp]);
-# data[!, :open] = Float64.(data[!, :open])
-# # Plot the timeseries
-# plot(data[!, :timestamp], data[!, :open], label=["Open"])
-# savefig("sp500.png")
+dates = data.date;
+open  = data.open
+clos  = data.close
 
-# using JSON
-# using HTTP
-# 
-# API_KEY = get(ENV,"ALPHA_VANTAGE_API_KEY","")
-# 
-# println(API_KEY)
-# 
-# url = "https://www.alphavantage.co"
-# params = Dict("function" => "GLOBAL_QUOTE",
-#               "symbol" => "IBM",
-#               "datatype" => "JSON",
-#               "apikey" => API_KEY)
-# 
-# js = JSON.json(params);
-# 
-# res = HTTP.request("POST",url,"Content-Type" => "application/json",js)
+plot(dates,open)
+plot(dates,clos)
 
 
+nasdaq_key = get(ENV,"NASDAQ_API_KEY","")
+
+println(nasdaq_key)
+
+host = "https://data.nasdaq.com/api/v3/datasets/"
+dataset="bse"
+stockcode="BOM500114"
+outfmt="data.json"
+
+url = "$host/$dataset/$stockcode/$outfmt?api_key=$nasdaq_key" 
+
+res    = HTTP.get(url)
+body   = copy(res.body)  # TODO: re-write to avoid copying
+bodyjs = JSON.parse(String(body))
+
+data   = bodyjs["dataset_data"]["data"]
+columns = bodyjs["dataset_data"]["column_names"]
+dc     = Dict()
+
+l = length(data)
+dates       = Vector{String}(undef,l)
+openval     = Vector{Float64}(undef,l)
+highval     = Vector{Float64}(undef,l)
+lowval      = Vector{Float64}(undef,l)
+closeval    = Vector{Float64}(undef,l)
+wap         = Vector{Float64}(undef,l)
+nshares     = Vector{Float64}(undef,l)
+ntrades     = Vector{Float64}(undef,l)
+turnover    = Vector{Float64}(undef,l)
+deliverable = Vector{Float64}(undef,l)
+percentage  = Vector{Float64}(undef,l)
+spreadhl    = Vector{Float64}(undef,l)
+spreadco    = Vector{Float64}(undef,l)
 
 
+for i in 1:l
+  di              = data[i]
+  dates[i]        = di[1]
+  openval[i]      = di[2]
+  highval[i]      = di[2]
+  lowval[i]       = di[2]
+  closeval[i]     = di[2]
+  wap[i]          = di[2]
+  nshares[i]      = di[2]
+  ntrades[i]      = di[2]
+  turnover[i]     = di[2]
+  deliverable[i]  = di[2]
+  percentage[i]   = di[2]
+  spreadhl[i]     = di[2]
+  spreadco[i]     = di[2]
+end
 
+dateval = Dates.value.(Date.(dates))
 
+close("all")
+plot(dateval .- minimum(dateval) ,highval)
 
 
 
