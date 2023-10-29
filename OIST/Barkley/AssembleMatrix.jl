@@ -1,14 +1,7 @@
 """
-    AssembleMatrixMeinhardtSparse(U,γ,cnv,wlp,xm1,bm1,Basis,lx1,nel,prec)
+    AssembleMatrixCRD(U,γ,cnv,wlp,xm1,bm1,Basis,lx1,nel,prec)
 
-     Building the Reaction Diffusion model problem from:
-
-     Equation 1a,b from Meinhardt & Klinger (1987) A Model for Pattern Formation on the Shells of Molluscs,
-     J. theor. Biol. 126, 63-89
-
-     And:
-
-     Hans Meinhardt (2009) The Algorithmic Beauty of Sea Shells, Fourth Ed. Springer 
+     Building the Matrices of a Convection Reaction Diffusion model:
      
      ∂ψ/∂t     = -U∂ψ/∂x + μ(x)ψ + γ∂∂ψ/∂x∂x
 
@@ -22,7 +15,7 @@
      A     - Combined operator:    -Udψ/dx + μ(x)ψ + γd²ψ/dx² + F(x,s)ψ
 
 """
-function AssembleMatrixMeinhardt(U,γ,cnv,wlp,xm1,bm1,Basis,lx1,nel,prec,ifsparse)
+function AssembleMatrixCRD(U,γ,cnv,wlp,xm1,bm1,Basis,lx1,nel,prec,ifsparse)
 
       VT  = prec
 
@@ -40,16 +33,12 @@ function AssembleMatrixMeinhardt(U,γ,cnv,wlp,xm1,bm1,Basis,lx1,nel,prec,ifspars
         Conv = spzeros(VT,dof,dof)
         Src  = spzeros(VT,dof,dof)
         Lap  = spzeros(VT,dof,dof)
-        Fd   = spzeros(VT,dof,dof)
-        Binv = zeros(VT,lx1,nel);
       else
         A    = zeros(VT,dof,dof);
         B    = zeros(VT,dof);
         Conv = zeros(VT,dof,dof)
         Src  = zeros(VT,dof,dof)
         Lap  = zeros(VT,dof,dof)
-        Fd   = zeros(VT,dof,dof)
-        Binv = zeros(VT,lx1,nel);
       end  
 
       OP   = zeros(VT,lx1,lx1,nel);
@@ -66,19 +55,19 @@ function AssembleMatrixMeinhardt(U,γ,cnv,wlp,xm1,bm1,Basis,lx1,nel,prec,ifspars
 #          if (i==1)
 #            @printf "Using Linear Decrease x/%3.2f for source term.\n" cx0 
 #          end  
-#          μ   = (U*U/eight)*(one .- xm1[:,i]./cx0)
+#          μ   = xm1[:,i]
 #        elseif (whichsrc==2) 
 #          if i==1
 #            println("Using 0.5*tanh(x/20) for source term.")
 #          end  
-#          μ   = (U*U/eight)*(one .- half*tanh.(xm1[:,i]./twnty))
+#          μ   = half*tanh.(xm1[:,i]./twnty)
 #        else
 #          if i==1
 #            println("whichsrc=$whichsrc not defined")
 #          end  
 #        end  
 
-        μ   = zro*(xm1[:,i])
+        μ   = ones(VT,length(lx1))
         bμ  = bm1[:,i].*μ
         Mμ  = diagm(bμ)
 
@@ -269,7 +258,7 @@ function BuildFilter(M2N,N2M,lx1,nel,prec,ifsparse)
       χ   = 1.0
 
       f[lx1]   = 1.0
-      f[lx1-1] = 0.5
+#      f[lx1-1] = 0.5
 #      f[lx1-2] = 0.25
 
       f        = χ*f

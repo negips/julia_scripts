@@ -31,7 +31,7 @@ close("all")
 lafs = 16
 
 σ  = 0.0
-R  = [0.3 0.6 1.2 2.0]
+R  = [0.60]
 
 
 g(x,y)   = BarkleyPipe(x,y,r,σ)[1]
@@ -62,6 +62,12 @@ end
 ax1 = h1.axes[1]
 ax1.set_xlabel(L"u", fontsize=lafs)
 ax1.set_ylabel(L"q", fontsize=lafs)
+
+if length(R)==1
+  title = "R=$(R[1])"
+  ax1.set_title(title, fontsize=lafs)
+end  
+
 #ax1.legend(fontsize=12)
 
 

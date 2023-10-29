@@ -34,8 +34,8 @@ lafs = 16
 r  = 1.2
 
 
-g(x,y)   = BarkleyPipe(x,y,r,σ)[1]
-f(x,y)   = BarkleyPipe(x,y,r,σ)[2]
+g(x,y)   = BarkleyPipe(x,y,r)[1]
+f(x,y)   = BarkleyPipe(x,y,r)[2]
 
 nstep = 1000000
 dt    = 0.001

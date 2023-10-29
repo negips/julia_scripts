@@ -96,7 +96,7 @@ elseif (EQN == "1987_2_branching")
 
   arange0_b  = -10.0
   arange1_b  = +10.0
-  b0_b       = +10.0
+  b0_b       =  1.0
   τb         = -4.0e-4
  
 else

@@ -29,7 +29,7 @@ function Meinhardt_21(A,B,S)
   Adot  = S.*A.^2 ./B .- ra*A .+ ba*S
   Bdot  = S.*A.^2 .- rb*B + bb
 
-  return Adot,Bdot
+  return [Adot Bdot]
 end
 
 #---------------------------------------------------------------------- 
@@ -68,7 +68,7 @@ function Meinhardt_24(A,B,S)
   Adot  = S.*B.*Astar2 .- ra*A
   Bdot  = bb .- S.*B.*Astar2 .- rb*B
 
-  return Adot,Bdot
+  return [Adot Bdot]
 end
 
 #---------------------------------------------------------------------- 
@@ -89,7 +89,7 @@ function Meinhardt_25(A,B,S)
   Adot  = S.*(A.^2) .- ra*B.*A .+ S*ba
   Bdot  = bb .- S.*(A.^2) .- rb*B
 
-  return Adot,Bdot
+  return [Adot Bdot]
 end
 
 #---------------------------------------------------------------------- 
@@ -115,7 +115,7 @@ function Meinhardt_26(A,B,C,S)
   Bdot  = rb*A .- rb*B
   Cdot  = S./(sc .+ (A./B).^2) .- rc*C
 
-  return Adot,Bdot,Cdot
+  return [Adot Bdot Cdot]
 end
 
 #---------------------------------------------------------------------- 
@@ -137,7 +137,7 @@ function Meinhardt_31(A,B,S)
   Adot  = S.*A.^2 ./((sb .+ B).*(1 .+ sa*A.^2)) .- ra*A .+ S.*ba
   Bdot  = S.*A.^2 .- rb*B + bb
 
-  return Adot,Bdot
+  return [Adot Bdot]
 end
 
 #---------------------------------------------------------------------- 
@@ -165,7 +165,7 @@ function Meinhardt_51(A,B,C,S)
   Bdot  = bb .-  S.*B.*Astar2./(sb .+ sc*C) .- rb*B
   Cdot  = rc*(A .- C)
 
-  return Adot,Bdot,Cdot
+  return [Adot Bdot Cdot]
 end
 
 #---------------------------------------------------------------------- 
@@ -194,7 +194,7 @@ function Meinhardt_52(A,B,C,S)
   Bdot  = bb .-  S.*B.*Astar2 .- rb*B
   Cdot  = bc .-  S.*C.*Astar2 .- rc*C
 
-  return Adot,Bdot,Cdot
+  return [Adot Bdot Cdot]
 end
 
 #---------------------------------------------------------------------- 
@@ -221,7 +221,7 @@ function Meinhardt_53(A,B,C,S)
   Bdot  = bb .- rb*B .+ rb*(A.^2)./C
   Cdot  = rc*(A .- C)
 
-  return Adot,Bdot,Cdot
+  return [Adot Bdot Cdot]
 end
 
 #---------------------------------------------------------------------- 
@@ -274,7 +274,7 @@ function Meinhardt_61(A,B,C,D,S)
 
 #  Ddot  = rd*(A .- D)
 
-  return Adot,Bdot
+  return [Adot Bdot]
 end
 
 #---------------------------------------------------------------------- 
@@ -324,7 +324,7 @@ function Meinhardt_1987_1(A,S)
   Adot  = ρ*S.*ϕ .- μ*A
   Sdot  = σ .- ρ*S.*ϕ .- ν*S
 
-  return Adot,Sdot
+  return [Adot Sdot]
 end
 
 #---------------------------------------------------------------------- 
@@ -375,7 +375,7 @@ function Meinhardt_1987_2(A,B)
   Adot  = ρ*(ϕ .+ ρ0)./B .- μ*A
   Bdot  = ρ1 .+ ρ*ϕ .- ν*B
 
-  return Adot,Bdot
+  return [Adot Bdot]
 end
 
 #---------------------------------------------------------------------- 
@@ -428,7 +428,7 @@ function Meinhardt_1987_2_branching(A,B,R)
   ρ  = 0.1         # Production term coefficient
   
   ν  = 0.0014      # Linear removal of inhibitor
-  ρ1 = 0.001        # Constant substrate production/offset term (Not specified in paper)
+  ρ1 = 0.001       # Constant substrate production/offset term (Not specified in paper)
 
   Da = 0.015       # Diffusion coefficient for A
   Db = 0.0         # Diffusion coefficient for S
@@ -441,12 +441,10 @@ function Meinhardt_1987_2_branching(A,B,R)
  
   Bdot  = ρ1 .+ ρ*ϕ .- (ν/R)*B
 
-  return Adot,Bdot
+  return [Adot Bdot]
 end
 
 #---------------------------------------------------------------------- 
-
-
 
 
 

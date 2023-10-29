@@ -16,9 +16,7 @@ include("../GetBDF.jl")
 
 Mein(a,b) = Meinhardt_1987_2_branching(a,b,R)
 
-x0 = 10.0
-σ  = 1.0
-aa = 1.0*exp.(-((Geom.xm1[:] .- x0)/σ).^2)
+aa    = amp0*exp.(-((Geom.xm1[:] .- x0)/σ).^2)
 ainit = QT*(aa./vmult)
 a     = copy(ainit);
 alag  = zeros(Float64,ndof,3);
@@ -28,14 +26,6 @@ b     = 0.1*a
 blag  = zeros(Float64,ndof,3);
 Rblag = zeros(Float64,ndof,2);
 
-#xall  = zeros(Float64,r);
-#for i in 1:nel
-#   global xall   
-#   j1 = (i-1)*N + 1;
-#   j2 = j1+lx1-1;
-#   xall[j1:j2] = Geom.xm1[:,i];
-#end   
-
 bdf = zeros(Float64,4)
 ext = zeros(Float64,3)
 
@@ -43,11 +33,6 @@ cm    = get_cmap("tab10");
 rgba0 = cm(0); 
 rgba1 = cm(1); 
 rgba2 = cm(2); 
-
-dt = 0.001;
-plotupd = 100;
-
-nsteps = 100000;
 
 time = range(0.,step=dt,length=nsteps);
 
@@ -107,24 +92,24 @@ for i in 1:nsteps
   blag[:,2] = blag[:,1];
   blag[:,1] = b;
 
-  Ma        = bdf[1]/dt*diagm(Bg) .- γa*Lg;
-#  a         = Ma\Rhsa
-   gmres!(a,Ma,Rhsa,abstol=1.0e-10,verbose=false)
+  M         = bdf[1]/dt*diagm(Bg) .- γa*Lg;
+   gmres!(a,M,Rhsa,abstol=1.0e-10,verbose=false)
+#  a         = M\Rhsa
 
-  Mb        = bdf[1]/dt*diagm(Bg) .- γb*Lg;
-  gmres!(b,Mb,Rhsb,abstol=1.0e-10)
-#  b         = Mb\Rhsb
- 
-  if mod(i,plotupd)==0
-    if (i>plotupd)
-       pl[1].remove();
-       pl2[1].remove();
-    end   
-  
-    pl = plot(Geom.xm1[:],Q*a,color=rgba0);
-    pl2 = plot(Geom.xm1[:],Q*b,color=rgba1);
+  M        = bdf[1]/dt*diagm(Bg) .- γb*Lg;
+  gmres!(b,M,Rhsb,abstol=1.0e-10)
+#  b         = M\Rhsb
 
-    pause(0.001)
+  if plotupd > 0
+    if mod(i,plotupd)==0
+      if (i>plotupd)
+         pl[1].remove();
+         pl2[1].remove();
+      end   
+      pl = plot(Geom.xm1[:],Q*a,color=rgba0);
+      pl2 = plot(Geom.xm1[:],Q*b,color=rgba1);
+      pause(0.001)
+    end
   end  
 
 end

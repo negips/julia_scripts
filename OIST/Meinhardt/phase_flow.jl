@@ -10,8 +10,8 @@ using Roots
 
 include("Meinhardt.jl")
 include("Meinhardt_Nullclines.jl")
-include("GetBDF.jl")
-include("GetEXT.jl")
+include("../GetBDF.jl")
+include("../GetEXT.jl")
 
 function Translate(f,g,a,b,dt)
 
@@ -51,7 +51,7 @@ else
 end
 
 
-s  = 1
+s  = 0.01
 Adotxy(x,y) = F(x,y,s)[1]
 Adotx(x) = Adotxy(x,b)
 Adoty(y) = Adotxy(a,y)
@@ -68,8 +68,8 @@ ntraj = 50
 
 cm    = get_cmap("tab20");
 
-a0    =  0.1*(rand(ntraj) .- 0.5) .+ 0.09
-b0    =  0.3*(rand(ntraj) .- 0.5) .+ 1.2
+a0    =  5.3*(rand(ntraj) .- 0.5) .+ 1.35
+b0    =  0.3*(rand(ntraj) .- 0.5) .+ 0.9
 
 h1 = figure(num=1)
 
@@ -102,7 +102,7 @@ ax1.set_xlabel(L"b", fontsize=lafs)
 ax1.set_ylabel(L"a", fontsize=lafs)
 #ax1.legend(fontsize=12)
 
-G(x,y) = F(x,y,1.0)
+G(x,y) = F(x,y,s)
 Aa,Ab,Ba,Bb = Meinhardt_Nullclines(EQN,G)
 
 n1 = size(Aa,2)

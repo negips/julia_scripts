@@ -1,7 +1,7 @@
 #!/bin/julia
 
 """
-    BarkleyPipe(q,u,r,σ)
+    BarkleyPipe(q,u,r)
 
 Compute the Following Equation:
 
@@ -11,28 +11,26 @@ Compute the Following Equation:
 
 # Examples
 ```julia-repl
-julia> adot,bdot = BarkleyPipe(1.0,1.0,0.5,0.0)
+julia> adot,bdot = BarkleyPipe(1.0,1.0,0.5)
 (-0.5,0.1)
 ```
 """
-function BarkleyPipe(u,q,r,σ)
+function BarkleyPipe(u,q,r)
 
   U0  = 2.0  # Centre line velocity
   Ub  = 1.0  # Bulk velocity
 
-  ζ   = 0.8
+#  ζ   = 0.8  # Convection parameter
   δ   = 0.1
-  ϵ1  = 0.1
-  ϵ2  = 0.1
-
-#  if !LiesWithin(r,0.3,0.9)
-#    println("r value outside range: $r ∉ (0.3,0.9)")
-#  end  
+  ϵ   = 0.1
+  κ   = 2.0
+  ϵ1  = ϵ
+  ϵ2  = κ*ϵ
 
   g   = ϵ1*(U0 .- u) .+ ϵ2*(Ub .- u).*q
   f   = q.*(r .+ u .- U0 .- (r + δ)*(q .- 1.0).^2 ) #.+ σ*q
 
-  return g,f
+  return [g f]
 end
 #---------------------------------------------------------------------- 
 
@@ -58,9 +56,8 @@ end
 
 function BarkleyNullClines(r)
 
-
-  g(x,y)     = BarkleyPipe(x,y,r,0.0)[1]
-  f(x,y)     = BarkleyPipe(x,y,r,0.0)[2]
+  g(x,y)     = BarkleyPipe(x,y,r)[1]
+  f(x,y)     = BarkleyPipe(x,y,r)[2]
 
   nsteps = 100000
 
