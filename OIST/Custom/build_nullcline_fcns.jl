@@ -88,8 +88,8 @@ m = 3       # No of incident points
 x = zeros(Float64,m)
 y = zeros(Float64,m)
 if m > 0
-  x     = FAC*[0.0 -5.0 -5.0]
-  y     = FAC*[0.0  1.0  6.0]
+  x     = FAC*[0.0 -2.0 -5.0]
+  y     = FAC*[0.0  0.7  6.0]
 end  
 
 # X-Derivative Points
@@ -150,7 +150,7 @@ y = zeros(Float64,m)
 
 # First incident point (Fixed Point of the system)
 if m > 0
-  x = FAC*[0.0  12.0]
+  x = FAC*[0.0  14.0]
   y = FAC*[0.0  4.0]
 end  
 
@@ -213,7 +213,7 @@ if xin !="x"
     F(x,y) =  f(x,y)/ϵ
   end  
 
-  η  = 0.1
+  η  = 1.0
   if g(20.0,0.0)>0
     G(x,y) = -η*g(x,y)
   else

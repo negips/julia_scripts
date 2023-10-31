@@ -29,7 +29,7 @@ Basisd      = LobattoLegendre(Nd, prec)         # Polynomial Basis
 #basis2 = GaussLegendre(N)
 
 xs          = prec(0.)                          # Domain start
-xe          = prec(200.0)                        # Domain end
+xe          = prec(100.0)                        # Domain end
 
 nel         = 100                               # No of elements
 nnodes      = nel+1;                            # No of nodes
