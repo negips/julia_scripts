@@ -258,7 +258,7 @@ function Meinhardt_61(A,B,C,D,S)
   sb = 1.0        # Saturation for activator
   sd = 1.0        # Saturation for activator based on D
   ra = 1.0        # Linear Removal of activator
-  ba = 1.0        # Constant activator production/offset term
+  ba = 0.1        # Constant activator production/offset term
   
   rb = 1.0        # Linear removal of inhibitor
   bb = 1.0        # Constant inhibitor production/offset term
@@ -270,7 +270,7 @@ function Meinhardt_61(A,B,C,D,S)
   rbeff = rb/C      
 
   Adot  = S.*((A.^2)./(sb .+ sd*D.^2 .+ B) .+ ba) .- ra*A
-  Bdot  = bb .+ s*(A.^2) .- (rbeff)*B 
+  Bdot  = bb .+ S*(A.^2) .- (rbeff)*B 
 
 #  Ddot  = rd*(A .- D)
 
@@ -305,19 +305,34 @@ function Meinhardt_1987_1(A,S)
 # A  - Activator
 # S  - Substrate
 
-  κ  = 0.0         # Saturation constant for production
-#  κ = 0.08 # (Figure 1c)                  
-  ρ0 = 0.001       # production offset
+#  κ  = 0.0         # Saturation constant for production
+##  κ = 0.08 # (Figure 1c)                  
+#  ρ0 = 0.001       # production offset
+#
+#  μ  = 0.01        # Linear Removal of activator
+#  ρ  = 0.01        # Production term coefficient
+#
+#  
+#  ν  = 0.0         # Linear removal of inhibitor
+#  σ  = 0.015       # Constant substrate production/offset term
+#
+#  Da = 0.002       # Diffusion coefficient for A
+#  Ds = 0.4         # Diffusion coefficient for S
 
-  μ  = 0.01        # Linear Removal of activator
-  ρ  = 0.01        # Production term coefficient
+# Figure 7 in paper
+  κ  = 1.0         # Saturation constant for production
+  ρ0 = 0.0006      # production offset
+
+  μ  = 0.1         # Linear Removal of activator
+  ρ  = 0.5         # Production term coefficient
 
   
   ν  = 0.0         # Linear removal of inhibitor
   σ  = 0.015       # Constant substrate production/offset term
 
-  Da = 0.002       # Diffusion coefficient for A
-  Ds = 0.4         # Diffusion coefficient for S
+  Da = 0.02        # Diffusion coefficient for A
+  Ds = 0.0         # Diffusion coefficient for S
+
 
   ϕ     = (A.^2)./(1 .+ κ*A.^2) .+ ρ0
 

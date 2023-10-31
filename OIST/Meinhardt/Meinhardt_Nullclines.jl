@@ -56,25 +56,25 @@ elseif (EQN == "3.1")
   τb         = -1.0e-3
 elseif (EQN == "6.1")
 #  Mein(x,y,s)   = Meinhardt_31(x,y,s)
-  arange0_a  = -10.0
-  arange1_a  = +10.0
-  b0_a       = 15.0
+  arange0_a  = -50.0
+  arange1_a  = +50.0
+  b0_a       = 10.0
   τa         = -1.0e-3
 
-  arange0_b  = -10.0
-  arange1_b  = +10.0
-  b0_b       = +15.0
+  arange0_b  = -50.0
+  arange1_b  = +50.0
+  b0_b       = +10.0
   τb         = -1.0e-3
 elseif (EQN == "1987_1")
 #  Mein(x,y,s)   = Meinhardt_31(x,y,s)
-  arange0_a  = -10.0
-  arange1_a  = +10.0
-  b0_a       =  10.0
-  τa         = -1.0e-3
+  arange0_a  = -70.0
+  arange1_a  = +70.0
+  b0_a       =  5.0
+  τa         = -1.0e-4
 
   arange0_b  = -10.0
   arange1_b  = +10.0
-  b0_b       = +10.0
+  b0_b       = +5.0
   τb         = -1.0e-3
 elseif (EQN == "1987_2")
 #  Mein(x,y,s)   = Meinhardt_31(x,y,s)

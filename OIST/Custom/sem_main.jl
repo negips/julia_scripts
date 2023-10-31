@@ -10,12 +10,12 @@ using Printf
 include("sem_geom.jl")
 include("sem_init_ref.jl")
 
-include("AssembleMatrixMeinhardt.jl")
+include("AssembleMatrix.jl")
 
 include("Sem_QQT.jl")
 
 # Load Parameters
-include("meinhardt_params.jl")
+include("custom_params.jl")
 
 # Generate the geomerty dependent matrices
 Geom = sem_geom(Basis,Basisd,xc,N,Nd,nel,dxm1,dxtm1,prec);
@@ -33,8 +33,8 @@ vmultg  = sum(QT*Q,dims=2)
 vmultg  = vmultg[:]
 vimultg = one./vmultg
 
-L,B,OP,Conv,Src,Lap = AssembleMatrixMeinhardt(U,γ,Geom.cnv,Geom.wlp,Geom.xm1,Geom.bm1,Basis,lx1,nel,prec,ifsparse);
-#    AL,AB,AOP,AConv,ASrc,ALap,AFd = AssembleAdjointLesshafftSparse(U,γ,c0,cx0,whichsrc,Geom.cnv,Geom.wlp,Geom.xm1,Geom.bm1,Basis,lx1,nel,prec);
+#ifsparse  = true
+L,B,OP,Conv,Src,Lap = AssembleMatrixCRD(U,γ,Geom.cnv,Geom.wlp,Geom.xm1,Geom.bm1,Basis,lx1,nel,prec,ifsparse);
 
 # Build Dealiased Mass Matrix
 if (ifsparse)

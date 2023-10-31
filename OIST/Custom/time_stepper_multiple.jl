@@ -1,23 +1,20 @@
-println("Main interface for 1D SEM")
+println("Time-Stepping interface")
 
 using PolynomialBases
 using PyPlot,PyCall
 using LinearAlgebra
 using IterativeSolvers
 
-close("all")
+#close("all")
 
 # Include the function files
 include("sem_main.jl")
-include("Meinhardt.jl")
+#include("Meinhardt.jl")
 include("Dealias.jl")
 include("../GetEXT.jl")
 include("../GetBDF.jl")
 
-Mein(a,b) = Meinhardt_1987_2_branching(a,b,R)
-#Mein(a,b) = Meinhardt_1987_1(a,b)
-
-agauss      = exp.(-((Geom.xm1[:] .- x0)/σ).^2)
+agauss      = exp.(-((Geom.xm1[:] .- x0)/σ).^2)# .*(sign.(Geom.xm1[:] .- x0))
 k0          = 2.0
 asin        = sin.(k0*Geom.xm1[:])
 
@@ -31,8 +28,8 @@ fldlag  = zeros(VT,ndof,2,nflds)
 Rhs     = zeros(VT,ndof,nflds)
 Rhslag  = zeros(VT,ndof,2,nflds)
 
-fld[:,1] = ampA0*ainit .+ A0Off
-fld[:,2] = ampB0*ainit .+ B0Off
+fld[:,1] = ampB0*ainit .+ B0Off
+fld[:,2] = ampA0*ainit .+ A0Off
 
 bdf = zeros(Float64,4)
 ext = zeros(Float64,3)
@@ -44,11 +41,14 @@ rgba2 = cm(2);
 
 time = range(0.,step=dt,length=nsteps);
 
+h2  = figure(num=2)
+ax2 = h2.subplots()
+
 t = 0.
 for i in 1:nsteps
   global fld,fldlag,Rhs,Rhslag,dotfld
   global t
-  global pl,pl2
+  global pl,pl2,scat
 
   t = t + dt;
 
@@ -63,7 +63,7 @@ for i in 1:nsteps
     GetEXT!(ext,2)
   end
 
-  dotfld = Mein(fld[:,1],fld[:,2])
+  dotfld = Flow(fld[:,1],fld[:,2])
   for j in 1:nflds
     rhs           =  dotfld[:,j] .- Filg*fld[:,j];
     rhs1          =  ext[1]*rhs + ext[2]*Rhslag[:,1,j] + ext[3]*Rhslag[:,2,j];
@@ -87,13 +87,26 @@ for i in 1:nsteps
   if plotupd > 0
     if mod(i,plotupd)==0
       if (i>plotupd)
-         pl[1].remove();
-         pl2[1].remove();
+         pl[1].remove()
+         pl2[1].remove()
+         if (ifphplot)
+           scat[1].remove()
+         end  
       end   
-      pl = plot(Geom.xm1[:],Q*fld[:,1],color=rgba0);
+      pl = ax2.plot(Geom.xm1[:],Q*fld[:,1],color=rgba0);
 #      pl = plot(Geom.xm1[:],Q*(fld[:,1]),color=rgba1);
      
-      pl2 = plot(Geom.xm1[:],Q*fld[:,2],color=rgba1);
+      pl2 = ax2.plot(Geom.xm1[:],Q*fld[:,2],color=rgba1);
+
+      k     = argmax(abs.(fld[:,2]))
+      xscat = fld[k,1]
+      yscat = fld[k,2]
+
+      if ifphplot
+#        scat  = ax1.plot(xscat,yscat,marker="o",color="black")
+        scat = ax1.plot(fld[:,1],fld[:,2],color="black") 
+      end
+      draw()
       pause(0.01)
     end
   end  

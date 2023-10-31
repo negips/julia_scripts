@@ -28,8 +28,10 @@ close("all")
 
 lafs = 16
 
+c    = 0.10
+d    = 1.00
 
-EQN = "1987_2_branching"
+EQN = "1987_1"
 if (EQN == "2.1")
   F(x,y,s)   = Meinhardt_21(x,y,s)
 elseif (EQN == "2.4")
@@ -39,7 +41,7 @@ elseif (EQN == "2.5")
 elseif (EQN == "3.1")
   F(x,y,s)   = Meinhardt_31(x,y,s)
 elseif (EQN == "6.1")
-  F(x,y,s)   = Meinhardt_61(x,y,1.0,1.0,s)
+  F(x,y,s)   = Meinhardt_61(x,y,c,d,s)
 elseif (EQN == "1987_1")
   F(x,y,s)   = Meinhardt_1987_1(x,y)
 elseif (EQN == "1987_2")
@@ -51,7 +53,7 @@ else
 end
 
 
-s  = 0.01
+s  = 1.00
 Adotxy(x,y) = F(x,y,s)[1]
 Adotx(x) = Adotxy(x,b)
 Adoty(y) = Adotxy(a,y)
@@ -61,14 +63,14 @@ Bdotx(x) = Bdotxy(x,b)
 Bdoty(y) = Bdotxy(a,y)
 
 
-nstep = 100000
+nstep = 500000
 dt    = 0.001
 
-ntraj = 50
+ntraj = 0
 
 cm    = get_cmap("tab20");
 
-a0    =  5.3*(rand(ntraj) .- 0.5) .+ 1.35
+a0    =  5.3*(rand(ntraj) .- 0.5) .+ 3.35
 b0    =  0.3*(rand(ntraj) .- 0.5) .+ 0.9
 
 h1 = figure(num=1)
@@ -97,9 +99,11 @@ for n in 1:ntraj
 
 end  
 
-ax1 = h1.axes[1]
-ax1.set_xlabel(L"b", fontsize=lafs)
-ax1.set_ylabel(L"a", fontsize=lafs)
+if (ntraj > 0)
+  ax1 = h1.axes[1]
+  ax1.set_xlabel(L"b", fontsize=lafs)
+  ax1.set_ylabel(L"a", fontsize=lafs)
+end  
 #ax1.legend(fontsize=12)
 
 G(x,y) = F(x,y,s)
@@ -138,9 +142,12 @@ if EQN == "3.1"
 elseif EQN == "1987_2_branching"
   Aa2,Ab2 = find_nullcline(Adotxy,-2.0,-2.0,-5.0,1.0,70000,1.0e-3);
   plot(Ab2,Aa2,linestyle="-",color="black",linewidth=2)
-end  
+end
 legend()
 
+ax1 = h1.axes[1]
+ax1.set_xlabel(L"b", fontsize=lafs)
+ax1.set_ylabel(L"a", fontsize=lafs)
 
 
 
