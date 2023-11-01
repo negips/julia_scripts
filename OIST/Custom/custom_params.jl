@@ -24,8 +24,9 @@ B0Off       = prec(0)         # Homogeneous state value
 
 
 # Simulation
-dt          = prec(0.01);
-nsteps      = 100000;
+dt                = prec(0.01)
+nsteps            = 100000
+nstep_switch      = 7000 
 
-plotupd     = 50;
+plotupd     = 50
 ifphplot    = true
