@@ -17,7 +17,7 @@ ifglobal    = true
 x0          = prec(50)       # Gaussian Center
 σ           = prec(2)         # Gaussian Std. Deviation
 ampA0       = prec(1)
-ampB0       = prec(0.0)
+ampB0       = prec(0)
 
 A0Off       = prec(0)         # Homogeneous state value
 B0Off       = prec(0)         # Homogeneous state value
@@ -27,5 +27,5 @@ B0Off       = prec(0)         # Homogeneous state value
 dt          = prec(0.01);
 nsteps      = 100000;
 
-plotupd     = 100;
+plotupd     = 50;
 ifphplot    = true

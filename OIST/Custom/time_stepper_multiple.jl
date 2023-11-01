@@ -15,7 +15,7 @@ include("../GetEXT.jl")
 include("../GetBDF.jl")
 
 agauss      = exp.(-((Geom.xm1[:] .- x0)/σ).^2)# .*(sign.(Geom.xm1[:] .- x0))
-k0          = 2.0
+k0          = 0.5
 asin        = sin.(k0*Geom.xm1[:])
 
 ainit       = vimultg.*(QT*agauss)

@@ -10,6 +10,7 @@ using PyPlot
 include("NullClines.jl")
 include("NullClineFcn.jl")
 include("ElementOf.jl")
+include("NullClineParams.jl")
 
 function FXY(x,y,c0,cx,cy)
   nx = length(cx)
@@ -78,143 +79,189 @@ close("all")
 
 lafs = 16
 
-nx = 1
-ny = 3
-n  = nx + ny + 1      # No of free parameters/Conditions to satisfy
+#nx = 1
+#ny = 3
+#n  = nx + ny + 1      # No of free parameters/Conditions to satisfy
+#
+#FAC = 0.2
+#
+#m = 3       # No of incident points
+#x = zeros(Float64,m)
+#y = zeros(Float64,m)
+#if m > 0
+#  x     = FAC*[0.0 -2.0 -5.0]
+#  y     = FAC*[0.0  0.7  6.0]
+#end  
+#
+## X-Derivative Points
+#mx = 0
+#Xx = zeros(Float64,mx)
+#Yx = zeros(Float64,mx)
+#if (mx>0)
+#  Xx = x[2]
+#  Yx = y[2] 
+#end  
+#
+## Y-Derivative Points
+#my = 1
+#Xy = zeros(Float64,my)
+#Yy = zeros(Float64,my)
+#if my>0
+#  Xy[1] = x[2]
+#  Yy[1] = y[2]
+#end  
+#
+#fc = NullClineFcn(x,y,Xx,Yx,Xy,Yy,nx,ny)
+#
+##c = M\rhs
+#fc0 = fc[1]
+#fcx = fc[2:nx+1]
+#fcy = fc[nx+2:nx+ny+1]
+#
+#f(x,y) = FXY(x,y,fc0,fcx,fcy)
+#
+#xi = -20.0
+#yr0 = -50.0
+#yr1 = 50.0
+#dτ  = 1.0e-3
+#nsteps = 120000
+#
+#xx,yy = NullClines(f,xi,yr0,yr1,nsteps,dτ)
+#
+#h1  = figure(num=1)
+#ax1 = h1.subplots()
+#
+#ax1.plot(xx,yy)
+#ax1.set_xlabel(L"x", fontsize=lafs)
+#ax1.set_ylabel(L"y", fontsize=lafs)
+#
+#ax1.plot(x,y,linestyle=" ",marker="x")
+#ax1.plot(Xx,Yx,linestyle=" ",marker="x")
+#ax1.plot(Xy,Yy,linestyle=" ",marker="x")
+#
+## Function for G(x,y)
+##-------------------------------------------------- 
+#nx = 1
+#ny = 2
+#n  = nx + ny + 1      # No of free parameters/Conditions to satisfy
+#
+#m = 2       # No of incident points
+#x = zeros(Float64,m)
+#y = zeros(Float64,m)
+#
+## First incident point (Fixed Point of the system)
+#if m > 0
+#  x = FAC*[0.0  13.0]
+#  y = FAC*[0.0  4.0]
+#end  
+#
+## X-Derivative Points
+#mx = 0
+#Xx = zeros(Float64,mx)
+#Yx = zeros(Float64,mx)
+#if (mx>0)
+#  Xx = x[2]
+#  Yx = y[2] 
+#end  
+#
+## Y-Derivative Points
+#my = 1
+#Xy = zeros(Float64,my)
+#Yy = zeros(Float64,my)
+#
+#if my>0
+#  Xy[1] = x[2]
+#  Yy[1] = y[2]
+#end  
+#
+#gc = NullClineFcn(x,y,Xx,Yx,Xy,Yy,nx,ny)
+#
+##c = M\rhs
+#gc0 = gc[1]
+#gcx = gc[2:nx+1]
+#gcy = gc[nx+2:nx+ny+1]
+#
+#g(x,y) = FXY(x,y,gc0,gcx,gcy)
+#
+#xi = -10.0
+#yr0 = -50.0
+#yr1 = 1.0
+#dτ  = 1.0e-3
+#nsteps = 100000
+#
+#xx,yy = NullClines(g,xi,yr0,yr1,nsteps,dτ)
+#
+#ax1.plot(xx,yy)
+#
+#ax1.plot(x,y,linestyle=" ",marker="s")
+#ax1.plot(Xx,Yx,linestyle=" ",marker="s")
+#ax1.plot(Xy,Yy,linestyle=" ",marker="s")
+#
+#grid("on")
 
-FAC = 0.2
+# Sets: 1         : Forward-Backward Traveling pulses
+#     : 2         : Limit-cycline Oscillation
+#
 
-m = 3       # No of incident points
-x = zeros(Float64,m)
-y = zeros(Float64,m)
-if m > 0
-  x     = FAC*[0.0 -2.0 -5.0]
-  y     = FAC*[0.0  0.7  6.0]
-end  
 
-# X-Derivative Points
-mx = 0
-Xx = zeros(Float64,mx)
-Yx = zeros(Float64,mx)
-if (mx>0)
-  Xx = x[2]
-  Yx = y[2] 
-end  
+set               = 1                    # Forward-Backward Traveling wave
+pars              = GetNullClineParams(set) 
 
-# Y-Derivative Points
-my = 1
-Xy = zeros(Float64,my)
-Yy = zeros(Float64,my)
-if my>0
-  Xy[1] = x[2]
-  Yy[1] = y[2]
-end  
+h1                = figure(num=1)
+ax1               = h1.subplots()
 
-fc = NullClineFcn(x,y,Xx,Yx,Xy,Yy,nx,ny)
+xi                = -20.0
+yr0               = -50.0
+yr1               = 50.0
+dτ                = 1.0e-3
+nsteps            = 120000
+f(x,y)            = FXY(x,y,pars.fc0,pars.fcx,pars.fcy)
+f0x,f0y           = NullClines(f,xi,yr0,yr1,nsteps,dτ)
 
-#c = M\rhs
-fc0 = fc[1]
-fcx = fc[2:nx+1]
-fcy = fc[nx+2:nx+ny+1]
+ax1.plot(f0x,f0y)
+ax1.plot(pars.xA,pars.yA,linestyle=" ",marker="s",fillstyle="none")
+ax1.plot(pars.xdxA,pars.ydxA,linestyle=" ",marker="x")
+ax1.plot(pars.xdyA,pars.ydyA,linestyle=" ",marker="x")
 
-f(x,y) = FXY(x,y,fc0,fcx,fcy)
-
-xi = -20.0
-yr0 = -50.0
-yr1 = 50.0
-dτ  = 1.0e-3
-nsteps = 120000
-
-xx,yy = NullClines(f,xi,yr0,yr1,nsteps,dτ)
-
-h1  = figure(num=1)
-ax1 = h1.subplots()
-
-ax1.plot(xx,yy)
-ax1.set_xlabel(L"x", fontsize=lafs)
-ax1.set_ylabel(L"y", fontsize=lafs)
-
-ax1.plot(x,y,linestyle=" ",marker="x")
-ax1.plot(Xx,Yx,linestyle=" ",marker="x")
-ax1.plot(Xy,Yy,linestyle=" ",marker="x")
-
-# Function for G(x,y)
-#-------------------------------------------------- 
-nx = 1
-ny = 2
-n  = nx + ny + 1      # No of free parameters/Conditions to satisfy
-
-m = 2       # No of incident points
-x = zeros(Float64,m)
-y = zeros(Float64,m)
-
-# First incident point (Fixed Point of the system)
-if m > 0
-  x = FAC*[0.0  14.0]
-  y = FAC*[0.0  4.0]
-end  
-
-# X-Derivative Points
-mx = 0
-Xx = zeros(Float64,mx)
-Yx = zeros(Float64,mx)
-if (mx>0)
-  Xx = x[2]
-  Yx = y[2] 
-end  
-
-# Y-Derivative Points
-my = 1
-Xy = zeros(Float64,my)
-Yy = zeros(Float64,my)
-
-if my>0
-  Xy[1] = x[2]
-  Yy[1] = y[2]
-end  
-
-gc = NullClineFcn(x,y,Xx,Yx,Xy,Yy,nx,ny)
-
-#c = M\rhs
-gc0 = gc[1]
-gcx = gc[2:nx+1]
-gcy = gc[nx+2:nx+ny+1]
-
-g(x,y) = FXY(x,y,gc0,gcx,gcy)
-
-xi = -10.0
+xi  = -10.0
 yr0 = -50.0
 yr1 = 1.0
 dτ  = 1.0e-3
 nsteps = 100000
+g(x,y)            = FXY(x,y,pars.gc0,pars.gcx,pars.gcy)
+g0x,g0y           = NullClines(g,xi,yr0,yr1,nsteps,dτ)
 
-xx,yy = NullClines(g,xi,yr0,yr1,nsteps,dτ)
 
-ax1.plot(xx,yy)
 
-ax1.plot(x,y,linestyle=" ",marker="s")
-ax1.plot(Xx,Yx,linestyle=" ",marker="s")
-ax1.plot(Xy,Yy,linestyle=" ",marker="s")
 
-grid("on")
+ax1.plot(g0x,g0y)
+ax1.plot(pars.xB,pars.yB,linestyle=" ",marker="o",fillstyle="none")
+ax1.plot(pars.xdxB,pars.ydxB,linestyle=" ",marker="x")
+ax1.plot(pars.xdyB,pars.ydyB,linestyle=" ",marker="x")
+
+ax1.set_xlabel(L"x", fontsize=lafs)
+ax1.set_ylabel(L"y", fontsize=lafs)
+
+
+#ax1.plot(x,y,linestyle=" ",marker="x")
+#ax1.plot(Xx,Yx,linestyle=" ",marker="x")
+#ax1.plot(Xy,Yy,linestyle=" ",marker="x")
 
 pause(0.01)
 
 println("Press x to stop. Any other key to continue")
 xin = readline()
+#xin = "x"
 if xin !="x"
- 
-#  close("all")
-
   ϵ           = 0.1
-  if f(0.0,20.0)>0
+  if f(0.0,100.0)>0
     F(x,y) = -f(x,y)/ϵ
   else
     F(x,y) =  f(x,y)/ϵ
   end  
 
   η  = 1.0
-  if g(20.0,0.0)>0
+  if g(100.0,0.0)>0
     G(x,y) = -η*g(x,y)
   else
     G(x,y) =  η*g(x,y)
