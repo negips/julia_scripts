@@ -31,7 +31,7 @@ Rhslag  = zeros(VT,ndof,2,nflds)
 fld[:,1] = ampB0*ainit .+ B0Off
 fld[:,2] = ampA0*ainit .+ A0Off
 
-fldhist  = zeros(VT,npts,nsurf_save,nflds)
+fldhist  = zeros(VT,nsurf_save,npts,nflds)
 Thist    = zeros(VT,nsurf_save)
 
 bdf = zeros(Float64,4)
@@ -51,7 +51,7 @@ t = 0.
 
 Thist[1] = t
 for i in 1:nflds
-  fldhist[:,1,i] = Q*fld[:,i]
+  fldhist[1,:,i] = Q*fld[:,i]
 end  
 
 for i in 1:nsteps
@@ -110,7 +110,7 @@ for i in 1:nsteps
     k = Int(i/surf_save) + 1
     Thist[k]  = t
     for j in 1:nflds
-      fldhist[:,k,j] = Q*fld[:,j]
+      fldhist[k,:,j] = Q*fld[:,j]
     end
   end
 
@@ -144,22 +144,16 @@ for i in 1:nsteps
 end
 
 
-cm2   = get_cmap("binary");
-#t2d   = Thist*ones(1,npts)
-#x2d   = ones(nsurf_save)*(Geom.xm1[:]')
-t2d   = ones(npts)*Thist'
-x2d   = (Geom.xm1[:])*ones(nsurf_save)'
+cm2   = get_cmap("Spectral");
+t2d   = Thist*ones(1,npts)
+x2d   = ones(nsurf_save)*(Geom.xm1[:]')
 
-h3  = figure(num=3)
-pcm = pcolormesh(x2d,t2d,fldhist[:,:,2])
-pcm.set_cmap(cm2)
+h3=figure(num=3)
+surf(t2d,x2d,fldhist[:,:,2],cmap=cm2,edgecolor="none")
 ax3 = h3.gca()
-cb  = colorbar()
-
-#surf(t2d,x2d,fldhist[:,:,2],cmap=cm2,edgecolor="none")
-#ax3.elev = 90.0
-#ax3.azim = 0.0
-#draw()
+ax3.elev = 90.0
+ax3.azim = 0.0
+draw()
 
 
 

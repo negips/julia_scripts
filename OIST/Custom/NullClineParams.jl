@@ -48,15 +48,17 @@ function GetNullClineXY(nullcline_set)
       nyA         = 3
       nA          = nxA + nyA + 1      # No of free parameters/Conditions to satisfy
       
-      FAC         = 0.2
+      FAC         = 1.0
 
       # Incident points     
       mA          = 3       
       xA          = zeros(Float64,mA)
       yA          = zeros(Float64,mA)
       if mA > 0
-        xA        = FAC*[0.0; -2.0; -5.0]
-        yA        = FAC*[0.0;  0.7;  6.0]
+#        xA        = FAC*[0.0; -0.4;    -1.0]
+#        yA        = FAC*[0.0;  0.14;    1.2]
+        xA        = FAC*[0.0; -0.4;    2.0]
+        yA        = FAC*[0.0;  0.5;    5.0]
       end  
       
       # X-Derivative Points
@@ -88,7 +90,9 @@ function GetNullClineXY(nullcline_set)
       xB                = zeros(Float64,mB)
       yB                = zeros(Float64,mB)
       if mB > 0
-        xB              = FAC*[0.0;  13.0]
+#        xB              = FAC*[0.0;  2.6]
+#        yB              = FAC*[0.0;  0.8]
+        xB              = FAC*[0.0;  5.5]
         yB              = FAC*[0.0;  4.0]
       end  
       
@@ -109,25 +113,29 @@ function GetNullClineXY(nullcline_set)
       if myB>0
         xdyB[1]         = xB[2]
         ydyB[1]         = yB[2]
-      end  
+      end
 
     elseif nullcline_set == 2
 #----------------------------------------       
-      println("Parameters set for Forward-Backward Progagating Slugs")
+      println("Parameters set for Forward-Backward Progagating Slugs.")
+      println("No Chnage in non-linear instability threshold")
 
       nxA         = 1
       nyA         = 3
       nA          = nxA + nyA + 1      # No of free parameters/Conditions to satisfy
       
-      FAC         = 0.2
+      FAC         = 1.0
 
       # Incident points     
       mA          = 3       
       xA          = zeros(Float64,mA)
       yA          = zeros(Float64,mA)
       if mA > 0
-        xA        = FAC*[0.0; -2.0; -5.0]
-        yA        = FAC*[0.0;  0.7;  6.0]
+#        xA        = FAC*[0.0; -0.4;    -1.0]
+#        yA        = FAC*[0.0;  0.14;    1.2]
+
+        xA        = FAC*[0.0; -0.4;    2.0]
+        yA        = FAC*[0.0;  0.5;    5.0]
       end  
       
       # X-Derivative Points
@@ -159,8 +167,11 @@ function GetNullClineXY(nullcline_set)
       xB                = zeros(Float64,mB)
       yB                = zeros(Float64,mB)
       if mB > 0
-        xB              = FAC*[0.0;  9.0]
-        yB              = FAC*[0.0;  4.0]
+#        xB              = FAC*[0.0;  1.8]
+#        yB              = FAC*[0.0;  0.8]
+
+        xB              = FAC*[0.0;  3.5]
+        yB              = FAC*[0.0;  5.0]
       end  
       
       # X-Derivative Points
@@ -184,21 +195,25 @@ function GetNullClineXY(nullcline_set)
 
     elseif nullcline_set == 3
 #----------------------------------------       
-      println("Parameters set for Limit Cycle Oscillation")
+      println("Parameters set for Forward-Backward Progagating Pulses.")
+      println("Smaller instability threshold.")
 
       nxA         = 1
       nyA         = 3
       nA          = nxA + nyA + 1      # No of free parameters/Conditions to satisfy
       
-      FAC         = 0.25
+      FAC         = 1.0
 
       # Incident points     
       mA          = 3       
       xA          = zeros(Float64,mA)
       yA          = zeros(Float64,mA)
       if mA > 0
-        xA        = FAC*[0.0; -10.0;  10.0]
-        yA        = FAC*[0.0;  -5.0;   5.0]
+        xAshift   = [0.0; -0.25;    0.00]
+        yAshift   = [0.0;  0.1883;  0.049]
+
+        xA        = FAC*[0.0; -0.4;    2.0] .- xAshift
+        yA        = FAC*[0.0;  0.5;    5.0] .- yAshift
       end  
       
       # X-Derivative Points
@@ -230,8 +245,11 @@ function GetNullClineXY(nullcline_set)
       xB                = zeros(Float64,mB)
       yB                = zeros(Float64,mB)
       if mB > 0
-        xB              = FAC*[0.0;  25.0]
-        yB              = FAC*[0.0;  8.0]
+#        xB              = FAC*[0.0;  1.8]
+#        yB              = FAC*[0.0;  0.8]
+
+        xB              = FAC*[0.0;  5.8]
+        yB              = FAC*[0.0;  3.8]
       end  
       
       # X-Derivative Points
@@ -253,7 +271,85 @@ function GetNullClineXY(nullcline_set)
         ydyB[1]         = yB[2]
       end  
 
-    elseif nullcline_set == 4
+
+    elseif nullcline_set == 10
+#----------------------------------------       
+      println("LCO. Activation Dominated")
+
+      nxA         = 1
+      nyA         = 3
+      nA          = nxA + nyA + 1      # No of free parameters/Conditions to satisfy
+      
+      FAC         = 1.0
+
+      # Incident points     
+      mA          = 3       
+      xA          = zeros(Float64,mA)
+      yA          = zeros(Float64,mA)
+      if mA > 0
+#        xA        = FAC*[0.0; -10.0;  10.0]
+#        yA        = FAC*[0.0;  -5.0;   5.0]
+
+        xA        = FAC*[0.0; -0.4;   2.0]
+        yA        = FAC*[0.0; -0.5;   4.0]
+       
+      end  
+      
+      # X-Derivative Points
+      mxA = 0
+      xdxA = zeros(Float64,mxA)
+      ydxA = zeros(Float64,mxA)
+      if (mxA>0)
+        xdxA = xA[2]
+        ydxA = yA[2] 
+      end  
+      
+      # Y-Derivative Points
+      myA = 1
+      xdyA = zeros(Float64,myA)
+      ydyA = zeros(Float64,myA)
+      if myA>0
+        xdyA[1] = xA[2]
+        ydyA[1] = yA[2]
+      end  
+      
+      # Points for G(x,y)
+      #-------------------- 
+      nxB               = 1
+      nyB               = 3
+      nB                = nxB + nyB + 1      # No of free parameters/Conditions to satisfy
+      
+      # Incident points
+      mB                = 3
+      xB                = zeros(Float64,mB)
+      yB                = zeros(Float64,mB)
+      if mB > 0
+#        xB              = FAC*[0.0;  25.0]
+#        yB              = FAC*[0.0;  8.0]
+        xB              = FAC*[0.0;  7.0; -1.5]
+        yB              = FAC*[0.0;  2.8; -0.4]
+      end  
+      
+      # X-Derivative Points
+      mxB = 0
+      xdxB              = zeros(Float64,mxB)
+      ydxB              = zeros(Float64,mxB)
+      if (mxB>0)
+        xdxB            = xB[2]
+        ydxB            = yB[2] 
+      end  
+      
+      # Y-Derivative Points
+      myB = 1
+      xdyB              = zeros(Float64,myB)
+      ydyB              = zeros(Float64,myB)
+      
+      if myB>0
+        xdyB[1]         = xB[2]
+        ydyB[1]         = yB[2]
+      end  
+
+    elseif nullcline_set == 11
 #----------------------------------------       
       println("Parameters set for Extreme Slugs")
 
@@ -261,15 +357,25 @@ function GetNullClineXY(nullcline_set)
       nyA         = 3
       nA          = nxA + nyA + 1      # No of free parameters/Conditions to satisfy
       
-      FAC         = 0.2
+      FAC         = 1.0
 
       # Incident points     
       mA          = 3       
       xA          = zeros(Float64,mA)
       yA          = zeros(Float64,mA)
       if mA > 0
-        xA        = FAC*[0.0; -2.0; -5.0]
-        yA        = FAC*[0.0;  0.7;  6.0]
+#        xAshift   = [0.0; -0.35;   -0.00]
+#        yAshift   = [0.0;  0.0885;  0.016]
+#
+#        xA        = FAC*[0.0; -0.4;  -1.0] .- xAshift
+#        yA        = FAC*[0.0;  0.14;  1.2] .- yAshift
+
+
+        xAshift   = [0.0; -0.25;    0.00]
+        yAshift   = [0.0;  0.1883;  0.049]
+
+        xA        = FAC*[0.0; -0.4;    2.0] .- xAshift
+        yA        = FAC*[0.0;  0.5;    5.0] .- yAshift
       end  
       
       # X-Derivative Points
@@ -301,8 +407,12 @@ function GetNullClineXY(nullcline_set)
       xB                = zeros(Float64,mB)
       yB                = zeros(Float64,mB)
       if mB > 0
-        xB              = FAC*[0.0;  7.0]
-        yB              = FAC*[0.0;  3.5]
+#        xB              = FAC*[0.0;  1.8]
+#        yB              = FAC*[0.0;  0.8]
+
+        xB              = FAC*[0.0;  3.5]
+        yB              = FAC*[0.0;  5.0]
+       
       end  
       
       # X-Derivative Points
@@ -323,24 +433,23 @@ function GetNullClineXY(nullcline_set)
         xdyB[1]         = xB[2]
         ydyB[1]         = yB[2]
       end  
-
-    elseif nullcline_set == 5
+    elseif nullcline_set == 12
 #----------------------------------------       
-      println("Parameters set for Testing")
+      println("LCO. Long Deactivation periods")
 
       nxA         = 1
       nyA         = 3
       nA          = nxA + nyA + 1      # No of free parameters/Conditions to satisfy
       
-      FAC         = 0.2
+      FAC         = 1.0
 
       # Incident points     
       mA          = 3       
       xA          = zeros(Float64,mA)
       yA          = zeros(Float64,mA)
       if mA > 0
-        xA        = FAC*[0.0;  -1.0; -5.0]
-        yA        = FAC*[0.0;   0.3;  2.0]
+        xA        = FAC*[0.0; -0.4;    2.0]
+        yA        = FAC*[0.0; -0.5;    4.0]
       end  
       
       # X-Derivative Points
@@ -364,16 +473,16 @@ function GetNullClineXY(nullcline_set)
       # Points for G(x,y)
       #-------------------- 
       nxB               = 1
-      nyB               = 2
+      nyB               = 3
       nB                = nxB + nyB + 1      # No of free parameters/Conditions to satisfy
       
       # Incident points
-      mB                = 2
+      mB                = 3
       xB                = zeros(Float64,mB)
       yB                = zeros(Float64,mB)
       if mB > 0
-        xB              = FAC*[0.0;  4.0]
-        yB              = FAC*[0.0;  2.0]
+        xB              = FAC*[0.0; -0.55; 7.0]
+        yB              = FAC*[0.0; -0.60; 3.0]
       end  
       
       # X-Derivative Points
@@ -395,8 +504,150 @@ function GetNullClineXY(nullcline_set)
         ydyB[1]         = yB[2]
       end  
 
-     
-    
+
+    elseif nullcline_set == 13
+#----------------------------------------       
+      println("Two fixed Point on the upper and lower branches")
+
+      nxA         = 1
+      nyA         = 3
+      nA          = nxA + nyA + 1      # No of free parameters/Conditions to satisfy
+      
+      FAC         = 1.0
+
+      # Incident points     
+      mA          = 3       
+      xA          = zeros(Float64,mA)
+      yA          = zeros(Float64,mA)
+      if mA > 0
+        xA        = FAC*[0.0;  -3.0;  2.0]
+        yA        = FAC*[0.0;  -3.0;  4.0]
+      end  
+      
+      # X-Derivative Points
+      mxA = 0
+      xdxA = zeros(Float64,mxA)
+      ydxA = zeros(Float64,mxA)
+      if (mxA>0)
+        xdxA = xA[2]
+        ydxA = yA[2] 
+      end  
+      
+      # Y-Derivative Points
+      myA = 1
+      xdyA = zeros(Float64,myA)
+      ydyA = zeros(Float64,myA)
+      if myA>0
+        xdyA[1] = xA[2]
+        ydyA[1] = yA[2]
+      end  
+      
+      # Points for G(x,y)
+      #-------------------- 
+      nxB               = 1
+      nyB               = 1
+      nB                = nxB + nyB + 1      # No of free parameters/Conditions to satisfy
+      
+      # Incident points
+      mB                = 2
+      xB                = zeros(Float64,mB)
+      yB                = zeros(Float64,mB)
+      if mB > 0
+        xB              = FAC*[0.0;  3.0]
+        yB              = FAC*[0.0; -6.0]
+       
+      end  
+      
+      # X-Derivative Points
+      mxB = 0
+      xdxB              = zeros(Float64,mxB)
+      ydxB              = zeros(Float64,mxB)
+      if (mxB>0)
+        xdxB            = xB[2]
+        ydxB            = yB[2] 
+      end  
+      
+      # Y-Derivative Points
+      myB = 0
+      xdyB              = zeros(Float64,myB)
+      ydyB              = zeros(Float64,myB)
+      
+      if myB>0
+        xdyB[1]         = xB[2]
+        ydyB[1]         = yB[2]
+      end  
+
+    elseif nullcline_set == 14
+#----------------------------------------       
+      println("Symmetric fixed points on the upper and lower branches")
+
+      nxA         = 1
+      nyA         = 3
+      nA          = nxA + nyA + 1      # No of free parameters/Conditions to satisfy
+      
+      FAC         = 1.0
+
+      # Incident points     
+      mA          = 3       
+      xA          = zeros(Float64,mA)
+      yA          = zeros(Float64,mA)
+      if mA > 0
+        xA        = FAC*[0.0;  -3.0;  3.0]
+        yA        = FAC*[0.0;  -3.0;  3.0]
+      end  
+      
+      # X-Derivative Points
+      mxA = 0
+      xdxA = zeros(Float64,mxA)
+      ydxA = zeros(Float64,mxA)
+      if (mxA>0)
+        xdxA = xA[2]
+        ydxA = yA[2] 
+      end  
+      
+      # Y-Derivative Points
+      myA = 1
+      xdyA = zeros(Float64,myA)
+      ydyA = zeros(Float64,myA)
+      if myA>0
+        xdyA[1] = xA[2]
+        ydyA[1] = yA[2]
+      end  
+      
+      # Points for G(x,y)
+      #-------------------- 
+      nxB               = 1
+      nyB               = 1
+      nB                = nxB + nyB + 1      # No of free parameters/Conditions to satisfy
+      
+      # Incident points
+      mB                = 2
+      xB                = zeros(Float64,mB)
+      yB                = zeros(Float64,mB)
+      if mB > 0
+        xB              = FAC*[0.0;  2.0]
+        yB              = FAC*[0.0; -8.0]
+       
+      end  
+      
+      # X-Derivative Points
+      mxB = 0
+      xdxB              = zeros(Float64,mxB)
+      ydxB              = zeros(Float64,mxB)
+      if (mxB>0)
+        xdxB            = xB[2]
+        ydxB            = yB[2] 
+      end  
+      
+      # Y-Derivative Points
+      myB = 0
+      xdyB              = zeros(Float64,myB)
+      ydyB              = zeros(Float64,myB)
+      
+      if myB>0
+        xdyB[1]         = xB[2]
+        ydyB[1]         = yB[2]
+      end  
 
     else
       println("nullcline_set==$nullcline_set not defined")
@@ -410,7 +661,6 @@ function GetNullClineXY(nullcline_set)
       gcy = []
      
     end  #  if nullcline_set == ?
-
 
     return nxA,nyA,nA,xA,yA,xdxA,ydxA,xdyA,ydyA,nxB,nyB,nB,xB,yB,xdxB,ydxB,xdyB,ydyB 
 end

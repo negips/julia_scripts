@@ -85,12 +85,11 @@ lafs = 16
 #     : 4         : Extreme slugs
 #     : 5         : Testing. Trying to figure out Crossings.    
 
-sets              = [1 4]
+sets              = [4 1]
 nsets             = length(sets)
 h1                = figure(num=1)
 ax1               = h1.subplots()
-f                 = Array{Any}(undef,2)
-g                 = Array{Any}(undef,2)
+
 
 set               = sets[1]
 pars1             = GetNullClineParams(set) 
@@ -111,8 +110,11 @@ nsteps            = 120000
 f0x1,f0y1         = NullClines(f1,xi,yr0,yr1,nsteps,dτ)
 f0x2,f0y2         = NullClines(f2,xi,yr0,yr1,nsteps,dτ)
 
-ax1.plot(f0x1,f0y1)
-ax1.plot(f0x2,f0y2)
+
+cm    = get_cmap("tab10");
+
+ax1.plot(f0x1,f0y1,color=cm(0))
+ax1.plot(f0x2,f0y2,linestyle="--",color=cm(0))
 
 xi  = -10.0
 yr0 = -50.0
@@ -122,12 +124,14 @@ nsteps = 100000
 g0x1,g0y1          = NullClines(g1,xi,yr0,yr1,nsteps,dτ)
 g0x2,g0y2          = NullClines(g2,xi,yr0,yr1,nsteps,dτ)
 
-ax1.plot(g0x1,g0y1)
-ax1.plot(g0x2,g0y2)
+ax1.plot(g0x1,g0y1,color=cm(1))
+ax1.plot(g0x2,g0y2,linestyle="--",color=cm(1))
 
-ax1.set_xlabel(L"x", fontsize=lafs)
-ax1.set_ylabel(L"y", fontsize=lafs)
+ax1.set_xlabel(L"B", fontsize=lafs)
+ax1.set_ylabel(L"A", fontsize=lafs)
 
+ax1.set_xlim(-1.2,3.0)
+ax1.set_ylim(-0.28,1.3)
 
 pause(0.01)
 
