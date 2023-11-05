@@ -221,7 +221,7 @@ ax4.set_ylim(-0.1,1.25)
 ax4.grid()
 MoveFigure(h4,600,500)
 
-ϵλ    = 0.01
+ϵλ    = 0.25
 tmp1  = λdot0x1 .> - 2.0 .&& λdot0x1 .< 7.0
 tmp2  = λdot0y1.*tmp1
 λmax  = maximum(tmp2)

@@ -4,7 +4,7 @@ function MoveFigure(f,x,y)
     backend = matplotlib.get_backend()
     if backend == "TkAgg"
         newp = "+$x+$y"
-        p = f.canvas.manager.window.wm_geometry(newp)
+        f.canvas.manager.window.wm_geometry(newp)
     elseif backend == "WXAgg"
         f.canvas.manager.window.SetPosition((x, y))
     else
