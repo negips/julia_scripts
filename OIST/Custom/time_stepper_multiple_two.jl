@@ -28,8 +28,8 @@ fldlag  = zeros(VT,ndof,2,nflds)
 Rhs     = zeros(VT,ndof,nflds)
 Rhslag  = zeros(VT,ndof,2,nflds)
 
-fld[:,1] = ampB0*ainit .+ B0Off
-fld[:,2] = ampA0*ainit .+ A0Off
+fld[:,1] = ampB0*ainit .+ B0Off .+ σbi*(rand(ndof) .- 0.5)
+fld[:,2] = ampA0*ainit .+ A0Off .+ σai*(rand(ndof) .- 0.5)
 
 fldhist  = zeros(VT,npts,nsurf_save,nflds)
 Thist    = zeros(VT,nsurf_save)
@@ -76,15 +76,17 @@ for i in 1:nsteps
     GetEXT!(ext,2)
   end
 
-  if i == nstep_switch
+  if i == nstep_switch1 || i == nstep_switch2
     println("Switching Functions.")
   end  
-  if i<nstep_switch
+
+  if i<nstep_switch1 || i>nstep_switch2
     dotfld = Flow1(fld[:,1],fld[:,2])
   else
     dotfld = Flow2(fld[:,1],fld[:,2])
   end
 
+# Build Rhs  
   for j in 1:nflds
     rhs           =  dotfld[:,j] .- Filg*fld[:,j];
     rhs1          =  ext[1]*rhs + ext[2]*Rhslag[:,1,j] + ext[3]*Rhslag[:,2,j];
@@ -97,8 +99,13 @@ for i in 1:nsteps
 
     fldlag[:,2,j] = copy(fldlag[:,1,j]);
     fldlag[:,1,j] = copy(fld[:,j]);
+    
+#   Noise    
+    Σ             = σall[j]*(rand(ndof) .- 0.5)
+    Rhs[:,j]      = Rhs[:,j] .+ Bg.*Σ
   end  
 
+# Solve  
   for j in 1:nflds
     M         = bdf[1]/dt*diagm(Bg) .- γall[j]*Lg;
     a         = gmres(M,Rhs[:,j],abstol=1.0e-10,verbose=false)
@@ -114,6 +121,7 @@ for i in 1:nsteps
     end
   end
 
+# Update dynamic plot  
   if plotupd > 0
     if mod(i,plotupd)==0
       if (i>plotupd)
@@ -145,8 +153,6 @@ end
 
 
 cm2   = get_cmap("binary");
-#t2d   = Thist*ones(1,npts)
-#x2d   = ones(nsurf_save)*(Geom.xm1[:]')
 t2d   = ones(npts)*Thist'
 x2d   = (Geom.xm1[:])*ones(nsurf_save)'
 
@@ -154,6 +160,7 @@ h3  = figure(num=3)
 pcm = pcolormesh(x2d,t2d,fldhist[:,:,2])
 pcm.set_cmap(cm2)
 ax3 = h3.gca()
+ax3.invert_yaxis()
 cb  = colorbar()
 
 #surf(t2d,x2d,fldhist[:,:,2],cmap=cm2,edgecolor="none")

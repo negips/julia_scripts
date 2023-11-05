@@ -28,7 +28,40 @@ function FXY(x,y,c0,cx,cy)
 
   return s
 end  
+#----------------------------------------------------------------------
+function RotFXY(x,y,Rc,Rs,c0,cx,cy)
+  nx = length(cx)
+  ny = length(cy)
+
+  s = c0
+  for i in 1:nx
+    s = s .+ cx[i]*(Rc*x .+ Rs*y).^i
+  end
+
+  for j in 1:ny
+    s = s .+ cy[j]*(-Rs*x .+ Rc*y).^j
+  end  
+
+  return s
+end  
 #---------------------------------------------------------------------- 
+function RotXYFXY(x,y,Rc,Rs,x0,y0,c0,cx,cy)
+  nx = length(cx)
+  ny = length(cy)
+
+  s = c0
+  for i in 1:nx
+    s = s .+ cx[i]*(x0 + Rc*(x-x0) .+ Rs*(y-y0)).^i
+  end
+
+  for j in 1:ny
+    s = s .+ cy[j]*(y0 + -Rs*(x-x0) .+ Rc*(y-y0)).^j
+  end  
+
+  return s
+end  
+#---------------------------------------------------------------------- 
+
 function FX(x,c0,cx)
   nx = length(cx)
 
@@ -142,8 +175,61 @@ ax1.set_ylabel(L"A", fontsize=lafs)
 #ax1.set_ylim(-0.28,1.3)
 ax1.set_xlim(-1.2,6.0)
 ax1.set_ylim(-1.5,6.0)
-
 MoveFigure(h1,1250,500)
+
+# Build Nullcline for the dynamic switching
+#---------------------------------------- 
+set               = 22
+parsS             = GetNullClineParams(set) 
+λdot1(x,y)        = FXY(x,y,parsS.fc0,parsS.fcx,parsS.fcy)
+#α                 = 1.0
+#xc                = 1.0
+#λdot(x,y)         = (y-α*x)*(x^2 - xc^2)
+xi                = -10.0
+yr0               =  0.0
+yr1               =  15.0
+dτ                =  1.0e-3
+nsteps            = 100000
+λdot0x1,λdot0y1   = NullClines(λdot1,xi,yr0,yr1,nsteps,dτ)
+
+h4                = figure(num=4)
+ax4               = h4.subplots()
+#ax4.plot(λdot0x1,λdot0y1,color=cm(3),linestyle="--")
+#ax4.set_xlim(-2.0,4.0)
+#ax4.set_ylim(-2.0,2.0)
+#ax4.grid()
+
+
+ϕ                 = 2.0*π/180.0
+Rc                = cos(ϕ)
+Rs                = sin(ϕ)
+#λdot2(x,y)        = RotFXY(x,y,Rc,Rs,parsS.fc0,parsS.fcx,parsS.fcy)
+λdot2(x,y)        = RotXYFXY(x,y,Rc,Rs,1.0,0.165,parsS.fc0,parsS.fcx,parsS.fcy)
+λdot3(x,y)        = λdot2(x,y)
+xi                = -10.0
+yr0               = -5.0
+yr1               = 15.0
+dτ                =  1.0e-3
+nsteps            = 100000
+λdot0x1,λdot0y1   = NullClines(λdot3,xi,yr0,yr1,nsteps,dτ)
+ax4.plot(λdot0x1,λdot0y1,color=cm(3),linestyle="-")
+ax4.set_xlabel(L"θ", fontsize=lafs)
+ax4.set_ylabel(L"λ", fontsize=lafs)
+
+ax4.set_xlim(0.0,20.0)
+ax4.set_ylim(-0.1,1.25)
+ax4.grid()
+MoveFigure(h4,600,500)
+
+ϵλ    = 0.01
+tmp1  = λdot0x1 .> - 2.0 .&& λdot0x1 .< 7.0
+tmp2  = λdot0y1.*tmp1
+λmax  = maximum(tmp2)
+if (λdot3(0.0,10.0)>0)
+  λdot(x,y) = -λdot3(x,y)/ϵλ/λmax
+else
+  λdot(x,y) = λdot3(x,y)/ϵλ/λmax
+end  
 
 pause(0.01)
 
@@ -178,8 +264,8 @@ if xin !="x"
   Flow1(x,y) = [G1(x,y) F1(x,y)]
   Flow2(x,y) = [G2(x,y) F2(x,y)]
 
-  include("time_stepper_multiple_two.jl")
-#  include("time_stepper_multiple_dynamic.jl")
+#  include("time_stepper_multiple_two.jl")
+  include("time_stepper_multiple_dynamic.jl")
 end
 
 
