@@ -14,13 +14,14 @@ include("Dealias.jl")
 include("../GetEXT.jl")
 include("../GetBDF.jl")
 
-ngauss      = 5
+ngauss      = 10
 x0gauss     = xe*rand(ngauss)
 ampgauss    = rand(ngauss)
 agauss      = 0.0*Geom.xm1[:]
 
 for i in 1:ngauss
-  agauss    = agauss .+ ampgauss*exp.(-((Geom.xm1[:] .- x0gauss[i])/σg).^2)
+  global agauss
+  agauss    = agauss .+ ampgauss[i]*exp.(-((Geom.xm1[:] .- x0gauss[i])/σg).^2)
 end
 
 k0          = 0.5
@@ -52,9 +53,11 @@ rgba2 = cm(2);
 
 time = range(0.,step=dt,length=nsteps);
 
-h2  = figure(num=2)
-ax2 = h2.subplots()
-MoveFigure(h2,10,10)
+if plotupd > 0
+  h2  = figure(num=2)
+  ax2 = h2.subplots()
+  MoveFigure(h2,10,10)
+end  
 
 t = 0.
 
@@ -78,7 +81,7 @@ vol         = sum(Bg)
 
 #h4  = figure(num=4)
 #ax4 = h4.subplots()
-λpl0 = ax4.plot(θ,λ,markersize=6,marker="o",color="black",fillstyle="none")
+#λpl0 = ax4.plot(θ,λ,markersize=6,marker="o",color="black",fillstyle="none")
 #ax4.set_xlabel(L"θ", fontsize=lafs)
 #ax4.set_ylabel(L"λ", fontsize=lafs)
 #ax4.set_xlim(-0.2,2.0)

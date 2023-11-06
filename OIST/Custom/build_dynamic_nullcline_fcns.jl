@@ -126,7 +126,7 @@ lafs = 16
 #     : 12        : Limit-cycline Oscillation. De-activation dominated
 #     : 13        : Two fixed points - upper and lower branch.
 #     : 14        : Symmetric fixed points - upper and lower branch
-sets              = [5 6]
+sets              = [5 3]
 nsets             = length(sets)
 h1                = figure(num=1)
 ax1               = h1.subplots()
@@ -221,7 +221,7 @@ ax4.set_ylim(-0.1,1.25)
 ax4.grid()
 MoveFigure(h4,600,500)
 
-ϵλ    = 0.25
+ϵλ    = 0.01
 tmp1  = λdot0x1 .> - 2.0 .&& λdot0x1 .< 7.0
 tmp2  = λdot0y1.*tmp1
 λmax  = maximum(tmp2)
@@ -265,7 +265,8 @@ if xin !="x"
   Flow2(x,y) = [G2(x,y) F2(x,y)]
 
 #  include("time_stepper_multiple_two.jl")
-  include("time_stepper_multiple_dynamic.jl")
+#  include("time_stepper_multiple_dynamic.jl")
+  include("time_stepper_multiple_dynamic2.jl")
 end
 
 
