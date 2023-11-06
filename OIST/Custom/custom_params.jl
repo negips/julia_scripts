@@ -36,7 +36,7 @@ nstep_switch1     = 3000
 nstep_switch2     = 3100 
 
 verbosestep       = 100
-plotupd           = 100
+plotupd           = -1
 ifphplot          = true
 surf_save         = 20
 nsurf_save        = floor(Int,nsteps/surf_save)+1
