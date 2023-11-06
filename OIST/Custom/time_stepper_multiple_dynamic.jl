@@ -109,7 +109,7 @@ for i in 1:nsteps
 # Solve for the dynamic variable λ
 #----------------------------------------
   active          = fld[:,2] .> 0.0
-  θ               = 3.0*sum(Bg.*active.*fld[:,2])/vol
+  θ               = 10.0*sum(Bg.*active.*fld[:,2])/vol
   rhsλ            = λdot(θ,λ) 
   rhs1λ           = ext[1]*rhsλ + ext[2]*λRhslag[1] + ext[3]*λRhslag[2];
 

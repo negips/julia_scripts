@@ -15,10 +15,12 @@ include("../GetEXT.jl")
 include("../GetBDF.jl")
 
 agauss      = exp.(-((Geom.xm1[:] .- x0)/σg).^2)# .*(sign.(Geom.xm1[:] .- x0))
-k0          = 5.0
-asin        = sin.(k0*Geom.xm1[:])
+k0          = 2
+asin        = sin.(2.0*π/(xe-xs)*k0*Geom.xm1[:])
+acos        = cos.(2.0*π/(xe-xs)*k0*Geom.xm1[:])
 
-ainit       = vimultg.*(QT*agauss)
+ainit       = vimultg.*(QT*asin)
+binit       = vimultg.*(QT*acos)
 
 nflds = 2                                 # No of fields
 fld     = zeros(VT,ndof,nflds)
@@ -29,7 +31,7 @@ Rhs     = zeros(VT,ndof,nflds)
 Rhslag  = zeros(VT,ndof,2,nflds)
 
 fld[:,1] = ampB0*ainit .+ B0Off .+ σbi*(rand(ndof) .- 0.5)
-fld[:,2] = ampA0*ainit .+ A0Off .+ σai*(rand(ndof) .- 0.5)
+fld[:,2] = ampA0*binit .+ A0Off .+ σai*(rand(ndof) .- 0.5)
 
 fldhist  = zeros(VT,npts,nsurf_save,nflds)
 Thist    = zeros(VT,nsurf_save)

@@ -107,8 +107,6 @@ function TERR_F(x,y,c0,cx,cy)
 end  
 #---------------------------------------------------------------------- 
 
-
-
 #ion()       # Show plots immediately
 
 close("all")
@@ -126,7 +124,13 @@ lafs = 16
 #     : 12        : Limit-cycline Oscillation. De-activation dominated
 #     : 13        : Two fixed points - upper and lower branch.
 #     : 14        : Symmetric fixed points - upper and lower branch
-sets              = [5 6]
+#     : 15        : Symmetric LCO
+#     : 16        : Two Asymmetric fixed points
+#     : 21        : Dynamic Switching (λ)
+#     : 22        : Dynamic Switching (λ)
+#
+#
+sets              = [3 1]
 nsets             = length(sets)
 h1                = figure(num=1)
 ax1               = h1.subplots()
@@ -179,7 +183,7 @@ MoveFigure(h1,1250,500)
 
 # Build Nullcline for the dynamic switching
 #---------------------------------------- 
-set               = 22
+set               = 23
 parsS             = GetNullClineParams(set) 
 λdot1(x,y)        = FXY(x,y,parsS.fc0,parsS.fcx,parsS.fcy)
 #α                 = 1.0
@@ -200,11 +204,13 @@ ax4               = h4.subplots()
 #ax4.grid()
 
 
-ϕ                 = 2.0*π/180.0
+ϕ                 = 1.3
+println("Rotation Angle: $ϕ Degrees")
+ϕ                 = ϕ*π/180.0
 Rc                = cos(ϕ)
 Rs                = sin(ϕ)
 #λdot2(x,y)        = RotFXY(x,y,Rc,Rs,parsS.fc0,parsS.fcx,parsS.fcy)
-λdot2(x,y)        = RotXYFXY(x,y,Rc,Rs,1.0,0.165,parsS.fc0,parsS.fcx,parsS.fcy)
+λdot2(x,y)        = RotXYFXY(x,y,Rc,Rs,1.60,0.21,parsS.fc0,parsS.fcx,parsS.fcy)
 λdot3(x,y)        = λdot2(x,y)
 xi                = -10.0
 yr0               = -5.0
@@ -216,13 +222,13 @@ ax4.plot(λdot0x1,λdot0y1,color=cm(3),linestyle="-")
 ax4.set_xlabel(L"θ", fontsize=lafs)
 ax4.set_ylabel(L"λ", fontsize=lafs)
 
-ax4.set_xlim(0.0,20.0)
-ax4.set_ylim(-0.1,1.25)
+#ax4.set_xlim(0.0,20.0)
+#ax4.set_ylim(-0.1,1.25)
 ax4.grid()
 MoveFigure(h4,600,500)
 
-ϵλ    = 0.25
-tmp1  = λdot0x1 .> - 2.0 .&& λdot0x1 .< 7.0
+ϵλ    = 0.1
+tmp1  = λdot0x1 .>= - 0.0 .&& λdot0x1 .< 7.0
 tmp2  = λdot0y1.*tmp1
 λmax  = maximum(tmp2)
 if (λdot3(0.0,10.0)>0)

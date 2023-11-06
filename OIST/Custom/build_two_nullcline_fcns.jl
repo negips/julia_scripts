@@ -93,6 +93,12 @@ lafs = 16
 #     : 12        : Limit-cycline Oscillation. De-activation dominated
 #     : 13        : Two fixed points - upper and lower branch.
 #     : 14        : Symmetric fixed points - upper and lower branch
+#     : 15        : Symmetric LCO
+#     : 16        : Two Asymmetric fixed points
+#     : 21        : Dynamic Switching (λ)
+#     : 22        : Dynamic Switching (λ)
+
+
 sets              = [5 6]
 nsets             = length(sets)
 h1                = figure(num=1)
