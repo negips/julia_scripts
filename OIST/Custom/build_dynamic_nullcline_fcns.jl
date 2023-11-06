@@ -124,6 +124,7 @@ lafs = 16
 #     : 12        : Limit-cycline Oscillation. De-activation dominated
 #     : 13        : Two fixed points - upper and lower branch.
 #     : 14        : Symmetric fixed points - upper and lower branch
+<<<<<<< HEAD
 #     : 15        : Symmetric LCO
 #     : 16        : Two Asymmetric fixed points
 #     : 21        : Dynamic Switching (λ)
@@ -131,6 +132,9 @@ lafs = 16
 #
 #
 sets              = [3 1]
+=======
+sets              = [5 3]
+>>>>>>> master
 nsets             = length(sets)
 h1                = figure(num=1)
 ax1               = h1.subplots()
@@ -227,8 +231,13 @@ ax4.set_ylabel(L"λ", fontsize=lafs)
 ax4.grid()
 MoveFigure(h4,600,500)
 
+<<<<<<< HEAD
 ϵλ    = 0.1
 tmp1  = λdot0x1 .>= - 0.0 .&& λdot0x1 .< 7.0
+=======
+ϵλ    = 0.01
+tmp1  = λdot0x1 .> - 2.0 .&& λdot0x1 .< 7.0
+>>>>>>> master
 tmp2  = λdot0y1.*tmp1
 λmax  = maximum(tmp2)
 if (λdot3(0.0,10.0)>0)
