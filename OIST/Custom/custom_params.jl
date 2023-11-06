@@ -19,11 +19,7 @@ ifglobal          = true
 # Initialization
 x0                = prec(100)       # Gaussian Center
 σg                = prec(2)         # Gaussian Std. Deviation
-<<<<<<< HEAD
 ampA0             = prec(2.0)
-=======
-ampA0             = prec(4.0)
->>>>>>> master
 ampB0             = prec(0)
 
 A0Off             = prec(0)         # Homogeneous state value
@@ -35,11 +31,7 @@ B0Off             = prec(0)         # Homogeneous state value
 
 # Simulation
 dt                = prec(0.01)
-<<<<<<< HEAD
 nsteps            = 10000
-=======
-nsteps            = 20000
->>>>>>> master
 nstep_switch1     = 3000 
 nstep_switch2     = 3100 
 
