@@ -84,8 +84,8 @@ ax1.plot(pars.xdxA,pars.ydxA,linestyle=" ",marker="x")
 ax1.plot(pars.xdyA,pars.ydyA,linestyle=" ",marker="x")
 
 xi                = -10.0
-yr0               = -20.0
-yr1               =  50.0
+yr0               = -50.0
+yr1               =  10.0
 dτ                =  1.0e-3
 nsteps            = 100000
 g(x,y)            = FXY(x,y,pars.gc0,pars.gcx,pars.gcy)
@@ -118,7 +118,7 @@ println("Press x to stop. Any other key to continue")
 xin = readline()
 #xin = "x"
 #xin = " "
-ϵ  = 1.0
+ϵ  = 0.25
 η  = 1.0
 if xin !="x"
   F(x,y) =  f(x,y)/ϵ
