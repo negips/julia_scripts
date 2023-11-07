@@ -46,6 +46,7 @@ time = range(0.,step=dt,length=nsteps);
 
 h2  = figure(num=2)
 ax2 = h2.subplots()
+MoveFigure(h2,10,10)
 
 t = 0.
 

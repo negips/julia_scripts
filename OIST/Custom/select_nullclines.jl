@@ -6,6 +6,7 @@
 #     : 4         : Slugs. Smaller instability threshold
 #     : 5         : Extreme Slugs. Smaller instability threshold
 #     : 6         : Extreme Pulse collapse
+#     : 7         : Marginal Slug
 #     : 10        : Limit-cycline Oscillation. Activation dominated
 #     : 11        : Extreme slugs
 #     : 12        : Limit-cycline Oscillation. De-activation dominated
@@ -17,6 +18,6 @@
 #     : 21        : Dynamic Switching (λ)
 #     : 22        : Dynamic Switching (λ)
 
-sets  = [15]
+sets  = [12]
 println("Nullcline Set(s): $sets")
 
