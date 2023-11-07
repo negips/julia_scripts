@@ -21,7 +21,7 @@ x0                = prec(30)       # Gaussian Center
 ampA0             = prec(2.0)
 ampB0             = prec(0)
 
-A0Off             = prec(2)         # Homogeneous state value
+A0Off             = prec(0)         # Homogeneous state value
 B0Off             = prec(0)         # Homogeneous state value
 
 σai               = prec(0.0)       # Initial Activator Noise

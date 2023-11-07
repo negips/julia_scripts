@@ -14,13 +14,28 @@ include("Dealias.jl")
 include("../GetEXT.jl")
 include("../GetBDF.jl")
 
-agauss      = exp.(-((Geom.xm1[:] .- x0)/σg).^2)# .*(sign.(Geom.xm1[:] .- x0))
+
+ngauss      = 2
+x0gauss     = [20.0 80.0] #xe*rand(ngauss)
+ampgauss    = ones(Float64,ngauss) #rand(ngauss)
+agauss      = 0.0*Geom.xm1[:]
+
+if ngauss == 1
+  agauss      = exp.(-((Geom.xm1[:] .- x0)/σg).^2)# .*(sign.(Geom.xm1[:] .- x0))
+else  
+  for i in 1:ngauss
+    global agauss
+    agauss    = agauss .+ ampgauss[i]*exp.(-((Geom.xm1[:] .- x0gauss[i])/σg).^2)
+  end
+end  
+
+#agauss      = exp.(-((Geom.xm1[:] .- x0)/σg).^2)# .*(sign.(Geom.xm1[:] .- x0))
 k0          = 3
 asin        = sin.(2.0*π/(xe-xs)*k0*Geom.xm1[:])
 acos        = cos.(2.0*π/(xe-xs)*k0*Geom.xm1[:])
 
-ainit       = vimultg.*(QT*asin)
-binit       = vimultg.*(QT*acos)
+ainit       = vimultg.*(QT*agauss)
+binit       = vimultg.*(QT*agauss)
 
 nflds       = 2                                 # No of fields
 fld         = zeros(VT,ndof,nflds)
