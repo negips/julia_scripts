@@ -76,24 +76,11 @@ close("all")
 
 lafs = 16
 
-# Sets: 1         : Pulses
-#     : 2         : Slugs. No change in instability threshold
-#     : 3         : Pulses. Smaller instability threshold
-#     : 4         : Slugs. Smaller instability threshold
-#     : 5         : Extreme Slugs. Smaller instability threshold
-#     : 6         : Extreme Pulse collapse
-#     : 10        : Limit-cycline Oscillation. Activation dominated
-#     : 11        : Extreme slugs
-#     : 12        : Limit-cycline Oscillation. De-activation dominated
-#     : 13        : Two fixed points - upper and lower branch.
-#     : 14        : Symmetric fixed points - upper and lower branch
-#     : 15        : Symmetric LCO
-#     : 16        : Two Asymmetric fixed points
-#     : 17        : Unstable G-null-cline
-#     : 21        : Dynamic Switching (λ)
-#     : 22        : Dynamic Switching (λ)
+include("select_nullclines.jl")
 
-set               = 1
+cm                = get_cmap("tab10")
+
+set               = sets[1]
 pars              = GetNullClineParams(set) 
 
 h1                = figure(num=1)
@@ -105,6 +92,12 @@ yr1               =  50.0
 dτ                = 1.0e-3
 nsteps            = 200000
 f(x,y)            = FXY(x,y,pars.fc0,pars.fcx,pars.fcy)
+if f(0.0,100.0)>0
+  pars.fc0        = -pars.fc0
+  pars.fcx        = -pars.fcx
+  pars.fcy        = -pars.fcy
+  f(x,y)          = FXY(x,y,pars.fc0,pars.fcx,pars.fcy)
+end  
 f0x,f0y           = NullClines(f,xi,yr0,yr1,nsteps,dτ)
 
 ax1.plot(f0x,f0y,color=cm(0))
@@ -118,6 +111,12 @@ yr1               =  50.0
 dτ                =  1.0e-3
 nsteps            = 100000
 g(x,y)            = FXY(x,y,pars.gc0,pars.gcx,pars.gcy)
+if g(100.0,0.0)>0
+  pars.gc0        = -pars.gc0
+  pars.gcx        = -pars.gcx
+  pars.gcy        = -pars.gcy
+  g(x,y)          = FXY(x,y,pars.gc0,pars.gcx,pars.gcy)
+end  
 g0x,g0y           = NullClines(g,xi,yr0,yr1,nsteps,dτ)
 
 
@@ -136,7 +135,7 @@ ax1.set_ylim(-1.5,6.0)
 ϕfd               = 150.0
 println("F(x,y) Translated with Slope: $ϕfd Degrees")
 ϕf                = ϕfd*π/180.0
-λ                 = 1.0
+λ                 = 0.5
 f2(x,y)           = TransFXY(x,y,λ,ϕf,pars.fc0,pars.fcx,pars.fcy)
 
 xi                = -20.0
@@ -144,16 +143,16 @@ yr0               = -10.0
 yr1               =  50.0
 dτ                = 1.0e-3
 nsteps            = 200000
-f20x,f20y           = NullClines(f2,xi,yr0,yr1,nsteps,dτ)
+f20x,f20y         = NullClines(f2,xi,yr0,yr1,nsteps,dτ)
 
 ax1.plot(f20x,f20y,color=cm(0),linestyle="--",label="λ=$λ; ϕ=$ϕfd")
 
 
 # Translated
-ϕgd               = 30.0
+ϕgd               = 15.0
 println("G(x,y) Translated with Slope: $ϕgd Degrees")
-ϕg                = ϕg*π/180.0
-λ                 = 1.0
+ϕg                = ϕgd*π/180.0
+#λ                 = 1.0
 g2(x,y)           = TransFXY(x,y,λ,ϕg,pars.gc0,pars.gcx,pars.gcy)
 
 xi                = -20.0
@@ -173,22 +172,12 @@ pause(0.01)
 println("Press x to stop. Any other key to continue")
 #xin = readline()
 xin = "x"
+ϵ   = 0.1
+η  = 1.0
 if xin !="x"
-  ϵ           = 1.0
-  if f(0.0,100.0)>0
-    F(x,y) = -f(x,y)/ϵ
-  else
-    F(x,y) =  f(x,y)/ϵ
-  end  
-
-  η  = 1.0
-  if g(100.0,0.0) > 0
-    G(x,y) = -η*g(x,y)
-  else
-    G(x,y) =  η*g(x,y)
-  end
+  F(x,y) =  f(x,y)/ϵ
+  G(x,y) =  g(x,y)*η
   Flow(x,y) = [G(x,y) F(x,y)]
   include("time_stepper_multiple.jl")
 end
-
 

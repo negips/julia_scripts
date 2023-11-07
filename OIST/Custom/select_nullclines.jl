@@ -1,0 +1,22 @@
+#!/bin/julia
+
+# Sets: 1         : Pulses
+#     : 2         : Slugs. No change in instability threshold
+#     : 3         : Pulses. Smaller instability threshold
+#     : 4         : Slugs. Smaller instability threshold
+#     : 5         : Extreme Slugs. Smaller instability threshold
+#     : 6         : Extreme Pulse collapse
+#     : 10        : Limit-cycline Oscillation. Activation dominated
+#     : 11        : Extreme slugs
+#     : 12        : Limit-cycline Oscillation. De-activation dominated
+#     : 13        : Two fixed points - upper and lower branch.
+#     : 14        : Symmetric fixed points - upper and lower branch
+#     : 15        : Symmetric LCO
+#     : 16        : Two Asymmetric fixed points
+#     : 17        : Unstable G-null-cline
+#     : 21        : Dynamic Switching (λ)
+#     : 22        : Dynamic Switching (λ)
+
+sets  = [15]
+println("Nullcline Set(s): $sets")
+

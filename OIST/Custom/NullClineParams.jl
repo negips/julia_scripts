@@ -1,5 +1,5 @@
 #!/bin/julia
-struct NullClineParams
+mutable struct NullClineParams
     
       nxA::Int
       nyA::Int

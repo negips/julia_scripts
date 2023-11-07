@@ -74,32 +74,12 @@ function TERR_F(x,y,c0,cx,cy)
 end  
 #---------------------------------------------------------------------- 
 
-
-
-#ion()       # Show plots immediately
-
 close("all")
 
 lafs = 16
 
-# Sets: 1         : Pulses
-#     : 2         : Slugs. No change in instability threshold
-#     : 3         : Pulses. Smaller instability threshold
-#     : 4         : Slugs. Smaller instability threshold
-#     : 5         : Extreme Slugs. Smaller instability threshold
-#     : 6         : Extreme Pulse collapse
-#     : 10        : Limit-cycline Oscillation. Activation dominated
-#     : 11        : Extreme slugs
-#     : 12        : Limit-cycline Oscillation. De-activation dominated
-#     : 13        : Two fixed points - upper and lower branch.
-#     : 14        : Symmetric fixed points - upper and lower branch
-#     : 15        : Symmetric LCO
-#     : 16        : Two Asymmetric fixed points
-#     : 21        : Dynamic Switching (λ)
-#     : 22        : Dynamic Switching (λ)
+include("select_nullclines.jl")
 
-
-sets              = [5 6]
 nsets             = length(sets)
 h1                = figure(num=1)
 ax1               = h1.subplots()
@@ -108,12 +88,38 @@ ax1               = h1.subplots()
 set               = sets[1]
 pars1             = GetNullClineParams(set) 
 f1(x,y)           = FXY(x,y,pars1.fc0,pars1.fcx,pars1.fcy)
+if f1(0.0,100.0)>0
+  pars1.fc0       = -pars1.fc0
+  pars1.fcx       = -pars1.fcx
+  pars1.fcy       = -pars1.fcy
+  f1(x,y)         = FXY(x,y,pars1.fc0,pars1.fcx,pars1.fcy)
+end  
+
 g1(x,y)           = FXY(x,y,pars1.gc0,pars1.gcx,pars1.gcy)
+if g1(100.0,0.0)>0
+  pars1.gc0       = -pars1.gc0
+  pars1.gcx       = -pars1.gcx
+  pars1.gcy       = -pars1.gcy
+  g1(x,y)         = FXY(x,y,pars1.gc0,pars1.gcx,pars1.gcy)
+end  
 
 set               = sets[2]
 pars2             = GetNullClineParams(set) 
 f2(x,y)           = FXY(x,y,pars2.fc0,pars2.fcx,pars2.fcy)
+if f2(0.0,100.0)>0
+  pars2.fc0       = -pars2.fc0
+  pars2.fcx       = -pars2.fcx
+  pars2.fcy       = -pars2.fcy
+  f2(x,y)         = FXY(x,y,pars2.fc0,pars2.fcx,pars2.fcy)
+end  
+
 g2(x,y)           = FXY(x,y,pars2.gc0,pars2.gcx,pars2.gcy)
+if g2(100.0,0.0)>0
+  pars2.gc0       = -pars2.gc0
+  pars2.gcx       = -pars2.gcx
+  pars2.gcy       = -pars2.gcy
+  g2(x,y)         = FXY(x,y,pars2.gc0,pars2.gcx,pars2.gcy)
+end  
 
 xi                = -10.0
 yr0               = -50.0
@@ -156,30 +162,15 @@ pause(0.01)
 println("Press x to stop. Any other key to continue")
 xin = readline()
 #xin = "x"
-if xin !="x"
-  ϵ           = 0.1
-  if f1(0.0,100.0)>0
-    F1(x,y) = -f1(x,y)/ϵ
-  else
-    F1(x,y) =  f1(x,y)/ϵ
-  end  
-  if f2(0.0,100.0)>0
-    F2(x,y) = -f2(x,y)/ϵ
-  else
-    F2(x,y) =  f2(x,y)/ϵ
-  end  
 
-  η  = 1.0
-  if g1(100.0,0.0)>0
-    G1(x,y) = -η*g1(x,y)
-  else
-    G1(x,y) =  η*g1(x,y)
-  end
-  if g2(100.0,0.0)>0
-    G2(x,y) = -η*g2(x,y)
-  else
-    G2(x,y) =  η*g2(x,y)
-  end
+ϵ           = 0.1
+η           = 1.0
+if xin !="x"
+  F1(x,y) =  f1(x,y)/ϵ
+  F2(x,y) =  f2(x,y)/ϵ
+
+  G1(x,y) =  η*g1(x,y)
+  G2(x,y) =  η*g2(x,y)
 
   Flow1(x,y) = [G1(x,y) F1(x,y)]
   Flow2(x,y) = [G2(x,y) F2(x,y)]
