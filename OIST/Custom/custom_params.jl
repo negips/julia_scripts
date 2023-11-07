@@ -4,8 +4,8 @@
 
 U                 = prec(0)         # Convection
 γ                 = prec(1)         # Diffusion (Generic) 
-γa                = prec(0.2)       # Diffusion (activator)
-γb                = prec(0.001)     # Diffusion (inhibitor)
+γa                = prec(0.01)       # Diffusion (activator)
+γb                = prec(0.1)       # Diffusion (inhibitor)
 γall              = [γb γa]
 σa                =  0.0             # Activator Noise Strength
 σb                =  0.0             # Inhibitor Noise Strength
@@ -21,7 +21,7 @@ x0                = prec(30)       # Gaussian Center
 ampA0             = prec(2.0)
 ampB0             = prec(0)
 
-A0Off             = prec(0)         # Homogeneous state value
+A0Off             = prec(2)         # Homogeneous state value
 B0Off             = prec(0)         # Homogeneous state value
 
 σai               = prec(0.0)       # Initial Activator Noise
@@ -40,7 +40,7 @@ ifphplot          = true
 surf_save         = 20
 nsurf_save        = floor(Int,nsteps/surf_save)+1
 
-ifpldyn           = true      # Plot dynamic phase
+ifpldyn           = false      # Plot dynamic phase
 
 
 # Saving Params

@@ -6,10 +6,10 @@
 #     : 4         : Slugs. Smaller instability threshold
 #     : 5         : Extreme Slugs. Smaller instability threshold
 #     : 6         : Extreme Pulse collapse
-#     : 7         : Marginal Slug
+#     : 7         : Extreme slugs
 #     : 10        : Limit-cycline Oscillation. Activation dominated
-#     : 11        : Extreme slugs
-#     : 12        : Limit-cycline Oscillation. De-activation dominated
+#     : 11        : Limit-cycline Oscillation. De-activation dominated
+#     : 12        : Limit-cycline Oscillation. De-activation dominated (cubic in x)
 #     : 13        : Two fixed points - upper and lower branch.
 #     : 14        : Symmetric fixed points - upper and lower branch
 #     : 15        : Symmetric LCO

@@ -66,8 +66,8 @@ function GetNullClineXY(nullcline_set)
       xdxA = zeros(Float64,mxA)
       ydxA = zeros(Float64,mxA)
       if (mxA>0)
-        xdxA = xA[2]
-        ydxA = yA[2] 
+        xdxA[1] = xA[2]
+        ydxA[1] = yA[2] 
       end  
       
       # Y-Derivative Points
@@ -101,8 +101,8 @@ function GetNullClineXY(nullcline_set)
       xdxB              = zeros(Float64,mxB)
       ydxB              = zeros(Float64,mxB)
       if (mxB>0)
-        xdxB            = xB[2]
-        ydxB            = yB[2] 
+        xdxB[1]            = xB[2]
+        ydxB[1]            = yB[2] 
       end  
       
       # Y-Derivative Points
@@ -142,8 +142,8 @@ function GetNullClineXY(nullcline_set)
       xdxA = zeros(Float64,mxA)
       ydxA = zeros(Float64,mxA)
       if (mxA>0)
-        xdxA = xA[2]
-        ydxA = yA[2] 
+        xdxA[1] = xA[2]
+        ydxA[1] = yA[2] 
       end  
       
       # Y-Derivative Points
@@ -178,8 +178,8 @@ function GetNullClineXY(nullcline_set)
       xdxB              = zeros(Float64,mxB)
       ydxB              = zeros(Float64,mxB)
       if (mxB>0)
-        xdxB            = xB[2]
-        ydxB            = yB[2] 
+        xdxB[1]            = xB[2]
+        ydxB[1]            = yB[2] 
       end  
       
       # Y-Derivative Points
@@ -219,8 +219,8 @@ function GetNullClineXY(nullcline_set)
       xdxA = zeros(Float64,mxA)
       ydxA = zeros(Float64,mxA)
       if (mxA>0)
-        xdxA = xA[2]
-        ydxA = yA[2] 
+        xdxA[1] = xA[2]
+        ydxA[1] = yA[2] 
       end  
       
       # Y-Derivative Points
@@ -255,8 +255,8 @@ function GetNullClineXY(nullcline_set)
       xdxB              = zeros(Float64,mxB)
       ydxB              = zeros(Float64,mxB)
       if (mxB>0)
-        xdxB            = xB[2]
-        ydxB            = yB[2] 
+        xdxB[1]            = xB[2]
+        ydxB[1]            = yB[2] 
       end  
       
       # Y-Derivative Points
@@ -296,8 +296,8 @@ function GetNullClineXY(nullcline_set)
       xdxA = zeros(Float64,mxA)
       ydxA = zeros(Float64,mxA)
       if (mxA>0)
-        xdxA = xA[2]
-        ydxA = yA[2] 
+        xdxA[1] = xA[2]
+        ydxA[1] = yA[2] 
       end  
       
       # Y-Derivative Points
@@ -332,8 +332,8 @@ function GetNullClineXY(nullcline_set)
       xdxB              = zeros(Float64,mxB)
       ydxB              = zeros(Float64,mxB)
       if (mxB>0)
-        xdxB            = xB[2]
-        ydxB            = yB[2] 
+        xdxB[1]            = xB[2]
+        ydxB[1]            = yB[2] 
       end  
       
       # Y-Derivative Points
@@ -372,8 +372,8 @@ function GetNullClineXY(nullcline_set)
       xdxA = zeros(Float64,mxA)
       ydxA = zeros(Float64,mxA)
       if (mxA>0)
-        xdxA = xA[2]
-        ydxA = yA[2] 
+        xdxA[1] = xA[2]
+        ydxA[1] = yA[2] 
       end  
       
       # Y-Derivative Points
@@ -408,8 +408,8 @@ function GetNullClineXY(nullcline_set)
       xdxB              = zeros(Float64,mxB)
       ydxB              = zeros(Float64,mxB)
       if (mxB>0)
-        xdxB            = xB[2]
-        ydxB            = yB[2] 
+        xdxB[1]            = xB[2]
+        ydxB[1]            = yB[2] 
       end  
       
       # Y-Derivative Points
@@ -447,8 +447,8 @@ function GetNullClineXY(nullcline_set)
       xdxA = zeros(Float64,mxA)
       ydxA = zeros(Float64,mxA)
       if (mxA>0)
-        xdxA = xA[2]
-        ydxA = yA[2] 
+        xdxA[1] = xA[2]
+        ydxA[1] = yA[2] 
       end  
       
       # Y-Derivative Points
@@ -480,8 +480,8 @@ function GetNullClineXY(nullcline_set)
       xdxB              = zeros(Float64,mxB)
       ydxB              = zeros(Float64,mxB)
       if (mxB>0)
-        xdxB            = xB[2]
-        ydxB            = yB[2] 
+        xdxB[1]            = xB[2]
+        ydxB[1]            = yB[2] 
       end  
       
       # Y-Derivative Points
@@ -493,10 +493,9 @@ function GetNullClineXY(nullcline_set)
         xdyB[1]         = xB[2]
         ydyB[1]         = yB[2]
       end
-
     elseif nullcline_set == 7
 #----------------------------------------       
-      println("Marginal Slug")
+      println("Parameters set for Extreme Slugs")
 
       nxA         = 1
       nyA         = 3
@@ -509,11 +508,18 @@ function GetNullClineXY(nullcline_set)
       xA          = zeros(Float64,mA)
       yA          = zeros(Float64,mA)
       if mA > 0
-#        xA        = FAC*[0.0; -0.4;    -1.0]
-#        yA        = FAC*[0.0;  0.14;    1.2]
+#        xAshift   = [0.0; -0.35;   -0.00]
+#        yAshift   = [0.0;  0.0885;  0.016]
+#
+#        xA        = FAC*[0.0; -0.4;  -1.0] .- xAshift
+#        yA        = FAC*[0.0;  0.14;  1.2] .- yAshift
 
-        xA        = FAC*[0.0; -0.4;    2.0]
-        yA        = FAC*[0.0;  0.5;    5.0]
+
+        xAshift   = [0.0; -0.25;    0.00]
+        yAshift   = [0.0;  0.1883;  0.049]
+
+        xA        = FAC*[0.0; -0.4;    2.0] .- xAshift
+        yA        = FAC*[0.0;  0.5;    5.0] .- yAshift
       end  
       
       # X-Derivative Points
@@ -521,8 +527,8 @@ function GetNullClineXY(nullcline_set)
       xdxA = zeros(Float64,mxA)
       ydxA = zeros(Float64,mxA)
       if (mxA>0)
-        xdxA = xA[2]
-        ydxA = yA[2] 
+        xdxA[1] = xA[2]
+        ydxA[1] = yA[2] 
       end  
       
       # Y-Derivative Points
@@ -537,7 +543,7 @@ function GetNullClineXY(nullcline_set)
       # Points for G(x,y)
       #-------------------- 
       nxB               = 1
-      nyB               = 1
+      nyB               = 2
       nB                = nxB + nyB + 1      # No of free parameters/Conditions to satisfy
       
       # Incident points
@@ -549,7 +555,8 @@ function GetNullClineXY(nullcline_set)
 #        yB              = FAC*[0.0;  0.8]
 
         xB              = FAC*[0.0;  3.5]
-        yB              = FAC*[0.0;  4.5]
+        yB              = FAC*[0.0;  5.0]
+       
       end  
       
       # X-Derivative Points
@@ -557,12 +564,12 @@ function GetNullClineXY(nullcline_set)
       xdxB              = zeros(Float64,mxB)
       ydxB              = zeros(Float64,mxB)
       if (mxB>0)
-        xdxB            = xB[2]
-        ydxB            = yB[2] 
+        xdxB[1]            = xB[2]
+        ydxB[1]            = yB[2] 
       end  
       
       # Y-Derivative Points
-      myB = 0
+      myB = 1
       xdyB              = zeros(Float64,myB)
       ydyB              = zeros(Float64,myB)
       
@@ -600,8 +607,8 @@ function GetNullClineXY(nullcline_set)
       xdxA = zeros(Float64,mxA)
       ydxA = zeros(Float64,mxA)
       if (mxA>0)
-        xdxA = xA[2]
-        ydxA = yA[2] 
+        xdxA[1] = xA[2]
+        ydxA[1] = yA[2] 
       end  
       
       # Y-Derivative Points
@@ -635,8 +642,8 @@ function GetNullClineXY(nullcline_set)
       xdxB              = zeros(Float64,mxB)
       ydxB              = zeros(Float64,mxB)
       if (mxB>0)
-        xdxB            = xB[2]
-        ydxB            = yB[2] 
+        xdxB[1]            = xB[2]
+        ydxB[1]            = yB[2] 
       end  
       
       # Y-Derivative Points
@@ -651,7 +658,7 @@ function GetNullClineXY(nullcline_set)
 
     elseif nullcline_set == 11
 #----------------------------------------       
-      println("Parameters set for Extreme Slugs")
+      println("LCO. Long Deactivation periods")
 
       nxA         = 1
       nyA         = 3
@@ -664,18 +671,8 @@ function GetNullClineXY(nullcline_set)
       xA          = zeros(Float64,mA)
       yA          = zeros(Float64,mA)
       if mA > 0
-#        xAshift   = [0.0; -0.35;   -0.00]
-#        yAshift   = [0.0;  0.0885;  0.016]
-#
-#        xA        = FAC*[0.0; -0.4;  -1.0] .- xAshift
-#        yA        = FAC*[0.0;  0.14;  1.2] .- yAshift
-
-
-        xAshift   = [0.0; -0.25;    0.00]
-        yAshift   = [0.0;  0.1883;  0.049]
-
-        xA        = FAC*[0.0; -0.4;    2.0] .- xAshift
-        yA        = FAC*[0.0;  0.5;    5.0] .- yAshift
+        xA        = FAC*[0.0; -0.4;  2.0]
+        yA        = FAC*[0.0; -0.5;  4.0]
       end  
       
       # X-Derivative Points
@@ -683,8 +680,8 @@ function GetNullClineXY(nullcline_set)
       xdxA = zeros(Float64,mxA)
       ydxA = zeros(Float64,mxA)
       if (mxA>0)
-        xdxA = xA[2]
-        ydxA = yA[2] 
+        xdxA[1] = xA[2]
+        ydxA[1] = yA[2] 
       end  
       
       # Y-Derivative Points
@@ -699,20 +696,18 @@ function GetNullClineXY(nullcline_set)
       # Points for G(x,y)
       #-------------------- 
       nxB               = 1
-      nyB               = 2
+      nyB               = 3
       nB                = nxB + nyB + 1      # No of free parameters/Conditions to satisfy
       
       # Incident points
-      mB                = 2
+      mB                = 3
       xB                = zeros(Float64,mB)
       yB                = zeros(Float64,mB)
       if mB > 0
-#        xB              = FAC*[0.0;  1.8]
-#        yB              = FAC*[0.0;  0.8]
-
-        xB              = FAC*[0.0;  3.5]
-        yB              = FAC*[0.0;  5.0]
-       
+#        xB              = FAC*[0.0; -0.55; 7.0]
+#        yB              = FAC*[0.0; -0.60; 3.0]
+        xB              = FAC*[0.0; -0.55; 9.0]
+        yB              = FAC*[0.0; -0.60; 3.0]
       end  
       
       # X-Derivative Points
@@ -720,8 +715,8 @@ function GetNullClineXY(nullcline_set)
       xdxB              = zeros(Float64,mxB)
       ydxB              = zeros(Float64,mxB)
       if (mxB>0)
-        xdxB            = xB[2]
-        ydxB            = yB[2] 
+        xdxB[1]            = xB[2]
+        ydxB[1]            = yB[2] 
       end  
       
       # Y-Derivative Points
@@ -733,6 +728,7 @@ function GetNullClineXY(nullcline_set)
         xdyB[1]         = xB[2]
         ydyB[1]         = yB[2]
       end  
+
     elseif nullcline_set == 12
 #----------------------------------------       
       println("LCO. Long Deactivation periods")
@@ -757,8 +753,8 @@ function GetNullClineXY(nullcline_set)
       xdxA = zeros(Float64,mxA)
       ydxA = zeros(Float64,mxA)
       if (mxA>0)
-        xdxA = xA[2]
-        ydxA = yA[2] 
+        xdxA[1] = xA[2]
+        ydxA[1] = yA[2] 
       end  
       
       # Y-Derivative Points
@@ -772,17 +768,17 @@ function GetNullClineXY(nullcline_set)
       
       # Points for G(x,y)
       #-------------------- 
-      nxB               = 1
-      nyB               = 3
+      nxB               = 3
+      nyB               = 1
       nB                = nxB + nyB + 1      # No of free parameters/Conditions to satisfy
       
       # Incident points
-      mB                = 3
+      mB                = 4
       xB                = zeros(Float64,mB)
       yB                = zeros(Float64,mB)
       if mB > 0
-        xB              = FAC*[0.0; -0.55; 7.0]
-        yB              = FAC*[0.0; -0.60; 3.0]
+        xB              = FAC*[0.0; -1.00; 6.5; -3.0]
+        yB              = FAC*[0.0; -0.60; 3.0; -3.0]
       end  
       
       # X-Derivative Points
@@ -790,12 +786,12 @@ function GetNullClineXY(nullcline_set)
       xdxB              = zeros(Float64,mxB)
       ydxB              = zeros(Float64,mxB)
       if (mxB>0)
-        xdxB            = xB[2]
-        ydxB            = yB[2] 
+        xdxB[1]            = xB[1]
+        ydxB[1]            = yB[1] 
       end  
       
       # Y-Derivative Points
-      myB = 1
+      myB = 0
       xdyB              = zeros(Float64,myB)
       ydyB              = zeros(Float64,myB)
       
@@ -803,7 +799,6 @@ function GetNullClineXY(nullcline_set)
         xdyB[1]         = xB[2]
         ydyB[1]         = yB[2]
       end  
-
 
     elseif nullcline_set == 13
 #----------------------------------------       
@@ -829,8 +824,8 @@ function GetNullClineXY(nullcline_set)
       xdxA = zeros(Float64,mxA)
       ydxA = zeros(Float64,mxA)
       if (mxA>0)
-        xdxA = xA[2]
-        ydxA = yA[2] 
+        xdxA[1] = xA[2]
+        ydxA[1] = yA[2] 
       end  
       
       # Y-Derivative Points
@@ -863,8 +858,8 @@ function GetNullClineXY(nullcline_set)
       xdxB              = zeros(Float64,mxB)
       ydxB              = zeros(Float64,mxB)
       if (mxB>0)
-        xdxB            = xB[2]
-        ydxB            = yB[2] 
+        xdxB[1]            = xB[2]
+        ydxB[1]            = yB[2] 
       end  
       
       # Y-Derivative Points
@@ -901,8 +896,8 @@ function GetNullClineXY(nullcline_set)
       xdxA = zeros(Float64,mxA)
       ydxA = zeros(Float64,mxA)
       if (mxA>0)
-        xdxA = xA[2]
-        ydxA = yA[2] 
+        xdxA[1] = xA[2]
+        ydxA[1] = yA[2] 
       end  
       
       # Y-Derivative Points
@@ -935,8 +930,8 @@ function GetNullClineXY(nullcline_set)
       xdxB              = zeros(Float64,mxB)
       ydxB              = zeros(Float64,mxB)
       if (mxB>0)
-        xdxB            = xB[2]
-        ydxB            = yB[2] 
+        xdxB[1]            = xB[2]
+        ydxB[1]            = yB[2] 
       end  
       
       # Y-Derivative Points
@@ -973,8 +968,8 @@ function GetNullClineXY(nullcline_set)
       xdxA = zeros(Float64,mxA)
       ydxA = zeros(Float64,mxA)
       if (mxA>0)
-        xdxA = xA[2]
-        ydxA = yA[2] 
+        xdxA[1] = xA[2]
+        ydxA[1] = yA[2] 
       end  
       
       # Y-Derivative Points
@@ -1007,8 +1002,8 @@ function GetNullClineXY(nullcline_set)
       xdxB              = zeros(Float64,mxB)
       ydxB              = zeros(Float64,mxB)
       if (mxB>0)
-        xdxB            = xB[2]
-        ydxB            = yB[2] 
+        xdxB[1]            = xB[2]
+        ydxB[1]            = yB[2] 
       end  
       
       # Y-Derivative Points
@@ -1045,8 +1040,8 @@ function GetNullClineXY(nullcline_set)
       xdxA = zeros(Float64,mxA)
       ydxA = zeros(Float64,mxA)
       if (mxA>0)
-        xdxA = xA[2]
-        ydxA = yA[2] 
+        xdxA[1] = xA[2]
+        ydxA[1] = yA[2] 
       end  
       
       # Y-Derivative Points
@@ -1079,8 +1074,8 @@ function GetNullClineXY(nullcline_set)
       xdxB              = zeros(Float64,mxB)
       ydxB              = zeros(Float64,mxB)
       if (mxB>0)
-        xdxB            = xB[2]
-        ydxB            = yB[2] 
+        xdxB[1]            = xB[2]
+        ydxB[1]            = yB[2] 
       end  
       
       # Y-Derivative Points
@@ -1116,8 +1111,8 @@ function GetNullClineXY(nullcline_set)
       xdxA = zeros(Float64,mxA)
       ydxA = zeros(Float64,mxA)
       if (mxA>0)
-        xdxA = xA[2]
-        ydxA = yA[2] 
+        xdxA[1] = xA[2]
+        ydxA[1] = yA[2] 
       end  
       
       # Y-Derivative Points
@@ -1150,8 +1145,8 @@ function GetNullClineXY(nullcline_set)
       xdxB              = zeros(Float64,mxB)
       ydxB              = zeros(Float64,mxB)
       if (mxB>0)
-        xdxB            = xB[2]
-        ydxB            = yB[2] 
+        xdxB[1]            = xB[2]
+        ydxB[1]            = yB[2] 
       end  
       
       # Y-Derivative Points
@@ -1189,8 +1184,8 @@ function GetNullClineXY(nullcline_set)
       xdxA = zeros(Float64,mxA)
       ydxA = zeros(Float64,mxA)
       if (mxA>0)
-        xdxA = xA[3]
-        ydxA = yA[3] 
+        xdxA[1] = xA[3]
+        ydxA[1] = yA[3] 
       end  
       
       # Y-Derivative Points
@@ -1222,8 +1217,8 @@ function GetNullClineXY(nullcline_set)
       xdxB              = zeros(Float64,mxB)
       ydxB              = zeros(Float64,mxB)
       if (mxB>0)
-        xdxB            = xB[2]
-        ydxB            = yB[2] 
+        xdxB[1]            = xB[2]
+        ydxB[1]            = yB[2] 
       end  
       
       # Y-Derivative Points
@@ -1258,8 +1253,8 @@ function GetNullClineXY(nullcline_set)
       xdxA = zeros(Float64,mxA)
       ydxA = zeros(Float64,mxA)
       if (mxA>0)
-        xdxA = xA[3]
-        ydxA = yA[3] 
+        xdxA[1] = xA[3]
+        ydxA[1] = yA[3] 
       end  
       
       # Y-Derivative Points
@@ -1294,8 +1289,8 @@ function GetNullClineXY(nullcline_set)
       xdxB              = zeros(Float64,mxB)
       ydxB              = zeros(Float64,mxB)
       if (mxB>0)
-        xdxB            = xB[2]
-        ydxB            = yB[2] 
+        xdxB[1]            = xB[2]
+        ydxB[1]            = yB[2] 
       end  
       
       # Y-Derivative Points
@@ -1331,8 +1326,8 @@ function GetNullClineXY(nullcline_set)
       xdxA = zeros(Float64,mxA)
       ydxA = zeros(Float64,mxA)
       if (mxA>0)
-        xdxA = xA[3]
-        ydxA = yA[3] 
+        xdxA[1] = xA[3]
+        ydxA[1] = yA[3] 
       end  
       
       # Y-Derivative Points
@@ -1367,8 +1362,8 @@ function GetNullClineXY(nullcline_set)
       xdxB              = zeros(Float64,mxB)
       ydxB              = zeros(Float64,mxB)
       if (mxB>0)
-        xdxB            = xB[2]
-        ydxB            = yB[2] 
+        xdxB[1]            = xB[2]
+        ydxB[1]            = yB[2] 
       end  
       
       # Y-Derivative Points
@@ -1411,6 +1406,7 @@ function GetNullClineParams(nullcline_set)
     gc0 = gc[1]
     gcx = gc[2:nxB+1]
     gcy = gc[nxB+2:nxB+nyB+1]
+
 
     params = NullClineParams(nxA,nyA,nA,xA,yA,xdxA,ydxA,xdyA,ydyA,nxB,nyB,nB,xB,yB,xdxB,ydxB,xdyB,ydyB,fc0,fcx,fcy,gc0,gcx,gcy)  
     
