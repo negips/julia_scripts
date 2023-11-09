@@ -48,21 +48,22 @@ function compute_dot(DX::Vector{Float64}, DY::Vector{Float64})
     return product
 end
 
-function cgs_setup(gsh::Int32,GLO_NUM::Vector{Int64},N::Int32,comm::MPI.Comm,NP::Int)
-    @ccall "libgs".gslib_gs_setup(
-       gsh::Ref{Int32}, GLO_NUM::Ptr{Int64}, N::Int32, comm::MPI.Comm, NP::Ref{Int64})::Nothing
+function cgs_setup(gsh::Int32,GLO_NUM::Vector{Int64},N::Int32,comm,NP::Int)
+    @ccall "./libgs.so".gslib_gs_setup(
+           gsh::Ref{Int32}, GLO_NUM::Ptr{Int64}, N::Int32, comm::MPI.API.MPI_Comm, NP::Ref{Int64})::Nothing
 end
 
 # Fortran
 function fgs_setup(gsh::Int32,GLO_NUM::Vector{Int64},N::Int32,comm,NP::Int)
     @ccall "./libgs.so".fgslib_gs_setup_(
-      gsh::Ref{Int32},GLO_NUM::Ptr{Int64}, N::Ref{Int32}, comm::Ptr{MPI.MPI_Comm}, NP::Ref{Int64})::Nothing
+    gsh::Ref{Int32},GLO_NUM::Ptr{Int64}, N::Ref{Int32}, comm::Ptr{MPI.API.MPI_Comm}, NP::Ref{Int64})::Nothing
 end
 #MPI.run_init_hooks()
 
-#fgs_setup(gsh,glnum,N,world,np)
+#fgs_setup(gsh,glnum,N,comm,np)
+cgs_setup(gsh,glnum,N,comm,np)
 
-
+#dup = MPI.Comm_dup(world)
 
 
 

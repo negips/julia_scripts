@@ -83,9 +83,9 @@ ax1.plot(pars.xA,pars.yA,linestyle=" ",marker="s",fillstyle="none")
 ax1.plot(pars.xdxA,pars.ydxA,linestyle=" ",marker="x")
 ax1.plot(pars.xdyA,pars.ydyA,linestyle=" ",marker="x")
 
-xi                = -10.0
+xi                = -20.0
 yr0               = -50.0
-yr1               =  10.0
+yr1               =  20.0
 dτ                =  1.0e-3
 nsteps            = 100000
 g(x,y)            = FXY(x,y,pars.gc0,pars.gcx,pars.gcy)
@@ -107,8 +107,8 @@ ax1.plot(pars.xdyB,pars.ydyB,linestyle=" ",marker="x")
 ax1.set_xlabel(L"B", fontsize=lafs)
 ax1.set_ylabel(L"A", fontsize=lafs)
 
-ax1.set_xlim(-8.0,8.0)
-ax1.set_ylim(-8.0,8.0)
+#ax1.set_xlim(-8.0,8.0)
+#ax1.set_ylim(-8.0,8.0)
 
 MoveFigure(h1,1250,500)
 

@@ -7,20 +7,27 @@ U           = prec(1)         # Convection Coeff.
 μ           = prec(1)         # Source Coeff.
 
 # Diffusion parameters
-γu          = prec(0.0001)      # Diffusion (u)
-γq          = prec(0.50)       # Diffusion (q)
+γu          = prec(0.01)      # Diffusion (u)
+γq          = prec(0.50)      # Diffusion (q)
 γall        = [γu γq]
 
 # Convection parameters
-ζu          = prec(0.0)
+ζu          = prec(0)
 ζq          = prec(0.8)
 ζall        = [ζu ζq]
+
+# Artificially added. Speed up factor for convting field (u).
+# 1.0 => Normal speed
+cfu         = prec(1.0)
+cfq         = prec(1.0)
+cfall       = [cfu cfq]
+
 
 ifsparse    = true
 ifperiodic  = true
 ifglobal    = true
 
-r           = prec(0.6)       # Barkley Reynolds number
+r           = prec(0.7)       # Barkley Reynolds number
 
 # Initialization
 x0          = prec(100)       # Gaussian Center
@@ -32,7 +39,8 @@ U0Off       = prec(2)         # Homogeneous state value
 Q0Off       = prec(0)         # Homogeneous state value
 
 # Simulation
-dt          = prec(0.01);
-nsteps      = 100000;
+dt          = prec(0.003);
+nsteps      = 50000;
 
-plotupd     = 50;
+plotupd     = 100
+ifphplot    = true

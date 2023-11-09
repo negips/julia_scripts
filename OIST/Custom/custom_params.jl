@@ -5,7 +5,7 @@
 U                 = prec(0)         # Convection
 γ                 = prec(1)         # Diffusion (Generic) 
 γa                = prec(0.2)       # Diffusion (activator)
-γb                = prec(0.01)       # Diffusion (inhibitor)
+γb                = prec(1.0)       # Diffusion (inhibitor)
 γall              = [γb γa]
 σa                =  0.0             # Activator Noise Strength
 σb                =  0.0             # Inhibitor Noise Strength
@@ -16,21 +16,25 @@ ifperiodic        = true
 ifglobal          = true
 
 # Initialization
-x0                = prec(30)       # Gaussian Center
+ngauss            = 1
+x0gauss           = [20.0 80.0]           #xe*rand(ngauss)
+ampgauss          = ones(Float64,ngauss)  #rand(ngauss)
+
+x0                = prec(30)        # Gaussian Center
 σg                = prec(2)         # Gaussian Std. Deviation
-ampA0             = prec(2.0)
+ampA0             = prec(0.0)
 ampB0             = prec(0)
 
-A0Off             = prec(0)         # Homogeneous state value
+A0Off             = prec(1)         # Homogeneous state value
 B0Off             = prec(0)         # Homogeneous state value
 
-σai               = prec(0.0)       # Initial Activator Noise
+σai               = prec(3.3)       # Initial Activator Noise
 σbi               = prec(0.0)         # Initial Inhibitor Noise Strength
 
 
 # Simulation
 dt                = prec(0.01)
-nsteps            = 10000
+nsteps            = 12000
 nstep_switch1     = 3000 
 nstep_switch2     = 12100 
 

@@ -56,10 +56,10 @@ Det_ω(k,ωr,ωi) = begin
 #------------------------------ 
 Det_ω(1.0,1.0,1.0)
 
-k = 0.5
+k = 0.0
 M = LMat(k,0.0)
 
-νall = range(start=0.0, stop=2.0, length = 1000)
+νall = range(start=0.0, stop=1.0, length = 2)
 
 n = length(νall)
 
