@@ -190,7 +190,7 @@ MoveFigure(h1,1250,500)
 
 # Build Nullcline for the dynamic switching
 #---------------------------------------- 
-set               = 23
+set               = 53
 parsS             = GetNullClineParams(set) 
 λdot1(x,y)        = FXY(x,y,parsS.fc0,parsS.fcx,parsS.fcy)
 #α                 = 1.0

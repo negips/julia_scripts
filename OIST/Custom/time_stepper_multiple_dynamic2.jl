@@ -172,41 +172,36 @@ for i in 1:nsteps
     end
   end
 
-# Update dynamic plot  
-  if plotupd > 0
-    if mod(i,plotupd)==0
-      if (i>plotupd)
+# Dynamic plot update
+  if ifplot && mod(i,plotupd)==0
+    if (i>plotupd)
+#      Field plots         
+       if (iffldplot)
          pl[1].remove()
          pl2[1].remove()
-         if (ifphplot)
-           scat[1].remove()
-         end
-         if ifpldyn
-           λpl[1].remove()
-         end
-        
-      end   
-      pl = ax2.plot(Geom.xm1[:],Q*fld[:,1],color=rgba0);
-#      pl = plot(Geom.xm1[:],Q*(fld[:,1]),color=rgba1);
-     
-      pl2 = ax2.plot(Geom.xm1[:],Q*fld[:,2],color=rgba1);
-
-      k     = argmax(abs.(fld[:,2]))
-      xscat = fld[k,1]
-      yscat = fld[k,2]
-
-      if ifphplot
-#        scat  = ax1.plot(xscat,yscat,marker="o",color="black")
-        scat = ax1.plot(fld[:,1],fld[:,2],color="black") 
-      end
-
-      if ifpldyn
-        λpl = ax4.plot(θ,λ,markersize=6,marker="o",color="black")
-      end
-     
-      draw()
-      pause(0.001)
+       end
+#      Phase Plots         
+       if (ifphplot)
+         scat[1].remove()
+       end
+#      Dynamic phase (λ)         
+       if ifdynplot
+         λpl[1].remove()
+       end
+    end   
+#   Updated plots      
+    if (iffldplot)
+      pl  = ax2.plot(Geom.xm1[:],Q*fld[:,1],color=rgba0)
+      pl2 = ax2.plot(Geom.xm1[:],Q*fld[:,2],color=rgba1)
+    end  
+    if ifphplot
+      scat = ax1.plot(fld[:,1],fld[:,2],color="black") 
     end
+    if ifdynplot
+      λpl = ax4.plot(θ,λ,markersize=6,marker="o",color="black")
+    end
+    draw()
+    pause(0.001)
   end  
 
 end

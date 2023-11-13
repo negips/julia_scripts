@@ -107,8 +107,8 @@ ax1.plot(pars.xdyB,pars.ydyB,linestyle=" ",marker="x")
 ax1.set_xlabel(L"B", fontsize=lafs)
 ax1.set_ylabel(L"A", fontsize=lafs)
 
-#ax1.set_xlim(-8.0,8.0)
-#ax1.set_ylim(-8.0,8.0)
+ax1.set_xlim(-8.0,8.0)
+ax1.set_ylim(-8.0,8.0)
 
 MoveFigure(h1,1250,500)
 
@@ -118,7 +118,7 @@ println("Press x to stop. Any other key to continue")
 xin = readline()
 #xin = "x"
 #xin = " "
-ϵ  = 1.0
+ϵ  = 0.1
 η  = 1.0
 if xin !="x"
   F(x,y) =  f(x,y)/ϵ

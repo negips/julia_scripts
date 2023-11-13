@@ -14,66 +14,11 @@ include("Dealias.jl")
 include("../GetEXT.jl")
 include("../GetBDF.jl")
 
+include("time_stepper_multiple_init.jl")
 
-ngauss      = 1
-x0gauss     = [20.0 80.0] #xe*rand(ngauss)
-ampgauss    = ones(Float64,ngauss) #rand(ngauss)
-agauss      = 0.0*Geom.xm1[:]
-
-if ngauss == 1
-  agauss      = exp.(-((Geom.xm1[:] .- x0)/σg).^2)# .*(sign.(Geom.xm1[:] .- x0))
-else  
-  for i in 1:ngauss
-    global agauss
-    agauss    = agauss .+ ampgauss[i]*exp.(-((Geom.xm1[:] .- x0gauss[i])/σg).^2)
-  end
-end  
-
-#agauss      = exp.(-((Geom.xm1[:] .- x0)/σg).^2)# .*(sign.(Geom.xm1[:] .- x0))
-k0          = 3
-asin        = sin.(2.0*π/(xe-xs)*k0*Geom.xm1[:])
-acos        = cos.(2.0*π/(xe-xs)*k0*Geom.xm1[:])
-
-ainit       = vimultg.*(QT*asin)
-binit       = vimultg.*(QT*acos)
-
-nflds       = 2                                 # No of fields
-fld         = zeros(VT,ndof,nflds)
-dotfld      = zeros(VT,ndof,nflds)
-fldlag      = zeros(VT,ndof,2,nflds)
-
-Rhs         = zeros(VT,ndof,nflds)
-Rhslag      = zeros(VT,ndof,2,nflds)
-
-fld[:,1]    = ampB0*ainit .+ B0Off .+ σbi*(rand(ndof) .- 0.5)
-fld[:,2]    = ampA0*binit .+ A0Off .+ σai*(rand(ndof) .- 0.5)
-
-fldhist     = zeros(VT,npts,nsurf_save,nflds)
-Thist       = zeros(VT,nsurf_save)
-
-bdf         = zeros(Float64,4)
-ext         = zeros(Float64,3)
-
-cm          = get_cmap("tab10");
-rgba0       = cm(0); 
-rgba1       = cm(1); 
-rgba2       = cm(2); 
-
-time        = range(0.,step=dt,length=nsteps);
-
-h2          = figure(num=2)
-ax2         = h2.subplots()
-
-t           = 0.
-
-Thist[1] = t
-for i in 1:nflds
-  fldhist[:,1,i] = Q*fld[:,i]
-end  
-
-#println("Press any key to continue")
-#xin = readline()
-
+# No dynamic phase here
+ifdynplot         = false
+ifplot            = iffldplot || ifphplot
 
 for i in 1:nsteps
   global fld,fldlag,Rhs,Rhslag,dotfld
@@ -132,31 +77,26 @@ for i in 1:nsteps
     end
   end  
 
-  if plotupd > 0
-    if mod(i,plotupd)==0
-      if (i>plotupd)
+  if ifplot && mod(i,plotupd)==0
+#   Remove old plots      
+    if (i>plotupd)
+       if (iffldplot)
          pl[1].remove()
          pl2[1].remove()
-         if (ifphplot)
-           scat[1].remove()
-         end  
-      end   
-      pl = ax2.plot(Geom.xm1[:],Q*fld[:,1],color=rgba0);
-#      pl = plot(Geom.xm1[:],Q*(fld[:,1]),color=rgba1);
-     
-      pl2 = ax2.plot(Geom.xm1[:],Q*fld[:,2],color=rgba1);
-
-      k     = argmax(abs.(fld[:,2]))
-      xscat = fld[k,1]
-      yscat = fld[k,2]
-
-      if ifphplot
-#        scat  = ax1.plot(xscat,yscat,marker="o",color="black")
-        scat = ax1.plot(fld[:,1],fld[:,2],color="black") 
-      end
-      draw()
-      pause(0.01)
+       end  
+       if (ifphplot)
+         scat[1].remove()
+       end  
     end
+#   Updated plots      
+    if (iffldplot)
+      pl  = ax2.plot(Geom.xm1[:],Q*fld[:,1],color=rgba0)
+      pl2 = ax2.plot(Geom.xm1[:],Q*fld[:,2],color=rgba1)
+    end  
+    if ifphplot
+      scat = ax1.plot(fld[:,1],fld[:,2],color="black") 
+    end
+    pause(0.001)
   end  
 
 end
@@ -166,12 +106,12 @@ t2d   = ones(npts)*Thist'
 x2d   = (Geom.xm1[:])*ones(nsurf_save)'
 
 cm2   = get_cmap("binary");
-h3=figure(num=3)
-pcm = pcolormesh(x2d,t2d,fldhist[:,:,2])
+h3    = figure(num=3)
+pcm   = pcolormesh(x2d,t2d,fldhist[:,:,2])
 pcm.set_cmap(cm2)
-ax3 = h3.gca()
+ax3   = h3.gca()
 ax3.invert_yaxis()
-cb  = colorbar(orientation="vertical")
+cb    = colorbar(orientation="vertical")
 
 #surf(t2d,x2d,fldhist[:,:,2],cmap=cm2,edgecolor="none")
 #ax3.elev = 94.0

@@ -85,8 +85,12 @@ end
 ν12d = νall*ones(Float64,1,n)
 ν22d = ones(Float64,n)*νall'
 
-close(h2)
-close(h3)
+if (@isdefined h2)
+  close(h2)
+end
+if (@isdefined h3)
+  close(h3)
+end
 
 cm2         = get_cmap("RdBu_r")
 h2          = figure(num=2)
