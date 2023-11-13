@@ -13,9 +13,10 @@ include("Barkley.jl")
 include("Dealias.jl")
 include("../GetEXT.jl")
 include("../GetBDF.jl")
-
+include("MoveFigure.jl")
 
 Barkley(q,u) = BarkleyPipe(q,u,r)
+include("plot_barkley_nullclines.jl")
 
 aa    = exp.(-((Geom.xm1[:] .- x0)/σ).^2)
 ainit = vimultg.*(QT*aa)
@@ -49,11 +50,16 @@ rgba2 = cm(2);
 
 time = range(0.,step=dt,length=nsteps);
 
+h2  = figure(num=2)
+ax2 = h2.subplots()
+
 t = 0.
 for i in 1:nsteps
   global fld,fldlag,Rhs,Rhslag,dotfld
   global t
   global pl,pl2
+  global ax1,ax2
+  global scat
 
   t = t + dt;
 
@@ -70,8 +76,8 @@ for i in 1:nsteps
 
   dotfld = Barkley(fld[:,1],fld[:,2])
   for j in 1:nflds
-    Qfld          = Q*fld[:,j]                      # Convected field  
-    Qcfld         = Q*fld[:,1] .- ζall[j]           # Convecting field (is always u)
+    Qfld          = Q*fld[:,j]                        # Convected field  
+    Qcfld         = cfall[j]*Q*fld[:,1] .- ζall[j]    # Convecting field (is always u)
     Dealias!(Qconv,Qcfld,Qfld,Geom)
     convect       = (QT*Qconv)./Bg
 
@@ -99,13 +105,25 @@ for i in 1:nsteps
       if (i>plotupd)
          pl[1].remove();
          pl2[1].remove();
-      end   
-      pl = plot(Geom.xm1[:],Q*fld[:,1],color=rgba0);
+
+         if (ifphplot)
+           scat[1].remove()
+         end
+        
+      end
+
+      pl = ax2.plot(Geom.xm1[:],Q*fld[:,1],color=rgba0);
 #      pl = plot(Geom.xm1[:],Q*(fld[:,1]),color=rgba1);
      
-      pl2 = plot(Geom.xm1[:],Q*fld[:,2],color=rgba1);
+      pl2 = ax2.plot(Geom.xm1[:],Q*fld[:,2],color=rgba1);
+
+      if ifphplot
+        scat = ax1.plot(fld[:,1],fld[:,2],color="black") 
+      end
       pause(0.001)
     end
+
+   
   end  
 
 end

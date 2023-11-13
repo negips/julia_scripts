@@ -34,8 +34,8 @@ k0          = 3
 asin        = sin.(2.0*π/(xe-xs)*k0*Geom.xm1[:])
 acos        = cos.(2.0*π/(xe-xs)*k0*Geom.xm1[:])
 
-ainit       = vimultg.*(QT*agauss)
-binit       = vimultg.*(QT*agauss)
+ainit       = vimultg.*(QT*asin)
+binit       = vimultg.*(QT*acos)
 
 nflds       = 2                                 # No of fields
 fld         = zeros(VT,ndof,nflds)
@@ -70,6 +70,9 @@ Thist[1] = t
 for i in 1:nflds
   fldhist[:,1,i] = Q*fld[:,i]
 end  
+
+#println("Press any key to continue")
+#xin = readline()
 
 
 for i in 1:nsteps
