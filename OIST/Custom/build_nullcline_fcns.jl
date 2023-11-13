@@ -118,7 +118,7 @@ println("Press x to stop. Any other key to continue")
 xin = readline()
 #xin = "x"
 #xin = " "
-ϵ  = 0.25
+ϵ  = 1.0
 η  = 1.0
 if xin !="x"
   F(x,y) =  f(x,y)/ϵ

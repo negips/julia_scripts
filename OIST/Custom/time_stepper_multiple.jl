@@ -15,7 +15,7 @@ include("../GetEXT.jl")
 include("../GetBDF.jl")
 
 
-ngauss      = 2
+ngauss      = 1
 x0gauss     = [20.0 80.0] #xe*rand(ngauss)
 ampgauss    = ones(Float64,ngauss) #rand(ngauss)
 agauss      = 0.0*Geom.xm1[:]

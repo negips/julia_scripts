@@ -61,9 +61,7 @@ end
 #MPI.run_init_hooks()
 
 #fgs_setup(gsh,glnum,N,world,np)
-
-
-
+cgs_setup(gsh,glnum,N,world,np)
 
 
 

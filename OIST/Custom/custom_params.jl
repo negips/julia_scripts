@@ -16,7 +16,9 @@ ifperiodic        = true
 ifglobal          = true
 
 # Initialization
-x0                = prec(30)       # Gaussian Center
+x0gauss           = [20.0]          # xe*rand(ngauss)
+ngauss            = length(x0gauss)
+x0                = x0gauss[1]      # Gaussian Center
 σg                = prec(2)         # Gaussian Std. Deviation
 ampA0             = prec(2.0)
 ampB0             = prec(0)
