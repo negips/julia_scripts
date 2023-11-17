@@ -83,9 +83,9 @@ ax1.plot(pars.xA,pars.yA,linestyle=" ",marker="s",fillstyle="none")
 ax1.plot(pars.xdxA,pars.ydxA,linestyle=" ",marker="x")
 ax1.plot(pars.xdyA,pars.ydyA,linestyle=" ",marker="x")
 
-xi                = -20.0
+xi                = -10.0
 yr0               = -50.0
-yr1               =  20.0
+yr1               =  00.0
 dτ                =  1.0e-3
 nsteps            = 100000
 g(x,y)            = FXY(x,y,pars.gc0,pars.gcx,pars.gcy)
@@ -125,7 +125,7 @@ if xin !="x"
   G(x,y) =  g(x,y)*η
 
   Flow(x,y) = [G(x,y) F(x,y)]
-  include("time_stepper_multiple.jl")
+#  include("time_stepper_multiple.jl")
 end
 
 

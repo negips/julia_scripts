@@ -13,7 +13,7 @@ size = MPI.Comm_size(comm)
 
 # print("Hello world, I am rank $(rank) of $(size)\n")
 
-test = 10 
+test = 7 
 
 # Scatter!
 #--------------------------------------------------
@@ -180,14 +180,16 @@ if test == 7
 #    print("point data received on Rank $(rank):\n $(data)\n")
 #  end
 
+  comm2 = MPI.Comm_dup(comm)
+
   destn = (rank+1)%size
-  MPI.send(p,comm,dest=destn)
+  MPI.send(p,comm2,dest=destn)
   print("Original point data sent from Rank $(rank) to Rank $(destn):\n $(p)\n")
   src = rank-1
   if src<0
     src = size-1
   end
-  data = MPI.recv(comm,source=src)
+  data = MPI.recv(comm2,source=src)
   print("point data received on Rank $(rank) from Rank $(src):\n $(data)\n")
 
 end

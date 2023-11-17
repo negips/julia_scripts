@@ -17,16 +17,16 @@ ifglobal          = true
 
 # Initialization
 ngauss            = 1
-x0gauss           = [20.0]           #xe*rand(ngauss)
+x0gauss           = [30.0]           #xe*rand(ngauss)
 ngauss            = length(x0gauss)
 ampgauss          = ones(Float64,ngauss)  #rand(ngauss)
 x0                = x0gauss[1]      # Gaussian Center
 σg                = prec(2)         # Gaussian Std. Deviation
 ampA0             = prec(2.0)
-ampB0             = prec(0.1)
+ampB0             = prec(0.0)
 
-A0Off             = prec(0.1)         # Homogeneous state value
-B0Off             = prec(0.1)         # Homogeneous state value
+A0Off             = prec(0.0)         # Homogeneous state value
+B0Off             = prec(0.0)         # Homogeneous state value
 
 σai               = prec(0.0)       # Initial Activator Noise
 σbi               = prec(0.0)         # Initial Inhibitor Noise Strength
@@ -34,7 +34,7 @@ B0Off             = prec(0.1)         # Homogeneous state value
 
 # Simulation
 dt                = prec(0.01)
-nsteps            = 12000
+nsteps            = 9000
 nstep_switch1     = 3000 
 nstep_switch2     = 12100 
 

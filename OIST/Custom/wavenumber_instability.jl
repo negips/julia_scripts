@@ -10,7 +10,7 @@ include("NullClineParams.jl")
 include("MoveFigure.jl")
 
 
-#include("build_nullcline_fcns.jl")
+include("build_nullcline_fcns.jl")
 # Wavenumber Instability
 
 function evs(k,α,ν1,ν2)
@@ -48,18 +48,18 @@ Det_ω0(k) = det(LMat(k,0.0))
 
 # Definition
 Det_ω(k,ωr,ωi) = begin 
-                  ϕ = α[1,1] + α[2,2] + (ν1 + ν2)*k^2
-                  dr = Det_ω0(k) + ωr^2 - ωi^2 - ωr*ϕ
-                  di = ωi*(2.0*ωr - ϕ)
-                  return [dr; di]
-                end  
+                   ϕ = α[1,1] + α[2,2] + (ν1 + ν2)*k^2
+                   dr = Det_ω0(k) + ωr^2 - ωi^2 - ωr*ϕ
+                   di = ωi*(2.0*ωr - ϕ)
+                   return [dr; di]
+                 end  
 #------------------------------ 
 Det_ω(1.0,1.0,1.0)
 
-k = 0.0
+k = 1.0
 M = LMat(k,0.0)
 
-νall = range(start=0.0, stop=1.0, length = 2)
+νall = range(start=0.0, stop=10000.0, length = 1000)
 
 n = length(νall)
 
