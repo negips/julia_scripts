@@ -4,6 +4,7 @@ using PolynomialBases
 using PyPlot,PyCall
 using LinearAlgebra
 using IterativeSolvers
+using Roots
 
 close("all")
 
