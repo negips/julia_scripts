@@ -17,10 +17,11 @@
 #     : 16        : Two Asymmetric fixed points
 #     : 17        : Unstable G-null-cline
 #     : 18        : Marginal Instability
+#     : 19        : Stable Oscillatory Linear mode
 #     : 51        : Dynamic Switching (λ)
 #     : 52        : Dynamic Switching (λ)
 #     : 53        : Dynamic Switching (λ)
 
-sets  = [1 8]
+sets  = [19]
 println("Nullcline Set(s): $sets")
 

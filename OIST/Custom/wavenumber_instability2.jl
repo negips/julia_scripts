@@ -2,16 +2,13 @@
 using LinearAlgebra
 using Roots
 using PyPlot
+#using Symbolics
 
 include("NullClines.jl")
 include("NullClineFcn.jl")
 include("ElementOf.jl")
 include("NullClineParams.jl")
 include("MoveFigure.jl")
-
-
-#include("build_nullcline_fcns.jl")
-# Wavenumber Instability
 
 function evs(k,α,ν1,ν2)
   @assert size(α) == (2,2)
@@ -26,6 +23,49 @@ function evs(k,α,ν1,ν2)
   return er,ei
 end  
 
+#-------------------------------------------------- 
+
+include("build_nullcline_fcns.jl")
+
+#lafs = 16
+#include("select_nullclines.jl")
+#set               = sets[1]
+#pars              = GetNullClineParams(set) 
+
+#@variables x y
+#
+#Dx = Differential(x)
+#Dy = Differential(y)
+#fcx = zeros(Float64,4)
+#fcy = zeros(Float64,3)
+#fcx[1] = pars.fc0
+#for i in 1:length(pars.fcx)
+#  fcx[i+1] = pars.fcx[i]
+#end  
+#for i in 1:length(pars.fcy)
+#  fcy[i] = pars.fcy[i]
+#end  
+#f = fcx[1] + fcx[2]*x + fcx[3]*x^2 + fcx[4]*x^3 + fcy[1]*y + fcy[2]*y^2 + fcy[3]*y^3
+#
+#gcx = zeros(Float64,4)
+#gcy = zeros(Float64,3)
+#gcx[1] = pars.gc0
+#for i in 1:length(pars.gcx)
+#  gcx[i+1] = pars.gcx[i]
+#end  
+#for i in 1:length(pars.gcy)
+#  gcy[i] = pars.gcy[i]
+#end  
+#g = gcx[1] + gcx[2]*x + gcx[3]*x^2 + gcx[4]*x^3 + gcy[1]*y + gcy[2]*y^2 + gcy[3]*y^3
+#
+#SymJac = Symbolics.jacobian([g,f],[x,y]) 
+#SJac   = substitute(SymJac, Dict(x => 0.0, y => 0.0), fold=false)
+#Jac    = Symbolics.value.(SJac)
+
+# Wavenumber Instability
+ϵ = 1.0
+η = 1.0
+
 α      = zeros(Float64,2,2)
 α[1,1] = pars.gcx[1]*η
 α[1,2] = pars.gcy[1]*η
@@ -33,7 +73,7 @@ end
 α[2,1] = pars.fcx[1]/ϵ
 α[2,2] = pars.fcy[1]/ϵ
 
-ν1  = 0.01
+ν1  = 1.0
 ν2  = 1.0
 
 ωr  = 1.0
@@ -60,7 +100,6 @@ k = 1.0
 M = LMat(k,0.0)
 
 νall = range(start=0.0, stop=1.0, length = 100)
-
 n = length(νall)
 
 Ωr    = zeros(Float64,n,n,2)
@@ -110,6 +149,29 @@ colorbar()
 ax3.set_xlabel(L"ν_{1}", fontsize=lafs)
 ax3.set_ylabel(L"ν_{2}", fontsize=lafs)
 ax3.set_title(L"Ω_{i}", fontsize=lafs)
+
+Lkν(κ,μ1,μ2) =  [(α[1,1] - μ1*κ^2)                α[1,2];
+                  α[2,1]              (α[2,2] - μ2*κ^2)]
+
+M0 = Lkν(0.0,0.0,0.0)
+t0 = tr(M0)
+d0 = t0^2 - 4.0*det(M0)
+
+println("Trace of M0: $t0")
+println("Discriminant of M0: $d0")
+println("Eigenvalues of M0: $(eigvals(M0))")
+display(α)
+println("\n")
+
+k  = 1.0
+Mk = Lkν(k,ν1,ν2)
+tk = tr(Mk)
+dk = tk^2 - 4.0*det(Mk)
+
+println("Trace of Mk: $tk")
+println("Discriminant of Mk: $dk")
+println("Eigenvalues of Mk: $(eigvals(Mk))")
+
 
 
 

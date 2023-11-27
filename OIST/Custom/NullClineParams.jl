@@ -1308,6 +1308,85 @@ function GetNullClineXY(nullcline_set)
         ydyB[1]         = yB[2]
       end  
 
+    elseif nullcline_set == 19
+#----------------------------------------       
+#     Stable oscillatory linear mode
+      println("Stable Oscillatory Linear Mode")
+
+      nxA         = 1
+      nyA         = 3
+      nA          = nxA + nyA + 1      # No of free parameters/Conditions to satisfy
+      
+      FAC         = 1.0
+
+      # Incident points     
+      mA          = 3       
+      xA          = zeros(Float64,mA)
+      yA          = zeros(Float64,mA)
+      if mA > 0
+#        xA        = FAC*[0.0; -0.4;    -1.0]
+#        yA        = FAC*[0.0;  0.14;    1.2]
+        xA        = FAC*[0.0; -0.4;    2.0]
+        yA        = FAC*[0.0;  0.5;    5.0]
+#        xA        = FAC*[0.0;   0.0;   -0.001]
+#        yA        = FAC*[0.0;   6.0;   0.05]
+      end  
+      
+      # X-Derivative Points
+      mxA = 0
+      xdxA = zeros(Float64,mxA)
+      ydxA = zeros(Float64,mxA)
+      if (mxA>0)
+        xdxA[1] = xA[2]
+        ydxA[1] = yA[2] 
+      end  
+      
+      # Y-Derivative Points
+      myA = 1
+      xdyA = zeros(Float64,myA)
+      ydyA = zeros(Float64,myA)
+      if myA>0
+        xdyA[1] = xA[2]
+        ydyA[1] = yA[2]
+      end  
+      
+      # Points for G(x,y)
+      #-------------------- 
+      nxB               = 2
+      nyB               = 1
+      nB                = nxB + nyB + 1      # No of free parameters/Conditions to satisfy
+      
+      # Incident points
+      mB                = 2
+      xB                = zeros(Float64,mB)
+      yB                = zeros(Float64,mB)
+      if mB > 0
+#        xB              = FAC*[0.0;  2.6]
+#        yB              = FAC*[0.0;  0.8]
+        xB              = FAC*[0.0;  5.0]
+        yB              = FAC*[0.0;  6.0]
+      end  
+      
+      # X-Derivative Points
+      mxB = 1
+      xdxB              = zeros(Float64,mxB)
+      ydxB              = zeros(Float64,mxB)
+      if (mxB>0)
+        xdxB[1]            = xB[2]
+        ydxB[1]            = yB[2] 
+      end  
+      
+      # Y-Derivative Points
+      myB = 0
+      xdyB              = zeros(Float64,myB)
+      ydyB              = zeros(Float64,myB)
+      
+      if myB>0
+        xdyB[1]         = xB[2]
+        ydyB[1]         = yB[2]
+      end
+
+
     elseif nullcline_set == 51
 #----------------------------------------       
       println("Nullcline for dynamic switching")
