@@ -7,9 +7,10 @@ if !MPI.Initialized()
   MPI.Init()
 end
 
-comm = MPI.COMM_WORLD
-rank = MPI.Comm_rank(comm)
-size = MPI.Comm_size(comm)
+const comm = MPI.COMM_WORLD
+const rank = MPI.Comm_rank(comm)
+const size = MPI.Comm_size(comm)
+
 
 # print("Hello world, I am rank $(rank) of $(size)\n")
 
@@ -254,20 +255,30 @@ if test == 9
 end
 
 
-# Generate a random list of numbers
-#--------------------------------------------------  
 if test == 10
-  n = 5
-  lst = rand(1:n, n)
+  N = 5
+  shared = zeros(Float64,N)
   
-  # Perform parallel list ranking
-  ranks = parallel_list_ranking(lst)
+  # Create window
+  win = MPI.Win()
   
-  # Print the resulting ranks
-  println(ranks)
+  # Create Memory in window
+  MPI.Win_create(shared,comm,win)
+  
+  offset  = rank
+  nb_elms = 1
+  dest = 0
+  MPI.Win_lock(MPI.LOCK_EXCLUSIVE,dest,no_assert,win)
+  MPI.Put(Float64(rank),nb_elms,dest,Offset,win)
+  MPI.Win_unlock(dest,win)
+  
+  if rank == dest
+    MPI.Win_lock(MPI.LOCK_SHARED,dest,no_assert,win)
+    println("My partners sent me this :", shared')
+    MPI.Win_unlock(dest,win)
+  end
+
 end  
-
-
 
 #---------------------------------------------------------------------- 
 MPI.Finalize()
