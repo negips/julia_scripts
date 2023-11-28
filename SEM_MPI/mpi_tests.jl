@@ -9,22 +9,22 @@ end
 
 const comm = MPI.COMM_WORLD
 const rank = MPI.Comm_rank(comm)
-const size = MPI.Comm_size(comm)
+const wsize = MPI.Comm_size(comm)
 
 
-# print("Hello world, I am rank $(rank) of $(size)\n")
+# print("Hello world, I am rank $(rank) of $(wsize)\n")
 
-test = 7 
+test = 12 
 
 # Scatter!
 #--------------------------------------------------
 
 if test == 1
   send_buf = nothing
-  recv_buf = Vector{Float64}(undef,size)
+  recv_buf = Vector{Float64}(undef,wsize)
   
   if rank == 0
-    send_buf = rand(Float64,size,size)
+    send_buf = rand(Float64,wsize,wsize)
     print("Scatter!: Original array on rank 0:\n $(send_buf)\n")
   end
   #rec_buf = MPI.Scatter(send_buf, Int, comm; root=0)
@@ -37,7 +37,7 @@ end
 #--------------------------------------------------  
 if test == 2
 
-  lengths  = rand(1:4,size)
+  lengths  = rand(1:4,wsize)
   total    = sum(lengths)
   offsets  = cumsum(lengths) .- lengths
  
@@ -67,10 +67,10 @@ end
 
 if test == 3
   send_buf = nothing
-  v        = Vector{Float64}(undef,size)
+  v        = Vector{Float64}(undef,wsize)
  
   if rank == 0
-    send_buf = rand(Float64,size,size)
+    send_buf = rand(Float64,wsize,wsize)
     print("Scatter!: Original array on rank 0:\n $(send_buf)\n")
   end
   #rec_buf = MPI.Scatter(send_buf, Int, comm; root=0)
@@ -170,7 +170,7 @@ if test == 7
 #  p = Point(rank,rank)
 
 #  if mod(rank,2) == 0
-#    destn = mod(rank+1,size)
+#    destn = mod(rank+1,wsize)
 #    if destn != 0
 #      MPI.send(p,comm,dest=destn)
 #      print("Original point data sent from Rank $(rank) to Rank $(destn):\n $(p)\n")
@@ -183,12 +183,12 @@ if test == 7
 
   comm2 = MPI.Comm_dup(comm)
 
-  destn = (rank+1)%size
+  destn = (rank+1)%wsize
   MPI.send(p,comm2,dest=destn)
   print("Original point data sent from Rank $(rank) to Rank $(destn):\n $(p)\n")
   src = rank-1
   if src<0
-    src = size-1
+    src = wsize-1
   end
   data = MPI.recv(comm2,source=src)
   print("point data received on Rank $(rank) from Rank $(src):\n $(data)\n")
@@ -206,12 +206,12 @@ if test == 8
   send_buf = rand(Float64,length) 
   recv_buf = Vector{Float64}(undef,length)
 
-  destn = (rank+1)%size
+  destn = (rank+1)%wsize
   send_status = MPI.Isend(send_buf,comm;dest=destn)
 
   src = rank-1
   if src<0
-    src = size-1
+    src = wsize-1
   end
   recv_status = MPI.Irecv!(recv_buf,comm; source=src)
 
@@ -255,30 +255,149 @@ if test == 9
 end
 
 
+# Passive RMA
+#--------------------------------------------------  
 if test == 10
   N = 5
   shared = zeros(Float64,N)
   
-  # Create window
-  win = MPI.Win()
+# allocate memory
+  data = fill(-1, wsize)
+# create RMA window on all ranks
+  win = MPI.Win_create(data, comm)
   
-  # Create Memory in window
-  MPI.Win_create(shared,comm,win)
-  
-  offset  = rank
-  nb_elms = 1
-  dest = 0
-  MPI.Win_lock(MPI.LOCK_EXCLUSIVE,dest,no_assert,win)
-  MPI.Put(Float64(rank),nb_elms,dest,Offset,win)
-  MPI.Win_unlock(dest,win)
-  
-  if rank == dest
-    MPI.Win_lock(MPI.LOCK_SHARED,dest,no_assert,win)
-    println("My partners sent me this :", shared')
-    MPI.Win_unlock(dest,win)
+# let each rank write its rank number into window
+  if rank != 0
+#   lock window (MPI.LOCK_SHARED works as well)
+    MPI.Win_lock(MPI.LOCK_EXCLUSIVE, 0, 0, win)
+#   each rank writes to exposed windows of rank 0
+#   Signature: obj, target_rank, target_displacement, window
+    MPI.Put(rank, 0, rank, win)
+#   finish the communication epoch
+    MPI.Win_unlock(0, win)
+  else
+    data[1] = 0
   end
-
+  
+# wait with printing
+  MPI.Win_fence(0, win)
+  
+# print window content on all ranks
+  if rank == 0
+      println("After Put with lock / unlock, window content on rank 0:")
+      @show data
+  end
+  
+# free window
+  MPI.free(win)
 end  
+
+
+# Active RMA
+#--------------------------------------------------  
+if test == 11
+# allocate memory
+  data = fill(-1, wsize)
+# create RMA window on all ranks
+  win = MPI.Win_create(data,comm)
+  
+#### first, let's do MPI.Put on all ranks
+  
+# start the communication epoch
+  dest = 0
+  MPI.Win_fence(dest, win)
+# each rank writes to exposed windows of rank "dest"
+# Signature: obj, target_rank, target_displacement, window
+  disp = rank
+  MPI.Put(rank, dest, disp, win)
+# finish the communication epoch
+  MPI.Win_fence(dest, win)
+# print window content on all ranks
+  for j in 0:wsize-1
+    if rank == j
+      println("After Put, Rank $rank:")
+      @show data
+    end
+    MPI.Barrier(comm)
+  end
+  rank == 0 && println()
+  
+#### now, let's MPI.Get on all ranks
+  
+# start the communication epoch
+  dest = 0
+  MPI.Win_fence(dest, win)
+# each rank reads from exposed windows of rank "dest"
+  MPI.Get(data, dest, win)
+# finish the communication epoch
+  MPI.Win_fence(dest, win)
+# print window content on all ranks
+  for j in 0:wsize-1
+    if rank == j
+      println("After Get, Rank $rank:")
+      @show data
+    end
+    MPI.Barrier(comm)
+  end
+  
+# free window
+  MPI.free(win)
+end  
+
+
+# Active RMA - 2 (using Put! and Get!)
+#--------------------------------------------------  
+if test == 12
+# allocate memory
+  data = fill(-1, wsize)
+# create RMA window on all ranks
+  win = MPI.Win_create(data,comm)
+  
+#### first, let's do MPI.Put on all ranks
+  
+# start the communication epoch
+  dest = 0
+  MPI.Win_fence(dest, win)
+# each rank writes to exposed windows of rank "dest"
+# Signature: obj, target_rank, target_displacement, window
+  disp = rank
+  snd  = rank
+  MPI.Put!(snd, dest, disp, win)
+# finish the communication epoch
+  MPI.Win_fence(dest, win)
+# print window content on all ranks
+  for j in 0:wsize-1
+    if rank == j
+      println("After Put, Rank $rank:")
+      @show data
+    end
+    MPI.Barrier(comm)
+  end
+  rank == 0 && println()
+  
+#### now, let's MPI.Get on all ranks
+  
+# start the communication epoch
+  dest = 0
+  MPI.Win_fence(dest, win)
+# each rank reads from exposed windows of rank "dest"
+  disp = 0
+  MPI.Get!(data, dest, disp, win)
+# finish the communication epoch
+  MPI.Win_fence(dest, win)
+# print window content on all ranks
+  for j in 0:wsize-1
+    if rank == j
+      println("After Get, Rank $rank:")
+      @show data
+    end
+    MPI.Barrier(comm)
+  end
+  
+# free window
+  MPI.free(win)
+end  
+
 
 #---------------------------------------------------------------------- 
 MPI.Finalize()
