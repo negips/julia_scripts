@@ -24,6 +24,7 @@ for i in 1:nsteps
   global fld,fldlag,Rhs,Rhslag,dotfld
   global t
   global pl,pl2,scat,λpl
+  global PlotContainers
 
   t = t + dt;
 
@@ -43,7 +44,7 @@ for i in 1:nsteps
   end
 
   dotfld    = Flow(fld[:,1],fld[:,2],fld[:,3])
-  λpar      = 0.25*(fld[:,2] .- 1.80*fld[:,3])
+  λpar      = ((fld[:,2]/eq_a) .- 0.5*(fld[:,3]./eq_λ))
   dotfld2   = Flow(fld[:,1],fld[:,2],λpar)
   dotfld[:,1:2] = dotfld2[:,1:2]
 
@@ -96,6 +97,17 @@ for i in 1:nsteps
        if ifdynplot
          λpl[1].remove()
        end
+
+       if (ifdynnull)
+#         PlotContainers[1][1].remove()
+#         PlotContainers[2][1].remove()
+#
+#         PlotContainers[3][1].remove()
+#         PlotContainers[4][1].remove()
+
+         PlotContainers[5][1].remove()
+         PlotContainers[6][1].remove()
+       end  
       
     end
 
@@ -115,6 +127,23 @@ for i in 1:nsteps
     if ifdynplot
       λpl =ax2.plot(Geom.xm1[:],Q*λpar,color=cm(4-1));
     end
+
+    if ifdynnull
+#      λmin = minimum(λpar)
+#      PlotContainers[1] = ax1.plot(ft(λmin),yin,linestyle=":",linewidth=2,color=cm(0));
+#      PlotContainers[2] = ax1.plot(gt(λmin),yin,linestyle=":",linewidth=2,color=cm(1));
+
+#      λmax = maximum(λpar)
+#      PlotContainers[3] = ax1.plot(ft(λmax),yin,linestyle="--",linewidth=2,color=cm(0));
+#      PlotContainers[4] = ax1.plot(gt(λmax),yin,linestyle="--",linewidth=2,color=cm(1));
+
+      index = argmax(fld[:,3])
+      λmax  = λpar[index]
+      PlotContainers[5] = ax1.plot(ft(λmax),yin,linestyle="--",linewidth=2,color=cm(0));
+      PlotContainers[6] = ax1.plot(gt(λmax),yin,linestyle="--",linewidth=2,color=cm(1));
+     
+    end  
+
     pause(0.001)
   end  
 

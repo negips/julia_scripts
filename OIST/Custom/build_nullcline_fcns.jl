@@ -57,6 +57,7 @@ lafs              = 16
 
 include("select_nullclines.jl")
 
+cm                = get_cmap("tab10")
 
 set               = sets[1]
 pars              = GetNullClineParams(set) 
@@ -78,10 +79,14 @@ if f(0.0,100.0)>0
 end  
 f0x,f0y           = NullClines(f,xi,yr0,yr1,nsteps,dτ)
 
-ax1.plot(f0x,f0y)
-ax1.plot(pars.xA,pars.yA,linestyle=" ",marker="s",fillstyle="none")
-ax1.plot(pars.xdxA,pars.ydxA,linestyle=" ",marker="x")
-ax1.plot(pars.xdyA,pars.ydyA,linestyle=" ",marker="x")
+# Container to hold plot handles
+PlotContainers    = Array{Any}(undef,10)
+
+PlotContainers[1] = ax1.plot(f0x,f0y,color=cm(0))
+PlotContainers[2] = ax1.plot(pars.xA,pars.yA,linestyle=" ",marker="s",fillstyle="none")
+PlotContainers[3] = ax1.plot(pars.xdxA,pars.ydxA,linestyle=" ",marker="x")
+PlotContainers[4] = ax1.plot(pars.xdyA,pars.ydyA,linestyle=" ",marker="x")
+
 
 xi                = -10.0
 yr0               = -50.0
@@ -99,10 +104,10 @@ end
 g0x,g0y           = NullClines(g,xi,yr0,yr1,nsteps,dτ)
 
 
-ax1.plot(g0x,g0y)
-ax1.plot(pars.xB,pars.yB,linestyle=" ",marker="o",fillstyle="none")
-ax1.plot(pars.xdxB,pars.ydxB,linestyle=" ",marker="x")
-ax1.plot(pars.xdyB,pars.ydyB,linestyle=" ",marker="x")
+PlotContainers[5] = ax1.plot(g0x,g0y,color=cm(1))
+PlotContainers[6] = ax1.plot(pars.xB,pars.yB,linestyle=" ",marker="o",fillstyle="none")
+PlotContainers[7] = ax1.plot(pars.xdxB,pars.ydxB,linestyle=" ",marker="x")
+PlotContainers[8] = ax1.plot(pars.xdyB,pars.ydyB,linestyle=" ",marker="x")
 
 ax1.set_xlabel(L"B", fontsize=lafs)
 ax1.set_ylabel(L"A", fontsize=lafs)

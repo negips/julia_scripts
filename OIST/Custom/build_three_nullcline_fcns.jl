@@ -124,10 +124,14 @@ if f(0.0,100.0)>0
 end  
 f0x,f0y           = NullClines(f,xi,yr0,yr1,nsteps,dτ)
 
-ax1.plot(f0x,f0y,color=cm(0))
-ax1.plot(pars.xA,pars.yA,linestyle=" ",marker="s",fillstyle="none")
-ax1.plot(pars.xdxA,pars.ydxA,linestyle=" ",marker="x")
-ax1.plot(pars.xdyA,pars.ydyA,linestyle=" ",marker="x")
+
+# Container to hold plot handles
+PlotContainers    = Array{Any}(undef,10)
+
+PlotContainers[1] = ax1.plot(f0x,f0y,color=cm(0))
+PlotContainers[2] = ax1.plot(pars.xA,pars.yA,linestyle=" ",marker="s",fillstyle="none")
+PlotContainers[3] = ax1.plot(pars.xdxA,pars.ydxA,linestyle=" ",marker="x")
+PlotContainers[4] = ax1.plot(pars.xdyA,pars.ydyA,linestyle=" ",marker="x")
 
 xi                = -10.0
 yr0               = -20.0
@@ -144,10 +148,10 @@ end
 g0x,g0y           = NullClines(g,xi,yr0,yr1,nsteps,dτ)
 
 
-ax1.plot(g0x,g0y,color=cm(1))
-ax1.plot(pars.xB,pars.yB,linestyle=" ",marker="o",fillstyle="none")
-ax1.plot(pars.xdxB,pars.ydxB,linestyle=" ",marker="x")
-ax1.plot(pars.xdyB,pars.ydyB,linestyle=" ",marker="x")
+PlotContainers[5] = ax1.plot(g0x,g0y,color=cm(1))
+PlotContainers[6] = ax1.plot(pars.xB,pars.yB,linestyle=" ",marker="o",fillstyle="none")
+PlotContainers[7] = ax1.plot(pars.xdxB,pars.ydxB,linestyle=" ",marker="x")
+PlotContainers[8] = ax1.plot(pars.xdyB,pars.ydyB,linestyle=" ",marker="x")
 
 ax1.set_xlabel(L"B", fontsize=lafs)
 ax1.set_ylabel(L"A", fontsize=lafs)
@@ -177,7 +181,7 @@ dτ                = 1.0e-3
 nsteps            = 200000
 f20x,f20y         = NullClines(f2,xi,yr0,yr1,nsteps,dτ)
 
-ax1.plot(f20x,f20y,color=cm(0),linestyle="--",label="λ=$λ0; ϕ=$ϕfd")
+PlotContainers[9] = ax1.plot(f20x,f20y,color=cm(0),linestyle="--",label="λ=$λ0; ϕ=$ϕfd")
 
 
 # Translated
@@ -199,30 +203,48 @@ dτ                = 1.0e-3
 nsteps            = 200000
 g20x,g20y         = NullClines(g2,xi,yr0,yr1,nsteps,dτ)
 
-ax1.plot(g20x,g20y,color=cm(1),linestyle="--",label="λ=$λ0; ϕ=$ϕgd")
-legend()
+PlotContainers[10] = ax1.plot(g20x,g20y,color=cm(1),linestyle="--",label="λ=$λ0; ϕ=$ϕgd")
+#legend()
 
-MoveFigure(h1,10,10)
+#MoveFigure(h1,10,10)
+MoveFigure(h1,1000,830)
+
+
+# Time dependent null-cline functions
+yin     = LinRange(-1.5,6.0,5000)
+gt(z)   = -1.0/pars.gcx[1]*TransFXY(0.0,yin,z,ϕg,pars.gc0,pars.gcx,pars.gcy)
+ft(z)   = -1.0/pars.fcx[1]*TransFXY(0.0,yin,z,ϕf,pars.fc0,pars.fcx,pars.fcy)
+
 
 pause(0.01)
 
-λc0 =  0.0    # constant term
-λcx =  0.0    # dependence on inhibitor b
-λcy =  0.075;   # dependence on activator a
-λcz = [-0.04; 0.0; -0.075]    # dependence on λ
+ϵ   = 0.1
+η  = 1.0
+
+# Equilibrium values of λ and a
+eq_λ   = 5.0
+eq_a   = 5.2
+λc0    =  0.0                 # constant term
+λcx    =  zeros(Float64,3)    # dependence on inhibitor b
+λcy    =  zeros(Float64,3)    # dependence on activator a
+λcz    =  zeros(Float64,3)    # dependence on λ
+λcy[1] = (1.0/eq_a)
+λcz[1] = -(1.0/eq_λ)
 
 println("Press x to stop. Any other key to continue")
 xin = readline()
 #xin = "x"
-ϵ   = 0.1
-η  = 1.0
 if xin !="x"
   F(x,y,z) = TransFXY(x,y,z,ϕf,pars.fc0,pars.fcx,pars.fcy)/ϵ
   G(x,y,z) = TransFXY(x,y,z,ϕg,pars.gc0,pars.gcx,pars.gcy)*η
   Λ(x,y,z) = FXYZ(x,y,z,λc0,λcx,λcy,λcz)
   Flow(x,y,z) = [G(x,y,z) F(x,y,z) Λ(x,y,z)]
+
+#  include("time_stepper_multiple_init.jl")
+
   include("time_stepper_multiple_three.jl")
 end
+
 
 
 

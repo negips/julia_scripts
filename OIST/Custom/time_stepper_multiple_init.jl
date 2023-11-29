@@ -92,10 +92,16 @@ if initplot
   end  
 end
 
-
-
-
-
+# Plot Dynamically moving Null-clines
+if (ifdynnull)
+  for i in 1:length(PlotContainers)
+    p = PlotContainers[i]
+    p[1].remove()
+    PlotContainers[i] = []
+  end
+end
+   
+pause(0.01)
 
 
 
