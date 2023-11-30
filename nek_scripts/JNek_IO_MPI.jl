@@ -1,13 +1,14 @@
 #     Port for reader_par.f
 #     Author:     Prabal Negi
+#
 
       module JNek_IO
-
       using MPI
 
       export read_re2_hdr,
              read_re2,
              read_re2_struct,
+             read_ma2_hdr,
              read_ma2,
              read_fld,
              read_fld_struct
@@ -114,24 +115,50 @@
         bl::Array{Float64}
 
       end       
+#---------------------------------------------------------------------- 
+     mutable struct ma2Hdr
+
+#       .ma2 data
+#        hdr::String
+        version::String
+        nel::Int 
+        nactive::Int 
+        depth::Int 
+        d2::Int 
+        npts::Int 
+        nrank::Int 
+        noutflow::Int 
+
+      end       
+
+
+#----------------------------------------------------------------------  
+     mutable struct ma2Field
+
+#       .ma2 data
+#        hdr::String
+        pmap::Vector{Int}
+        vmap::Array{Int}
+
+      end       
 
 
 #----------------------------------------------------------------------  
 
       function __init__()
 
-        if MPI.Initialized() == false
-
-          MPI.Init()
-
-        end    
-          
-        comm = MPI.COMM_WORLD
-        rank = MPI.Comm_rank(comm)
-
-        if rank == 0
-          println("Initialied MPI in Module JNek_IO")
-        end  
+#        if MPI.Initialized() == false
+#
+#          MPI.Init()
+#
+#        end    
+#          
+#        comm = MPI.COMM_WORLD
+#        rank = MPI.Comm_rank(comm)
+#
+#        if rank == 0
+#          println("Initialied MPI in Module JNek_IO")
+#        end  
 
         return nothing
       end 
@@ -148,9 +175,9 @@
 #----------------------------------------------------------------------
 
 
-      function read_re2_hdr(fid::IOStream, rank)
+      function read_re2_hdr(fid::IOStream)
 
-        println("Re2: Reading Header on rank $(rank)")
+        println(".re2: Reading Header")
         
         nbytes  = 20*4
         hdrutf  = read(fid,nbytes)
@@ -174,7 +201,7 @@
       end     # read_re2_hdr
 
 #---------------------------------------------------------------------- 
-      function read_re2(f::String, nid0::Int64)
+      function read_re2(f::String, nid0::Int64, comm)
 
         hdr = repeat(" ", 26)
         version = repeat(" ", 5)
@@ -182,14 +209,14 @@
         nelgv = 0
         ldimr = 0
 
-        comm = MPI.COMM_WORLD
+#        comm = MPI.COMM_WORLD
         rank = MPI.Comm_rank(comm)
 
         if rank == nid0
-          println("Reading $(f) on rank $(MPI.Comm_rank(comm))\n")
+          println("Reading $(f) on rank $rank")
 
           fid = open(f, "r")
-          hdr,version,nelgt,ldimr,nelgv,if_byte_swap = read_re2_hdr(fid,rank)
+          hdr,version,nelgt,ldimr,nelgv,if_byte_swap = read_re2_hdr(fid)
         end  
 
         MPI.Barrier(comm)
@@ -210,7 +237,7 @@
         end   
 
 #       Read the Mesh data here
-        xc,yc,zc = read_re2_mesh(fid,nid0,ldimr,nelgt,wdsizi)
+        xc,yc,zc = read_re2_mesh(fid,nid0,ldimr,nelgt,wdsizi,comm)
 
         ncurve,curveieg,curveiside,curveparam,curvetype = read_re2_curve(fid,nid0,ldimr,nelgt,wdsizi)
 
@@ -225,7 +252,7 @@
 
 #---------------------------------------------------------------------- 
 
-      function read_re2_struct(f::String, nid0::Int64)
+      function read_re2_struct(f::String, nid0::Int64, comm)
 
         hdr = repeat(" ", 26)
         version = repeat(" ", 5)
@@ -233,14 +260,14 @@
         nelgv = 0
         ldimr = 0
 
-        comm = MPI.COMM_WORLD
+#        comm = MPI.COMM_WORLD
         rank = MPI.Comm_rank(comm)
 
         if rank == nid0
-          println("Reading $(f) on rank $(MPI.Comm_rank(comm))\n")
+          println("Reading $(f) on rank $rank")
 
           fid = open(f, "r")
-          hdr,version,nelgt,ldimr,nelgv,if_byte_swap = read_re2_hdr(fid,rank)
+          hdr,version,nelgt,ldimr,nelgv,if_byte_swap = read_re2_hdr(fid)
         end  
 
         MPI.Barrier(comm)
@@ -261,7 +288,7 @@
         end   
 
 #       Read the Mesh data here
-        xc,yc,zc = read_re2_mesh(fid,nid0,ldimr,nelgt,wdsizi)
+        xc,yc,zc = read_re2_mesh(fid,nid0,ldimr,nelgt,wdsizi,comm)
 
         ncurve,curveieg,curveiside,curveparam,curvetype = read_re2_curve(fid,nid0,ldimr,nelgt,wdsizi)
 
@@ -286,14 +313,14 @@
 
 #---------------------------------------------------------------------- 
 
-      function read_re2_mesh(fid::IOStream, nid0::Int64,ldim::Int64,nelgt::Int64,wdsizi::Int64)
+      function read_re2_mesh(fid::IOStream, nid0::Int64,ldim::Int64,nelgt::Int64,wdsizi::Int64, comm)
 
 #       Pointer to re2 data in file.
 #       Header + test pattern byte length
         recpos  = 84
         seek(fid,recpos)
 
-        comm = MPI.COMM_WORLD
+#        comm = MPI.COMM_WORLD
         rank = MPI.Comm_rank(comm)
 
         nc   = 2^ldim
@@ -445,62 +472,140 @@
       end     # read_re2_bc
 
 #---------------------------------------------------------------------- 
+      function read_ma2_hdr(fid::IOStream)
 
-      function read_ma2(f::String, nid0::Int64)
-
-        comm = MPI.COMM_WORLD
-
-        if MPI.Comm_rank(comm) == nid0
-          println("Reading $(f) on rank $(MPI.Comm_rank(comm))")
-        end
+        println(".ma2: Reading Header")
         
-        MPI.Barrier(comm)
+        nbytes    = 132
+        hdrutf    = read(fid,nbytes)
+
+        test         = read(fid,Float32)
+        if_byte_swap = byte_swap_test(test)
+
+        hdrC      = Char.(hdrutf)
+        version   = String(hdrC[1:5])
+
+        nilen     = 12
+        i         = 5
+        nelS      = String(hdrC[i+1:i+nilen])
+        i         = i+nilen
+        nactiveS  = String(hdrC[i+1:i+nilen])
+        i         = i+nilen
+        depthS    = String(hdrC[i+1:i+nilen])
+        i         = i+nilen
+        d2S       = String(hdrC[i+1:i+nilen])
+        i         = i+nilen
+        nptsS     = String(hdrC[i+1:i+nilen])
+        i         = i+nilen
+        nrankS    = String(hdrC[i+1:i+nilen])
+        i         = i+nilen
+        noutflowS = String(hdrC[i+1:i+nilen])
+        i         = i+nilen
+
+        nel       = parse(Int, nelS)
+        nactive   = parse(Int, nactiveS)
+        depth     = parse(Int, depthS)
+        d2        = parse(Int, d2S)
+        npts      = parse(Int, nptsS)
+        nrank     = parse(Int, nrankS)
+        noutflow  = parse(Int, noutflowS)
+
+        hdr       = String(hdrC)
+
+        return hdr,version,nel,nactive,depth,d2,npts,nrank,noutflow
+      end     # read_ma2_hdr
+
+#---------------------------------------------------------------------- 
+
+      function read_ma2(f::String, nid0::Int64,comm)
 
         rank = MPI.Comm_rank(comm)
 
         if rank == nid0
+          println("Reading $(f) on rank $rank")
+        end
+        
+        MPI.Barrier(comm)
+
+        if rank == nid0
           fid = open(f, "r")
+
+          hdr,version,nel,nactive,depth,d2,npts,nrank,noutflow = read_ma2_hdr(fid)
         end
 
-        close(fid)
+        buf = MPI.Buffer(hdr,132,MPI.CHAR)
+        MPI.Bcast!(buf,     nid0,comm)
 
-        return nothing
+        buf = MPI.Buffer(version,5,MPI.CHAR)
+        MPI.Bcast!(buf,     nid0,comm)
+
+        nel       = MPI.bcast(nel,        nid0,comm)
+        nactive   = MPI.bcast(nactive,    nid0,comm)
+        depth     = MPI.bcast(depth,      nid0,comm)
+        d2        = MPI.bcast(d2,         nid0,comm)
+        npts      = MPI.bcast(npts,       nid0,comm)
+        nrank     = MPI.bcast(nrank,      nid0,comm)
+        noutflow  = MPI.bcast(noutflow,   nid0,comm)
+
+        ma2hdr = ma2Hdr(version,nel,nactive,depth,d2,npts,nrank,noutflow)
+
+        pmap, vmap = read_ma2_data(fid,nid0,nel,npts,comm)
+
+        ma2data = ma2Field(pmap,vmap)
+
+        if rank == nid0
+          close(fid)
+        end  
+
+        return ma2hdr, ma2data
       end     # read_ma2
 
 #----------------------------------------------------------------------
+      function read_ma2_data(fid::IOStream, nid0::Int,nel::Int,npts::Int, comm)
 
-      function byte_swap_test(test::Float32)
+#       Pointer to re2 data in file.
+#       Header + test pattern byte length
+        recpos  = 132+4
+        seek(fid,recpos)
 
-        pattern::Float32  = 6.54321
-        eps::Float32      = 0.00020 
-        if_byte_swap      = false
-         
-        etest = abs(test - pattern)
-        if (etest>eps) 
-          if_byte_swap    = true
-        end
+        rank = MPI.Comm_rank(comm)
 
-        return if_byte_swap
+        nvert = Int(npts/nel)
+        pmap  = Vector{Int}(undef,nel)
+        vmap  = Matrix{Int}(undef,nvert,nel)
 
-      end  
+        ni    = nvert+1
+        line  = Vector{Int32}(undef,ni)
 
+        for e in 1:nel
+          if rank == nid0
+            read!(fid,line)
+            pmap[e] = line[1]
+            for i in 1:nvert
+              vmap[i,e] = line[i+1]
+            end 
+          end   # if rank == nid0
+        end     # e=1:nel
+
+        return pmap,vmap 
+      end     # read_ma2_data
 #----------------------------------------------------------------------
-      function read_fld_struct(f::String, MPI::Module, nid0::Int64)
+
+      function read_fld_struct(f::String, MPI::Module, nid0::Int64, comm)
 
 #       Read field file and return a NekField* Structure
-        comm = MPI.COMM_WORLD
+#        comm = MPI.COMM_WORLD
+        rank = MPI.Comm_rank(comm)
 
-        if MPI.Comm_rank(comm) == nid0
-          println("Reading $(f) on rank $(MPI.Comm_rank(comm))\n")
+        if rank == nid0
+          println("Reading $(f) on rank $rank\n")
         end
         
         MPI.Barrier(comm)
 
         fid = open(f, "r")
 
-        rank = MPI.Comm_rank(comm)
-
-        hdr,version,wdsizi,nx,ny,nz,nel,nelgt,time,istep,fid0,nfileo,rdcode,p0th,ifprmesh,if_byte_swap = read_fld_std_hdr(fid,rank,nid0)
+        hdr,version,wdsizi,nx,ny,nz,nel,nelgt,time,istep,fid0,nfileo,rdcode,p0th,ifprmesh,if_byte_swap = read_fld_std_hdr(fid,nid0,comm)
 
         buf = MPI.Buffer(hdr,length(hdr),MPI.CHAR)
         MPI.Bcast!(buf,       nid0,comm)
@@ -526,7 +631,7 @@
         if_byte_swap    = MPI.bcast(if_byte_swap,     nid0,comm)
 
 #       Read the data here        
-        glnum,x,y,z,u,v,w,p,t = read_fld_data(fid, nid0,nx,ny,nz,nelgt,rdcode,wdsizi)
+        glnum,x,y,z,u,v,w,p,t = read_fld_data(fid, nid0,nx,ny,nz,nelgt,rdcode,wdsizi,comm)
 
         if wdsizi==4
           fld = NekField8(hdr,version,wdsizi,nx,ny,nz,nel,nelgt,time,istep,fid0,nfileo,rdcode,p0th,ifprmesh,glnum,x,y,z,u,v,w,p,t)  
@@ -545,22 +650,21 @@
 
 #---------------------------------------------------------------------- 
 
-      function read_fld(f::String, MPI::Module, nid0::Int64)
+      function read_fld(f::String, MPI::Module, nid0::Int64, comm)
 
 
-        comm = MPI.COMM_WORLD
+#        comm = MPI.COMM_WORLD
 
-        if MPI.Comm_rank(comm) == nid0
-          println("Reading $(f) on rank $(MPI.Comm_rank(comm))\n")
+        rank = MPI.Comm_rank(comm)
+
+        if rank == nid0
+          println("Reading $(f) on rank $rank)\n")
         end
         
         MPI.Barrier(comm)
 
         fid = open(f, "r")
-
-        rank = MPI.Comm_rank(comm)
-
-        hdr,version,wdsizi,nx,ny,nz,nel,nelgt,time,istep,fid0,nfileo,rdcode,p0th,ifprmesh,if_byte_swap = read_fld_std_hdr(fid,rank,nid0)
+        hdr,version,wdsizi,nx,ny,nz,nel,nelgt,time,istep,fid0,nfileo,rdcode,p0th,ifprmesh,if_byte_swap = read_fld_std_hdr(fid,nid0,comm)
 
         buf = MPI.Buffer(hdr,length(hdr),MPI.CHAR)
         MPI.Bcast!(buf,       nid0,comm)
@@ -586,7 +690,7 @@
         if_byte_swap    = MPI.bcast(if_byte_swap,     nid0,comm)
 
 #       Read the data here        
-        glnum,x,y,z,u,v,w,p,t = read_fld_data(fid, nid0,nx,ny,nz,nelgt,rdcode,wdsizi)
+        glnum,x,y,z,u,v,w,p,t = read_fld_data(fid, nid0,nx,ny,nz,nelgt,rdcode,wdsizi,comm)
 
         close(fid)
 
@@ -595,7 +699,7 @@
 
 #---------------------------------------------------------------------- 
 
-      function read_fld_std_hdr(fid::IOStream, rank, nid0)
+      function read_fld_std_hdr(fid::IOStream, nid0, comm)
 
 #        comm = MPI.COMM_WORLD
         
@@ -614,6 +718,8 @@
         rdcode        = repeat(" ",10)
         p0th          = 0.0 
         ifprmesh      = false
+
+        rank = MPI.Comm_rank(comm)
 
         if rank == nid0
           println("Fld: Reading Header on rank $(rank)")
@@ -693,14 +799,13 @@
         return hdr,version,wdsize,nx,ny,nz,nel,nelgt,time,istep,fid0,nfileo,rdcode,p0th,ifprmesh,if_byte_swap
       end     # read_fld_std_hdr
 #---------------------------------------------------------------------- 
-      function read_fld_data(fid::IOStream, nid0::Int64,nx::Int64,ny::Int64,nz::Int64,nelgt::Int64,rdcode::String,wdsizi::Int64)
+      function read_fld_data(fid::IOStream, nid0::Int64,nx::Int64,ny::Int64,nz::Int64,nelgt::Int64,rdcode::String,wdsizi::Int64, comm)
 
 #       Pointer to re2 data in file.
 #       Header + test pattern byte length
         recpos  = 132+4
         seek(fid,recpos)
 
-        comm = MPI.COMM_WORLD
         rank = MPI.Comm_rank(comm)
 
         glnum    = Vector{Int32}(undef,nelgt)
@@ -768,7 +873,6 @@
         w   = Array{Float64,4}(undef,nx,ny,nz,nelgt)
 
         p   = Array{Float64,4}(undef,nx,ny,nz,nelgt)
-
        
         t   = Array{Float64,5}(undef,nx,ny,nz,nelgt,nt)
 
@@ -840,9 +944,25 @@
       end     # read_fld_data
 
 #---------------------------------------------------------------------- 
+      function byte_swap_test(test::Float32)
+
+        pattern::Float32  = 6.54321
+        eps::Float32      = 0.00020 
+        if_byte_swap      = false
+         
+        etest = abs(test - pattern)
+        if (etest>eps) 
+          if_byte_swap    = true
+        end
+
+        return if_byte_swap
+
+      end  
+
+#----------------------------------------------------------------------
 
 #---------------------------------------------------------------------- 
-      end   # Module JNek_IO
+      end   # Module JNek_IO_MPI
 
 
 
