@@ -44,8 +44,10 @@ for i in 1:nsteps
   end
 
   dotfld    = Flow(fld[:,1],fld[:,2],fld[:,3])
-  λpar      = ((fld[:,2]/eq_a) .- 0.5*(fld[:,3]./eq_λ))
-  dotfld2   = Flow(fld[:,1],fld[:,2],λpar)
+#  λpar      = 0.25*copy(fld[:,3])
+  λpar      = (fld[:,2]./5.0).^2 .- 0.5*(fld[:,3])
+#  λpar      = ((fld[:,2]/eq_a) .- 1.1*(fld[:,3]./eq_λ))
+  dotfld2   = Flow(fld[:,1],fld[:,2],0.0)
   dotfld[:,1:2] = dotfld2[:,1:2]
 
   for j in 1:nflds
@@ -86,7 +88,7 @@ for i in 1:nsteps
     if (i>plotupd)
        if (iffldplot)
          for j in 1:nflds
-          if (iffldi[j])
+          if (plotfldi[j])
             pl[j][1].remove()
           end
         end  
@@ -107,6 +109,7 @@ for i in 1:nsteps
 
          PlotContainers[5][1].remove()
          PlotContainers[6][1].remove()
+         PlotContainers[7][1].remove()
        end  
       
     end
@@ -114,7 +117,7 @@ for i in 1:nsteps
 #   Add updated plots      
     if (iffldplot)
       for j in 1:nflds
-        if (iffldi[j])
+        if (plotfldi[j])
           pl[j] = ax2.plot(Geom.xm1[:],Q*fld[:,j],color=cm(j-1));
         end
       end  
@@ -141,7 +144,11 @@ for i in 1:nsteps
       λmax  = λpar[index]
       PlotContainers[5] = ax1.plot(ft(λmax),yin,linestyle="--",linewidth=2,color=cm(0));
       PlotContainers[6] = ax1.plot(gt(λmax),yin,linestyle="--",linewidth=2,color=cm(1));
-     
+
+      bmax  = fld[index,1]
+      amax  = fld[index,2]
+      PlotContainers[7] = ax1.plot(bmax,amax,linestyle="none",marker="s",markersize=6,color=cm(2));
+    
     end  
 
     pause(0.001)

@@ -6,7 +6,7 @@ U                 = prec(0)         # Convection
 γ                 = prec(1)         # Diffusion (Generic) 
 γa                = prec(0.2)       # Diffusion (activator)
 γb                = prec(0.01)      # Diffusion (inhibitor)
-γλ                = prec(0.15)       # Diffusion for auxillary variable
+γλ                = prec(0.1)        # Diffusion for auxillary variable
 γall              = [γb γa γλ]
 σa                =  0.0             # Activator Noise Strength
 σb                =  0.0             # Inhibitor Noise Strength
@@ -48,7 +48,7 @@ Off0              = [B0Off; A0Off; λ0Off]
 
 # Simulation
 dt                = prec(0.01)        # Time step
-nsteps            = 50000             # No of steps
+nsteps            = 30000             # No of steps
 nstep_switch1     = 3000              # Switch functions 1
 nstep_switch2     = 12100             # Switch again
 
@@ -65,8 +65,8 @@ initplot          = true      # Plot initial conditions
 ifdynnull         = true      # Plot null-clines dynamically
 
 ifplot            = iffldplot || ifphplot || ifdynplot 
-iffldi            = fill(true,3)
-iffldi[1]         = false
+plotfldi          = fill(true,3)
+plotfldi[1]       = false
 
 
 

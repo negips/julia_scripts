@@ -109,6 +109,8 @@ pars              = GetNullClineParams(set)
 
 h1                = figure(num=1)
 ax1               = h1.subplots()
+#MoveFigure(h1,10,10)
+MoveFigure(h1,1250,830)
 
 xi                = -20.0
 yr0               = -10.0
@@ -207,7 +209,7 @@ PlotContainers[10] = ax1.plot(g20x,g20y,color=cm(1),linestyle="--",label="λ=$λ
 #legend()
 
 #MoveFigure(h1,10,10)
-MoveFigure(h1,1000,830)
+MoveFigure(h1,1250,830)
 
 
 # Time dependent null-cline functions
@@ -222,13 +224,13 @@ pause(0.01)
 η  = 1.0
 
 # Equilibrium values of λ and a
-eq_λ   = 5.0
-eq_a   = 5.2
+eq_λ   = 10.0
+eq_a   = 10.0
 λc0    =  0.0                 # constant term
 λcx    =  zeros(Float64,3)    # dependence on inhibitor b
 λcy    =  zeros(Float64,3)    # dependence on activator a
 λcz    =  zeros(Float64,3)    # dependence on λ
-λcy[1] = (1.0/eq_a)
+λcy[2] = (1.0/eq_a)^2
 λcz[1] = -(1.0/eq_λ)
 
 println("Press x to stop. Any other key to continue")
