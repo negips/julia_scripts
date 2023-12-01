@@ -6,6 +6,7 @@
       using PyPlot 
       
       include("JNek_IO_MPI.jl")            # JNek_IO
+      include("NekTools.jl")
       
       using MPI
 
@@ -19,8 +20,8 @@
       rank    = MPI.Comm_rank(comm)
 
       rea     = "box.rea"
-      re2     = "three.re2"
-      ma2     = "three.ma2"
+      re2     = "cyl.re2"
+      ma2     = "cyl.ma2"
       file1   = "cyl0.f00001"
 
 #      wdsizi,hdr,version,nelgt,ldimr,nelgv,xc,yc,zc,ncurve,curveieg,curveiside,curveparam,curvetype,cbl,bl = JNek_IO.read_re2(re2,nid0)
@@ -28,7 +29,8 @@
 
       ma2hdr,ma2data  = JNek_IO.read_ma2(ma2,nid0,comm)
 
-      fld  = JNek_IO.read_fld_struct(file1,MPI,nid0, comm)
+
+#      fld  = JNek_IO.read_fld_struct(file1,MPI,nid0, comm)
 
 #      hdr,version,wdsize,nx,ny,nz,nel,nelgt,time,istep,fid0,nfileo,rdcode,p0th,ifprmesh,glnum,x2,y2,z2,u2,v2,w2,p2,t2 = JNek_IO.read_fld(file12,MPI,nid0)
 #       e    = 1; 
