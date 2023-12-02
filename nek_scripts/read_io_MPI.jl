@@ -5,7 +5,7 @@
       using PyCall
       using PyPlot 
       
-      include("JNek_IO_MPI.jl")            # JNek_IO
+      include("JNek_IO.jl")            # JNek_IO
       include("NekTools.jl")
       
       using MPI
