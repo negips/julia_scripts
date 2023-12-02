@@ -8,7 +8,7 @@
       include("JNek_IO_Extends.jl")
 
       using MPI
-      using PyPlot
+      using HDF5
 
       export NekField,
              Re2Field
@@ -912,7 +912,51 @@
           newmap.vmap[:,i]    = map.vmap[:,j]
         end 
 
-#       Write out to a hdf5 file
+#       Write out an hdf5 file
+        fname = case*".rema2.h5"
+        fid = h5open(fname, "w")
+#       .re2 data        
+        g = create_group(fid,"Re2")
+        g1 = create_group(g,"Params") 
+        g2 = create_group(g,"Data")        
+
+        write_dataset(g1,"ndim",newre2.ldimr)
+        write_dataset(g1,"nelgv",newre2.nelgv)
+        write_dataset(g1,"nelgt",newre2.nelgt)
+
+        write_dataset(g2,"xc",newre2.xc)
+        write_dataset(g2,"yc",newre2.yc)
+        write_dataset(g2,"zc",newre2.zc)
+        write_dataset(g2,"bcs",newre2.cbl)
+        write_dataset(g2,"bcparams",newre2.bl)
+        if (newre2.ncurve>0)
+          write_dataset(g1,"ncurve",newre2.ncurve)
+          write_dataset(g2,"curveieg",newre2.curveieg)
+          write_dataset(g2,"curveiside",newre2.curveiside)
+          write_dataset(g2,"curveparam",newre2.curveparam)
+          write_dataset(g2,"curvetype",newre2.curvetype)
+        end  
+
+#       .ma2 data        
+        h  = create_group(fid,"Ma2")
+        h1 = create_group(h,"Params")
+        h2 = create_group(h,"Data")
+
+        write_dataset(h1,"d2",hdr.d2)
+        write_dataset(h1,"depth",hdr.depth)
+        write_dataset(h1,"nactive",hdr.nactive)
+        write_dataset(h1,"nel",hdr.nel)
+        write_dataset(h1,"noutflow",hdr.noutflow)
+        write_dataset(h1,"npts",hdr.npts)
+        write_dataset(h1,"nrank",hdr.nrank)
+
+        write_dataset(h2,"pmap",newmap.pmap)
+        write_dataset(h2,"vmap",newmap.vmap)
+
+
+        close(fid)
+
+
 
 
 #       For now just returning the new data        
