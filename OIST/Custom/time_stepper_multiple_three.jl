@@ -16,6 +16,10 @@ include("../GetBDF.jl")
 
 include("time_stepper_multiple_init.jl")
 
+X = Geom.xm1[:];
+X[end] = X[1]
+QTX = QT*(X.*vimult)
+
 # No dynamic phase here
 ifdynplot         = true
 ifplot            = iffldplot || ifphplot
@@ -45,9 +49,9 @@ for i in 1:nsteps
 
   dotfld    = Flow(fld[:,1],fld[:,2],fld[:,3])
 #  λpar      = 0.25*copy(fld[:,3])
-  λpar      = (fld[:,2]./5.0).^2 .- 0.5*(fld[:,3])
+  λpar      = (fld[:,2]./eq_a).^2 .- 1.5*(fld[:,3]/eq_λ)
 #  λpar      = ((fld[:,2]/eq_a) .- 1.1*(fld[:,3]./eq_λ))
-  dotfld2   = Flow(fld[:,1],fld[:,2],0.0)
+  dotfld2   = Flow(fld[:,1],fld[:,2],1.0*λpar)
   dotfld[:,1:2] = dotfld2[:,1:2]
 
   for j in 1:nflds
@@ -141,9 +145,10 @@ for i in 1:nsteps
 #      PlotContainers[4] = ax1.plot(gt(λmax),yin,linestyle="--",linewidth=2,color=cm(1));
 
       index = argmax(fld[:,3])
+#      index = argmin(abs.(QTX .- x0gauss[1]))      
       λmax  = λpar[index]
       PlotContainers[5] = ax1.plot(ft(λmax),yin,linestyle="--",linewidth=2,color=cm(0));
-      PlotContainers[6] = ax1.plot(gt(λmax),yin,linestyle="--",linewidth=2,color=cm(1));
+      PlotContainers[6] = ax1.plot(gt(0.0*λmax),yin,linestyle="--",linewidth=2,color=cm(1));
 
       bmax  = fld[index,1]
       amax  = fld[index,2]

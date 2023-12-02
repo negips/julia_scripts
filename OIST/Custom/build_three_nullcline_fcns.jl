@@ -36,7 +36,6 @@ function FXYZ(x,y,z,c0,cx,cy,cz)
 end  
 #---------------------------------------------------------------------- 
 
-
 function FXY(x,y,c0,cx,cy)
   nx = length(cx)
   ny = length(cy)
@@ -166,14 +165,14 @@ ax1.set_ylim(-1.5,6.0)
 stabilizing = true
 # Translated
 if stabilizing 
-  ϕfd               = 150.0
+  ϕfd               = 180 #150.0
 else
   ϕfd               = -30.0
 end  
 
 println("F(x,y) Translated with Slope: $ϕfd Degrees")
 ϕf                = ϕfd*π/180.0
-λ0                = 1.0
+λ0                =  1.0
 f2(x,y)           = TransFXY(x,y,λ0,ϕf,pars.fc0,pars.fcx,pars.fcy)
 
 xi                = -20.0
@@ -225,11 +224,13 @@ pause(0.01)
 
 # Equilibrium values of λ and a
 eq_λ   = 10.0
-eq_a   = 10.0
+eq_a   = 5.0
 λc0    =  0.0                 # constant term
 λcx    =  zeros(Float64,3)    # dependence on inhibitor b
 λcy    =  zeros(Float64,3)    # dependence on activator a
 λcz    =  zeros(Float64,3)    # dependence on λ
+λc0    = 0.0
+λcy[1] = -0.0/eq_a
 λcy[2] = (1.0/eq_a)^2
 λcz[1] = -(1.0/eq_λ)
 
@@ -237,8 +238,8 @@ println("Press x to stop. Any other key to continue")
 xin = readline()
 #xin = "x"
 if xin !="x"
+  G(x,y,z) = TransFXY(x,y,0.0,ϕg,pars.gc0,pars.gcx,pars.gcy)*η
   F(x,y,z) = TransFXY(x,y,z,ϕf,pars.fc0,pars.fcx,pars.fcy)/ϵ
-  G(x,y,z) = TransFXY(x,y,z,ϕg,pars.gc0,pars.gcx,pars.gcy)*η
   Λ(x,y,z) = FXYZ(x,y,z,λc0,λcx,λcy,λcz)
   Flow(x,y,z) = [G(x,y,z) F(x,y,z) Λ(x,y,z)]
 

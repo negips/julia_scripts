@@ -6,9 +6,9 @@ U                 = prec(0)         # Convection
 γ                 = prec(1)         # Diffusion (Generic) 
 γa                = prec(0.2)       # Diffusion (activator)
 γb                = prec(0.01)      # Diffusion (inhibitor)
-γλ                = prec(0.1)        # Diffusion for auxillary variable
+γλ                = prec(0.001)        # Diffusion for auxillary variable
 γall              = [γb γa γλ]
-σa                =  0.0             # Activator Noise Strength
+σa                =  0.0e-2          # Activator Noise Strength
 σb                =  0.0             # Inhibitor Noise Strength
 σλ                =  0.0             # Aux. Noise Strength
 σall              = [σb σa σλ]
@@ -61,12 +61,12 @@ nsurf_save        = floor(Int,nsteps/surf_save)+1
 iffldplot         = true      # Plot fields
 ifphplot          = true      # Plot Phase A-B
 ifdynplot         = true      # Plot dynamic phase (λ)
-initplot          = true      # Plot initial conditions
+initplot          = false      # Plot initial conditions
 ifdynnull         = true      # Plot null-clines dynamically
 
 ifplot            = iffldplot || ifphplot || ifdynplot 
 plotfldi          = fill(true,3)
-plotfldi[1]       = false
+plotfldi[1]       = true
 
 
 
