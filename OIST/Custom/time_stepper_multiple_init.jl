@@ -57,6 +57,7 @@ time        = range(0.,step=dt,length=nsteps);
 
 h2          = figure(num=2)
 ax2         = h2.subplots()
+MoveFigure(h2,1250,10)
 
 t           = 0.
 
@@ -69,7 +70,7 @@ end
 pl = Array{Any}(undef,nflds)
 if initplot
   for j in 1:nflds
-    if (iffldi[j])
+    if (plotfldi[j])
       pl[j] = ax2.plot(Geom.xm1[:],Q*fld[:,j],color=cm(j-1));
 #      pl2   = ax2.plot(Geom.xm1[:],Q*fld[:,2],color=rgba1);
     end
@@ -81,7 +82,7 @@ if initplot
   xin = readline()
 
   for j in 1:nflds
-    if (iffldi[j])
+    if (plotfldi[j])
       pl[j][1].remove();
     end
   end  
@@ -100,7 +101,7 @@ if (ifdynnull)
     PlotContainers[i] = []
   end
 end
-   
+
 pause(0.01)
 
 
