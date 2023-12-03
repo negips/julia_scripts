@@ -27,6 +27,9 @@
       JNek_IO.gen_rema2(casename,nid0,comm)
 
       h5name   = casename*".rema2.h5"
+      nel   = 0
+      ndim  = 0
+      
       if rank == nid0
         fid      = h5open(h5name, "r")
 
@@ -46,7 +49,7 @@
         pmap     = read(h2,"pmap")    # Processor Map
         vmap     = read(h2,"vmap")    # Vertex Map
       end  
-     
+
       nel   = MPI.bcast(nel,  nid0, comm)
       ndim  = MPI.bcast(ndim, nid0, comm)
 
