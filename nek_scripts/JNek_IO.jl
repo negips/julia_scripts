@@ -897,6 +897,7 @@
           nel         = re2.nelgt
           @assert hdr.nel == re2.nelgt "Total Elements don't Match. $(hdr.nel), $(nel)"
 
+#         Get index key for sorted map          
           key         = sortperm(map.pmap)
           keyinv      = Base.copy(key)
           for i in 1:nel
@@ -934,29 +935,91 @@
             newmap.vmap[:,i]    = map.vmap[:,j]
           end 
 
+#         Generate "case.rema2.h5" file
+          gen_rema2_h5(case,newre2,hdr,newmap,nid0,comm)
+         
+
+##         Write out an hdf5 file
+#          fname = case*".rema2.h5"
+#          fid   = h5open(fname, "w")
+##         .re2 data        
+#          g  = create_group(fid,"Re2")
+#          g1 = create_group(g,"Params") 
+#          g2 = create_group(g,"Data")        
+#
+#          write_dataset(g1,"ndim",newre2.ldimr)
+#          write_dataset(g1,"nelgv",newre2.nelgv)
+#          write_dataset(g1,"nelgt",newre2.nelgt)
+#          write_dataset(g1,"wdsize",newre2.wdsize)
+#
+#          write_dataset(g2,"xc",newre2.xc)
+#          write_dataset(g2,"yc",newre2.yc)
+#          write_dataset(g2,"zc",newre2.zc)
+#          write_dataset(g2,"bcs",newre2.cbl)
+#          write_dataset(g2,"bcparams",newre2.bl)
+#          if (newre2.ncurve>0)
+#            write_dataset(g1,"ncurve",newre2.ncurve)
+#            write_dataset(g2,"curveieg",newre2.curveieg)
+#            write_dataset(g2,"curveiside",newre2.curveiside)
+#            write_dataset(g2,"curveparam",newre2.curveparam)
+#            write_dataset(g2,"curvetype",newre2.curvetype)
+#          end  
+#
+##         .ma2 data        
+#          h  = create_group(fid,"Ma2")
+#          h1 = create_group(h,"Params")
+#          h2 = create_group(h,"Data")
+#
+#          write_dataset(h1,"d2",hdr.d2)
+#          write_dataset(h1,"depth",hdr.depth)
+#          write_dataset(h1,"nactive",hdr.nactive)
+#          write_dataset(h1,"nel",hdr.nel)
+#          write_dataset(h1,"noutflow",hdr.noutflow)
+#          write_dataset(h1,"npts",hdr.npts)
+#          write_dataset(h1,"nrank",hdr.nrank)
+#
+#          write_dataset(h2,"pmap",newmap.pmap)
+#          write_dataset(h2,"vmap",newmap.vmap)
+#
+#          close(fid)
+        end       # rank == nid0  
+
+#       For now just returning the new data        
+        return nothing # newre2,newmap 
+      end
+#----------------------------------------------------------------------
+      function gen_rema2_h5(case::String,re2::Re2Field,hdr::ma2Hdr,map::ma2Field,nid0::Int,comm::MPI.Comm)
+
+        rank = MPI.Comm_rank(comm)
+
+        if rank == nid0 
+          nel         = re2.nelgt
+          @assert hdr.nel == re2.nelgt "Total Elements don't Match. $(hdr.nel), $(nel)"
+
 #         Write out an hdf5 file
           fname = case*".rema2.h5"
-          fid = h5open(fname, "w")
+          fid   = h5open(fname, "w")
 #         .re2 data        
-          g = create_group(fid,"Re2")
+          g  = create_group(fid,"Re2")
           g1 = create_group(g,"Params") 
           g2 = create_group(g,"Data")        
 
-          write_dataset(g1,"ndim",newre2.ldimr)
-          write_dataset(g1,"nelgv",newre2.nelgv)
-          write_dataset(g1,"nelgt",newre2.nelgt)
+          write_dataset(g1,"ndim",re2.ldimr)
+          write_dataset(g1,"nelgv",re2.nelgv)
+          write_dataset(g1,"nelgt",re2.nelgt)
+          write_dataset(g1,"wdsize",re2.wdsize)
 
-          write_dataset(g2,"xc",newre2.xc)
-          write_dataset(g2,"yc",newre2.yc)
-          write_dataset(g2,"zc",newre2.zc)
-          write_dataset(g2,"bcs",newre2.cbl)
-          write_dataset(g2,"bcparams",newre2.bl)
-          if (newre2.ncurve>0)
-            write_dataset(g1,"ncurve",newre2.ncurve)
-            write_dataset(g2,"curveieg",newre2.curveieg)
-            write_dataset(g2,"curveiside",newre2.curveiside)
-            write_dataset(g2,"curveparam",newre2.curveparam)
-            write_dataset(g2,"curvetype",newre2.curvetype)
+          write_dataset(g2,"xc",re2.xc)
+          write_dataset(g2,"yc",re2.yc)
+          write_dataset(g2,"zc",re2.zc)
+          write_dataset(g2,"bcs",re2.cbl)
+          write_dataset(g2,"bcparams",re2.bl)
+          if (re2.ncurve>0)
+            write_dataset(g1,"ncurve",re2.ncurve)
+            write_dataset(g2,"curveieg",re2.curveieg)
+            write_dataset(g2,"curveiside",re2.curveiside)
+            write_dataset(g2,"curveparam",re2.curveparam)
+            write_dataset(g2,"curvetype",re2.curvetype)
           end  
 
 #         .ma2 data        
@@ -972,15 +1035,15 @@
           write_dataset(h1,"npts",hdr.npts)
           write_dataset(h1,"nrank",hdr.nrank)
 
-          write_dataset(h2,"pmap",newmap.pmap)
-          write_dataset(h2,"vmap",newmap.vmap)
+          write_dataset(h2,"pmap",map.pmap)
+          write_dataset(h2,"vmap",map.vmap)
 
           close(fid)
         end       # rank == nid0  
 
-#       For now just returning the new data        
-        return nothing # newre2,newmap 
+        return nothing
       end
+#---------------------------------------------------------------------- 
 #---------------------------------------------------------------------- 
       end   # Module JNek_IO_MPI
 

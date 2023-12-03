@@ -26,9 +26,11 @@
 #     For now we just make sure we generate the .rema2.h5 file.      
       JNek_IO.gen_rema2(casename,nid0,comm)
 
-      h5name   = casename*".rema2.h5"
-      nel   = 0
-      ndim  = 0
+      h5name      = casename*".rema2.h5"
+      nel         = 0
+      ndim        = 0
+      wdsize      = 4
+      T           = Float32
       
       if rank == nid0
         fid      = h5open(h5name, "r")
@@ -43,6 +45,8 @@
 
         nel      = read(g1,"nelgt")
         ndim     = read(g1,"ndim")
+        wdsize   = read(g1,"wdsize")
+
         xc       = read(g2,"xc")
         yc       = read(g2,"yc")
 
@@ -50,10 +54,21 @@
         vmap     = read(h2,"vmap")    # Vertex Map
       end  
 
-      nel   = MPI.bcast(nel,  nid0, comm)
-      ndim  = MPI.bcast(ndim, nid0, comm)
+      nel         = MPI.bcast(nel,  nid0, comm)
+      ndim        = MPI.bcast(ndim, nid0, comm)
+      wdsize      = MPI.bcast(wdsize, nid0, comm)
 
-      println("Nel = $nel, Ndim=$ndim, on Rank=$rank")
+      if wdsize == 8
+        T = Float64
+      end  
+
+      println("\n Nel = $nel, Ndim=$ndim, wdsize=$wdsize, on Rank=$rank\n")
+
+#     Allocate memory for xc,yc
+      nc    = 2^ndim
+#      xc    = zeros()
+
+      MPI.Barrier(comm)
 
       if rank == nid0
         close(fid)
