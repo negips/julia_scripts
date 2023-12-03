@@ -1,17 +1,20 @@
-#     Port for reader_par.f
 #     Author:     Prabal Negi
 #
 
       module JNek_IO
 
+      include("JNek_IO_Abstract.jl")
       include("JNek_IO_Structs.jl")
       include("JNek_IO_Extends.jl")
 
       using MPI
       using HDF5
 
+
       export NekField,
-             Re2Field
+             Re2Field,
+             TwoTensorField
+
 
       export read_re2_hdr,
              read_re2,
@@ -53,7 +56,12 @@
 
 #----------------------------------------------------------------------
 
+"""
+      read_re2_hdr(fid::IOStream)
 
+      Read the header of IOStream from a .re2 file.
+
+"""
       function read_re2_hdr(fid::IOStream)
 
         println(".re2: Reading Header")
@@ -79,7 +87,17 @@
         return hdr,version,nelgt,ldimr,nelgv,if_byte_swap
       end     # read_re2_hdr
 
-#---------------------------------------------------------------------- 
+#----------------------------------------------------------------------
+"""
+      read_re2(f::String, nid0::Int64, comm::MPI.Comm)
+
+      Read the re2 file (f) at MPI process ID=nid0 over the
+      MPI Communicator Comm.
+
+      Output: wdsizi,hdr,version,nelgt,ldimr,nelgv,xc,yc,zc,ncurve,
+              curveieg,curveiside,curveparam,curvetype,cbl,bl
+
+"""
       function read_re2(f::String, nid0::Int64, comm::MPI.Comm)
 
         hdr = repeat(" ", 26)
@@ -130,7 +148,15 @@
       end     # read_re2
 
 #---------------------------------------------------------------------- 
+"""
+      read_re2_struct(f::String, nid0::Int64, comm::MPI.Comm)
 
+      Read the re2 file (f) at MPI process ID=nid0 over the
+      MPI Communicator Comm and output structured data Re2Field
+
+      Output: Re2Field 
+
+"""
       function read_re2_struct(f::String, nid0::Int64, comm::MPI.Comm)
 
         hdr = repeat(" ", 26)
@@ -194,7 +220,15 @@
       end     # read_re2_struct
 
 #---------------------------------------------------------------------- 
+"""
+      read_re2_mesh(fid::IOStream, nid0::Int64,ldim::Int64,nelgt::Int64,wdsizi::Int64, comm::MPI.Comm)
 
+      Read the x/y/z vertex data from the fid IOStream at MPI process ID=nid0 over the
+      MPI Communicator Comm. 
+
+      Output: xc,yc,zc
+
+"""
       function read_re2_mesh(fid::IOStream, nid0::Int64,ldim::Int64,nelgt::Int64,wdsizi::Int64, comm::MPI.Comm)
 
 #       Pointer to re2 data in file.
