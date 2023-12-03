@@ -103,31 +103,31 @@
       end  
 
 
-      h2 = figure(num=2)
-      MoveFigure(h2,1750,800)
-
-      newre2,newmap = JNek_IO.gen_rema2("cyl",nid0,comm)
-
-      for e in 1:nel
-        x2d[1,1] = newre2.xc[1,e]
-        x2d[2,1] = newre2.xc[2,e]
-        x2d[1,2] = newre2.xc[4,e]
-        x2d[2,2] = newre2.xc[3,e]
-
-        y2d[1,1] = newre2.yc[1,e]
-        y2d[2,1] = newre2.yc[2,e]
-        y2d[1,2] = newre2.yc[4,e]
-        y2d[2,2] = newre2.yc[3,e]
-
-        pm2  = newmap.pmap[e]
-        fill!(f2d,pm2)
-
-        pcm2   = pcolormesh(x2d,y2d,f2d,vmin=p0,vmax=p1)
-
-#        surf(x2d,y2d,f2d,vmin=u0,vmax=u1)
-#        pcm   = pcolormesh(x2d,y2d,f2d)
-        pcm2.set_cmap(cm2)
-      end  
+#      h2 = figure(num=2)
+#      MoveFigure(h2,1750,800)
+#
+#      newre2,newmap = JNek_IO.gen_rema2("cyl",nid0,comm)
+#
+#      for e in 1:nel
+#        x2d[1,1] = newre2.xc[1,e]
+#        x2d[2,1] = newre2.xc[2,e]
+#        x2d[1,2] = newre2.xc[4,e]
+#        x2d[2,2] = newre2.xc[3,e]
+#
+#        y2d[1,1] = newre2.yc[1,e]
+#        y2d[2,1] = newre2.yc[2,e]
+#        y2d[1,2] = newre2.yc[4,e]
+#        y2d[2,2] = newre2.yc[3,e]
+#
+#        pm2  = newmap.pmap[e]
+#        fill!(f2d,pm2)
+#
+#        pcm2   = pcolormesh(x2d,y2d,f2d,vmin=p0,vmax=p1)
+#
+##        surf(x2d,y2d,f2d,vmin=u0,vmax=u1)
+##        pcm   = pcolormesh(x2d,y2d,f2d)
+#        pcm2.set_cmap(cm2)
+#      end  
 
 
 

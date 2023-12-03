@@ -5,6 +5,7 @@
 
       include("JNek_IO_Abstract.jl")
       include("JNek_IO_Structs.jl")
+      include("JNek_IO_Constructors.jl")
       include("JNek_IO_Extends.jl")
 
       using MPI
@@ -65,7 +66,7 @@
       function read_re2_hdr(fid::IOStream)
 
         println(".re2: Reading Header")
-        
+
         nbytes  = 20*4
         hdrutf  = read(fid,nbytes)
         hdrC    = Char.(hdrutf)
@@ -445,42 +446,53 @@
 
       function read_ma2(f::String, nid0::Int64,comm::MPI.Comm)
 
+
+        ifbcast   = false
+
         rank = MPI.Comm_rank(comm)
 
         if rank == nid0
           println("Reading $(f) on rank $rank")
         end
         
-        MPI.Barrier(comm)
 
         if rank == nid0
           fid = open(f, "r")
 
           hdr,version,nel,nactive,depth,d2,npts,nrank,noutflow = read_ma2_hdr(fid)
-        end
 
-        buf = MPI.Buffer(hdr,132,MPI.CHAR)
-        MPI.Bcast!(buf,     nid0,comm)
+          ma2hdr = ma2Hdr(version,nel,nactive,depth,d2,npts,nrank,noutflow)
 
-        buf = MPI.Buffer(version,5,MPI.CHAR)
-        MPI.Bcast!(buf,     nid0,comm)
-
-        nel       = MPI.bcast(nel,        nid0,comm)
-        nactive   = MPI.bcast(nactive,    nid0,comm)
-        depth     = MPI.bcast(depth,      nid0,comm)
-        d2        = MPI.bcast(d2,         nid0,comm)
-        npts      = MPI.bcast(npts,       nid0,comm)
-        nrank     = MPI.bcast(nrank,      nid0,comm)
-        noutflow  = MPI.bcast(noutflow,   nid0,comm)
-
-        ma2hdr = ma2Hdr(version,nel,nactive,depth,d2,npts,nrank,noutflow)
-
-        pmap, vmap = read_ma2_data(fid,nid0,nel,npts,comm)
-
-        ma2data = ma2Field(pmap,vmap)
-
-        if rank == nid0
+          pmap, vmap = read_ma2_data(fid,nid0,nel,npts,comm)
+ 
+          ma2data = ma2Field(pmap,vmap)
+ 
           close(fid)
+        else
+ 
+          ma2hdr  = ma2Hdr()
+          ma2data = ma2Field()
+        end  
+       
+
+        MPI.Barrier(comm)
+
+        if ifbcast
+#          buf = MPI.Buffer(hdr,132,MPI.CHAR)
+#          MPI.Bcast!(buf,     nid0,comm)
+          hdr       = MPI.bcast(hdr,        nid0,comm)
+
+#          buf = MPI.Buffer(version,5,MPI.CHAR)
+#          MPI.Bcast!(buf,     nid0,comm)
+          version   = MPI.bcast(version,    nid0,comm)
+
+          nel       = MPI.bcast(nel,        nid0,comm)
+          nactive   = MPI.bcast(nactive,    nid0,comm)
+          depth     = MPI.bcast(depth,      nid0,comm)
+          d2        = MPI.bcast(d2,         nid0,comm)
+          npts      = MPI.bcast(npts,       nid0,comm)
+          nrank     = MPI.bcast(nrank,      nid0,comm)
+          noutflow  = MPI.bcast(noutflow,   nid0,comm)
         end  
 
         return ma2hdr, ma2data
@@ -904,6 +916,7 @@
         ma2file = case*".ma2"        # String concatenation
 
         hdr, map    = read_ma2(ma2file, nid0,comm)
+        MPI.Barrier(comm)
         re2         = read_re2_struct(re2file,nid0,comm)
 
         nel         = re2.nelgt
@@ -987,14 +1000,10 @@
         write_dataset(h2,"pmap",newmap.pmap)
         write_dataset(h2,"vmap",newmap.vmap)
 
-
         close(fid)
 
-
-
-
 #       For now just returning the new data        
-        return newre2,newmap 
+        return nothing # newre2,newmap 
       end
 #---------------------------------------------------------------------- 
       end   # Module JNek_IO_MPI

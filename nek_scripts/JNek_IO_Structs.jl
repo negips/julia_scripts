@@ -17,27 +17,6 @@
         field::Array{T}
       end
 #---------------------------------------------------------------------- 
-#     Corresponding Function for Initialization
-"""
-        function TwoTensorField(field::Array)
-          
-        Constructor for the TwoTensorField struct. 
-
-"""
-     function TwoTensorField(field::Array{T}) where T <: Number
-
-        el   = eltype(field)
-        s    = collect(Int,size(field))
-        @assert length(s) == 3
-        
-        dims = 2
-        p    = s[1:2]
-        nel  = s[3]
-
-        return TwoTensorField{el}(dims,p,nel,field)
-      end        
-
-#---------------------------------------------------------------------- 
       mutable struct NekField{T} #where T <: AbstractFloat
 #       4/8 Byte Fields        
         hdr::String
@@ -67,10 +46,8 @@
 
       end
 #---------------------------------------------------------------------- 
-
       mutable struct Re2Field{T} #where T <: AbstractFloat
 
-#       8 Byte Fields
         wdsize::Int
         hdr::String
         version::String
@@ -104,15 +81,17 @@
         noutflow::Int 
 
       end       
-
-#----------------------------------------------------------------------  
-     mutable struct ma2Field
+#----------------------------------------------------------------------
+      mutable struct ma2Field
 
 #       .ma2 data
 #        hdr::String
         pmap::Vector{Int}
-        vmap::Array{Int}
-
+        vmap::Array{Int,2}
       end       
 
-#----------------------------------------------------------------------  
+#----------------------------------------------------------------------
+
+
+
+
