@@ -1,17 +1,21 @@
-#     Port for reader_par.f
 #     Author:     Prabal Negi
 #
 
       module JNek_IO
 
+      include("JNek_IO_Abstract.jl")
       include("JNek_IO_Structs.jl")
+      include("JNek_IO_Constructors.jl")
       include("JNek_IO_Extends.jl")
 
       using MPI
       using HDF5
 
+
       export NekField,
-             Re2Field
+             Re2Field,
+             TwoTensorField
+
 
       export read_re2_hdr,
              read_re2,
@@ -53,11 +57,16 @@
 
 #----------------------------------------------------------------------
 
+"""
+      read_re2_hdr(fid::IOStream)
 
+      Read the header of IOStream from a .re2 file.
+
+"""
       function read_re2_hdr(fid::IOStream)
 
         println(".re2: Reading Header")
-        
+
         nbytes  = 20*4
         hdrutf  = read(fid,nbytes)
         hdrC    = Char.(hdrutf)
@@ -79,7 +88,17 @@
         return hdr,version,nelgt,ldimr,nelgv,if_byte_swap
       end     # read_re2_hdr
 
-#---------------------------------------------------------------------- 
+#----------------------------------------------------------------------
+"""
+      read_re2(f::String, nid0::Int64, comm::MPI.Comm)
+
+      Read the re2 file (f) at MPI process ID=nid0 over the
+      MPI Communicator Comm.
+
+      Output: wdsizi,hdr,version,nelgt,ldimr,nelgv,xc,yc,zc,ncurve,
+              curveieg,curveiside,curveparam,curvetype,cbl,bl
+
+"""
       function read_re2(f::String, nid0::Int64, comm::MPI.Comm)
 
         hdr = repeat(" ", 26)
@@ -88,7 +107,6 @@
         nelgv = 0
         ldimr = 0
 
-#        comm = MPI.COMM_WORLD
         rank = MPI.Comm_rank(comm)
 
         if rank == nid0
@@ -130,16 +148,19 @@
       end     # read_re2
 
 #---------------------------------------------------------------------- 
+"""
+      read_re2_struct(f::String, nid0::Int64, comm::MPI.Comm)
 
+      Read the re2 file (f) at MPI process ID=nid0 over the
+      MPI Communicator Comm and output structured data Re2Field
+
+      Output: Re2Field 
+
+"""
       function read_re2_struct(f::String, nid0::Int64, comm::MPI.Comm)
 
-        hdr = repeat(" ", 26)
-        version = repeat(" ", 5)
-        nelgt = 0
-        nelgv = 0
-        ldimr = 0
+        re2fld = Re2Field()
 
-#        comm = MPI.COMM_WORLD
         rank = MPI.Comm_rank(comm)
 
         if rank == nid0
@@ -147,54 +168,41 @@
 
           fid = open(f, "r")
           hdr,version,nelgt,ldimr,nelgv,if_byte_swap = read_re2_hdr(fid)
-        end  
 
-        MPI.Barrier(comm)
+          wdsizi = 4
+          T      = Float32
+          if cmp(version,"#v002") == 0 || cmp(version, "#v003")
+            wdsizi = 8
+            T      = Float64
+          end   
 
-        buf = MPI.Buffer(hdr,26,MPI.CHAR)
-        MPI.Bcast!(buf,     nid0,comm)
+#         Read the Mesh data here
+          xc,yc,zc = read_re2_mesh(fid,nid0,ldimr,nelgt,wdsizi,comm)
 
-        buf = MPI.Buffer(version,5,MPI.CHAR)
-        MPI.Bcast!(buf,     nid0,comm)
+          ncurve,curveieg,curveiside,curveparam,curvetype = read_re2_curve(fid,nid0,ldimr,nelgt,wdsizi)
 
-        nelgt = MPI.bcast(nelgt,     nid0,comm)
-        ldimr = MPI.bcast(ldimr,     nid0,comm)
-        nelgv = MPI.bcast(nelgv,     nid0,comm)
+          cbl,bl = read_re2_bc(fid,nid0,ldimr,nelgt,wdsizi)
 
-        wdsizi = 4
-        if cmp(version,"#v002") == 0 || cmp(version, "#v003")
-          wdsizi = 8
-        end   
-
-#       Read the Mesh data here
-        xc,yc,zc = read_re2_mesh(fid,nid0,ldimr,nelgt,wdsizi,comm)
-
-        ncurve,curveieg,curveiside,curveparam,curvetype = read_re2_curve(fid,nid0,ldimr,nelgt,wdsizi)
-
-        cbl,bl = read_re2_bc(fid,nid0,ldimr,nelgt,wdsizi)
-
-        if rank == nid0
+          re2fld = Re2Field{T}(wdsizi,hdr,version,nelgt,ldimr,nelgv,xc,yc,zc,ncurve,curveieg,curveiside,curveparam,curvetype,cbl,bl)
+         
           close(fid)
         end
 
-        if (wdsizi==4)
-#          re2fld = Re2Field8(wdsizi,hdr,version,nelgt,ldimr,nelgv,xc,yc,zc,ncurve,curveieg,curveiside,curveparam,curvetype,cbl,bl)
-           re2fld = Re2Field{Float32}(wdsizi,hdr,version,nelgt,ldimr,nelgv,xc,yc,zc,ncurve,curveieg,curveiside,curveparam,curvetype,cbl,bl)
-         
-        elseif (wdsizi==8)
-#          re2fld = Re2Field16(wdsizi,hdr,version,nelgt,ldimr,nelgv,xc,yc,zc,ncurve,curveieg,curveiside,curveparam,curvetype,cbl,bl)
-           re2fld = Re2Field{Float64}(wdsizi,hdr,version,nelgt,ldimr,nelgv,xc,yc,zc,ncurve,curveieg,curveiside,curveparam,curvetype,cbl,bl)
-        else
-          if (rank == nid0)
-            println("Uknown word size, wdsizi=$wdsizi")
-          end  
-        end  
+        MPI.Barrier(comm)
 
         return re2fld 
       end     # read_re2_struct
 
 #---------------------------------------------------------------------- 
+"""
+      read_re2_mesh(fid::IOStream, nid0::Int64,ldim::Int64,nelgt::Int64,wdsizi::Int64, comm::MPI.Comm)
 
+      Read the x/y/z vertex data from the fid IOStream at MPI process ID=nid0 over the
+      MPI Communicator Comm. 
+
+      Output: xc,yc,zc
+
+"""
       function read_re2_mesh(fid::IOStream, nid0::Int64,ldim::Int64,nelgt::Int64,wdsizi::Int64, comm::MPI.Comm)
 
 #       Pointer to re2 data in file.
@@ -202,7 +210,6 @@
         recpos  = 84
         seek(fid,recpos)
 
-#        comm = MPI.COMM_WORLD
         rank = MPI.Comm_rank(comm)
 
         nc   = 2^ldim
@@ -411,42 +418,53 @@
 
       function read_ma2(f::String, nid0::Int64,comm::MPI.Comm)
 
+
+        ifbcast   = false
+
         rank = MPI.Comm_rank(comm)
 
         if rank == nid0
           println("Reading $(f) on rank $rank")
         end
         
-        MPI.Barrier(comm)
 
         if rank == nid0
           fid = open(f, "r")
 
           hdr,version,nel,nactive,depth,d2,npts,nrank,noutflow = read_ma2_hdr(fid)
-        end
 
-        buf = MPI.Buffer(hdr,132,MPI.CHAR)
-        MPI.Bcast!(buf,     nid0,comm)
+          ma2hdr = ma2Hdr(version,nel,nactive,depth,d2,npts,nrank,noutflow)
 
-        buf = MPI.Buffer(version,5,MPI.CHAR)
-        MPI.Bcast!(buf,     nid0,comm)
-
-        nel       = MPI.bcast(nel,        nid0,comm)
-        nactive   = MPI.bcast(nactive,    nid0,comm)
-        depth     = MPI.bcast(depth,      nid0,comm)
-        d2        = MPI.bcast(d2,         nid0,comm)
-        npts      = MPI.bcast(npts,       nid0,comm)
-        nrank     = MPI.bcast(nrank,      nid0,comm)
-        noutflow  = MPI.bcast(noutflow,   nid0,comm)
-
-        ma2hdr = ma2Hdr(version,nel,nactive,depth,d2,npts,nrank,noutflow)
-
-        pmap, vmap = read_ma2_data(fid,nid0,nel,npts,comm)
-
-        ma2data = ma2Field(pmap,vmap)
-
-        if rank == nid0
+          pmap, vmap = read_ma2_data(fid,nid0,nel,npts,comm)
+ 
+          ma2data = ma2Field(pmap,vmap)
+ 
           close(fid)
+        else
+ 
+          ma2hdr  = ma2Hdr()
+          ma2data = ma2Field()
+        end  
+       
+
+        MPI.Barrier(comm)
+
+        if ifbcast
+#          buf = MPI.Buffer(hdr,132,MPI.CHAR)
+#          MPI.Bcast!(buf,     nid0,comm)
+          hdr       = MPI.bcast(hdr,        nid0,comm)
+
+#          buf = MPI.Buffer(version,5,MPI.CHAR)
+#          MPI.Bcast!(buf,     nid0,comm)
+          version   = MPI.bcast(version,    nid0,comm)
+
+          nel       = MPI.bcast(nel,        nid0,comm)
+          nactive   = MPI.bcast(nactive,    nid0,comm)
+          depth     = MPI.bcast(depth,      nid0,comm)
+          d2        = MPI.bcast(d2,         nid0,comm)
+          npts      = MPI.bcast(npts,       nid0,comm)
+          nrank     = MPI.bcast(nrank,      nid0,comm)
+          noutflow  = MPI.bcast(noutflow,   nid0,comm)
         end  
 
         return ma2hdr, ma2data
@@ -866,102 +884,166 @@
 """
       function gen_rema2(case::String, nid0::Int, comm::MPI.Comm)
 
+        rank = MPI.Comm_rank(comm)
+
         re2file = case*".re2"        # String concatenation
         ma2file = case*".ma2"        # String concatenation
 
         hdr, map    = read_ma2(ma2file, nid0,comm)
+        MPI.Barrier(comm)
         re2         = read_re2_struct(re2file,nid0,comm)
 
-        nel         = re2.nelgt
-        @assert hdr.nel == re2.nelgt "Total Elements don't Match. $(hdr.nel), $(nel)"
+        if rank == nid0 
+          nel         = re2.nelgt
+          @assert hdr.nel == re2.nelgt "Total Elements don't Match. $(hdr.nel), $(nel)"
 
-        key         = sortperm(map.pmap)
-        keyinv      = Base.copy(key)
-        for i in 1:nel
-          j         = key[i]
-          keyinv[j] = i
-        end  
+#         Get index key for sorted map          
+          key         = sortperm(map.pmap)
+          keyinv      = Base.copy(key)
+          for i in 1:nel
+            j         = key[i]
+            keyinv[j] = i
+          end  
 
-        newre2      = copy(re2)
-#       Renumber Coordinates and Boundary conditions        
-        for i in 1:nel
-          j              = key[i]
-          newre2.xc[:,i] = re2.xc[:,j]
-          newre2.yc[:,i] = re2.yc[:,j]
-          if re2.ldimr == 3
-            newre2.zc[:,i] = re2.zc[:,j]
-          else
-            newre2.zc[1,1] = re2.zc[1,1]
+          newre2      = copy(re2)
+#         Renumber Coordinates and Boundary conditions        
+          for i in 1:nel
+            j              = key[i]
+            newre2.xc[:,i] = re2.xc[:,j]
+            newre2.yc[:,i] = re2.yc[:,j]
+            if re2.ldimr == 3
+              newre2.zc[:,i] = re2.zc[:,j]
+            else
+              newre2.zc[1,1] = re2.zc[1,1]
+            end
+            newre2.cbl[:,i]  = re2.cbl[:,j]
+            newre2.bl[:,:,i] = re2.bl[:,:,j]
           end
-          newre2.cbl[:,i]  = re2.cbl[:,j]
-          newre2.bl[:,:,i] = re2.bl[:,:,j]
-        end
 
-#       Renumber Curve ieg        
-        for i in 1:re2.ncurve
-          el                  = re2.curveieg[i]
-          newel               = keyinv[el]
-          newre2.curveieg[i]  = newel
-        end  
+#         Renumber Curve ieg        
+          for i in 1:re2.ncurve
+            el                  = re2.curveieg[i]
+            newel               = keyinv[el]
+            newre2.curveieg[i]  = newel
+          end  
 
-#        newmap                = ma2Field(zeros(Int64,re2.nelgt),zeros(Int,nc,nel))
-        newmap                = copy(map)
-        for i in 1:nel
-          j                   = key[i] 
-          newmap.pmap[i]      = map.pmap[j]
-          newmap.vmap[:,i]    = map.vmap[:,j]
-        end 
+#          newmap                = ma2Field(zeros(Int64,re2.nelgt),zeros(Int,nc,nel))
+          newmap                = copy(map)
+          for i in 1:nel
+            j                   = key[i] 
+            newmap.pmap[i]      = map.pmap[j]
+            newmap.vmap[:,i]    = map.vmap[:,j]
+          end 
 
-#       Write out an hdf5 file
-        fname = case*".rema2.h5"
-        fid = h5open(fname, "w")
-#       .re2 data        
-        g = create_group(fid,"Re2")
-        g1 = create_group(g,"Params") 
-        g2 = create_group(g,"Data")        
+#         Generate "case.rema2.h5" file
+          gen_rema2_h5(case,newre2,hdr,newmap,nid0,comm)
+         
 
-        write_dataset(g1,"ndim",newre2.ldimr)
-        write_dataset(g1,"nelgv",newre2.nelgv)
-        write_dataset(g1,"nelgt",newre2.nelgt)
-
-        write_dataset(g2,"xc",newre2.xc)
-        write_dataset(g2,"yc",newre2.yc)
-        write_dataset(g2,"zc",newre2.zc)
-        write_dataset(g2,"bcs",newre2.cbl)
-        write_dataset(g2,"bcparams",newre2.bl)
-        if (newre2.ncurve>0)
-          write_dataset(g1,"ncurve",newre2.ncurve)
-          write_dataset(g2,"curveieg",newre2.curveieg)
-          write_dataset(g2,"curveiside",newre2.curveiside)
-          write_dataset(g2,"curveparam",newre2.curveparam)
-          write_dataset(g2,"curvetype",newre2.curvetype)
-        end  
-
-#       .ma2 data        
-        h  = create_group(fid,"Ma2")
-        h1 = create_group(h,"Params")
-        h2 = create_group(h,"Data")
-
-        write_dataset(h1,"d2",hdr.d2)
-        write_dataset(h1,"depth",hdr.depth)
-        write_dataset(h1,"nactive",hdr.nactive)
-        write_dataset(h1,"nel",hdr.nel)
-        write_dataset(h1,"noutflow",hdr.noutflow)
-        write_dataset(h1,"npts",hdr.npts)
-        write_dataset(h1,"nrank",hdr.nrank)
-
-        write_dataset(h2,"pmap",newmap.pmap)
-        write_dataset(h2,"vmap",newmap.vmap)
-
-
-        close(fid)
-
-
-
+##         Write out an hdf5 file
+#          fname = case*".rema2.h5"
+#          fid   = h5open(fname, "w")
+##         .re2 data        
+#          g  = create_group(fid,"Re2")
+#          g1 = create_group(g,"Params") 
+#          g2 = create_group(g,"Data")        
+#
+#          write_dataset(g1,"ndim",newre2.ldimr)
+#          write_dataset(g1,"nelgv",newre2.nelgv)
+#          write_dataset(g1,"nelgt",newre2.nelgt)
+#          write_dataset(g1,"wdsize",newre2.wdsize)
+#
+#          write_dataset(g2,"xc",newre2.xc)
+#          write_dataset(g2,"yc",newre2.yc)
+#          write_dataset(g2,"zc",newre2.zc)
+#          write_dataset(g2,"bcs",newre2.cbl)
+#          write_dataset(g2,"bcparams",newre2.bl)
+#          if (newre2.ncurve>0)
+#            write_dataset(g1,"ncurve",newre2.ncurve)
+#            write_dataset(g2,"curveieg",newre2.curveieg)
+#            write_dataset(g2,"curveiside",newre2.curveiside)
+#            write_dataset(g2,"curveparam",newre2.curveparam)
+#            write_dataset(g2,"curvetype",newre2.curvetype)
+#          end  
+#
+##         .ma2 data        
+#          h  = create_group(fid,"Ma2")
+#          h1 = create_group(h,"Params")
+#          h2 = create_group(h,"Data")
+#
+#          write_dataset(h1,"d2",hdr.d2)
+#          write_dataset(h1,"depth",hdr.depth)
+#          write_dataset(h1,"nactive",hdr.nactive)
+#          write_dataset(h1,"nel",hdr.nel)
+#          write_dataset(h1,"noutflow",hdr.noutflow)
+#          write_dataset(h1,"npts",hdr.npts)
+#          write_dataset(h1,"nrank",hdr.nrank)
+#
+#          write_dataset(h2,"pmap",newmap.pmap)
+#          write_dataset(h2,"vmap",newmap.vmap)
+#
+#          close(fid)
+        end       # rank == nid0  
 
 #       For now just returning the new data        
-        return newre2,newmap 
+        return nothing # newre2,newmap 
       end
+#----------------------------------------------------------------------
+      function gen_rema2_h5(case::String,re2::Re2Field,hdr::ma2Hdr,map::ma2Field,nid0::Int,comm::MPI.Comm)
+
+        rank = MPI.Comm_rank(comm)
+
+        if rank == nid0 
+          nel         = re2.nelgt
+          @assert hdr.nel == re2.nelgt "Total Elements don't Match. $(hdr.nel), $(nel)"
+
+#         Write out an hdf5 file
+          fname = case*".rema2.h5"
+          fid   = h5open(fname, "w")
+#         .re2 data        
+          g  = create_group(fid,"Re2")
+          g1 = create_group(g,"Params") 
+          g2 = create_group(g,"Data")        
+
+          write_dataset(g1,"ndim",re2.ldimr)
+          write_dataset(g1,"nelgv",re2.nelgv)
+          write_dataset(g1,"nelgt",re2.nelgt)
+          write_dataset(g1,"wdsize",re2.wdsize)
+
+          write_dataset(g2,"xc",re2.xc)
+          write_dataset(g2,"yc",re2.yc)
+          write_dataset(g2,"zc",re2.zc)
+          write_dataset(g2,"bcs",re2.cbl)
+          write_dataset(g2,"bcparams",re2.bl)
+          if (re2.ncurve>0)
+            write_dataset(g1,"ncurve",re2.ncurve)
+            write_dataset(g2,"curveieg",re2.curveieg)
+            write_dataset(g2,"curveiside",re2.curveiside)
+            write_dataset(g2,"curveparam",re2.curveparam)
+            write_dataset(g2,"curvetype",re2.curvetype)
+          end  
+
+#         .ma2 data        
+          h  = create_group(fid,"Ma2")
+          h1 = create_group(h,"Params")
+          h2 = create_group(h,"Data")
+
+          write_dataset(h1,"d2",hdr.d2)
+          write_dataset(h1,"depth",hdr.depth)
+          write_dataset(h1,"nactive",hdr.nactive)
+          write_dataset(h1,"nel",hdr.nel)
+          write_dataset(h1,"noutflow",hdr.noutflow)
+          write_dataset(h1,"npts",hdr.npts)
+          write_dataset(h1,"nrank",hdr.nrank)
+
+          write_dataset(h2,"pmap",map.pmap)
+          write_dataset(h2,"vmap",map.vmap)
+
+          close(fid)
+        end       # rank == nid0  
+
+        return nothing
+      end
+#---------------------------------------------------------------------- 
 #---------------------------------------------------------------------- 
       end   # Module JNek_IO_MPI
 
