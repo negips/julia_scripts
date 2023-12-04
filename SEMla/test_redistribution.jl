@@ -28,7 +28,7 @@
       SEMla.gen_rema2(casename,nid0,comm)
 
       h5name      = casename*".rema2.h5"
-      nel         = 0
+      gnel        = 0
       ndim        = 0
       wdsize      = 4
       T           = Float32
@@ -63,13 +63,13 @@
         T = Float64
       end  
 
-      println("\n Nel = $nelg, Ndim=$ndim, wdsize=$wdsize, on Rank=$rank\n")
+      println("\n Nel = $gnel, Ndim=$ndim, wdsize=$wdsize, on Rank=$rank\n")
 
       np    = comm_size    # No of Processors
       rem   = mod(gnel,np)
       nel2  = gnel - rem
       lnel0 = floor(Int,nel2/np)
-#     Add remaining elements to the end ranks
+      # Add remaining elements to the end ranks
       last_rank = np-1     
       pextras = np - rem 
    
@@ -77,59 +77,84 @@
       if rank >= pextras
         lnel = lnel0 + 1
       end
-      xc    = zeros(T,nc,lnel) 
-      yc    = zeros(T,nc,lnel) 
 
-#     Allocate memory for xc,yc
+      # Allocate memory for xc,yc
       nc    = 2^ndim
       xc    = zeros(T,nc,lnel)
       yc    = zeros(T,nc,lnel)
 
-      if rank != nid0
-#         recv_status1 = MPI.Irecv!(xc,comm; source=nid0)
-#         recv_status2 = MPI.Irecv!(xc,comm; source=nid0)
-      else
-        xcg      = read(g2,"xc")
-        ycg      = read(g2,"yc")
-#       Temporary array to store data for other processors        
-        xcb      = zeros(T,nc,lnel)
-        ycb      = zeros(T,nc,lnel)
+      # Temporary array to store data for other processors        
+      xcb   = zeros(T,nc,lnel0+1)
+      ycb   = zeros(T,nc,lnel0+1)
+
+      if rank == nid0
+        # Read from the case.rema2.h5 file        
+        xcg  = read(g2,"xc")
+        ycg  = read(g2,"yc")
        
         j    = 0
         nid  = 0
-        jend = lnel0
+        jend = 0
         while nid < np
+          global jend, j, nid
+          jend  = jend + lnel0
           if nid >= pextras
-            jend  = jend + 1
+            jend   = jend + 1
           end
-          
+
           i    = 0
           while j < jend
             j = j + 1
             i = i + 1
 
-            xcgin = view(xcg[:,:,j])
-            xcin  = view(xcb[:,:,i])
-            copy!(xcin,xcgin)
+            ind1  = CartesianIndices((1:nc,i:i))
+            ind2  = CartesianIndices((1:nc,j:j)) 
+            copyto!(xcb,ind1,xcg,ind2)
+            copyto!(ycb,ind1,ycg,ind2)
 
-            ycgin = view(xcg[:,:,j])
-            ycin  = view(ycb[:,:,i])
-            copy!(ycin,ycgin)
+          end     # while j < jend
 
-            i = i + 1
-            j = j + 1
-          end
+          if nid == nid0
+            ind1  = CartesianIndices((1:nc,1:lnel))
+            copyto!(xc,ind1,xcb,ind1)
+            copyto!(yc,ind1,ycb,ind1)
+          else  
+#            vwx          = view(xcin[:,:,1:jend]) 
+            destn        = nid
+            send_status1 = MPI.Isend(xcb,comm;dest=destn)
 
+#            vwy          = view(ycb[:,:,1:jend]) 
+            destn        = nid
+            send_status2 = MPI.Isend(ycb,comm;dest=destn)
+          end     # if nid == nid0
 
-        for i in 0:last_rank
-          if rank == nid
+          nid = nid + 1
 
-          end
-        end
-      end  
+        end         # while nid < np 
+
+      else  # rank != nid0
+         recv_status1 = MPI.Irecv!(xcb,comm; source=nid0)
+         recv_status2 = MPI.Irecv!(ycb,comm; source=nid0)
+
+         stat1 =  MPI.Wait!(recv_status1)
+         stat2 =  MPI.Wait!(recv_status2)
+
+         ind3  = CartesianIndices((1:nc,1:lnel))
+         copyto!(xc,ind3,xcb,ind3)
+         copyto!(yc,ind3,ycb,ind3)
+      end   # if rank == nid0 
 
       MPI.Barrier(comm)
 
+#     Write out an hdf5 file
+      ftest = casename*"_p$rank.h5"
+      fid2  = h5open(ftest, "w")
+      gg    = create_group(fid2,"Coords")
+      write_dataset(gg,"xc",xc)
+      write_dataset(gg,"yc",yc)
+      close(fid2)
+
+      println("\n Writing Nel = $lnel, Elements, on Rank=$rank to $ftest\n")
 
 #     Distribute Mesh across Processors
 #--------------------------------------------------     
