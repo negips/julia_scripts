@@ -61,6 +61,9 @@ MoveFigure(h2,1250,10)
 
 t           = 0.
 
+framecount  = 0
+
+
 Thist[1] = t
 for i in 1:nflds
   fldhist[:,1,i] = Q*fld[:,i]
@@ -78,9 +81,24 @@ if initplot
   if ifphplot
     scat = ax1.plot(fld[:,1],fld[:,2],color="black") 
   end
+
+  if (ifsaveframe)
+    framecount = framecount + 1
+    if (ifphplot)
+      fname   = @sprintf "./plots/phase/phase_%06i" framecount
+      h1.savefig(fname)
+    end
+
+    if (iffldplot)
+      fname   = @sprintf "./plots/fields/fields_%06i" framecount
+      h2.savefig(fname)
+    end
+  end  
+
   println("Press any key to continue")
   xin = readline()
 
+# Remove Plots  
   for j in 1:nflds
     if (plotfldi[j])
       pl[j][1].remove();

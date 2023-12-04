@@ -7,7 +7,7 @@
       using HDF5
       
       include("SEMla.jl")            # SEMla
-      include("NekTools.jl")
+#      include("NekTools.jl")
 #      include("$(JULIACOMMON)/MoveFigure.jl")
       
       using MPI
@@ -91,9 +91,39 @@
       else
         xcg      = read(g2,"xc")
         ycg      = read(g2,"yc")
-        
+#       Temporary array to store data for other processors        
+        xcb      = zeros(T,nc,lnel)
+        ycb      = zeros(T,nc,lnel)
+       
+        j    = 0
+        nid  = 0
+        jend = lnel0
+        while nid < np
+          if nid >= pextras
+            jend  = jend + 1
+          end
+          
+          i    = 0
+          while j < jend
+            j = j + 1
+            i = i + 1
+
+            xcgin = view(xcg[:,:,j])
+            xcin  = view(xcb[:,:,i])
+            copy!(xcin,xcgin)
+
+            ycgin = view(xcg[:,:,j])
+            ycin  = view(ycb[:,:,i])
+            copy!(ycin,ycgin)
+
+            i = i + 1
+            j = j + 1
+          end
+
+
         for i in 0:last_rank
           if rank == nid
+
           end
         end
       end  

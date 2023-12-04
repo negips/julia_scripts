@@ -112,8 +112,8 @@ PlotContainers[8] = ax1.plot(pars.xdyB,pars.ydyB,linestyle=" ",marker="x")
 ax1.set_xlabel(L"B", fontsize=lafs)
 ax1.set_ylabel(L"A", fontsize=lafs)
 
-ax1.set_xlim(-8.0,8.0)
-ax1.set_ylim(-8.0,8.0)
+ax1.set_xlim(-1.05,6.0)
+ax1.set_ylim(-1.0,6.0)
 
 MoveFigure(h1,1250,500)
 
@@ -130,7 +130,7 @@ if xin !="x"
   G(x,y) =  g(x,y)*η
 
   Flow(x,y) = [G(x,y) F(x,y)]
-  include("time_stepper_multiple_three.jl")
+  include("time_stepper_multiple.jl")
 end
 
 

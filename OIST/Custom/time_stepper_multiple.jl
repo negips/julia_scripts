@@ -11,8 +11,8 @@ using IterativeSolvers
 include("sem_main.jl")
 #include("Meinhardt.jl")
 include("Dealias.jl")
-include("../GetEXT.jl")
-include("../GetBDF.jl")
+include("$JULIACOMMON/GetEXT.jl")
+include("$JULIACOMMON/GetBDF.jl")
 
 include("time_stepper_multiple_init.jl")
 
@@ -24,6 +24,7 @@ for i in 1:nsteps
   global fld,fldlag,Rhs,Rhslag,dotfld
   global t
   global pl,pl2,scat
+  global framecount
 
   t = t + dt;
 
@@ -96,6 +97,20 @@ for i in 1:nsteps
     if ifphplot
       scat = ax1.plot(fld[:,1],fld[:,2],color="black") 
     end
+
+#   Saving frames    
+    if (ifsaveframe)
+      framecount = framecount + 1
+      if (ifphplot)
+        fname   = @sprintf "./plots/phase/phase_%06i" framecount
+        h1.savefig(fname)
+      end
+
+      if (iffldplot)
+        fname   = @sprintf "./plots/fields/fields_%06i" framecount
+        h2.savefig(fname)
+      end
+    end  
     pause(0.001)
   end  
 
@@ -112,6 +127,9 @@ pcm.set_cmap(cm2)
 ax3   = h3.gca()
 ax3.invert_yaxis()
 cb    = colorbar(orientation="vertical")
+
+fname = "./plots/surf.png"
+h3.savefig(fname)
 
 #surf(t2d,x2d,fldhist[:,:,2],cmap=cm2,edgecolor="none")
 #ax3.elev = 94.0

@@ -22,6 +22,6 @@
 #     : 52        : Dynamic Switching (λ)
 #     : 53        : Dynamic Switching (λ)
 
-sets  = [1]
+sets  = [2]
 println("Nullcline Set(s): $sets")
 
