@@ -1,12 +1,12 @@
 #     Author:     Prabal Negi
 #
 
-      module JNek_IO
+      module SEMla
 
-      include("JNek_IO_Abstract.jl")
-      include("JNek_IO_Structs.jl")
-      include("JNek_IO_Constructors.jl")
-      include("JNek_IO_Extends.jl")
+      include("SEMla_Abstract.jl")
+      include("SEMla_Structs.jl")
+      include("SEMla_Constructors.jl")
+      include("SEMla_Extends.jl")
 
       using MPI
       using HDF5
@@ -40,7 +40,7 @@
 #        rank = MPI.Comm_rank(comm)
 #
 #        if rank == 0
-#          println("Initialied MPI in Module JNek_IO")
+#          println("Initialied MPI in Module SEMla")
 #        end  
 
         return nothing
@@ -1045,7 +1045,7 @@
       end
 #---------------------------------------------------------------------- 
 #---------------------------------------------------------------------- 
-      end   # Module JNek_IO_MPI
+      end   # Module SEMla_MPI
 
 
 
