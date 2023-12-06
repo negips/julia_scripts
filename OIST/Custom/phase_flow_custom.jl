@@ -24,8 +24,6 @@ end
 #-------------------------------------------------- 
 
 
-#close("all")
-
 include("test_nullcline_fcn.jl")
 
 lafs = 16
@@ -80,9 +78,9 @@ for n in 1:ntraj
 
 end  
 
-ax1 = h1.axes[1]
-ax1.set_xlabel(L"b", fontsize=lafs)
-ax1.set_ylabel(L"a", fontsize=lafs)
+#ax1 = h1.axes[1]
+#ax1.set_xlabel(L"b", fontsize=lafs)
+#ax1.set_ylabel(L"a", fontsize=lafs)
 #ax1.legend(fontsize=12)
 
 

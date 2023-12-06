@@ -102,13 +102,13 @@ for i in 1:nsteps
     if (ifsaveframe)
       framecount = framecount + 1
       if (ifphplot)
-        fname   = @sprintf "./plots/phase/phase_%06i" framecount
-        h1.savefig(fname)
+        fname2   = @sprintf "./plots/phase/phase_%06i" framecount
+        h1.savefig(fname2)
       end
 
       if (iffldplot)
-        fname   = @sprintf "./plots/fields/fields_%06i" framecount
-        h2.savefig(fname)
+        fname2   = @sprintf "./plots/fields/fields_%06i" framecount
+        h2.savefig(fname2)
       end
     end  
     pause(0.001)

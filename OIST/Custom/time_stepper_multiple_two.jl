@@ -24,6 +24,7 @@ for i in 1:nsteps
   global fld,fldlag,Rhs,Rhslag,dotfld
   global t
   global pl,pl2,scat
+  global framecount
 
   t = t + dt;
 
@@ -107,6 +108,21 @@ for i in 1:nsteps
     if ifphplot
       scat = ax1.plot(fld[:,1],fld[:,2],color="black") 
     end
+
+#   Saving frames    
+    if (ifsaveframe)
+      framecount = framecount + 1
+      if (ifphplot)
+        fname2   = @sprintf "./plots/phase/phase_%06i" framecount
+        h1.savefig(fname2)
+      end
+
+      if (iffldplot)
+        fname2   = @sprintf "./plots/fields/fields_%06i" framecount
+        h2.savefig(fname2)
+      end
+    end  
+   
     pause(0.001)
   end  
 
@@ -123,6 +139,10 @@ pcm.set_cmap(cm2)
 ax3 = h3.gca()
 ax3.invert_yaxis()
 cb  = colorbar()
+
+fname = "./plots/surf.png"
+h3.savefig(fname)
+
 
 #surf(t2d,x2d,fldhist[:,:,2],cmap=cm2,edgecolor="none")
 #ax3.elev = 90.0

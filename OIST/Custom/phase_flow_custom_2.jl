@@ -90,7 +90,7 @@ PlotContainers[4] = ax1.plot(pars.xdyA,pars.ydyA,linestyle=" ",marker="x")
 
 xi                = -10.0
 yr0               = -50.0
-yr1               =  50.0
+yr1               =  00.0
 dτ                =  1.0e-3
 nsteps            = 100000
 g(x,y)            = FXY(x,y,pars.gc0,pars.gcx,pars.gcy)
@@ -112,20 +112,10 @@ PlotContainers[8] = ax1.plot(pars.xdyB,pars.ydyB,linestyle=" ",marker="x")
 ax1.set_xlabel(L"B", fontsize=lafs)
 ax1.set_ylabel(L"A", fontsize=lafs)
 
-# Std
-#ax1.set_xlim(-1.05,6.0)
-#ax1.set_ylim(-1.0,6.0)
+ax1.set_xlim(-3.0,8.0)
+ax1.set_ylim(-3.0,8.0)
 
-# Symmetric LCO
-ax1.set_xlim(-4.5,4.5)
-ax1.set_ylim(-6.5,6.5)
-
-## LCO Activation Dominated
-#ax1.set_xlim(-2.0,7.0)
-#ax1.set_ylim(-2.5,6.0)
-
-
-MoveFigure(h1,1250,800)
+MoveFigure(h1,1250,500)
 
 pause(0.01)
 
@@ -140,7 +130,7 @@ if xin !="x"
   G(x,y) =  g(x,y)*η
 
   Flow(x,y) = [G(x,y) F(x,y)]
-  include("time_stepper_multiple.jl")
+  include("phase_flow.jl")
 end
 
 

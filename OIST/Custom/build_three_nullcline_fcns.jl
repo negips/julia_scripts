@@ -165,7 +165,7 @@ ax1.set_ylim(-1.5,6.0)
 stabilizing = true
 # Translated
 if stabilizing 
-  ϕfd               = 180.0
+  ϕfd               = 150 #150.0
 else
   ϕfd               = -30.0
 end  
@@ -238,7 +238,7 @@ println("Press x to stop. Any other key to continue")
 xin = readline()
 #xin = "x"
 if xin !="x"
-  G(x,y,z) = TransFXY(x,y,0.0,ϕg,pars.gc0,pars.gcx,pars.gcy)*η
+  G(x,y,z) = TransFXY(x,y,z,ϕg,pars.gc0,pars.gcx,pars.gcy)*η
   F(x,y,z) = TransFXY(x,y,z,ϕf,pars.fc0,pars.fcx,pars.fcy)/ϵ
   Λ(x,y,z) = FXYZ(x,y,z,λc0,λcx,λcy,λcz)
   Flow(x,y,z) = [G(x,y,z) F(x,y,z) Λ(x,y,z)]

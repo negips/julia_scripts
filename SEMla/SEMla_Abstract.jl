@@ -2,8 +2,8 @@
       abstract type AbstractTensorField{T} <: Number end
       abstract type AbstractIsoParTensorField{T} <: AbstractTensorField{T} end
 
-      export AbstractTensorfield,
-             AbstractIsoParTensorField
+#      export AbstractTensorfield,
+#             AbstractIsoParTensorField
 
 #      abstract type TwoTensorField <: NTensorField end
 #----------------------------------------------------------------------  
