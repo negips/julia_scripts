@@ -17,11 +17,11 @@ ifsparse          = true
 ifperiodic        = false
 ifglobal          = true
 
-nflds             = 2               # No of fields
+nflds             = 3               # No of fields
 
 # Initialization
 ngauss            = 1
-x0gauss           = [40.0]           #xe*rand(ngauss)
+x0gauss           = [30.0]           #xe*rand(ngauss)
 ngauss            = length(x0gauss)
 ampgauss          = ones(Float64,ngauss)  #rand(ngauss)
 x0                = x0gauss[1]      # Gaussian Center
@@ -48,9 +48,9 @@ Off0              = [B0Off; A0Off; λ0Off]
 
 # Simulation
 dt                = prec(0.01)        # Time step
-nsteps            = 7000             # No of steps
+nsteps            = 8000             # No of steps
 nstep_switch1     = 3000              # Switch functions 1
-nstep_switch2     = 12100             # Switch again
+nstep_switch2     = 3400             # Switch again
 
 verbosestep       = 100
 plotupd           = 20
@@ -62,8 +62,8 @@ iffldplot         = true      # Plot fields
 ifphplot          = true      # Plot Phase A-B
 ifdynplot         = true      # Plot dynamic phase (λ)
 initplot          = true      # Plot initial conditions
-ifdynnull         = false     # Plot null-clines dynamically
-ifsaveframe       = true
+ifdynnull         = true     # Plot null-clines dynamically
+ifsaveframe       = false
 
 
 ifplot            = iffldplot || ifphplot || ifdynplot 

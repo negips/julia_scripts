@@ -29,6 +29,7 @@ for i in 1:nsteps
   global t
   global pl,pl2,scat,λpl
   global PlotContainers
+  global framecount
 
   t = t + dt;
 
@@ -148,12 +149,26 @@ for i in 1:nsteps
 #      index = argmin(abs.(QTX .- x0gauss[1]))      
       λmax  = λpar[index]
       PlotContainers[5] = ax1.plot(ft(λmax),yin,linestyle="--",linewidth=2,color=cm(0));
-      PlotContainers[6] = ax1.plot(gt(0.0*λmax),yin,linestyle="--",linewidth=2,color=cm(1));
+      PlotContainers[6] = ax1.plot(gt(λmax),yin,linestyle="--",linewidth=2,color=cm(1));
 
       bmax  = fld[index,1]
       amax  = fld[index,2]
       PlotContainers[7] = ax1.plot(bmax,amax,linestyle="none",marker="s",markersize=6,color=cm(2));
     
+    end  
+
+    # Saving frames    
+    if (ifsaveframe)
+      framecount = framecount + 1
+      if (ifphplot)
+        fname2   = @sprintf "./plots/phase/phase_%06i" framecount
+        h1.savefig(fname2)
+      end
+
+      if (iffldplot)
+        fname2   = @sprintf "./plots/fields/fields_%06i" framecount
+        h2.savefig(fname2)
+      end
     end  
 
     pause(0.001)
