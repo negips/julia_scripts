@@ -165,7 +165,7 @@ ax1.set_ylim(-1.5,6.0)
 stabilizing = true
 # Translated
 if stabilizing 
-  ϕfd               = 180 #150.0
+  ϕfd               = 180.0
 else
   ϕfd               = -30.0
 end  
