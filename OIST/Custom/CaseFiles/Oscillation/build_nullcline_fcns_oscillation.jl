@@ -48,7 +48,7 @@ if f(0.0,100.0)>0
 end  
 
 # If we want +λ to be stabilizing or destabilizing
-stabilizing = false
+stabilizing = true
 # Translated
 if stabilizing 
   ϕfd   = 120 #150.0
@@ -60,12 +60,12 @@ println("F(x,y) Translated with Slope: $ϕfd Degrees")
 
 # Plot the null-cline
 λ0      = 0.0
-dλ      = 0.5
+dλ      = 0.35
 λvalues = [λ0-dλ; λ0; λ0+dλ]
 θvalues = [0.0]
 plc = 0
 for λ in λvalues
-  local θ0            = λ*pi/180.0
+  local θ             = λ*pi/180.0
   # local f2(x,y)       = RotFXY(x,y,θ0,pars.fc0,pars.fcx,pars.fcy)
   local f2(x,y)       = TransFXY(x,y,λ,ϕf,pars.fc0,pars.fcx,pars.fcy)
   # Plot the null-cline
@@ -76,7 +76,7 @@ for λ in λvalues
   local nsteps        = 200000
   local f0x,f0y       = NullClines(f2,xi,yr0,yr1,nsteps,dτ)
   global plc         += 1
-  PlotContainers[plc] = ax1.plot(f0x,f0y,linestyle="-",label="λ=$λ0; ϕ=$ϕfd")
+  PlotContainers[plc] = ax1.plot(f0x,f0y,linestyle="-",label="λ=$λ; ϕ=$ϕfd")
 end  
 
 
@@ -101,11 +101,11 @@ end
 
 λvalues = [0.0]
 θ0      =  0.0
-dθ      =  18.0
+dθ      =  20.0
 θvalues = [θ0-dθ; θ0; θ0+dθ]
 for λ in θvalues
-  local θ0            = λ*pi/180.0
-  local g2(x,y)       = RotFXY(x,y,θ0,pars.gc0,pars.gcx,pars.gcy)
+  local θ             = λ*pi/180.0
+  local g2(x,y)       = RotFXY(x,y,θ,pars.gc0,pars.gcx,pars.gcy)
   local xi            = -10.0
   local yr0           = -30.0
   local yr1           =  10.0
@@ -113,7 +113,7 @@ for λ in θvalues
   local nsteps        = 200000
   local g20x,g20y     = NullClines(g2,xi,yr0,yr1,nsteps,dτ)
   global plc         += 1
-  PlotContainers[plc] = ax1.plot(g20x,g20y,linestyle="--",label="λ=$λ0; ϕ=$ϕgd")
+  PlotContainers[plc] = ax1.plot(g20x,g20y,linestyle="--",label="θ=$λ; ϕ=$ϕgd")
   # legend()
 end  
 

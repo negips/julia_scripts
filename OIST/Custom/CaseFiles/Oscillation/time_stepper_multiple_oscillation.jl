@@ -47,7 +47,7 @@ for i in 1:nsteps
     GetEXT!(ext,2)
   end
 
-  Ω         = 0.05
+  #Ω         = 0.05
   θpar      = (θ0 + dθ*sin(2*π*Ω*t))*pi/180.0         # for G
   λpar      = (λ0 + dλ*sin(2*π*Ω*t))                  # for F
   dotfld    = Flow(fld[:,1],fld[:,2],θpar,λpar)
@@ -126,7 +126,7 @@ for i in 1:nsteps
     end
 #   Phase plot    
     if ifphplot
-      scat = ax1.plot(fld[:,1],fld[:,2],color="black") 
+      scat = ax1.plot(fld[:,1],fld[:,2],color="black",linewidth=2) 
     end
     
     if ifdynplot

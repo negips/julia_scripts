@@ -14,14 +14,14 @@ U                 = prec(0)         # Convection
 σall              = [σb σa σζ]
 
 ifsparse          = true
-ifperiodic        = false
+ifperiodic        = true
 ifglobal          = true
 
 nflds             = 2               # No of fields
 
 # Initialization
 ngauss            = 1
-x0gauss           = [40.0]           #xe*rand(ngauss)
+x0gauss           = [80.0]           #xe*rand(ngauss)
 ngauss            = length(x0gauss)
 ampgauss          = ones(Float64,ngauss)  #rand(ngauss)
 x0                = x0gauss[1]      # Gaussian Center
@@ -48,9 +48,11 @@ Off0              = [B0Off; A0Off; ζ0Off]
 
 # Simulation
 dt                = prec(0.01)       # Time step
-nsteps            = 6000             # No of steps
+nsteps            = 12000             # No of steps
 nstep_switch1     = 3000             # Switch functions 1
 nstep_switch2     = 3400             # Switch again
+
+Ω                 = 0.02            # Time scale of parameter oscillation
 
 verbosestep       = 100
 plotupd           = 20
