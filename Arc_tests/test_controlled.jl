@@ -10,21 +10,26 @@ include("$JULIACOMMON/MoveFigure.jl")
 
 close("all")
 
+lafs = 16
+
 #rng = MersenneTwister(1234);
 Random.seed!(1238);
 
 N1          = 4
 N2          = 30 
+N3          = 16         # Non-normal subspace
+
 
 @assert N1 % 2 == 0
 @assert N2 % 2 == 0
+@assert N3 % 2 == 0
 
 N1by2       = Int(N1/2)
 N2by2       = Int(N2/2)
 
 N           = N1 + N2
 Nby2        = Int(N/2)
-σ           = [-1.0*rand(N1by2); -rand(N2by2)]
+σ           = [-0.1*rand(N1by2); -rand(N2by2)]
 #σ[1]        = -0.001
 ω           = 0.1*rand(Nby2)
 Ω           = zeros(ComplexF64,N)
@@ -57,14 +62,22 @@ for i in 2:N
   wnorm     = norm(w)
   w         = w./wnorm
   W[:,i]    = w
-  θ         = rand(Float64,i)
-  local v   = W[:,1:i]*θ
-  V[:,i]    = v
+ 
+  if i<=N3
+    θ       = rand(Float64,i)
+    local v = W[:,1:i]*θ
+    V[:,i]  = v
+  else
+    V[:,i]  = w
+  end  
+
 end  
 
-L           = V*A*inv(V)
-He          = norm(L*L' .- L'*L)/norm(L*L)
+L            = V*A*inv(V)
+He           = norm(L*L' .- L'*L)/norm(L*L)
 println("Henrici Index: $He")
+
+
 
 t            = 2.0
 
@@ -96,15 +109,15 @@ MoveFigure(h1,1250,500)
 # Optimal tests
 #--------------------------------------------------  
 
-nT           = 100
-T0           = 0.1
-Tend         = 2.0
+nT           = 20
+T0           = 1.0
+Tend         = 10.0
 T            = LinRange(T0,Tend,nT)
 
 h2           = figure(num=2)
 ax2          = h2.subplots()
 
-m            = 2
+m            = 8              # Reduced Order Projection subspace size
 Σ            = zeros(nT,m)
 Λ            = zeros(ComplexF64,nT,m)
 
@@ -124,12 +137,13 @@ for i in 1:nT
 
   vecs         = F.vectors[:,ind[1:m]]
  
-  Lred         = vecs'*L*vecs
+  global Lred         = vecs'*L*vecs
   λ2           = eigvals(Lred)
   λa           = abs.(λ2)
   λ2r          = 1.0/t*log.(λa)
   λ3           = λ2./λa
-  λ2i          = (1.0/t)*atan.(imag.(λ3),real.(λ3))   
+  #λ2i          = (1.0/t)*atan.(imag.(λ3),real.(λ3)) 
+  λ2i          = (1.0/t)*atan.(imag.(λ3)./real.(λ3)) 
   Λ[i,:]       = (λ2r .+ im*λ2i)
 
 #  Λ[i,:]       = 1.0/t*log.(Complex.(λ2))
@@ -140,12 +154,14 @@ end
 for i in 1:m
   ax2.plot(T,sqrt.(Σ[:,i]),linestyle="-",color=cm(i))
 end
+ax2.set_ylabel(L"\Sigma",fontsize=lafs)
+ax2.set_xlabel("T",fontsize=lafs)
 
 #ax2.set_yscale("log")
 
 h3           = figure(num=3)
 ax3          = h3.subplots()
-pl0          = ax3.plot(Ωi,Ωr,linestyle="none",marker="o",markersize=4,fillstyle="full")
+pl0          = ax3.plot(Ωi,Ωr,linestyle="none",marker="o",markersize=5,fillstyle="full",color="red")
 
 for i in 1:m
   plΛ        = ax3.plot(imag.(Λ[:,i]),real.(Λ[:,i]),linestyle="none",marker="x",markersize=4,fillstyle="none",color=cm(i))
@@ -153,6 +169,33 @@ end
 MoveFigure(h3,600,500)
 
 
+# Compute Pseudo-spectra
+nz           = 800
+zi           = LinRange(0.0,0.25,nz)
+zr           = LinRange(-1.2,0.1,nz)
+
+#zi           = LinRange(0.09,0.11,nz)
+#zr           = LinRange(-0.64,-0.56,nz)
+
+pseudospectra  = Matrix{Float64}(undef,nz,nz)
+
+for j in 1:nz
+  for i in 1:nz
+    zz = zr[i] + im*zi[j]
+    F = svd(zz*I - L)
+    pseudospectra[i,j] = minimum(F.S)
+  end
+end  
+
+cont = ax3.contour(zi,zr,log.(pseudospectra),50)
+colorbar(cont)
+
+# Numerical Range
+
+
+
+
+println("Done.")
 
 
 
