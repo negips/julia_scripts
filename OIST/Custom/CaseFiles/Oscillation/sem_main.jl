@@ -7,12 +7,9 @@ using Printf
 
 # Include the function files
 
-include("sem_geom.jl")
-include("sem_init_ref.jl")
-
-include("AssembleMatrix.jl")
-
-include("Sem_QQT.jl")
+include("$SRC/sem_geom.jl")
+include("$SRC/AssembleMatrix.jl")
+include("$SRC/Sem_QQT.jl")
 
 # Load Parameters
 #include("custom_params.jl")

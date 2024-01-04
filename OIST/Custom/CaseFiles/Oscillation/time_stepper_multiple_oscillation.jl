@@ -5,16 +5,19 @@ using PyPlot,PyCall
 using LinearAlgebra
 using IterativeSolvers
 
-#close("all")
-
 # Include the function files
+include("sem_init_ref.jl")
+include("custom_params.jl")
 include("sem_main.jl")
-#include("Meinhardt.jl")
-include("Dealias.jl")
+include("$SRC/Dealias.jl")
 include("$JULIACOMMON/GetEXT.jl")
 include("$JULIACOMMON/GetBDF.jl")
 
 include("time_stepper_multiple_init.jl")
+
+X = Geom.xm1[:];
+X[end] = X[1]
+QTX = QT*(X.*vimult)
 
 # No dynamic phase here
 ifdynplot         = false
@@ -23,13 +26,14 @@ ifplot            = iffldplot || ifphplot
 for i in 1:nsteps
   global fld,fldlag,Rhs,Rhslag,dotfld
   global t
-  global pl,pl2,scat
+  global pl,pl2,scat,λpl
+  global PlotContainers
   global framecount
 
   t = t + dt;
 
   if verbosestep>0 && mod(i,verbosestep)==0
-    println("Step: $i, Time: $t")
+    println("Step: $i/$nsteps, Time: $t")
   end
 
   GetBDF!(bdf,3)
@@ -43,7 +47,11 @@ for i in 1:nsteps
     GetEXT!(ext,2)
   end
 
-  dotfld = Flow(fld[:,1],fld[:,2])
+  Ω         = 0.05
+  θpar      = (θ0 + dθ*sin(2*π*Ω*t))*pi/180.0         # for G
+  λpar      = (λ0 + dλ*sin(2*π*Ω*t))                  # for F
+  dotfld    = Flow(fld[:,1],fld[:,2],θpar,λpar)
+
   for j in 1:nflds
     rhs           =  dotfld[:,j] .- Filg*fld[:,j];
     rhs1          =  ext[1]*rhs + ext[2]*Rhslag[:,1,j] + ext[3]*Rhslag[:,2,j];
@@ -61,7 +69,6 @@ for i in 1:nsteps
     Σ             = σall[j]*(rand(ndof) .- 0.5)
     Rhs[:,j]      = Rhs[:,j] .+ Bg.*Σ
   end
-
 
   for j in 1:nflds
     M         = bdf[1]/dt*diagm(Bg) .- γall[j]*Lg;
@@ -82,23 +89,58 @@ for i in 1:nsteps
 #   Remove old plots      
     if (i>plotupd)
        if (iffldplot)
-         pl[1].remove()
-         pl2[1].remove()
+         for j in 1:nflds
+          if (plotfldi[j])
+            pl[j][1].remove()
+          end
+        end  
        end  
        if (ifphplot)
          scat[1].remove()
+       end
+       if ifdynplot
+         λpl[1].remove()
+       end
+
+       if (ifdynnull)
+#         PlotContainers[1][1].remove()
+#         PlotContainers[2][1].remove()
+#
+#         PlotContainers[3][1].remove()
+#         PlotContainers[4][1].remove()
+
+         PlotContainers[5][1].remove()
+         PlotContainers[6][1].remove()
+#         PlotContainers[7][1].remove()
        end  
+      
     end
-#   Updated plots      
+
+#   Add updated plots      
     if (iffldplot)
-      pl  = ax2.plot(Geom.xm1[:],Q*fld[:,1],color=rgba0)
-      pl2 = ax2.plot(Geom.xm1[:],Q*fld[:,2],color=rgba1)
-    end  
+      for j in 1:nflds
+        if (plotfldi[j])
+          pl[j] = ax2.plot(Geom.xm1[:],Q*fld[:,j],color=cm(j-1));
+        end
+      end  
+    end
+#   Phase plot    
     if ifphplot
       scat = ax1.plot(fld[:,1],fld[:,2],color="black") 
     end
+    
+    if ifdynplot
+      λpl =ax2.plot(Geom.xm1[:],Q*λpar,color=cm(4-1));
+    end
 
-#   Saving frames    
+    if ifdynnull
+
+      PlotContainers[5] = ax1.plot(ft(λpar),yin,linestyle="--",linewidth=2,color=cm(0));
+      PlotContainers[6] = ax1.plot(gt(θpar),yin,linestyle="--",linewidth=2,color=cm(1));
+    
+    end  
+
+    # Saving frames    
     if (ifsaveframe)
       framecount = framecount + 1
       if (ifphplot)
@@ -111,6 +153,7 @@ for i in 1:nsteps
         h2.savefig(fname2)
       end
     end  
+
     pause(0.001)
   end  
 
@@ -127,11 +170,6 @@ pcm.set_cmap(cm2)
 ax3   = h3.gca()
 ax3.invert_yaxis()
 cb    = colorbar(orientation="vertical")
-
-if (ifsaveframe)
-  fname = "./plots/surf.png"
-  h3.savefig(fname)
-end
 
 #surf(t2d,x2d,fldhist[:,:,2],cmap=cm2,edgecolor="none")
 #ax3.elev = 94.0

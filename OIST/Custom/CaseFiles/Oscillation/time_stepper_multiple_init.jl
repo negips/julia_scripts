@@ -1,8 +1,4 @@
 
-include("sem_main.jl")
-#include("Meinhardt.jl")
-include("$SRC/Dealias.jl")
-
 println("Time-Stepping Initialization")
 
 agauss      = 0.0*Geom.xm1[:]
@@ -110,9 +106,11 @@ end
 # Plot Dynamically moving Null-clines
 if (ifdynnull)
   for i in 1:length(PlotContainers)
-    p = PlotContainers[i]
-    p[1].remove()
-    PlotContainers[i] = []
+    if isassigned(PlotContainers,i)
+      p = PlotContainers[i]
+      p[1].remove()
+      PlotContainers[i] = []
+    end  
   end
 end
 
