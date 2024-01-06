@@ -7,105 +7,12 @@ using LinearAlgebra
 using Roots
 using PyPlot
 
+include("BuildTimeDerivatives.jl")
 include("NullClines.jl")
 include("NullClineFcn.jl")
 include("ElementOf.jl")
 include("NullClineParams.jl")
 include("MoveFigure.jl")
-
-function FXY(x,y,c0,cx,cy)
-  nx = length(cx)
-  ny = length(cy)
-
-  s = c0
-  for i in 1:nx
-    s = s .+ cx[i]*x.^i
-  end
-
-  for j in 1:ny
-    s = s .+ cy[j]*y.^j
-  end  
-
-  return s
-end  
-#----------------------------------------------------------------------
-function RotFXY(x,y,Rc,Rs,c0,cx,cy)
-  nx = length(cx)
-  ny = length(cy)
-
-  s = c0
-  for i in 1:nx
-    s = s .+ cx[i]*(Rc*x .+ Rs*y).^i
-  end
-
-  for j in 1:ny
-    s = s .+ cy[j]*(-Rs*x .+ Rc*y).^j
-  end  
-
-  return s
-end  
-#---------------------------------------------------------------------- 
-function RotXYFXY(x,y,Rc,Rs,x0,y0,c0,cx,cy)
-  nx = length(cx)
-  ny = length(cy)
-
-  s = c0
-  for i in 1:nx
-    s = s .+ cx[i]*(x0 + Rc*(x-x0) .+ Rs*(y-y0)).^i
-  end
-
-  for j in 1:ny
-    s = s .+ cy[j]*(y0 + -Rs*(x-x0) .+ Rc*(y-y0)).^j
-  end  
-
-  return s
-end  
-#---------------------------------------------------------------------- 
-
-function FX(x,c0,cx)
-  nx = length(cx)
-
-  s = c0
-  for i in 1:nx
-    s = s .+ cx[i]*x.^i
-  end
-
-  return s
-end  
-#---------------------------------------------------------------------- 
-function FY(y,c0,cy)
-  ny = length(cy)
-
-  s = c0
-  for i in 1:ny
-    s = s .+ cy[i]*y.^i
-  end
-
-  return s
-end  
-#---------------------------------------------------------------------- 
-function TERR_F(x,y,c0,cx,cy)
-
-  n  = length(x)
-  nx = length(cx)
-  ny = length(cy)
-
-  er = 0.0
-  for k in 1:n
-    s = c0
-    for i in 1:nx
-      s = s + cx[i]*x[k]^i
-    end
-
-    for j in 1:ny
-      s = s + cy[j]*y[k]^j
-    end
-    er = er + s^2
-  end  
-
-  return er
-end  
-#---------------------------------------------------------------------- 
 
 close("all")
 
@@ -247,8 +154,8 @@ end
 pause(0.01)
 
 println("Press x to stop. Any other key to continue")
-xin = readline()
-#xin = "x"
+#xin = readline()
+xin = "x"
 ϵ           = 0.1
 η           = 1.0
 if xin !="x"

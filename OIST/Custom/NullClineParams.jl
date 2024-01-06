@@ -37,6 +37,13 @@ mutable struct NullClineParams
 
 end
 #---------------------------------------------------------------------- 
+@doc """
+
+   function GetNullClineXY(nullcline_set)
+   
+   See GetNullClineParams for a list
+
+"""
 function GetNullClineXY(nullcline_set)
 
     if nullcline_set == 1
@@ -654,6 +661,76 @@ function GetNullClineXY(nullcline_set)
         ydyB[1]         = yB[2]
       end  
 
+    elseif nullcline_set == 9
+#----------------------------------------       
+      println("Slugs. Linear Inhibitor")
+
+      nxA         = 1
+      nyA         = 3
+      nA          = nxA + nyA + 1      # No of free parameters/Conditions to satisfy
+      
+      FAC         = 1.0
+
+      # Incident points     
+      mA          = 3       
+      xA          = zeros(Float64,mA)
+      yA          = zeros(Float64,mA)
+      if mA > 0
+        xA        = FAC*[0.0; -0.4;    2.0]
+        yA        = FAC*[0.0;  0.5;    5.0]
+      end  
+      
+      # X-Derivative Points
+      mxA = 0
+      xdxA = zeros(Float64,mxA)
+      ydxA = zeros(Float64,mxA)
+      if (mxA>0)
+        xdxA[1] = xA[2]
+        ydxA[1] = yA[2] 
+      end  
+      
+      # Y-Derivative Points
+      myA = 1
+      xdyA = zeros(Float64,myA)
+      ydyA = zeros(Float64,myA)
+      if myA>0
+        xdyA[1] = xA[2]
+        ydyA[1] = yA[2]
+      end  
+      
+      # Points for G(x,y)
+      #-------------------- 
+      nxB               = 1
+      nyB               = 1
+      nB                = nxB + nyB + 1      # No of free parameters/Conditions to satisfy
+      
+      # Incident points
+      mB                = 2
+      xB                = zeros(Float64,mB)
+      yB                = zeros(Float64,mB)
+      if mB > 0
+        xB              = FAC*[0.0;  4.5]
+        yB              = FAC*[0.0;  5.0]
+      end  
+      
+      # X-Derivative Points
+      mxB = 0
+      xdxB              = zeros(Float64,mxB)
+      ydxB              = zeros(Float64,mxB)
+      if (mxB>0)
+        xdxB[1]         = xB[2]
+        ydxB[1]         = yB[2] 
+      end  
+      
+      # Y-Derivative Points
+      myB = 0
+      xdyB              = zeros(Float64,myB)
+      ydyB              = zeros(Float64,myB)
+      
+      if myB>0
+        xdyB[1]         = xB[2]
+        ydyB[1]         = yB[2]
+      end  
 
 
     elseif nullcline_set == 10
@@ -1602,6 +1679,76 @@ function GetNullClineXY(nullcline_set)
         ydyB[1]         = yB[2]
       end  
 
+    elseif nullcline_set == 101
+#----------------------------------------       
+      println("Slugs with large threshold ")
+
+      nxA         = 1
+      nyA         = 3
+      nA          = nxA + nyA + 1      # No of free parameters/Conditions to satisfy
+      
+      FAC         = 1.0
+
+      # Incident points     
+      mA          = 3       
+      xA          = zeros(Float64,mA)
+      yA          = zeros(Float64,mA)
+      if mA > 0
+        xA        = FAC*[0.0; -1.0;    3.0]
+        yA        = FAC*[0.0;  0.8;    5.0]
+      end  
+      
+      # X-Derivative Points
+      mxA = 0
+      xdxA = zeros(Float64,mxA)
+      ydxA = zeros(Float64,mxA)
+      if (mxA>0)
+        xdxA[1] = xA[2]
+        ydxA[1] = yA[2] 
+      end  
+      
+      # Y-Derivative Points
+      myA = 1
+      xdyA = zeros(Float64,myA)
+      ydyA = zeros(Float64,myA)
+      if myA>0
+        xdyA[1] = xA[2]
+        ydyA[1] = yA[2]
+      end  
+      
+      # Points for G(x,y)
+      #-------------------- 
+      nxB               = 1
+      nyB               = 2
+      nB                = nxB + nyB + 1      # No of free parameters/Conditions to satisfy
+      
+      # Incident points
+      mB                = 2
+      xB                = zeros(Float64,mB)
+      yB                = zeros(Float64,mB)
+      if mB > 0
+        xB              = FAC*[0.0;  2.5]
+        yB              = FAC*[0.0;  5.0]
+      end  
+      
+      # X-Derivative Points
+      mxB = 0
+      xdxB              = zeros(Float64,mxB)
+      ydxB              = zeros(Float64,mxB)
+      if (mxB>0)
+        xdxB[1]            = xB[2]
+        ydxB[1]            = yB[2] 
+      end  
+      
+      # Y-Derivative Points
+      myB = 1
+      xdyB              = zeros(Float64,myB)
+      ydyB              = zeros(Float64,myB)
+      
+      if myB>0
+        xdyB[1]         = xB[2]
+        ydyB[1]         = yB[2]
+      end  
 
 
     else
@@ -1621,6 +1768,38 @@ function GetNullClineXY(nullcline_set)
 end
 
 #---------------------------------------------------------------------- 
+@doc """
+
+   function GetNullClineParams(nullcline_set)
+
+            Null-cline Sets: 1         : Pulses
+                           : 2         : Slugs. No change in instability threshold
+                           : 3         : Pulses. Smaller instability threshold
+                           : 4         : Slugs. Smaller instability threshold
+                           : 5         : Extreme Slugs. Smaller instability threshold
+                           : 6         : Extreme Pulse collapse
+                           : 7         : Extreme slugs
+                           : 8         : Weak slugs
+                           : 9         : Slugs. Linear Inhibitor.
+                           : 10        : Limit-cycline Oscillation. Activation dominated
+                           : 11        : Limit-cycline Oscillation. De-activation dominated
+                           : 12        : Limit-cycline Oscillation. De-activation dominated (cubic in x)
+                           : 13        : Two fixed points - upper and lower branch.
+                           : 14        : Symmetric fixed points - upper and lower branch
+                           : 15        : Symmetric LCO
+                           : 16        : Two Asymmetric fixed points
+                           : 17        : Unstable G-null-cline
+                           : 18        : Marginal Instability
+                           : 19        : Stable Oscillatory Linear mode
+                           : 51        : Dynamic Switching (λ)
+                           : 52        : Dynamic Switching (λ)
+                           : 53        : Dynamic Switching (λ)
+                           :
+                           :101        : Slug with large threshold
+
+               Output the parameters as a NullClineParam Structure.                  
+
+"""
 function GetNullClineParams(nullcline_set)
 
     nxA,nyA,nA,xA,yA,xdxA,ydxA,xdyA,ydyA,nxB,nyB,nB,xB,yB,xdxB,ydxB,xdyB,ydyB = GetNullClineXY(nullcline_set)
