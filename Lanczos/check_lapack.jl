@@ -26,6 +26,6 @@ wantq = 1
 j1    = 3
 n1    = 2
 n2    = 2
-MyLapack.dlaexc!(wantq,j1,n1,n2,T2,Q2);
+info = MyLapack.dlaexc!(wantq,j1,n1,n2,T2,Q2);
 
 println("Done")
