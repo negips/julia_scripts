@@ -11,8 +11,11 @@ using PyPlot
 # In 2D
 function f2d(r::Float64,s::Float64,x::Vector{Float64},y::Vector{Float64})
 
-  xi = x[1]*(1.0-r)*(1.0-s) + x[2]*r*(1.0-s) + x[3]*(1.0-r)*s + x[4]*r*s
-  yi = y[1]*(1.0-r)*(1.0-s) + y[2]*r*(1.0-s) + y[3]*(1.0-r)*s + y[4]*r*s
+  xi = x[1]*(1.0-r)*(1.0-s) + x[2]*r*(1.0-s) + 
+       x[3]*(1.0-r)*s       + x[4]*r*s
+
+  yi = y[1]*(1.0-r)*(1.0-s) + y[2]*r*(1.0-s) +
+       y[3]*(1.0-r)*s       + y[4]*r*s
 
  return xi,yi
 end  
@@ -42,12 +45,20 @@ end
 #---------------------------------------------------------------------- 
 function Gradf2d(r::Float64,s::Float64,x::Vector{Float64},y::Vector{Float64})
 
-  Gf      = zeros(Float64,2,2)
-  Gf[1,1] = -x[1]*(1.0-s) + x[2]*(1.0-s) - x[3]*s       + x[4]*s
-  Gf[1,2] = -x[1]*(1.0-r) - x[2]*r       + x[3]*(1.0-r) + x[4]*r
+  @assert length(x) == length(y) == length(z) "Unequal Lengths of x,y,z"
 
-  Gf[2,1] = -y[1]*(1.0-s) + y[2]*(1.0-s) - y[3]*s       + y[4]*s
-  Gf[2,2] = -y[1]*(1.0-r) - y[2]*r       + y[3]*(1.0-r) + y[4]*r
+  Gf      = zeros(Float64,2,2)
+  Gf[1,1] = x[1]*(-1.0)*(1.0-s) + x[2]*(1.0)*(1.0-s) + 
+            x[3]*(-1.0)*s       + x[4]*(1.0)*s
+
+  Gf[1,2] = x[1]*(1.0-r)*(-1.0) + x[2]*r*(-1.0) + 
+            x[3]*(1.0-r)*(1.0)  + x[4]*r*(1.0)
+
+  Gf[2,1] = y[1]*(-1.0)*(1.0-s) + y[2]*(1.0)*(1.0-s) + 
+            y[3]*(-1.0)*s       + y[4]*(1.0)*s
+
+  Gf[2,2] = y[1]*(1.0-r)*(-1.0) + y[2]*r*(-1.0) + 
+            y[3]*(1.0-r)*(1.0)  + y[4]*r*(1.0)
 
  return Gf
 end  
@@ -151,8 +162,8 @@ function Get_rs_Newton(x0::Float64,y0::Float64,x::Vector{Float64},y::Vector{Floa
     end  
   end       # while
 
-  println("Iterations: ", it)
-  println("Residual: ", res)
+  #println("Iterations: ", it)
+  #println("Residual: ", res)
 
   return r,s
 end  
@@ -208,8 +219,8 @@ function Get_rst_Newton(x0::Float64,y0::Float64,z0::Float64,x::Vector{Float64},y
    
   end       # while
 
-  println("Iterations: ", it)
-  println("Residual: ", res)
+  #println("Iterations: ", it)
+  #println("Residual: ", res)
 
   return r,s,t
 end  
@@ -243,6 +254,7 @@ plot(xi,yi,linestyle="none",marker="s")
 
 r,s    = Get_rs_Newton(xi,yi,x2,y2)
 
+println("r,s: ",r,",",s)
 
 # 3D test
 dim  = 3
@@ -297,6 +309,7 @@ ax.set_zlabel("Z")
 
 r,s,t    = Get_rst_Newton(xi,yi,zi,x3,y3,z3)
 
+println("r,s,t: ",r,",",s,",",t)
 
 
 
