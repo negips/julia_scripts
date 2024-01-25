@@ -8,6 +8,7 @@ using Printf
 using PyPlot,PyCall
 
 include("Module_SchurLanczos/SchurLanczos.jl")
+include("SetZero.jl")
 
 close("all")
 
@@ -15,7 +16,11 @@ ifsavefig = false
 
 rng = MersenneTwister(1236)   # paper: 1236
 
-vt = ComplexF64
+const vt = ComplexF64
+const BiOtol = 1.0e-08        # small biorthogonality tolerance
+const SStol  = 1.0e-08        # invariant subspace tolerance
+const zrotol = 1.0e-12        # Zero element tolerance
+
 #vt = Float64
 
 zro   = vt(0.0)
@@ -38,7 +43,8 @@ indi = sortperm(λi,rev=true)
 
 Nev   = 2             # Number of eigenvalues to calculate
 EKryl = 3             # Additional size of Krylov space
-Lk    = Nev + EKryl   # Total Size of Krylov space    
+Lk    = Nev + EKryl   # Total Size of Krylov space
+Lk1   = Lk + 1
 
 λ2    = λ[indi[1:Nev]]
 
@@ -46,11 +52,13 @@ Qr    = zeros(vt,n,Lk)   # Right Krylov space
 Ql    = zeros(vt,n,Lk)   # Left  Krylov space
 Rr    = zeros(vt,Lk,Lk)
 Rl    = zeros(vt,Lk,Lk)  
+H     = zeros(vt,Lk,Lk)
 γl    = zeros(vt,Lk)
 γr    = zeros(vt,Lk)
 
 v     = randn(rng,vt,n)
 w     = randn(rng,vt,n)
+x     = zeros(vt,n)     # Work vector
 
 nk    = 0
 
@@ -64,26 +72,28 @@ Qrv,Rrv   = SchurLanczos.GetQRviews(Qr,Rr,k)
 γlv       = view(γl,1:k)
 γrv       = view(γr,1:k)
 
-αl,αr = SchurLanczos.BiOrthoScale!(w,v)
+αl,αr = SchurLanczos.BiOrthoScale!(w,v,x)
 SchurLanczos.UpdateQR!(Ql,Rl,w,k,ngs)
 SchurLanczos.UpdateQR!(Qr,Rr,v,k,ngs)
 
-k         = 1
-Qlv,Rlv   = SchurLanczos.GetQRviews(Ql,Rl,k)
-Qrv,Rrv   = SchurLanczos.GetQRviews(Qr,Rr,k)
-γlv       = view(γl,1:k)
-γrv       = view(γr,1:k)
+include("OneStep.jl")
 
-w1        = copy(w)
-v1        = copy(v)
-
-v         = A*v
-w         = A'*w
-
-SchurLanczos.BiOrthogonalize!(γlv,γrv,w,v,Qlv,Qrv,Rlv,Rrv,ngs)
-αl,αr = SchurLanczos.BiOrthoScale!(w,v)
-SchurLanczos.UpdateQR!(Ql,Rl,w,k,ngs)
-SchurLanczos.UpdateQR!(Qr,Rr,v,k,ngs)
+#k        += 1
+#Qlv,Rlv   = SchurLanczos.GetQRviews(Ql,Rl,k)
+#Qrv,Rrv   = SchurLanczos.GetQRviews(Qr,Rr,k)
+#γlv       = view(γl,1:k)
+#γrv       = view(γr,1:k)
+#
+#w1        = copy(w)
+#v1        = copy(v)
+#
+#v         = A*v
+#w         = A'*w
+#
+#SchurLanczos.BiOrthogonalize!(γlv,γrv,w,v,Qlv,Qrv,Rlv,Rrv,ngs)
+#αl,αr = SchurLanczos.BiOrthoScale!(w,v)
+#SchurLanczos.UpdateQR!(Ql,Rl,w,k,ngs)
+#SchurLanczos.UpdateQR!(Qr,Rr,v,k,ngs)
 
 
 

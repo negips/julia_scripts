@@ -133,7 +133,29 @@ function UpdateQR!(Q::AbstractMatrix{T},R::AbstractMatrix{T},x::AbstractVector{T
 end
 
 #----------------------------------------------------------------------
+@doc """
 
+      SelectEigenvalues(evals::AbstractVector{T},Nev::Int) where {T}
+
+      Output Int vector for selected eigenvalues.
+
+"""
+function SelectEigenvalues(evals::AbstractVector{T},Nev::Int) where {T}
+
+      n           = length(evals)
+      select      = fill(0,n)
+      er          = real.(evals)
+      ei          = imag.(evals)
+      sind        = sortperm(ei,rev=true)   # Decreasing order of imaginary (eigenvalues).
+      for i in 1:Nev
+        j   = sind[i]
+        select[j] = 1
+      end  
+
+      return select
+end
+
+#----------------------------------------------------------------------
 
 
 

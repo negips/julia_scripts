@@ -130,11 +130,15 @@ function Get_rs_Newton(x0::Float64,y0::Float64,x::Vector{Float64},y::Vector{Floa
   dx = x0-xi
   dy = y0-yi
 
-  if abs(dy)>dx
-    res = abs(dy)*sqrt((dx/dy)^2 + 1.0)
+  if abs(dx)>0.0 || abs(dy)>0.0 
+    if abs(dy)>(dx)
+      res = abs(dy)*sqrt((dx/dy)^2 + 1.0)
+    else
+      res = abs(dx)*sqrt((dy/dx)^2 + 1.0)
+    end
   else
-    res = abs(dx)*sqrt((dy/dx)^2 + 1.0)
-  end
+    res = 0.0
+  end  
     
   it = 0
   while it<maxit && res>tol

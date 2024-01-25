@@ -7,7 +7,8 @@ module SchurLanczos
   export BiOrthogonalize!,
          BiOrthoScale!,
          GetQRviews,
-         UpdateQR!
+         UpdateQR!,
+         SelectEigenvalues
 
 end         # module SchurLanczos
 #----------------------------------------------------------------------
