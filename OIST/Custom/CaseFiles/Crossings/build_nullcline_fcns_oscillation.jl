@@ -158,7 +158,7 @@ if xin !="x"
   # Λ(x,y,z) = FXYZ(x,y,z,λc0,λcx,λcy,λcz)
   Flow(x,y,z1,z2) = [G(x,y,z1) F(x,y,z2)]
 
-  include("time_stepper_multiple_oscillation.jl")
+#  include("time_stepper_multiple_oscillation.jl")
 end
 
 
