@@ -18,7 +18,7 @@ QTX = QT*(X.*vimult)
 ifdynplot         = false
 ifplot            = iffldplot || ifphplot
 
-C                 = 0.1       # Front Velocity
+C                 = 0.0       # Front Velocity
 Rhs               = 0.0*fld
 
 dotfy(y)          = F(0.0,y)
@@ -67,17 +67,23 @@ for i in 1:nsteps
   global opg(x)     = mask.*(Lg*x .+ C*Cg*x .+ Bg.*grad_diag.*x)
   MyGMRES!(sol,resid,opg,VKryl,tol,maxoit)
 
-  dif = norm(sol)
 
   fld[:,j] .+= δ*sol
 
-  println("$i Diff: $dif")
-  if (dif < tol)
-    pl[1] = plot(Geom.xm1[:],Q*fld[:,2],color="red",linewidth=2);
+  dotfld     = dotfy(fld[:,j]);
+  lapfld     = Lg*fld[:,j];
+  convfld    = Cg*fld[:,j];
+  resid      = -mask.*(lapfld .+ C*convfld .+ Bg.*dotfld);
+
+  res2 = norm(resid)
+
+  println("$i Residual: $res2")
+  if (res2 < tol)
+    local pl = plot(Geom.xm1[:],Q*fld[:,2],color="black",linewidth=2);
     break
   end
 
-  pl[1] = plot(Geom.xm1[:],Q*fld[:,2],color=cm(l-1));
+  local pl = plot(Geom.xm1[:],Q*fld[:,2],color=cm(l-1));
 
 end
 
@@ -92,6 +98,8 @@ end
 # gmres!(sol2,M,resid)
 # ax2.plot(Geom.xm1[:],Q*sol2,color=cm(l));
 
+h3 = figure(num=3)
+pl3 = plot(Geom.xm1[:],Q*fld[:,2],color=cm(0),linewidth=2);
 
 
 
