@@ -51,17 +51,17 @@ if initplot
   println("Press any key to continue")
   xin = readline()
 
-# Remove Plots  
-  for j in 1:nflds
-    if (plotfldi[j])
-      pl[j][1].remove();
-    end
-  end  
-#  pl[1].remove()
-#  pl2[1].remove()
-  if (ifphplot)
-    scat[1].remove()
-  end  
+# # Remove Plots  
+#   for j in 1:nflds
+#     if (plotfldi[j])
+#       pl[j][1].remove();
+#     end
+#   end  
+# #  pl[1].remove()
+# #  pl2[1].remove()
+#   if (ifphplot)
+#     scat[1].remove()
+#   end  
 end
 
 pause(0.01)

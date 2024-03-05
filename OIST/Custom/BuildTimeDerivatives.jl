@@ -2,6 +2,74 @@
 # Build the Evolution functions based on the parameters
 #---------------------------------------------------------------------- 
 """
+   function FX(x,c0,cx)
+
+     F(x) = c0 + Σcx_i*x^i
+
+"""
+function FX(x,c0,cx)
+  nx = length(cx)
+
+  s = c0
+  for i in 1:nx
+    s = s .+ cx[i]*x.^i
+  end
+
+  return s
+end  
+#---------------------------------------------------------------------- 
+"""
+   function GradFX(x,cx)
+
+     ∇(F(x)) = Σ(cx_i)*i*x^(i-1)
+
+"""
+function GradFX(x,cx)
+  nx = length(cx)
+
+  s = 0.0
+  for i in 1:nx
+    s = s .+ cx[i]*(i+0.0)*x.^(i-1)
+  end
+
+  return s
+end 
+#---------------------------------------------------------------------- 
+"""
+   function FXY(x,y,c0,cx,cy)
+
+     F(x,y) = c0 + Σcx_i*x^i + Σcy_i*y^i
+
+"""
+function FXY(x,y,c0,cx,cy)
+
+  s0 = c0
+  sx = FX(x,0.0,cx)
+  sy = FX(y,0.0,cy)
+
+  s  = s0 .+ sx .+ sy
+
+  return s
+end  
+#---------------------------------------------------------------------- 
+"""
+   function GradFXY(x,y,cx,cy)
+
+     ∇(F(x,y)) = ∇(F(x)) + ∇(F(y))
+
+"""
+function GradFXY(x,y,cx,cy)
+
+  sx = GradFX(x,cx)
+  sy = GradFX(y,cy)
+
+  s  = sx .+ sy
+
+  return s
+end  
+#---------------------------------------------------------------------- 
+
+"""
    function FXYZ(x,y,z,c0,cx,cy)
 
      F(x,y,z) = c0 + Σcx_i*x^i + Σcy_i*y^i + Σcz_i*z^i
@@ -25,45 +93,6 @@ function FXYZ(x,y,z,c0,cx,cy,cz)
     s = s .+ cz[k]*z.^k
   end  
  
-  return s
-end  
-#---------------------------------------------------------------------- 
-"""
-   function FXY(x,y,c0,cx,cy)
-
-     F(x,y) = c0 + Σcx_i*x^i + Σcy_i*y^i
-
-"""
-function FXY(x,y,c0,cx,cy)
-  nx = length(cx)
-  ny = length(cy)
-
-  s = c0
-  for i in 1:nx
-    s = s .+ cx[i]*x.^i
-  end
-
-  for j in 1:ny
-    s = s .+ cy[j]*y.^j
-  end  
-
-  return s
-end  
-#---------------------------------------------------------------------- 
-"""
-   function FX(x,c0,cx)
-
-     F(x) = c0 + Σcx_i*x^i
-
-"""
-function FX(x,c0,cx)
-  nx = length(cx)
-
-  s = c0
-  for i in 1:nx
-    s = s .+ cx[i]*x.^i
-  end
-
   return s
 end  
 #---------------------------------------------------------------------- 

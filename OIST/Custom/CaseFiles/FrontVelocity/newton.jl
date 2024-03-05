@@ -1,4 +1,4 @@
-println("Time-Stepping interface")
+println("Newton interface")
 
 using PolynomialBases
 using PyPlot,PyCall
@@ -7,6 +7,7 @@ using IterativeSolvers
 
 include("$SRC/Dealias.jl")
 
+include("MyGMRES.jl")
 include("newton_init.jl")
 
 X = Geom.xm1[:];
@@ -17,88 +18,79 @@ QTX = QT*(X.*vimult)
 ifdynplot         = false
 ifplot            = iffldplot || ifphplot
 
-C                 = 1.0       # Front Velocity
+C                 = 0.1       # Front Velocity
 Rhs               = 0.0*fld
 
+dotfy(y)          = F(0.0,y)
+dotfx(x)          = F(x,0.0)
+Gradyf(y)         = GradFX(y,pars.fcy)/ϵ
+Gradxf(x)         = GradFX(x,pars.fcx)/ϵ
+
+
+Lkryl             = 20
+VKryl             = zeros(VT,ndof,Lkryl+1)
+tol               = 1.0e-8
+maxoit            = 10
+sol               = 0.0*fld[:,2]
+δ                 = 1.0
+
+mask              = fill(1.0,ndof)
+
 for i in 1:nsteps
-  global fld,dotfld,Rhs,C
-  global pl,pl2,scat,λpl
-  global PlotContainers
-  global framecount
+  global fld,sol,C,mask
+  global VKryl
 
 
-  θpar      = θ0  # for G
-  λpar      = λ0  # for F
-  dotfld    = Flow(fld[:,1],fld[:,2],θpar,λpar)
+  # dotfld    = Flow(fld[:,1],fld[:,2])
+
+  # Boundary conditions: 
+  # 0.0 at the right Boundary
+  # Upper branch solution at the left boundary
+  fld[end,2]    = 0.0
+  upper_branch  = find_zero(dotfy,8.0)
+  fld[1,2]      = upper_branch
+
+  mask[1]       = 0.0
+  mask[end]     = 0.0
 
   # Initial Residual
-  for j in 1:1 # nflds
-    rhs           = dotfld[:,j];
-    lapfld        = Lg*fld[:,j];
-    convfld       = Cg*fld[:,j];
+  j          = 2
+  dotfld     = dotfy(fld[:,j]);
+  lapfld     = Lg*fld[:,j];
+  convfld    = Cg*fld[:,j];
 
-    Rhs[:,j]      = lapfld .+ C*convfld .+ Bg.*rhs;
+  global resid   = -mask.*(lapfld .+ C*convfld .+ Bg.*dotfld);
+  
+  # Boundary values are Dirichlet
+  grad_diag         = Gradyf(fld[:,2])
+  
+  global opg(x)     = mask.*(Lg*x .+ C*Cg*x .+ Bg.*grad_diag.*x)
+  MyGMRES!(sol,resid,opg,VKryl,tol,maxoit)
 
-    # Boundary conditions: 0.0 at the right Boundary
-    Rhs[end,j]    = 0.0
+  dif = norm(sol)
+
+  fld[:,j] .+= δ*sol
+
+  println("$i Diff: $dif")
+  if (dif < tol)
+    pl[1] = plot(Geom.xm1[:],Q*fld[:,2],color="red",linewidth=2);
+    break
   end
 
-  ϵ         = 0.001
-  Cpert     = ϵ*rand()
-  fldpert   = ϵ*rand(Float64,size(Fld[:,1]))
-  fldnew    = fld[:,1] .+ fldpert
-
-  dotfld2   = Flow(fldnew,fld[:,2],θpar,λpar)
-  dotpert   = dotfld2[:,1] .- dotfld[:,1]
-
-  # Action on perturbed system:
-  rhspert   = Bg.*dotpert .+ Lg*fldpert .+ C*Cg*fldpert + Cpert*Cg*fld[:,1];
-
-
-
-
-
-
-
-  if ifplot && mod(i,plotupd)==0
-#   Remove old plots      
-    if (i>plotupd)
-       if (iffldplot)
-         for j in 1:nflds
-          if (plotfldi[j])
-            pl[j][1].remove()
-          end
-        end  
-       end  
-       if (ifphplot)
-         scat[1].remove()
-       end
-       if ifdynplot
-         λpl[1].remove()
-       end
-    end
-
-#   Add updated plots      
-    if (iffldplot)
-      for j in 1:nflds
-        if (plotfldi[j])
-          pl[j] = ax2.plot(Geom.xm1[:],Q*fld[:,j],color=cm(j-1));
-        end
-      end  
-    end
-#   Phase plot    
-    if ifphplot
-      scat = ax1.plot(fld[:,1],fld[:,2],color="black",linewidth=2) 
-    end
-
-    pause(0.001)
-  end  
+  pl[1] = plot(Geom.xm1[:],Q*fld[:,2],color=cm(l-1));
 
 end
 
+# close("all")
 
+#ax2.clear()
+#h2.clf()
+#l=2
+#pl[1] = plot(Geom.xm1[:],Q*fld[:,2],color=cm(l-1));
 
-
+# sol2 = copy(sol)
+# gmres!(sol2,M,resid)
+# ax2.plot(Geom.xm1[:],Q*sol2,color=cm(l));
 
 
 

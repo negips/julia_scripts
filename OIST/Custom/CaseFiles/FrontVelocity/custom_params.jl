@@ -26,7 +26,7 @@ ngauss            = length(x0gauss)
 ampgauss          = ones(Float64,ngauss)  #rand(ngauss)
 x0                = x0gauss[1]      # Gaussian Center
 σg                = prec(2)         # Gaussian Std. Deviation
-ampA0             = prec(4.0)
+ampA0             = prec(1.0)
 ampB0             = prec(0.0)
 ampζ0             = prec(0.0)
 
@@ -40,7 +40,7 @@ B0Off             = prec(0.0)         # Homogeneous state value
 Off0              = zeros(prec,nflds)
 Off0              = [B0Off; A0Off; ζ0Off]
 
-σai               = prec(1.0)         # Initial Activator Noise
+σai               = prec(0.0)         # Initial Activator Noise
 σbi               = prec(0.0)         # Initial Inhibitor Noise Strength
 σζi               = prec(0.0)         # Initial Aux. Strength
 σ0i               = [σbi; σai; σζi]
@@ -48,7 +48,7 @@ Off0              = [B0Off; A0Off; ζ0Off]
 
 # Simulation
 dt                = prec(0.01)       # Time step
-nsteps            = 1                # No of steps
+nsteps            = 100               # No of steps
 nstep_switch1     = 3000             # Switch functions 1
 nstep_switch2     = 3400             # Switch again
 

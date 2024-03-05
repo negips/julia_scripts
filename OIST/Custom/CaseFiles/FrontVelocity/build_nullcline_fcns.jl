@@ -47,37 +47,17 @@ if f(0.0,100.0)>0
   pars.fcy        = -pars.fcy
 end  
 
-# If we want +λ to be stabilizing or destabilizing
-stabilizing = true
-# Translated
-if stabilizing 
-  ϕfd   = 120 #150.0
-else
-  ϕfd   = -80.0
-end  
-println("F(x,y) Translated with Slope: $ϕfd Degrees")
-ϕf      = ϕfd*π/180.0
-
-# Plot the null-cline
-λ0      = 0.0
-dλ      = 0.35
-#λvalues = [λ0-dλ; λ0; λ0+dλ]
-λvalues = [λ0]
-θvalues = [0.0]
 plc = 0
-for λ in λvalues
-  local θ             = λ*pi/180.0
-  # local f2(x,y)       = RotFXY(x,y,θ0,pars.fc0,pars.fcx,pars.fcy)
-  local f2(x,y)       = TransFXY(x,y,λ,ϕf,pars.fc0,pars.fcx,pars.fcy)
+for i in 1:1
   # Plot the null-cline
   local xi            = -20.0
   local yr0           = -10.0
   local yr1           =  50.0
   local dτ            = 1.0e-3
   local nsteps        = 200000
-  local f0x,f0y       = NullClines(f2,xi,yr0,yr1,nsteps,dτ)
+  local f0x,f0y       = NullClines(f,xi,yr0,yr1,nsteps,dτ)
   global plc         += 1
-  PlotContainers[plc] = ax1.plot(f0x,f0y,linestyle="-",label="λ=$λ; ϕ=$ϕfd")
+  PlotContainers[plc] = ax1.plot(f0x,f0y,linestyle="-",label="f(x,y);")
 end  
 
 
@@ -90,33 +70,17 @@ if g(100.0,0.0)>0
   pars.gcy        = -pars.gcy
   g(x,y)          = FXY(x,y,pars.gc0,pars.gcx,pars.gcy)
 end  
-stabilizing = true
-# Translated
-if stabilizing
-  ϕgd             = -30.0
-else
-  ϕgd             = 150.0
-end  
-#println("G(x,y) Translated with Slope: $ϕgd Degrees")
-ϕg                = ϕgd*π/180.0
 
-λvalues = [0.0]
-θ0      =  0.0
-dθ      =  20.0
-# θvalues = [θ0-dθ; θ0; θ0+dθ]
-θvalues = [θ0-dθ]
-for λ in θvalues
-  local θ             = λ*pi/180.0
-  local g2(x,y)       = RotFXY(x,y,θ,pars.gc0,pars.gcx,pars.gcy)
+for i in 1:1
+  # Plot Null-cline
   local xi            = -10.0
   local yr0           = -30.0
   local yr1           =  10.0
   local dτ            = 1.0e-3
   local nsteps        = 200000
-  local g20x,g20y     = NullClines(g2,xi,yr0,yr1,nsteps,dτ)
+  local g20x,g20y     = NullClines(g,xi,yr0,yr1,nsteps,dτ)
   global plc         += 1
-  PlotContainers[plc] = ax1.plot(g20x,g20y,linestyle="--",label="θ=$λ; ϕ=$ϕgd")
-  # legend()
+  PlotContainers[plc] = ax1.plot(g20x,g20y,linestyle="--",label="g(x,y)")
 end  
 
 ax1.set_xlabel(L"B", fontsize=lafs)
@@ -129,14 +93,6 @@ MoveFigure(h1,1250,830)
 
 
 # Time dependent null-cline functions
-yin     = LinRange(-1.5,6.0,5000)
-#gt(z)   = -1.0/pars.gcx[1]*TransFXY(0.0,yin,z,ϕg,pars.gc0,pars.gcx,pars.gcy)
-ft(z)   = -1.0/pars.fcx[1]*TransFXY(0.0,yin,z,ϕf,pars.fc0,pars.fcx,pars.fcy)
-
-gt(z)   = -1.0/pars.gcx[1]*RotFXY(0.0,yin,z,pars.gc0,pars.gcx,pars.gcy)
-#ft(z)   = -1.0/pars.fcx[1]*RotFXY(0.0,yin,z,pars.fc0,pars.fcx,pars.fcy)
-
-
 pause(0.01)
 
 ϵ   = 0.1
@@ -147,14 +103,10 @@ println("Press x to stop. Any other key to continue")
 #xin = "x"
 xin = "y"
 if xin !="x"
-#  G(x,y,z) = TransFXY(x,y,z,ϕg,pars.gc0,pars.gcx,pars.gcy)*η
-  F(x,y,z) = TransFXY(x,y,z,ϕf,pars.fc0,pars.fcx,pars.fcy)/ϵ
+  F(x,y) = f(x,y)/ϵ
+  G(x,y) = g(x,y)*η
 
-  G(x,y,z)  = RotFXY(x,y,z,pars.gc0,pars.gcx,pars.gcy)*η
-#  F(x,y,z)  = RotFXY(x,y,z,pars.fc0,pars.fcx,pars.fcy)/ϵ
-
-  # Λ(x,y,z) = FXYZ(x,y,z,λc0,λcx,λcy,λcz)
-  Flow(x,y,z1,z2) = [G(x,y,z1) F(x,y,z2)]
+  Flow(x,y) = [G(x,y) F(x,y)]
 
   include("sem_init_ref.jl")
   include("custom_params.jl")
