@@ -2,7 +2,7 @@
 
 # Setting the parameters here
 
-U                 = prec(0)         # Convection
+U                 = prec(1)         # Convection
 γ                 = prec(1)         # Diffusion (Generic) 
 γa                = prec(0.2)       # Diffusion (activator)
 γb                = prec(0.01)      # Diffusion (inhibitor)

@@ -9,6 +9,7 @@ include("$SRC/Dealias.jl")
 
 include("MyGMRES.jl")
 include("newton_init.jl")
+include("newton_op.jl")
 
 X = Geom.xm1[:];
 X[end] = X[1]
@@ -18,7 +19,7 @@ QTX = QT*(X.*vimult)
 ifdynplot         = false
 ifplot            = iffldplot || ifphplot
 
-C                 = 0.0       # Front Velocity
+C                 = 4.0       # Front Velocity
 Rhs               = 0.0*fld
 
 dotfy(y)          = F(0.0,y)
@@ -30,7 +31,7 @@ Gradxf(x)         = GradFX(x,pars.fcx)/ϵ
 Lkryl             = 20
 VKryl             = zeros(VT,ndof,Lkryl+1)
 tol               = 1.0e-8
-maxoit            = 10
+maxoit            = 100
 sol               = 0.0*fld[:,2]
 δ                 = 1.0
 
@@ -59,21 +60,26 @@ for i in 1:nsteps
   lapfld     = Lg*fld[:,j];
   convfld    = Cg*fld[:,j];
 
-  global resid   = -mask.*(lapfld .+ C*convfld .+ Bg.*dotfld);
+  # global resid   = -mask.*(lapfld .+ C*convfld .+ Bg.*dotfld);
+  resid = newton_resid(fld[:,j],C,dotfy,Lg,Cg,Bg,0.0,0.0)
   
   # Boundary values are Dirichlet
   grad_diag         = Gradyf(fld[:,2])
   
-  global opg(x)     = mask.*(Lg*x .+ C*Cg*x .+ Bg.*grad_diag.*x)
+  # global opg(x)     = mask.*(Lg*x .+ C*Cg*x .+ Bg.*grad_diag.*x)
+  opg(x)     = newton_Lop(x,C,grad_diag,Lg,Cg,Bg)
+
   MyGMRES!(sol,resid,opg,VKryl,tol,maxoit)
 
 
   fld[:,j] .+= δ*sol
 
-  dotfld     = dotfy(fld[:,j]);
-  lapfld     = Lg*fld[:,j];
-  convfld    = Cg*fld[:,j];
-  resid      = -mask.*(lapfld .+ C*convfld .+ Bg.*dotfld);
+  # dotfld     = dotfy(fld[:,j]);
+  # lapfld     = Lg*fld[:,j];
+  # convfld    = Cg*fld[:,j];
+  # resid      = -mask.*(lapfld .+ C*convfld .+ Bg.*dotfld);
+
+  resid = newton_resid(fld[:,j],C,dotfy,Lg,Cg,Bg,0.0,0.0)
 
   res2 = norm(resid)
 
@@ -83,7 +89,7 @@ for i in 1:nsteps
     break
   end
 
-  local pl = plot(Geom.xm1[:],Q*fld[:,2],color=cm(l-1));
+  local pl = plot(Geom.xm1[:],Q*fld[:,2],color=cm(2));
 
 end
 
@@ -99,7 +105,8 @@ end
 # ax2.plot(Geom.xm1[:],Q*sol2,color=cm(l));
 
 h3 = figure(num=3)
-pl3 = plot(Geom.xm1[:],Q*fld[:,2],color=cm(0),linewidth=2);
+#figure(h3)
+pl3 = plot(Geom.xm1[:],Q*fld[:,2],color=cm(3),linewidth=2);
 
 
 
