@@ -28,12 +28,12 @@ Gradyf(y)         = GradFX(y,pars.fcy)/ϵ
 Gradxf(x)         = GradFX(x,pars.fcx)/ϵ
 
 
-Lkryl             = 20
+Lkryl             = 40
 VKryl             = zeros(VT,ndof,Lkryl+1)
 tol               = 1.0e-8
-maxoit            = 100
+maxoit            = 200
 sol               = 0.0*fld[:,2]
-δ                 = 1.0
+δ                 = 0.5
 
 mask              = fill(1.0,ndof)
 
@@ -41,14 +41,14 @@ for i in 1:nsteps
   global fld,sol,C,mask
   global VKryl
 
-
   # dotfld    = Flow(fld[:,1],fld[:,2])
 
   # Boundary conditions: 
   # 0.0 at the right Boundary
   # Upper branch solution at the left boundary
   fld[end,2]    = 0.0
-  upper_branch  = find_zero(dotfy,8.0)
+  yguess        = 8.0
+  upper_branch  = find_zero(dotfy,yguess)
   fld[1,2]      = upper_branch
 
   mask[1]       = 0.0

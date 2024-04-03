@@ -45,6 +45,13 @@ function Sem_Global_Num(xm1,prec,ifp)
       glnum = zeros(Int64,lx1,nel) 
 
       xtmp  = xm1[:];
+      if isinf(xtmp[1])
+        xtmp[1] = prec(-999999999.999)
+      end  
+
+      if isinf(xtmp[n])
+        xtmp[n] = prec(999999999.999)
+      end  
 
       x1    = xtmp[1]
       eps10 = eps(prec)   # Get machine precision of the variable type
