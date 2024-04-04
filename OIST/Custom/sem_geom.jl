@@ -291,6 +291,120 @@ function sem_geom(Basis,Basisd,xc::AbstractVector,N::Int,Nd::Int,nel::Int,dxm1,d
 
 end
 #---------------------------------------------------------------------- 
+function sem_geom_laguerre(Basis,prec)
+#     Generate the geometric matrices
+
+#     Input:
+#     N     : Degree of polynomial
+#     Basis : Structure for Polynomial basis of degree N
+#     Nd    : Degree of Dealiased polynomial
+#     Basisd: Structure for Polynomial basis of degree Nd
+#     nel   : No of elements
+#     xc    : elemental nodes
+
+      VT    = prec
+      nel   = 1
+
+      lx1   = length(Basis.nodes);
+      N     = lx1-1
+
+      xm1         = zeros(VT,lx1,nel);
+      ym1         = zeros(VT,lx1,nel);           # Tagging this along to make sense of derivatives
+      xm1[:,1]    = copy(Basis.nodes);
+      ym1[:,1]    = copy(Basis.nodes);
+      wzm         = copy(Basis.weights);
+      
+#     Local Geometric Matrices
+      xrm1   = zeros(VT,lx1,nel);                # dx/dr
+      xsm1   = zeros(VT,lx1,nel);                # dx/ds
+      
+      yrm1   = zeros(VT,lx1,nel);                # dy/dr
+      ysm1   = zeros(VT,lx1,nel);                # dy/ds
+      
+      rxm1   = zeros(VT,lx1,nel);                # dr/dx
+      rym1   = zeros(VT,lx1,nel);                # dr/dy
+
+      sxm1   = zeros(VT,lx1,nel);                # ds/dx
+      sym1   = zeros(VT,lx1,nel);                # ds/dy
+      
+      jacm1  = zeros(VT,lx1,nel);                # dr/dx
+      jacmi  = zeros(VT,lx1,nel);                # dr/dx
+      
+      dxm1   = Basis.D
+      dxtm1  = Basis.D'
+      for i in 1:nel
+        for j in 1:lx1
+          xrm1[j,i]  = 1.0
+          xsm1[j,i]  = 0.0
+      
+          yrm1[j,i]  = 0.0
+          ysm1[j,i]  = 1.0
+        end  
+      end
+      
+      jacm1 = xrm1.*ysm1 - xsm1.*yrm1;
+      jacmi = 1 ./jacm1;                              # Inverse Jacobian
+      
+      rxm1  = jacmi.*(ysm1);
+      sym1  = jacmi.*(xrm1);
+      
+      rym1  = -jacmi.*(xsm1);
+      sxm1  = -jacmi.*(yrm1);
+      
+#     Diagonal Mass matrix (as a vector)
+      bm1   = Basis.weights;
+      
+#     Gradient operator
+      gradx  = copy(Basis.D)
+      
+#     Interpolation operator to de-aliased grid
+      intpm1d = zeros(VT,lx1,lx1);
+      
+#     Matrices for Convection operator
+      jacm1d  = copy(jacm1);
+      bm1d    = copy(Basis.weights);
+      
+      gradxd     = copy(Basis.D);
+      bmd_matrix = diagm(bm1d)
+      
+      bintpd     = zeros(VT,lx1,lx1,nel);        # Matrix to perform integration on the dealiased grid   
+
+#     Convective matrix assuming uniform velocity
+      cnv = zeros(VT,lx1,lx1,nel);
+      for i in 1:nel
+        bintpd[:,:,i] = diagm(Basis.weights)
+        cnv[:,:,i]    = bintpd[:,:,i]*gradxd;
+      end  
+      
+#     Weak Laplacian
+#     wlp = -[ (BM1*∇v)^T.(∇) ]
+      
+      wlp   = zeros(VT,lx1,lx1,nel);
+      dvdx  = zeros(VT,lx1,lx1,nel);
+      
+      for i in 1:nel
+        wlp[:,:,i] = -(gradx')*diagm(Basis.weights)*dxm1
+      end
+
+#     Laplacian (without integration by parts)      
+      lap   = zeros(VT,lx1,lx1,nel);
+      
+      for i in 1:nel
+        lap[:,:,i] = diagm(bm1)*gradx[:,:,i]*gradx[:,:,i]
+      end
+
+      Geom = GeomMatrices(xm1,xrm1,rxm1,jacm1,jacmi,bm1,gradx,intpm1d,gradxd,bm1d,bintpd,cnv,wlp,lap,dvdx);
+
+      println("SEM Geom: Done")
+
+      return Geom
+
+#      return xm1, xrm1, rxm1, jacm1, jacmi, bm1, gradx, intpm1d, gradxd, bm1d, wlp, dvdx 
+
+end
+#----------------------------------------------------------------------
+
+
 function map_canonical_to_semiinfinite!(x,ξ,x0,scale;ifleft=false);
 
   l   = length(ξ)

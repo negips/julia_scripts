@@ -18,11 +18,14 @@ include("$SRC/Sem_QQT.jl")
 Scale = 1.0
 linf  = false
 rinf  = true
-Geom  = sem_geom(Basis,Basisd,xc,N,Nd,nel,dxm1,dxtm1,linf,rinf,Scale,prec);
+
+#Geom  = sem_geom(Basis,Basisd,xc,N,Nd,nel,dxm1,dxtm1,linf,rinf,Scale,prec);
 #Geom  = sem_geom(Basis,Basisd,xc,N,Nd,nel,dxm1,dxtm1,prec);
 
+Basis = SpectralBases.LaguerreSpectral(N)
+Geom  = sem_geom_laguerre(Basis,prec)
+
 npts  = lx1*nel
-#ifperiodic = true
 ndof, glnum = Sem_Global_Num(Geom.xm1,prec,ifperiodic)
 
 Q,QT   = Sem_QQT(glnum,prec)
