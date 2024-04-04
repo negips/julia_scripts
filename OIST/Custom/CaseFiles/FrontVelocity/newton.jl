@@ -3,7 +3,7 @@ println("Newton interface")
 using PolynomialBases
 using PyPlot,PyCall
 using LinearAlgebra
-using IterativeSolvers
+# using IterativeSolvers
 
 include("$SRC/Dealias.jl")
 
@@ -104,9 +104,9 @@ end
 # gmres!(sol2,M,resid)
 # ax2.plot(Geom.xm1[:],Q*sol2,color=cm(l));
 
-h3 = figure(num=3)
-#figure(h3)
-pl3 = plot(Geom.xm1[:],Q*fld[:,2],color=cm(3),linewidth=2);
+#h3 = figure(num=3)
+figure(h3)
+pl3 = plot(Geom.xm1[:],Q*fld[:,2],color=cm(4),linewidth=2);
 
 
 
