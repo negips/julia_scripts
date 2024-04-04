@@ -1,34 +1,7 @@
 println("Main interface for 1D SEM")
 
-using PolynomialBases
-using LinearAlgebra
-using SparseArrays
-using Printf
 
-# Include the function files
-
-include("$SRC/sem_geom.jl")
-include("$SRC/AssembleMatrix.jl")
-include("$SRC/Sem_QQT.jl")
-
-# Load Parameters
-#include("custom_params.jl")
-
-# Generate the geomerty dependent matrices
-Geom = sem_geom(Basis,Basisd,xc,N,Nd,nel,dxm1,dxtm1,prec);
-
-npts  = lx1*nel
-#ifperiodic = true
-ndof, glnum = Sem_Global_Num(Geom.xm1,prec,ifperiodic)
-
-Q,QT   = Sem_QQT(glnum,prec)
-vmult  = sum(Q*QT,dims=2)
-vmult  = vmult[:]
-vimult = one./vmult
-
-vmultg  = sum(QT*Q,dims=2)
-vmultg  = vmultg[:]
-vimultg = one./vmultg
+include("sem_set_geom.jl")
 
 #ifsparse  = true
 L,B,OP,Conv,Src,Lap = AssembleMatrixCRD(U,γ,Geom.cnv,Geom.wlp,Geom.xm1,Geom.bm1,Basis,lx1,nel,prec,ifsparse);
@@ -43,7 +16,7 @@ end
 for i in 1:nel
   j1 = (i-1)*lx1 + 1;
   j2 = i*lx1;
-# Dealiased Mass matrix
+  # Dealiased Mass matrix
   Md[j1:j2,j1:j2] = (Geom.intpm1d')*diagm(Geom.bm1d[:,i])*Geom.intpm1d
 end
 

@@ -13,6 +13,16 @@ end
 
 #agauss      = exp.(-((Geom.xm1[:] .- x0)/σg).^2)# .*(sign.(Geom.xm1[:] .- x0))
 k0          = 7
+for ci in CartesianIndices(Geom.xm1)
+  if isinf(Geom.xm1[ci])
+    i,j = Tuple(ci)
+    if i==1 && j==1
+      Geom.xm1[ci] = -999.999
+    else
+      Geom.xm1[ci] =  999.999
+    end
+  end
+end
 asin        = sin.(2.0*π/(xe-xs)*k0*Geom.xm1[:])
 acos        = cos.(2.0*π/(xe-xs)*k0*Geom.xm1[:])
 

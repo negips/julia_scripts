@@ -48,11 +48,11 @@ Off0              = [B0Off; A0Off; ζ0Off]
 
 # Simulation
 dt                = prec(0.01)       # Time step
-nsteps            = 100               # No of steps
+nsteps            = 1000             # No of steps
 nstep_switch1     = 3000             # Switch functions 1
 nstep_switch2     = 3400             # Switch again
 
-Ω                 = 0.02            # Time scale of parameter oscillation
+Ω                 = 0.02             # Time scale of parameter oscillation
 
 verbosestep       = 100
 plotupd           = 20
