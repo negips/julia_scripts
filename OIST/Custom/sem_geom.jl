@@ -291,7 +291,7 @@ function sem_geom(Basis,Basisd,xc::AbstractVector,N::Int,Nd::Int,nel::Int,dxm1,d
 
 end
 #---------------------------------------------------------------------- 
-function sem_geom_laguerre(Basis,prec)
+function sem_geom_laguerre(Basis,M2N,N2M,prec)
 #     Generate the geometric matrices
 
 #     Input:
@@ -308,40 +308,40 @@ function sem_geom_laguerre(Basis,prec)
       lx1   = length(Basis.nodes);
       N     = lx1-1
 
-      xm1         = zeros(VT,lx1,nel);
-      ym1         = zeros(VT,lx1,nel);           # Tagging this along to make sense of derivatives
-      xm1[:,1]    = copy(Basis.nodes);
-      ym1[:,1]    = copy(Basis.nodes);
-      wzm         = copy(Basis.weights);
-      
+      xm1   = zeros(VT,lx1);
+      ym1   = zeros(VT,lx1);           # Tagging this along to make sense of derivatives
+      xm1   = copy(Basis.nodes);
+      ym1   = copy(Basis.nodes);
+      wzm   = copy(Basis.weights);
+       
+      Wt    = exp.(-xm1)
+     
 #     Local Geometric Matrices
-      xrm1   = zeros(VT,lx1,nel);                # dx/dr
-      xsm1   = zeros(VT,lx1,nel);                # dx/ds
+      xrm1   = zeros(VT,lx1);                # dx/dr
+      xsm1   = zeros(VT,lx1);                # dx/ds
       
-      yrm1   = zeros(VT,lx1,nel);                # dy/dr
-      ysm1   = zeros(VT,lx1,nel);                # dy/ds
+      yrm1   = zeros(VT,lx1);                # dy/dr
+      ysm1   = zeros(VT,lx1);                # dy/ds
       
-      rxm1   = zeros(VT,lx1,nel);                # dr/dx
-      rym1   = zeros(VT,lx1,nel);                # dr/dy
+      rxm1   = zeros(VT,lx1);                # dr/dx
+      rym1   = zeros(VT,lx1);                # dr/dy
 
-      sxm1   = zeros(VT,lx1,nel);                # ds/dx
-      sym1   = zeros(VT,lx1,nel);                # ds/dy
+      sxm1   = zeros(VT,lx1);                # ds/dx
+      sym1   = zeros(VT,lx1);                # ds/dy
       
-      jacm1  = zeros(VT,lx1,nel);                # dr/dx
-      jacmi  = zeros(VT,lx1,nel);                # dr/dx
+      jacm1  = zeros(VT,lx1);                # dr/dx
+      jacmi  = zeros(VT,lx1);                # dr/dx
       
       dxm1   = Basis.D
       dxtm1  = Basis.D'
-      for i in 1:nel
-        for j in 1:lx1
-          xrm1[j,i]  = 1.0
-          xsm1[j,i]  = 0.0
+      for j in 1:lx1
+        xrm1[j]  = 1.0
+        xsm1[j]  = 0.0
       
-          yrm1[j,i]  = 0.0
-          ysm1[j,i]  = 1.0
-        end  
-      end
-      
+        yrm1[j]  = 0.0
+        ysm1[j]  = 1.0
+      end  
+
       jacm1 = xrm1.*ysm1 - xsm1.*yrm1;
       jacmi = 1 ./jacm1;                              # Inverse Jacobian
       
@@ -361,37 +361,27 @@ function sem_geom_laguerre(Basis,prec)
       intpm1d = zeros(VT,lx1,lx1);
       
 #     Matrices for Convection operator
-      jacm1d  = copy(jacm1);
-      bm1d    = copy(Basis.weights);
+      jacm1d      = copy(jacm1);
+      bm1d        = copy(Basis.weights);
       
-      gradxd     = copy(Basis.D);
-      bmd_matrix = diagm(bm1d)
+      gradxd      = copy(Basis.D);
+      bmd_matrix  = diagm(bm1d)
       
-      bintpd     = zeros(VT,lx1,lx1,nel);        # Matrix to perform integration on the dealiased grid   
+      bintpd      = zeros(VT,lx1,lx1);        # Matrix to perform integration on the dealiased grid   
 
 #     Convective matrix assuming uniform velocity
-      cnv = zeros(VT,lx1,lx1,nel);
-      for i in 1:nel
-        bintpd[:,:,i] = diagm(Basis.weights)
-        cnv[:,:,i]    = bintpd[:,:,i]*gradxd;
-      end  
+      cnv         = zeros(VT,lx1,lx1);
+      bintpd      = diagm(Basis.weights)
+      cnv         = (M2N')*diagm(Wt)*bintpd*gradx;
       
 #     Weak Laplacian
 #     wlp = -[ (BM1*∇v)^T.(∇) ]
       
-      wlp   = zeros(VT,lx1,lx1,nel);
-      dvdx  = zeros(VT,lx1,lx1,nel);
-      
-      for i in 1:nel
-        wlp[:,:,i] = -(gradx')*diagm(Basis.weights)*dxm1
-      end
+      dvdx  = zeros(VT,lx1,lx1);
+      wlp  = -(gradx')*diagm(Wt.*Basis.weights)*dxm1
 
 #     Laplacian (without integration by parts)      
-      lap   = zeros(VT,lx1,lx1,nel);
-      
-      for i in 1:nel
-        lap[:,:,i] = diagm(bm1)*gradx[:,:,i]*gradx[:,:,i]
-      end
+      lap   = diagm(Wt.*bm1)*gradx*gradx
 
       Geom = GeomMatrices(xm1,xrm1,rxm1,jacm1,jacmi,bm1,gradx,intpm1d,gradxd,bm1d,bintpd,cnv,wlp,lap,dvdx);
 
