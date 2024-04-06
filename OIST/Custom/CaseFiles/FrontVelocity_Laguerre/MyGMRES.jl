@@ -165,7 +165,7 @@ function MyGMRES!(sol::AbstractArray{T},r::AbstractArray{T},F::Function,V::Abstr
     end
 
     if oit == 1
-      println("Initial Residual: $res")
+      # println("Initial Residual: $res")
     end
 
     # Initialize rhs
@@ -232,7 +232,7 @@ function MyGMRES!(sol::AbstractArray{T},r::AbstractArray{T},F::Function,V::Abstr
   wk      = F(sol)
   r2      = r .- wk
   res     = norm(r2)
-  println("Final Residual: $res")
+  # println("Final Residual: $res")
 
   return nothing
 end

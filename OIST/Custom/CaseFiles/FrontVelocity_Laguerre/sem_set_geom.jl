@@ -7,7 +7,7 @@ using Printf
 
 # Include the function files
 
-include("$SRC/sem_geom.jl")
+include("sem_geom_spectral.jl")
 include("$SRC/AssembleMatrix.jl")
 include("$SRC/Sem_QQT.jl")
 

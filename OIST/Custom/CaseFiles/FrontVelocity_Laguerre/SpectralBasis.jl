@@ -13,6 +13,8 @@ module SpectralBases
 
   export LaguerreSpectral,LaguerreDerivative,LaguerreDerivativeMatrix,
          LaguerreTransforms
+  export ExpLaguerreSpectral,ExpLaguerreDerivative,ExpLaguerreDerivativeMatrix,
+         ExpLaguerreTransforms
 
 end         # module
 

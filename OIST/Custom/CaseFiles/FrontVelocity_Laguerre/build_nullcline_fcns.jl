@@ -81,6 +81,7 @@ for i in 1:1
   local g20x,g20y     = NullClines(g,xi,yr0,yr1,nsteps,dτ)
   global plc         += 1
   PlotContainers[plc] = ax1.plot(g20x,g20y,linestyle="--",label="g(x,y)")
+  h1.show()
 end  
 
 ax1.set_xlabel(L"B", fontsize=lafs)

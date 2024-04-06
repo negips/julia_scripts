@@ -1,6 +1,7 @@
 println("Intializing SEM")
 
 using PolynomialBases
+using FastGaussQuadrature
 
 include("SpectralBasis.jl")
 #using PyPlot,PyCall
@@ -20,9 +21,9 @@ one = prec(1.0)
 zro = prec(0.0)
 
 # define nodal bases
-N           = 4 ;                               # polynomial degree
+N           = 60 ;                              # polynomial degree
 lx1         = N+1;                              # No of points
-Basis       = SpectralBases.LaguerreSpectral(N, prec)          # Polynomial Basis
+Basis       = SpectralBases.ExpLaguerreSpectral(N, prec)          # Polynomial Basis
 
 Nd          = Int64(floor(N*1.5)+1)             # polynomial degree
 lx1d        = Nd+1;                             # No of points
@@ -49,7 +50,7 @@ dxm1        = Basis.D;                          # Derivative Matrix
 dxtm1       = Basis.D';                         # Derivative transpose
 
 # Modal to Nodal Transforms
-M2N,N2M     = SpectralBases.LaguerreTransforms(N) # Vandermonde Matrix: Modal to Nodal transformation.
+M2N,N2M     = SpectralBases.ExpLaguerreTransforms(N) # Modal to Nodal transformation.
 
 println("Reference Matrices Initialized")
 
