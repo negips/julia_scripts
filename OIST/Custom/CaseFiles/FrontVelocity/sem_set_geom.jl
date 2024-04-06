@@ -19,11 +19,11 @@ Scale = 1.0
 linf  = false
 rinf  = true
 
+Geom  = sem_geom(Basis,Basisd,xc,N,Nd,nel,dxm1,dxtm1,prec);
 #Geom  = sem_geom(Basis,Basisd,xc,N,Nd,nel,dxm1,dxtm1,linf,rinf,Scale,prec);
-#Geom  = sem_geom(Basis,Basisd,xc,N,Nd,nel,dxm1,dxtm1,prec);
 
-Basis = SpectralBases.LaguerreSpectral(N)
-Geom  = sem_geom_laguerre(Basis,prec)
+#Basis = SpectralBases.LaguerreSpectral(N)
+#Geom  = sem_geom_laguerre(Basis,prec)
 
 npts  = lx1*nel
 ndof, glnum = Sem_Global_Num(Geom.xm1,prec,ifperiodic)
