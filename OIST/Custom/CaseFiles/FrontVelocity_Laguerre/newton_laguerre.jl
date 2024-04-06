@@ -3,7 +3,7 @@ println("Newton interface")
 using PolynomialBases
 using PyPlot,PyCall
 using LinearAlgebra
-# using IterativeSolvers
+using IterativeSolvers
 
 include("$SRC/Dealias.jl")
 
@@ -11,7 +11,7 @@ include("MyGMRES.jl")
 include("newton_init.jl")
 include("newton_op.jl")
 
-X = Geom.xm1[:];
+X = Geom.xm1;
 X[end] = X[1]
 QTX = QT*(X.*vimult)
 
@@ -56,7 +56,8 @@ for i in 1:nsteps
 
   # Initial Residual
   j          = 2
-  dotfld     = dotfy(fld[:,j]);
+  nodalfld   = M2N*fld[:,j]
+  dotfld     = dotfy(nodalfld);
   lapfld     = Lg*fld[:,j];
   convfld    = Cg*fld[:,j];
 
@@ -64,7 +65,7 @@ for i in 1:nsteps
   resid = newton_resid(fld[:,j],C,dotfy,Lg,Cg,Bg,0.0,0.0)
   
   # Boundary values are Dirichlet
-  grad_diag         = Gradyf(fld[:,2])
+  grad_diag         = Gradyf(nodalfld)
   
   # global opg(x)     = mask.*(Lg*x .+ C*Cg*x .+ Bg.*grad_diag.*x)
   opg(x)     = newton_Lop(x,C,grad_diag,Lg,Cg,Bg)
@@ -104,9 +105,9 @@ end
 # gmres!(sol2,M,resid)
 # ax2.plot(Geom.xm1[:],Q*sol2,color=cm(l));
 
-#h3 = figure(num=3)
-figure(h3)
-pl3 = plot(Geom.xm1[:],Q*fld[:,2],color=cm(4),linewidth=2);
+h3 = figure(num=3)
+#figure(h3)
+pl3 = plot(Geom.xm1[:],Q*fld[:,2],color=cm(3),linewidth=2);
 
 
 
