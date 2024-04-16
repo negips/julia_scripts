@@ -27,10 +27,10 @@ ifsparse    = true
 ifperiodic  = true
 ifglobal    = true
 
-r           = prec(0.7)       # Barkley Reynolds number
+r           = prec(0.6)       # Barkley Reynolds number
 
 # Initialization
-x0          = prec(100)       # Gaussian Center
+x0          = prec(20)       # Gaussian Center
 σ           = prec(2)         # Gaussian Std. Deviation
 ampU0       = prec(0)
 ampQ0       = prec(1)
