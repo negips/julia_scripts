@@ -1,6 +1,6 @@
 #!/bin/julia
 
-println("Calculate the phase flow of the Fitzhugh-Nagumo Model")
+println("Null-Clines for the Fitzhugh-Nagumo Model")
 
 using LinearAlgebra
 using Random
@@ -8,8 +8,6 @@ using Printf
 using PyPlot,PyCall
 using Roots
 
-#include("Meinhardt.jl")
-#include("Meinhardt_Nullclines.jl")
 include("FitzhughNagumo.jl")
 include("../NullClines.jl")
 include("$JULIACOMMON/MoveFigure.jl")
@@ -22,7 +20,7 @@ cm    = get_cmap("tab10");
 
 close("all")
 
-h1 = figure(num=1)
+h1  = figure(num=1)
 ax1 = h1.subplots()
 
 cmapU = cm(0)
