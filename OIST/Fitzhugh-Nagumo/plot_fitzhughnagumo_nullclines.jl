@@ -15,8 +15,8 @@ include("../NullClines.jl")
 include("$JULIACOMMON/MoveFigure.jl")
 
 lafs  = 16
-a     = -0.50
-b     =  0.50
+#a     = -0.50
+#b     =  0.50
 
 cm    = get_cmap("tab10");
 

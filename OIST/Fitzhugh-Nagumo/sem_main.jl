@@ -15,7 +15,7 @@ include("AssembleMatrix.jl")
 include("Sem_QQT.jl")
 
 # Load Parameters
-include("barkley_params.jl")
+include("fitzhughnagumo_params.jl")
 
 # Generate the geomerty dependent matrices
 Geom = sem_geom(Basis,Basisd,xc,N,Nd,nel,dxm1,dxtm1,prec);

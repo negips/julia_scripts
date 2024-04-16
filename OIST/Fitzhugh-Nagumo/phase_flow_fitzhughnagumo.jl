@@ -41,15 +41,15 @@ b  =  0.5
 f(x,y)   = FitzhughNagumo(x,y,a,b)[1]./ϵ
 g(x,y)   = FitzhughNagumo(x,y,a,b)[2]
 
-nstep = 1000000
-dt    = 0.01
+nstep = 100000
+dt    = 0.001
 
-ntraj = 3
+ntraj = 50
 
 cm    = get_cmap("tab20");
 
-u0    = 1.5*(rand(ntraj) .- 0.5 .- 1.25)
-v0    = 2.0*(rand(ntraj) .- 0.5 .- 1.25)
+u0    = 6.0*(rand(ntraj) .- 0.5) .- 1.32
+v0    = 6.0*(rand(ntraj) .- 0.5) .- 1.66
 
 h1 = figure(num=1)
 
@@ -84,13 +84,15 @@ ax1.set_ylabel(L"v", fontsize=lafs)
 
 Uu,Uv,Vu,Vv = FitzhughNagumoNullClines(a,b)
 
-plot(Uu,Uv,linestyle="-",color="blue",linewidth=2)
-plot(Vu,Vv,linestyle="-",color="red",linewidth=2)
+
+cm2   = get_cmap("tab10");
+plot(Uu,Uv,linestyle="-",color=cm2(0),linewidth=2)
+plot(Vu,Vv,linestyle="-",color=cm2(1),linewidth=2)
 
 title = "a=$a; b=$b"
 ax1.set_title(title, fontsize=lafs)
-ax1.set_xlim(-3.0,3.0)
-ax1.set_ylim(-3.0,4.0)
+ax1.set_xlim(-4.0,4.0)
+ax1.set_ylim(-4.0,4.0)
 MoveFigure(h1,1250,500)
 legend()
 
