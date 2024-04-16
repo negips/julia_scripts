@@ -53,7 +53,8 @@ ax1.set_ylim(-3.0,4.0)
 MoveFigure(h1,1250,500)
 
 
-vpar = LinRange(-1.99,1.99,9);
+# vpar = LinRange(-1.99,1.99,9);
+vpar = [-1.5; -1.0; 0.0; 1.0; 1.5];
 nv   = length(vpar);
 uroots = zeros(Float64,3,nv)
 
