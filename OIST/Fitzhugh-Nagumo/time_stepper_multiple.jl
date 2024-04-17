@@ -54,6 +54,9 @@ time  = range(0.,step=dt,length=nsteps);
 h2    = figure(num=2)
 ax2   = h2.subplots()
 
+println("Press any key to continue")
+xinn  = readline()
+
 t   = 0.
 for i in 1:nsteps
   global fld,fldlag,Rhs,Rhslag,dotfld
