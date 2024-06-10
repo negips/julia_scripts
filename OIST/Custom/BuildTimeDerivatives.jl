@@ -175,11 +175,11 @@ function RotXYFXY(x,y,x0::Float64,y0::Float64,θ::Float64,c0,cx,cy)
 
   s = c0
   for i in 1:nx
-    s = s .+ cx[i]*(x0 .+ cos(θ)*(x-x0) .+ sin(θ)*(y-y0)).^i
+    s = s .+ cx[i]*(x0 .+ cos(θ)*(x .- x0) .+ sin(θ)*(y .- y0)).^i
   end
 
   for j in 1:ny
-    s = s .+ cy[j]*(y0 .- sin(θ)*(x-x0) .+ cos(θ)*(y-y0)).^j
+    s = s .+ cy[j]*(y0 .- sin(θ)*(x .- x0) .+ cos(θ)*(y .- y0)).^j
   end  
 
   return s
