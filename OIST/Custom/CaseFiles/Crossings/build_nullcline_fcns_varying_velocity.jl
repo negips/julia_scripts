@@ -77,7 +77,7 @@ for λ in λvalues
   local nsteps        = 200000
   local f0x,f0y       = NullClines(f2,xi,yr0,yr1,nsteps,dτ)
   global plc         += 1
-  PlotContainers[plc] = ax1.plot(f0x,f0y,linestyle="-",label="λ=$λ; ϕ=$ϕfd")
+  PlotContainers[plc] = ax1.plot(f0x,f0y,linestyle="-",label="λ=$λ;")
 end  
 
 
@@ -101,26 +101,27 @@ end
 ϕg                = ϕgd*π/180.0
 
 λvalues = [0.0]
-θ0      =  0.0
-dθ      =  20.0
-θvalues = [θ0-dθ; θ0; θ0+dθ]
-Axis_X0 = 1.00
+θ0      =  20.0
+dθ      =  80.0
+θvalues = [θ0; θ0-dθ]
+Axis_X0 = 0.0
 Axis_Y0 = -pars.gcx[1]/pars.gcy[1]*Axis_X0
 #θvalues = [θ0]
 for λ in θvalues
   local θ             = λ*pi/180.0
   #local g2(x,y)       = RotFXY(x,y,θ,pars.gc0,pars.gcx,pars.gcy)
   local g2(x,y)       = RotXYFXY(x,y,Axis_X0,Axis_Y0,θ,pars.gc0,pars.gcx,pars.gcy)
-  local xi            = -5.0
+  local xi            = -2.0
   local yr0           = -30.0
   local yr1           =  10.0
   local dτ            = 1.0e-3
   local nsteps        = 200000
   local g20x,g20y     = NullClines(g2,xi,yr0,yr1,nsteps,dτ)
   global plc         += 1
-  PlotContainers[plc] = ax1.plot(g20x,g20y,linestyle="--",label="θ=$λ; ϕ=$ϕgd")
+  PlotContainers[plc] = ax1.plot(g20x,g20y,linestyle="--",label="θ=$λ")
   # legend()
 end  
+legend()
 
 #PlotContainers[6] = ax1.plot(pars.xB,pars.yB,linestyle=" ",marker="o",fillstyle="none")
 #PlotContainers[7] = ax1.plot(pars.xdxB,pars.ydxB,linestyle=" ",marker="x")
@@ -166,7 +167,7 @@ if xin !="x"
   # Λ(x,y,z) = FXYZ(x,y,z,λc0,λcx,λcy,λcz)
   Flow(x,y,z1,z2) = [G(x,y,z1) F(x,y,z2)]
 
-  include("time_stepper_multiple_varying_velocity.jl")
+  include("time_stepper_multiple_crossings.jl")
 end
 
 

@@ -23,6 +23,9 @@ QTX = QT*(X.*vimult)
 ifdynplot         = false
 ifplot            = iffldplot || ifphplot
 
+Vol  = sum(Bg)
+A_eq = Aeq*Vol
+
 for i in 1:nsteps
   global fld,fldlag,Rhs,Rhslag,dotfld
   global t
@@ -32,8 +35,10 @@ for i in 1:nsteps
 
   t = t + dt;
 
+  A_tot     = Bg'*fld[:,2]/Vol
+
   if verbosestep>0 && mod(i,verbosestep)==0
-    println("Step: $i/$nsteps, Time: $t")
+    println("Step: $i/$nsteps, Time: $t, Atot/A_eq = $(A_tot/A_eq)")
   end
 
   GetBDF!(bdf,3)
@@ -48,7 +53,8 @@ for i in 1:nsteps
   end
 
   #Ω         = 0.05
-  θpar      = (θ0 + dθ*sin(2*π*Ω*t))*pi/180.0         # for G
+  θpar      = (θ0 - (A_tot/A_eq)*dθ)*pi/180.0
+  # θpar      = 0.0 # (θ0 + dθ*sin(2*π*Ω*t))*pi/180.0         # for G
   λpar      = 0.0 # (λ0 - dλ*sin(2*π*Ω*t))                  # for F
   dotfld    = Flow(fld[:,1],fld[:,2],θpar,λpar)
 

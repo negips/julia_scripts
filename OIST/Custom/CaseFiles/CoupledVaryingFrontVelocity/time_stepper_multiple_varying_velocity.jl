@@ -23,6 +23,9 @@ QTX = QT*(X.*vimult)
 ifdynplot         = false
 ifplot            = iffldplot || ifphplot
 
+Vol  = sum(Bg)
+A_eq = Aeq*Vol
+
 for i in 1:nsteps
   global fld,fldlag,Rhs,Rhslag,dotfld
   global t
@@ -32,8 +35,10 @@ for i in 1:nsteps
 
   t = t + dt;
 
+  A_tot     = Bg'*fld[:,2]/Vol
+
   if verbosestep>0 && mod(i,verbosestep)==0
-    println("Step: $i/$nsteps, Time: $t")
+    println("Step: $i/$nsteps, Time: $t, Atot/A_eq = $(A_tot/A_eq)")
   end
 
   GetBDF!(bdf,3)
@@ -48,13 +53,14 @@ for i in 1:nsteps
   end
 
   #Ω         = 0.05
-  θpar      = (θ0 + dθ*sin(2*π*Ω*t))*pi/180.0         # for G
-  λpar      = (λ0 + dλ*sin(2*π*Ω*t))                  # for F
+  θpar      = (θ0 - (A_tot/A_eq)*dθ)*pi/180.0
+  # θpar      = 0.0 # (θ0 + dθ*sin(2*π*Ω*t))*pi/180.0         # for G
+  λpar      = 0.0 # (λ0 - dλ*sin(2*π*Ω*t))                  # for F
   dotfld    = Flow(fld[:,1],fld[:,2],θpar,λpar)
 
   for j in 1:nflds
-    rhs           =  dotfld[:,j] .- Filg*fld[:,j];
-    rhs1          =  ext[1]*rhs + ext[2]*Rhslag[:,1,j] + ext[3]*Rhslag[:,2,j];
+    rhs           = dotfld[:,j] .- Filg*fld[:,j];
+    rhs1          = ext[1]*rhs + ext[2]*Rhslag[:,1,j] + ext[3]*Rhslag[:,2,j];
 
     Rhslag[:,2,j] = copy(Rhslag[:,1,j]);
     Rhslag[:,1,j] = copy(rhs);
@@ -76,7 +82,7 @@ for i in 1:nsteps
     fld[:,j]  = copy(a)
   end
 
-# Save for surface plot  
+  # Save for surface plot  
   if surf_save>0 && mod(i,surf_save)==0
     k = Int(i/surf_save) + 1
     Thist[k]  = t
@@ -86,7 +92,7 @@ for i in 1:nsteps
   end  
 
   if ifplot && mod(i,plotupd)==0
-#   Remove old plots      
+    # Remove old plots      
     if (i>plotupd)
        if (iffldplot)
          for j in 1:nflds
@@ -116,7 +122,7 @@ for i in 1:nsteps
       
     end
 
-#   Add updated plots      
+    # Add updated plots      
     if (iffldplot)
       for j in 1:nflds
         if (plotfldi[j])
@@ -124,20 +130,20 @@ for i in 1:nsteps
         end
       end  
     end
-#   Phase plot    
+    # Phase plot    
     if ifphplot
       scat = ax1.plot(fld[:,1],fld[:,2],color="black",linewidth=2) 
     end
-    
+   
+    # Dynamic plot
     if ifdynplot
       λpl =ax2.plot(Geom.xm1[:],Q*λpar,color=cm(4-1));
     end
 
+    # Dynamic null-clines
     if ifdynnull
-
       PlotContainers[5] = ax1.plot(ft(λpar),yin,linestyle="--",linewidth=2,color=cm(0));
       PlotContainers[6] = ax1.plot(gt(θpar),yin,linestyle="--",linewidth=2,color=cm(1));
-    
     end  
 
     # Saving frames    

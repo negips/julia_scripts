@@ -245,7 +245,7 @@ function AssembleFilter(fil,M2N,N2M,lx1,nel,prec,ifsparse)
         OP[:,:,i]         = subm
       end
 
-      println("Filter Matricx Built")
+      println("Filter Matrix Built")
       return Fil, OP
 end
 #---------------------------------------------------------------------- 
