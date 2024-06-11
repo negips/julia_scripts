@@ -195,7 +195,7 @@ if xin !="x"
   Flow(x,y,z1,z2) = [G(x,y,z1) F(x,y,z2)]
 
   close(h4)
-  include("time_stepper_multiple_varying_velocity.jl")
+  include("time_stepper_multiple_branch_splitting.jl")
 end
 
 
