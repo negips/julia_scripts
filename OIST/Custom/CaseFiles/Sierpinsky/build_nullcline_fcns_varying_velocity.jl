@@ -151,7 +151,7 @@ gt(z)    = -1.0/pars.gcx[1]*RotXYFXY(0.0,yin,Axis_X0,Axis_Y0,z,pars.gc0,pars.gcx
 #---------------------------------------- 
 set               = 54
 parsS             = GetNullClineParams(set)
-δ                 = 0.1
+δ                 = 0.05
 λdot0(x,y)        = (1.0/δ)*FXY(x,y,parsS.fc0,parsS.fcx,parsS.fcy)
 if λdot0(0.0,100.0)>0
   parsS.fc0        = -parsS.fc0

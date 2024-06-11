@@ -20,8 +20,8 @@ ifglobal          = true
 nflds             = 2               # No of fields
 
 # Initialization
-ngauss            = 1
-x0gauss           = [30.0]           #xe*rand(ngauss)
+ngauss            = 2
+x0gauss           = [30.0 65.0]           #xe*rand(ngauss)
 ngauss            = length(x0gauss)
 ampgauss          = ones(Float64,ngauss)  #rand(ngauss)
 x0                = x0gauss[1]      # Gaussian Center
@@ -47,8 +47,8 @@ Off0              = [B0Off; A0Off; ζ0Off]
 
 
 # Simulation
-dt                = prec(0.01)       # Time step
-nsteps            = 20000             # No of steps
+dt                = prec(0.0025)       # Time step
+nsteps            = 40000             # No of steps
 nstep_switch1     = 3000             # Switch functions 1
 nstep_switch2     = 3400             # Switch again
 
@@ -72,7 +72,7 @@ ifplot            = iffldplot || ifphplot || ifdynplot
 plotfldi          = fill(true,nflds)
 plotfldi[1]       = true
 
-Aeq               = 0.05
+Aeq               = 0.01
 
 
 # Saving Params

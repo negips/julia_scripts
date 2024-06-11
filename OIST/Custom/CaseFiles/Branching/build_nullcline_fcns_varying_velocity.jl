@@ -101,8 +101,8 @@ end
 ϕg                = ϕgd*π/180.0
 
 λvalues = [0.0]
-θ0      =  00.0
-dθ      =  30.0
+θ0      =  15.0
+dθ      =  -20.0
 θvalues = [θ0+dθ; θ0; θ0-dθ]
 Axis_X0 = 0.0
 Axis_Y0 = -pars.gcx[1]/pars.gcy[1]*Axis_X0
@@ -112,7 +112,7 @@ for λ in θvalues
   #local g2(x,y)       = RotFXY(x,y,θ,pars.gc0,pars.gcx,pars.gcy)
   local g2(x,y)       = RotXYFXY(x,y,Axis_X0,Axis_Y0,θ,pars.gc0,pars.gcx,pars.gcy)
   local xi            = -2.0
-  local yr0           = -50.0
+  local yr0           = -100.0
   local yr1           =  10.0
   local dτ            = 1.0e-3
   local nsteps        = 200000
@@ -149,9 +149,9 @@ gt(z)    = -1.0/pars.gcx[1]*RotXYFXY(0.0,yin,Axis_X0,Axis_Y0,z,pars.gc0,pars.gcx
 
 # Build Nullcline for the dynamic switching
 #---------------------------------------- 
-set               = 54
+set               = 55
 parsS             = GetNullClineParams(set)
-δ                 = 0.1
+δ                 = 0.005
 λdot0(x,y)        = (1.0/δ)*FXY(x,y,parsS.fc0,parsS.fcx,parsS.fcy)
 if λdot0(0.0,100.0)>0
   parsS.fc0        = -parsS.fc0
@@ -163,10 +163,10 @@ end
 #α                 = 1.0
 #xc                = 1.0
 #λdot(x,y)         = (y-α*x)*(x^2 - xc^2)
-xi                =  -10.0
+xi                =  10.0
 yr0               =  0.0
 yr1               =  15.0
-dτ                =  1.0e-3
+dτ                =  -1.0e-3
 nsteps            = 50000
 λdot0x1,λdot0y1   = NullClines(λdot1,xi,yr0,yr1,nsteps,dτ)
 

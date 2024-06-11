@@ -27,7 +27,7 @@ ifplot            = iffldplot || ifphplot
 
 Vol  = sum(Bg)
 A_eq = Aeq*Vol
-γ    = 0.0
+γ    = 2.0
 
 for i in 1:nsteps
   global fld,fldlag,Rhs,Rhslag,dotfld

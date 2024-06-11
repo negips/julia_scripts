@@ -48,7 +48,7 @@ Off0              = [B0Off; A0Off; ζ0Off]
 
 # Simulation
 dt                = prec(0.01)       # Time step
-nsteps            = 20000             # No of steps
+nsteps            = 40000             # No of steps
 nstep_switch1     = 3000             # Switch functions 1
 nstep_switch2     = 3400             # Switch again
 
@@ -72,7 +72,7 @@ ifplot            = iffldplot || ifphplot || ifdynplot
 plotfldi          = fill(true,nflds)
 plotfldi[1]       = true
 
-Aeq               = 0.05
+Aeq               = 0.035
 
 
 # Saving Params

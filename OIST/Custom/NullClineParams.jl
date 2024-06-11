@@ -1676,7 +1676,6 @@ function GetNullClineXY(nullcline_set)
         xdyB[1]         = xB[2]
         ydyB[1]         = yB[2]
       end  
-
     elseif nullcline_set == 53
 #----------------------------------------       
       println("Nullcline for dynamic switching 3")
@@ -1715,6 +1714,151 @@ function GetNullClineXY(nullcline_set)
 
         xdyA[2] = xA[2]
         ydyA[2] = yA[2]
+      end  
+      
+      # Points for G(x,y)
+      #-------------------- 
+      nxB               = 1
+      nyB               = 2
+      nB                = nxB + nyB + 1      # No of free parameters/Conditions to satisfy
+      
+      # Incident points
+      mB                = 2
+      xB                = zeros(Float64,mB)
+      yB                = zeros(Float64,mB)
+      if mB > 0
+        xB              = FAC*[0.0;  1.0]
+        yB              = FAC*[0.0;  3.0]
+      end  
+      
+      # X-Derivative Points
+      mxB = 0
+      xdxB              = zeros(Float64,mxB)
+      ydxB              = zeros(Float64,mxB)
+      if (mxB>0)
+        xdxB[1]            = xB[2]
+        ydxB[1]            = yB[2] 
+      end  
+      
+      # Y-Derivative Points
+      myB = 1
+      xdyB              = zeros(Float64,myB)
+      ydyB              = zeros(Float64,myB)
+      if myB>0
+        xdyB[1]         = xB[2]
+        ydyB[1]         = yB[2]
+      end  
+    elseif nullcline_set == 54
+#----------------------------------------       
+      println("Nullcline for dynamic switching 4")
+
+      nxA         = 1
+      nyA         = 3
+      nA          = nxA + nyA + 1      # No of free parameters/Conditions to satisfy
+      
+      FAC         = 1.0
+
+      # Incident points     
+      mA          = 3 
+      xA          = zeros(Float64,mA)
+      yA          = zeros(Float64,mA)
+      if mA > 0 
+        xA        = [ 0.20;  0.40;  0.30]
+        yA        = [-0.90;  0.90;  0.00]
+      end  
+      
+      # X-Derivative Points
+      mxA = 0 
+      xdxA = zeros(Float64,mxA)
+      ydxA = zeros(Float64,mxA)
+      if (mxA>0)
+        xdxA[1] = xA[2]
+        ydxA[1] = yA[2] 
+      end  
+      
+      # Y-Derivative Points
+      myA = 1
+      xdyA = zeros(Float64,myA)
+      ydyA = zeros(Float64,myA)
+      if myA>0
+        xdyA[1] = xA[1]
+        ydyA[1] = yA[1]
+
+        # xdyA[2] = xA[2]
+        # ydyA[2] = yA[2]
+      end  
+      
+      # Points for G(x,y)
+      #-------------------- 
+      nxB               = 1
+      nyB               = 2
+      nB                = nxB + nyB + 1      # No of free parameters/Conditions to satisfy
+      
+      # Incident points
+      mB                = 2
+      xB                = zeros(Float64,mB)
+      yB                = zeros(Float64,mB)
+      if mB > 0
+        xB              = FAC*[0.0;  1.0]
+        yB              = FAC*[0.0;  3.0]
+      end  
+      
+      # X-Derivative Points
+      mxB = 0
+      xdxB              = zeros(Float64,mxB)
+      ydxB              = zeros(Float64,mxB)
+      if (mxB>0)
+        xdxB[1]            = xB[2]
+        ydxB[1]            = yB[2] 
+      end  
+      
+      # Y-Derivative Points
+      myB = 1
+      xdyB              = zeros(Float64,myB)
+      ydyB              = zeros(Float64,myB)
+      if myB>0
+        xdyB[1]         = xB[2]
+        ydyB[1]         = yB[2]
+      end  
+
+    elseif nullcline_set == 55
+#----------------------------------------       
+      println("Nullcline for dynamic switching 5")
+
+      nxA         = 1
+      nyA         = 3
+      nA          = nxA + nyA + 1      # No of free parameters/Conditions to satisfy
+      
+      FAC         = 1.0
+
+      # Incident points     
+      mA          = 3 
+      xA          = zeros(Float64,mA)
+      yA          = zeros(Float64,mA)
+      if mA > 0 
+        xA        = [ 0.40;  0.20;  0.30]
+        yA        = [-0.90;  0.90;  0.00]
+      end  
+      
+      # X-Derivative Points
+      mxA = 0 
+      xdxA = zeros(Float64,mxA)
+      ydxA = zeros(Float64,mxA)
+      if (mxA>0)
+        xdxA[1] = xA[2]
+        ydxA[1] = yA[2] 
+      end  
+      
+      # Y-Derivative Points
+      myA = 1
+      xdyA = zeros(Float64,myA)
+      ydyA = zeros(Float64,myA)
+      if myA>0
+        xdyA[1] = xA[1]
+        ydyA[1] = yA[1]
+
+        # xdyA[2] = xA[2]
+        # ydyA[2] = yA[2]
       end  
       
       # Points for G(x,y)
@@ -1865,6 +2009,8 @@ end
                            : 51        : Dynamic Switching (λ)
                            : 52        : Dynamic Switching (λ)
                            : 53        : Dynamic Switching (λ)
+                           : 54        : Dynamic Switching (λ)
+                           : 55        : Dynamic Switching (λ)
                            :
                            :101        : Slug with large threshold
 
