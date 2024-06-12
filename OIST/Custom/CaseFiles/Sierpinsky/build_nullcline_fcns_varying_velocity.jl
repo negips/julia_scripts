@@ -101,7 +101,7 @@ end
 ϕg                = ϕgd*π/180.0
 
 λvalues = [0.0]
-θ0      =  00.0
+θ0      =   0.0
 dθ      =  30.0
 θvalues = [θ0+dθ; θ0; θ0-dθ]
 Axis_X0 = 0.0
@@ -121,7 +121,7 @@ for λ in θvalues
   PlotContainers[plc] = ax1.plot(g20x,g20y,linestyle="--",label="θ=$λ")
   # legend()
 end  
-legend()
+#legend()
 
 #PlotContainers[6] = ax1.plot(pars.xB,pars.yB,linestyle=" ",marker="o",fillstyle="none")
 #PlotContainers[7] = ax1.plot(pars.xdxB,pars.ydxB,linestyle=" ",marker="x")
@@ -131,7 +131,7 @@ ax1.set_xlabel(L"B", fontsize=lafs)
 ax1.set_ylabel(L"A", fontsize=lafs)
 
 ax1.set_xlim(-1.5,6.0)
-ax1.set_ylim(-1.5,7.0)
+ax1.set_ylim(-1.5,6.0)
 
 MoveFigure(h1,1250,830)
 
@@ -151,7 +151,7 @@ gt(z)    = -1.0/pars.gcx[1]*RotXYFXY(0.0,yin,Axis_X0,Axis_Y0,z,pars.gc0,pars.gcx
 #---------------------------------------- 
 set               = 54
 parsS             = GetNullClineParams(set)
-δ                 = 0.05
+δ                 = 0.01
 λdot0(x,y)        = (1.0/δ)*FXY(x,y,parsS.fc0,parsS.fcx,parsS.fcy)
 if λdot0(0.0,100.0)>0
   parsS.fc0        = -parsS.fc0

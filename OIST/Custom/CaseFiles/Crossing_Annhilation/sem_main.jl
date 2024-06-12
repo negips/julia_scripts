@@ -59,7 +59,6 @@ if ifglobal
   Lg    = QT*Lap*Q     # Global Laplacian matrix
   Sg    = QT*Src*Q     # Global Src matrix
   Filg  = QT*Fil*Q     # Global Filter matrix
-
   Intpg = Intp*Q       # Global Interpolation matrix
 
 #  Fg    = QT*Fd*Q      # Global Feedback matrix
