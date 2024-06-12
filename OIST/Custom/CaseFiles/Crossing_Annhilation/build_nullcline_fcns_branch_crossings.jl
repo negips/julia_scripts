@@ -21,7 +21,7 @@ close("all")
 lafs = 16
 
 #include("select_nullclines.jl")
-sets              = [20]
+sets              = [21]
 
 cm                = get_cmap("tab10")
 
@@ -121,7 +121,7 @@ for λ in θvalues
   PlotContainers[plc] = ax1.plot(g20x,g20y,linestyle="--",label="θ=$λ")
   # legend()
 end  
-legend()
+#legend()
 
 #PlotContainers[6] = ax1.plot(pars.xB,pars.yB,linestyle=" ",marker="o",fillstyle="none")
 #PlotContainers[7] = ax1.plot(pars.xdxB,pars.ydxB,linestyle=" ",marker="x")
@@ -131,7 +131,7 @@ ax1.set_xlabel(L"B", fontsize=lafs)
 ax1.set_ylabel(L"A", fontsize=lafs)
 
 ax1.set_xlim(-1.5,6.0)
-ax1.set_ylim(-1.5,7.0)
+ax1.set_ylim(-1.5,6.0)
 
 MoveFigure(h1,1250,830)
 

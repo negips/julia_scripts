@@ -22,7 +22,7 @@ N           = 6 ;                              # polynomial degree
 lx1         = N+1;                              # No of points
 Basis       = LobattoLegendre(N, prec)          # Polynomial Basis
 
-Nd          = Int64(floor(N*1.5)+1)             # polynomial degree
+Nd          = Int64(floor(N*3)+1)             # polynomial degree
 lx1d        = Nd+1;                             # No of points
 Basisd      = LobattoLegendre(Nd, prec)         # Polynomial Basis
 

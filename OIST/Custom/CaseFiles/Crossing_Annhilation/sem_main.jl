@@ -50,6 +50,8 @@ end
 # Build Filter Matrix
 Fil,OPf = BuildFilter(M2N,N2M,lx1,nel,prec,ifsparse)
 
+Intp    = AssembleInterpolation(Geom.intpm1d,nel,ifsparse)
+
 #ifglobal = true
 
 if ifglobal
@@ -57,6 +59,8 @@ if ifglobal
   Lg    = QT*Lap*Q     # Global Laplacian matrix
   Sg    = QT*Src*Q     # Global Src matrix
   Filg  = QT*Fil*Q     # Global Filter matrix
+
+  Intpg = Intp*Q       # Global Interpolation matrix
 
 #  Fg    = QT*Fd*Q      # Global Feedback matrix
 #  BgM   = QT*diagm(B)*Q         # Global Mass vector
