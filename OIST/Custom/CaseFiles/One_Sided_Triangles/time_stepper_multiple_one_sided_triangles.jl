@@ -140,7 +140,7 @@ for i in 1:nsteps
     end
     # Phase plot    
     if ifphplot
-      scat = ax1.plot(fld[:,1],fld[:,2],color="black",linewidth=2) 
+      scat = ax1.plot(Intpg*fld[:,1],Intpg*fld[:,2],color="black",linewidth=2) 
     end
    
     # Dynamic plot

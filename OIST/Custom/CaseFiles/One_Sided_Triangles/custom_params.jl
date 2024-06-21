@@ -20,7 +20,7 @@ ifglobal          = true
 nflds             = 2               # No of fields
 
 # Initialization
-x0gauss           = [30.0 65.0]           #xe*rand(ngauss)
+x0gauss           = [50.0 65.0]           #xe*rand(ngauss)
 ngauss            = length(x0gauss)
 ngauss            = 1
 ampgauss          = ones(Float64,ngauss)  #rand(ngauss)

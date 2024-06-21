@@ -21,7 +21,7 @@ nflds             = 2               # No of fields
 
 # Initialization
 ngauss            = 1
-x0gauss           = [80.0]           #xe*rand(ngauss)
+x0gauss           = [40.0]           #xe*rand(ngauss)
 ngauss            = length(x0gauss)
 ampgauss          = ones(Float64,ngauss)  #rand(ngauss)
 x0                = x0gauss[1]      # Gaussian Center
