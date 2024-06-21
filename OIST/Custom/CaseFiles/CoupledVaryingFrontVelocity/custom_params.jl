@@ -48,7 +48,7 @@ Off0              = [B0Off; A0Off; ζ0Off]
 
 # Simulation
 dt                = prec(0.01)       # Time step
-nsteps            = 40000             # No of steps
+nsteps            = 12000             # No of steps
 nstep_switch1     = 3000             # Switch functions 1
 nstep_switch2     = 3400             # Switch again
 

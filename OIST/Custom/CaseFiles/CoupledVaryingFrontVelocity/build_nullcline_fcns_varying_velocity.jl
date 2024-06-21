@@ -21,7 +21,7 @@ close("all")
 lafs = 16
 
 #include("select_nullclines.jl")
-sets              = [20]
+sets              = [22]
 
 cm                = get_cmap("tab10")
 
@@ -101,10 +101,10 @@ end
 ϕg                = ϕgd*π/180.0
 
 λvalues = [0.0]
-θ0      =  30.0
-dθ      =  60.0
+θ0      =  0.0
+dθ      =  -20.0
 θvalues = [θ0; θ0-dθ]
-Axis_X0 = 0.0
+Axis_X0 = 3.00
 Axis_Y0 = -pars.gcx[1]/pars.gcy[1]*Axis_X0
 #θvalues = [θ0]
 for λ in θvalues
@@ -112,7 +112,7 @@ for λ in θvalues
   #local g2(x,y)       = RotFXY(x,y,θ,pars.gc0,pars.gcx,pars.gcy)
   local g2(x,y)       = RotXYFXY(x,y,Axis_X0,Axis_Y0,θ,pars.gc0,pars.gcx,pars.gcy)
   local xi            = -2.0
-  local yr0           = -30.0
+  local yr0           = -100.0
   local yr1           =  10.0
   local dτ            = 1.0e-3
   local nsteps        = 200000
@@ -121,7 +121,7 @@ for λ in θvalues
   PlotContainers[plc] = ax1.plot(g20x,g20y,linestyle="--",label="θ=$λ")
   # legend()
 end  
-legend()
+#legend()
 
 #PlotContainers[6] = ax1.plot(pars.xB,pars.yB,linestyle=" ",marker="o",fillstyle="none")
 #PlotContainers[7] = ax1.plot(pars.xdxB,pars.ydxB,linestyle=" ",marker="x")
