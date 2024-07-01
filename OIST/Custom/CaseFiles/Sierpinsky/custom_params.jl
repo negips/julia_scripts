@@ -65,7 +65,8 @@ ifphplot          = true      # Plot Phase A-B
 ifdynplot         = false     # Plot dynamic phase (ζ)
 initplot          = true      # Plot initial conditions
 ifdynnull         = true      # Plot null-clines dynamically
-ifsaveframe       = false
+ifsaveframe       = true
+ifsavext          = true
 
 
 ifplot            = iffldplot || ifphplot || ifdynplot 

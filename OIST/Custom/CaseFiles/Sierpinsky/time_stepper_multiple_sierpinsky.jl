@@ -178,12 +178,17 @@ t2d   = ones(npts)*Thist'
 x2d   = (Geom.xm1[:])*ones(nsurf_save)'
 
 cm2   = get_cmap("binary");
-h3    = figure(num=3)
+h3    = figure(num=3,figsize=[5.0,8.0])
 pcm   = pcolormesh(x2d,t2d,fldhist[:,:,2])
 pcm.set_cmap(cm2)
 ax3   = h3.gca()
 ax3.invert_yaxis()
-cb    = colorbar(orientation="vertical")
+#cb    = colorbar(orientation="vertical")
+if (ifsavext)
+  fname3 = @sprintf "./plots/spacetime"
+  h3.savefig(fname3)
+end  
+
 
 #surf(t2d,x2d,fldhist[:,:,2],cmap=cm2,edgecolor="none")
 #ax3.elev = 94.0

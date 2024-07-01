@@ -25,46 +25,8 @@ end
 
 #-------------------------------------------------- 
 
- include("build_nullcline_fcns.jl")
+include("build_nullcline_fcns.jl")
 lafs              = 16
-
-#set               = 2
-#pars              = GetNullClineParams(set) 
-
-#lafs = 16
-#include("select_nullclines.jl")
-#set               = sets[1]
-#pars              = GetNullClineParams(set) 
-
-#@variables x y
-#
-#Dx = Differential(x)
-#Dy = Differential(y)
-#fcx = zeros(Float64,4)
-#fcy = zeros(Float64,3)
-#fcx[1] = pars.fc0
-#for i in 1:length(pars.fcx)
-#  fcx[i+1] = pars.fcx[i]
-#end  
-#for i in 1:length(pars.fcy)
-#  fcy[i] = pars.fcy[i]
-#end  
-#f = fcx[1] + fcx[2]*x + fcx[3]*x^2 + fcx[4]*x^3 + fcy[1]*y + fcy[2]*y^2 + fcy[3]*y^3
-#
-#gcx = zeros(Float64,4)
-#gcy = zeros(Float64,3)
-#gcx[1] = pars.gc0
-#for i in 1:length(pars.gcx)
-#  gcx[i+1] = pars.gcx[i]
-#end  
-#for i in 1:length(pars.gcy)
-#  gcy[i] = pars.gcy[i]
-#end  
-#g = gcx[1] + gcx[2]*x + gcx[3]*x^2 + gcx[4]*x^3 + gcy[1]*y + gcy[2]*y^2 + gcy[3]*y^3
-#
-#SymJac = Symbolics.jacobian([g,f],[x,y]) 
-#SJac   = substitute(SymJac, Dict(x => 0.0, y => 0.0), fold=false)
-#Jac    = Symbolics.value.(SJac)
 
 # Wavenumber Instability
 ϵ = 1.0
@@ -105,32 +67,26 @@ M = LMat(k,0.0)
 
 n     = 1000
 
-ν1all = range(start=0.0, stop=1.0, length = n)
-ν2all = range(start=0.0, stop=10.0, length = n)
+kall = range(start=0.0, stop=10.0, length = n)
 
 # n = length(νall)
 
-Ωr    = zeros(Float64,n,n,2)
-Ωi    = zeros(Float64,n,n,2)
+Ωr    = zeros(Float64,n,2)
+Ωi    = zeros(Float64,n,2)
 
 for i in 1:n
-  for j in 1:n
-     local ν1 = ν1all[i]
-     local ν2 = ν2all[j]
-     er,ei = evs(k,α,ν1,ν2)
-#     println(er)
-#     println(ei)
+  local ν1 = 5.0
+  local ν2 = 0.1
+  local ki = kall[i]
+  er,ei    = evs(ki,α,ν1,ν2)
 
-     Ωr[i,j,1] =  er[1]
-     Ωr[i,j,2] =  er[2]
+  Ωr[i,1] =  er[1]
+  Ωr[i,2] =  er[2]
 
-     Ωi[i,j,1] =  ei[1]
-     Ωi[i,j,2] =  ei[2]
-   end
+  Ωi[i,1] =  ei[1]
+  Ωi[i,2] =  ei[2]
 end   
       
-ν12d = ν1all*ones(Float64,1,n)
-ν22d = ones(Float64,n)*ν2all'
 
 if (@isdefined h2)
   close(h2)
@@ -141,22 +97,16 @@ end
 
 cm2         = get_cmap("RdBu_r")
 h2          = figure(num=2)
-pcm         = pcolormesh(ν12d,ν22d,Ωr[:,:,1])
-pcm.set_cmap(cm2)
+pcm         = plot(kall,Ωr[:,1])
 ax2         = h2.gca()
-colorbar()
-ax2.set_xlabel(L"ν_{1}", fontsize=lafs)
-ax2.set_ylabel(L"ν_{2}", fontsize=lafs)
-ax2.set_title(L"Ω_{r}", fontsize=lafs)
+ax2.set_xlabel(L"k", fontsize=lafs)
+ax2.set_ylabel(L"Ω_{r}", fontsize=lafs)
 
 h3          = figure(num=3)
-pcm         = pcolormesh(ν12d,ν22d,Ωi[:,:,1])
-pcm.set_cmap(cm2)
+pcm         = plot(kall,Ωi[:,1])
 ax3         = h3.gca()
-colorbar()
-ax3.set_xlabel(L"ν_{1}", fontsize=lafs)
-ax3.set_ylabel(L"ν_{2}", fontsize=lafs)
-ax3.set_title(L"Ω_{i}", fontsize=lafs)
+ax3.set_xlabel(L"k", fontsize=lafs)
+ax3.set_ylabel(L"Ω_{i}", fontsize=lafs)
 
 Lkν(κ,μ1,μ2) =  [(α[1,1] - μ1*κ^2)                α[1,2];
                   α[2,1]              (α[2,2] - μ2*κ^2)]

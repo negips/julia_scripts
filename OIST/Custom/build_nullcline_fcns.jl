@@ -117,8 +117,8 @@ ax1.set_ylabel(L"A", fontsize=lafs)
 #ax1.set_ylim(-1.0,6.0)
 
 # Symmetric LCO
-ax1.set_xlim(-4.5,4.5)
-ax1.set_ylim(-6.5,6.5)
+#ax1.set_xlim(-4.5,4.5)
+#ax1.set_ylim(-6.5,6.5)
 
 ## LCO Activation Dominated
 #ax1.set_xlim(-2.0,7.0)
@@ -130,17 +130,17 @@ MoveFigure(h1,1250,800)
 pause(0.01)
 
 println("Press x to stop. Any other key to continue")
-xin = readline()
+#xin = readline()
 #xin = "x"
-#xin = " "
-ϵ  = 0.1
+xin = " "
+ϵ  = 1.0
 η  = 1.0
 if xin !="x"
   F(x,y) =  f(x,y)/ϵ
   G(x,y) =  g(x,y)*η
 
   Flow(x,y) = [G(x,y) F(x,y)]
-  include("time_stepper_multiple.jl")
+  # include("time_stepper_multiple.jl")
 end
 
 

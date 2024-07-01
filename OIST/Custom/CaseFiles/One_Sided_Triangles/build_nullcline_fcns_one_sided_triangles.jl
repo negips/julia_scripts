@@ -6,6 +6,7 @@ println("Building a null cline based on given Points/gradients by Minimizing the
 using LinearAlgebra
 using Roots
 using PyPlot
+using Printf
 
 const SRC = "/home/prabal/workstation/git/julia/OIST/Custom"
 
@@ -134,6 +135,8 @@ ax1.set_xlim(-1.5,6.0)
 ax1.set_ylim(-1.5,7.0)
 
 MoveFigure(h1,1250,830)
+fname0   = @sprintf "./plots/nullclines"
+h1.savefig(fname0)
 
 
 # Time dependent null-cline functions
@@ -173,6 +176,13 @@ nsteps            = 50000
 h4                = figure(num=4)
 ax4               = h4.subplots()
 ax4.plot(λdot0x1,λdot0y1,color=cm(3),linestyle="--")
+ax4.set_ylabel(L"λ", fontsize=lafs)
+ax4.set_xlabel(L"\widebar{A}", fontsize=lafs)
+
+ax4.set_xlim(0.1,0.5)
+ax4.set_ylim(-2.0,2.0)
+fname0   = @sprintf "./plots/paramnullcline"
+h4.savefig(fname0)
 
 pause(0.01)
 

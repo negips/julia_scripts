@@ -48,7 +48,7 @@ Off0              = [B0Off; A0Off; ζ0Off]
 
 # Simulation
 dt                = prec(0.0025)       # Time step
-nsteps            = 40000             # No of steps
+nsteps            = 25000             # No of steps
 nstep_switch1     = 3000             # Switch functions 1
 nstep_switch2     = 3400             # Switch again
 
@@ -65,7 +65,8 @@ ifphplot          = true      # Plot Phase A-B
 ifdynplot         = false     # Plot dynamic phase (ζ)
 initplot          = true      # Plot initial conditions
 ifdynnull         = true      # Plot null-clines dynamically
-ifsaveframe       = false
+ifsaveframe       = true      # save individual frames
+ifsavext          = true      # Save X-T plot
 
 
 ifplot            = iffldplot || ifphplot || ifdynplot 

@@ -2,7 +2,6 @@
 
 println("Building a null cline based on given Points/gradients by Minimizing the Lagrangian (Error)")
 
-
 using LinearAlgebra
 using Roots
 using PyPlot
@@ -130,11 +129,12 @@ end
 ax1.set_xlabel(L"B", fontsize=lafs)
 ax1.set_ylabel(L"A", fontsize=lafs)
 
-ax1.set_xlim(-1.5,6.0)
-ax1.set_ylim(-1.5,7.0)
+ax1.set_xlim(-1.5,5.0)
+ax1.set_ylim(-1.5,6.0)
 
 MoveFigure(h1,1250,830)
-
+fname0   = @sprintf "./plots/nullclines"
+h1.savefig(fname0)
 
 # Time dependent null-cline functions
 yin     = LinRange(-1.5,7.0,5000)
@@ -158,7 +158,7 @@ if λdot0(0.0,100.0)>0
   parsS.fcx        = -parsS.fcx
   parsS.fcy        = -parsS.fcy
 end  
-λdot1(x,y)        = (1.0/δ)*FXY(x,y,parsS.fc0,parsS.fcx,parsS.fcy)
+λdot1(x,y)         = (1.0/δ)*FXY(x,y,parsS.fc0,parsS.fcx,parsS.fcy)
 
 #α                 = 1.0
 #xc                = 1.0
@@ -173,6 +173,13 @@ nsteps            = 50000
 h4                = figure(num=4)
 ax4               = h4.subplots()
 ax4.plot(λdot0x1,λdot0y1,color=cm(3),linestyle="--")
+ax4.set_ylabel(L"λ", fontsize=lafs)
+ax4.set_xlabel(L"\widebar{A}", fontsize=lafs)
+
+ax4.set_xlim(0.1,0.5)
+ax4.set_ylim(-2.0,2.0)
+fname0   = @sprintf "./plots/paramnullcline"
+h4.savefig(fname0)
 
 pause(0.01)
 
