@@ -1,0 +1,24 @@
+****** PARAMETERS ******
+   19.000000     NEKTON VERSION
+   2 DIMENSIONAL RUN
+         5 PARAMETERS FOLLOW
+    0.000000e+00  P001  DENSITY         (For constant property case)
+    0.000000e+00  P002  VISCOSITY       (==Re if <0. Otherwise ==1/Re)
+    0.000000e+00  P003  BETAG           (Not in use)
+    0.000000e+00  P004  GTHETA          (Not in use)
+    0.000000e+00  P005  PGRADX          (Not in use)
+      0  Lines of passive scalar data follows: CONDUCT; RHOCP
+       0  LOGICAL SWITCHES FOLLOW
+  1.000000      1.000000      0.000000      0.000000      XFAC,YFAC,XZERO,YZERO
+ **MESH DATA** 2 lines are X,Y. Columns corners 1-4
+           1  2           1           NEL,NDIM,NELV
+     ELEMENT           1 [    1 ]    GROUP    0
+  2.872568E-02  5.943937E-01  6.105198E-01  6.023377E-01
+  3.469107E-01  6.065758E-01  9.873744E-02  4.427023E-01
+     ELEMENT           2 [    1 ]    GROUP    0
+  6.027856E-01  9.162707E-01  4.725123E-01  9.161629E-02
+  1.820925E-01  5.903472E-01  7.249117E-01  1.057877E-01
+ ***** CURVED SIDE DATA *****
+           0  Curved sides follow IEDGE,IEL,CURVE(I),I=1,5, CCURVE
+  ***** BOUNDARY CONDITIONS ****
+  ***** FLUID   BOUNDARY CONDITIONS *****
