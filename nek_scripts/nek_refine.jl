@@ -68,7 +68,7 @@ ymid = mean(y0,dims=1)
 
 close("all")
 
-plot(x0,y0,linestyle="-",linewidth=2,marker="o")
+#plot(x0,y0,linestyle="-",linewidth=2,marker="o")
 
 # Refine Bottom Right
 x     = zeros(Float64,4,6)
@@ -76,8 +76,11 @@ y     = zeros(Float64,4,6)
 BC    = fill("E  ",nf,6)
 Par   = zeros(Int64,2,nf,6)
 
-x[:,1:3],y[:,1:3],BC[:,1:3],Par[:,:,1:3] = Nek_ElementRefine(x0[:,1],y0[:,1],BC0[:,1],Par0[:,:,1],2)
-x[:,4:6],y[:,4:6],BC[:,4:6],Par[:,:,4:6] = Nek_ElementRefine(x0[:,2],y0[:,2],BC0[:,2],Par0[:,:,2],1)
+#x[:,1:3],y[:,1:3],BC[:,1:3],Par[:,:,1:3] = Nek_ElementRefine(x0[:,1],y0[:,1],BC0[:,1],Par0[:,:,1],2)
+#x[:,4:6],y[:,4:6],BC[:,4:6],Par[:,:,4:6] = Nek_ElementRefine(x0[:,2],y0[:,2],BC0[:,2],Par0[:,:,2],1)
+
+verts = [2; 1]
+x,y,BC,Par = Nek_TwoElementRefine(x0,y0,BC0,Par0,verts)
 
 plot(x,y,linestyle="-.")
 
