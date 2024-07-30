@@ -789,7 +789,7 @@
  E   80  4   14.0000       1.00000      0.000000E+00  0.000000E+00  0.000000E+00
   ***** NO THERMAL BOUNDARY CONDITIONS *****
             0 PRESOLVE/RESTART OPTIONS  *****
-            7         INITIAL CONDITIONS *****
+            7 INITIAL CONDITIONS *****
 C Default
 C Default
 C Default
@@ -815,7 +815,7 @@ C
   T      PRESSURE
   F      TEMPERATURE
   F      TEMPERATURE GRADIENT
-            0      PASSIVE SCALARS
+  0      PASSIVE SCALARS
   ***** OBJECT SPECIFICATION *****
        0 Surface Objects
        0 Volume  Objects
