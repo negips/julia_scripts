@@ -5,6 +5,7 @@ println("Refine 2 Elements in Nek (2D)")
 using Statistics
 using PyPlot
 
+include("../../SEMla/Module_SEMla/Module_Nek/Nek.jl")
 include("Nek_ElementRefine.jl")
 
 ndim  = 2
@@ -14,12 +15,13 @@ nf    = 2*ndim
 
 x0    = zeros(Float64,nc,nel)
 y0    = zeros(Float64,nc,nel)
+z0    = zeros(Float64,0,0)
 
 xmid  = zeros(Float64,nel)
 ymid  = zeros(Float64,nel)
 
 BC0   = fill("SYM",nf,nel)
-Par0  = zeros(Int64,2,nf,nel) 
+Par0  = zeros(Int64,5,nf,nel) 
 
 # 1st Element
 e       = 1
@@ -53,8 +55,8 @@ y0[2,e] =  0.0
 y0[3,e] =  1.0
 y0[4,e] =  1.0
 
-BC0[1,e]  = "W  "
-BC0[4,e]  = "E  "
+BC0[1,e]    = "W  "
+BC0[4,e]    = "E  "
 f           = 1
 BC0[f,e]    = "W  "
 f           = 4
@@ -83,6 +85,18 @@ verts = [2; 1]
 x,y,BC,Par = Nek_TwoElementRefine(x0,y0,BC0,Par0,verts)
 
 plot(x,y,linestyle="-.")
+
+
+# Testing
+#-------------------------------------------------- 
+Parf = Float64.(Par0)
+
+re2  = Nek.Re2Field(x0,y0,z0,BC0,Parf)
+
+npars   = 10
+readata = Nek.ReaData(re2,npars)
+
+Nek.write_reafile("refine",readata)
 
 println("Done.")
 

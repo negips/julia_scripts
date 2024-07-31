@@ -18,7 +18,7 @@ function Nek_ElementRefine(x0::Vector{T},y0::Vector{T},BC0::Vector{String},Par0:
   x   = zeros(Float64,nc,3)
   y   = zeros(Float64,nc,3)
   BC  = fill("SYM",nf,nel)
-  Par = zeros(Int64,2,nf,nel) 
+  Par = zeros(Int64,5,nf,nel) 
 
   if (vert == 1)    
     # 1st Element
@@ -437,7 +437,7 @@ function Nek_TwoElementRefine(x0::Matrix{T},y0::Matrix{T},BC0::Matrix{String},Pa
   x     = zeros(Float64,nc,nel2)
   y     = zeros(Float64,nc,nel2)
   BC    = fill("E  ",nf,nel2)
-  Par   = zeros(Int64,2,nf,nel2)
+  Par   = zeros(Int64,5,nf,nel2)
   es1   = 0
   es2   = 3
   

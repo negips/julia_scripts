@@ -49,14 +49,17 @@ icfiles = Vector{String}(undef,nic)
 Nek.write_ic(io,nic,icfiles)
 
 ndf     = 0
-Nek.write_driveforce(io,ndf)
+driveforce = Vector{String}(undef,ndf)
+Nek.write_driveforce(io,ndf,driveforce)
 
 nvp         = 1
 npackets    = 0
 datapacket  = Vector{String}(undef,0)
 Nek.write_varprop(io,nvp,npackets,datapacket)
 
-Nek.write_hist(io)
+nhist = 0
+history = Vector{String}(undef,nhist)
+Nek.write_hist(io,nhist,history)
 
 niospec     = 6
 OutFlds     = Vector{String}(undef,niospec)
