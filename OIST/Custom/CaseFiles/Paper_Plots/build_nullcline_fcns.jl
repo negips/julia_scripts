@@ -2,6 +2,7 @@
 
 println("Building a null cline based on given Points/gradients by Minimizing the Lagrangian (Error)")
 
+
 using LinearAlgebra
 using Roots
 using PyPlot
@@ -21,7 +22,7 @@ close("all")
 lafs = 16
 
 #include("select_nullclines.jl")
-sets              = [21]
+sets              = [25]
 
 cm                = get_cmap("tab10")
 
@@ -47,17 +48,6 @@ if f(0.0,100.0)>0
   pars.fcy        = -pars.fcy
 end  
 
-# If we want +λ to be stabilizing or destabilizing
-stabilizing = true
-# Translated
-if stabilizing 
-  ϕfd   = 120 #150.0
-else
-  ϕfd   = -80.0
-end  
-println("F(x,y) Translated with Slope: $ϕfd Degrees")
-ϕf      = ϕfd*π/180.0
-
 # Plot the null-cline
 λ0      = 0.0
 dλ      = 0.6
@@ -77,7 +67,8 @@ for λ in λvalues
   local nsteps        = 200000
   local f0x,f0y       = NullClines(f2,xi,yr0,yr1,nsteps,dτ)
   global plc         += 1
-  PlotContainers[plc] = ax1.plot(f0x,f0y,linestyle="-",label="λ=$λ;")
+  # PlotContainers[plc] = ax1.plot(f0x,f0y,linestyle="-",label="λ=$λ;")
+  PlotContainers[plc] = ax1.plot(f0x,f0y,linestyle="-",label="f(A,B)=0")
 end  
 
 
@@ -90,20 +81,11 @@ if g(100.0,0.0)>0
   pars.gcy        = -pars.gcy
   g(x,y)          = FXY(x,y,pars.gc0,pars.gcx,pars.gcy)
 end  
-stabilizing = true
-# Translated
-if stabilizing
-  ϕgd             = -30.0
-else
-  ϕgd             = 150.0
-end  
-#println("G(x,y) Translated with Slope: $ϕgd Degrees")
-ϕg                = ϕgd*π/180.0
 
 λvalues = [0.0]
-θ0      =  15.0
+θ0      =  0.0
 dθ      =  -20.0
-θvalues = [θ0+dθ; θ0; θ0-dθ]
+θvalues = [θ0]
 Axis_X0 = 0.0
 Axis_Y0 = -pars.gcx[1]/pars.gcy[1]*Axis_X0
 #θvalues = [θ0]
@@ -118,10 +100,11 @@ for λ in θvalues
   local nsteps        = 200000
   local g20x,g20y     = NullClines(g2,xi,yr0,yr1,nsteps,dτ)
   global plc         += 1
-  PlotContainers[plc] = ax1.plot(g20x,g20y,linestyle="--",label="θ=$λ")
+  # PlotContainers[plc] = ax1.plot(g20x,g20y,linestyle="--",label="θ=$λ")
+  PlotContainers[plc] = ax1.plot(g20x,g20y,linestyle="-",label="g(A,B)=0")
   # legend()
 end  
-#legend()
+lg = legend(loc="center right")
 
 #PlotContainers[6] = ax1.plot(pars.xB,pars.yB,linestyle=" ",marker="o",fillstyle="none")
 #PlotContainers[7] = ax1.plot(pars.xdxB,pars.ydxB,linestyle=" ",marker="x")
@@ -131,11 +114,12 @@ ax1.set_xlabel(L"B", fontsize=lafs)
 ax1.set_ylabel(L"A", fontsize=lafs)
 
 ax1.set_xlim(-1.5,5.0)
-ax1.set_ylim(-1.5,6.0)
+ax1.set_ylim(-1.5,5.0)
 
 MoveFigure(h1,1250,830)
 fname0   = @sprintf "./plots/nullclines"
 h1.savefig(fname0)
+
 
 # Time dependent null-cline functions
 yin     = LinRange(-1.5,7.0,5000)
@@ -152,7 +136,7 @@ gt(z)    = -1.0/pars.gcx[1]*RotXYFXY(0.0,yin,Axis_X0,Axis_Y0,z,pars.gc0,pars.gcx
 #---------------------------------------- 
 set               = 55
 parsS             = GetNullClineParams(set)
-δ                 = 0.005
+δ                 = 0.0015
 λdot0(x,y)        = (1.0/δ)*FXY(x,y,parsS.fc0,parsS.fcx,parsS.fcy)
 if λdot0(0.0,100.0)>0
   parsS.fc0        = -parsS.fc0
@@ -188,8 +172,8 @@ pause(0.01)
 η  = 1.0
 
 println("Press x to stop. Any other key to continue")
-xin = readline()
-# xin = "x"
+#xin = readline()
+xin = "x"
 #xin = "y"
 if xin !="x"
   # G(x,y,z) = TransFXY(x,y,z,ϕg,pars.gc0,pars.gcx,pars.gcy)*η
@@ -203,7 +187,7 @@ if xin !="x"
   Flow(x,y,z1,z2) = [G(x,y,z1) F(x,y,z2)]
 
   close(h4)
-  include("time_stepper_multiple_branch_splitting.jl")
+  include("time_stepper_multiple_branch_crossings.jl")
 end
 
 
