@@ -157,6 +157,71 @@ function RotFXY(x,y,θ::Float64,c0,cx,cy)
 end  
 #---------------------------------------------------------------------- 
 """
+   function RotLinearFXY(x,y,θ,c0,cx,cy)
+
+     Assuming F(x,y) is a Linear function of both x and y
+     Rotate the slope of the function by θ and evaluate the function. 
+
+     F(x,y) = c0 + cy_1*(y + (cx_1/cy_1)*x)
+
+     x1     =  cos(θ)x + sin(θ)y
+     y1     = -sin(θ)x + cos(θ)y
+     
+     F(x,y) = c0 + Σcx_i*x1^i + Σcy_i*y1^i
+
+     Positive θ is an anticlock-wise rotation of the function.
+     => Clockwise rotation of the arguments.
+
+"""
+function RotLinearFXY(x,y,θ::Float64,c0,cx,cy)
+
+  nx = length(cx)
+  ny = length(cy)
+
+  @assert length(cx) == length(cy) == 1 "Non-Linear function provided in RotLinearFXY"
+
+  dm = tan(θ)
+
+  s = c0 .+ cy[1].*(y .+ (cx[1]/cy[1] - dm).*x)
+
+  return s
+end  
+#---------------------------------------------------------------------- 
+"""
+   function RotLinearFXY2(x,y,θ,c0,cx,cy)
+
+     Assuming F(x,y) is a Linear function of both x and y
+     Rotate the slope of the function by θ and evaluate the function. 
+
+     F(x,y) = c0 + cy_1*(y + (cx_1/cy_1)*x)
+
+     x1     =  cos(θ)x + sin(θ)y
+     y1     = -sin(θ)x + cos(θ)y
+     
+     F(x,y) = c0 + Σcx_i*x1^i + Σcy_i*y1^i
+
+     Positive θ is an anticlock-wise rotation of the function.
+     => Clockwise rotation of the arguments.
+
+"""
+function RotLinearFXY2(x,y,θ::Float64,c0,cx,cy)
+
+  nx = length(cx)
+  ny = length(cy)
+
+  @assert length(cx) == length(cy) == 1 "Non-Linear function provided in RotLinearFXY"
+
+  ϕ  = atan(cx[1],cy[1])
+  m  = tan(ϕ - θ)
+
+  s = c0 .+ cy[1].*(y .+ m.*x)
+
+  return s
+end  
+#---------------------------------------------------------------------- 
+
+
+"""
    function RotXYFXYZ(x,y,x0,y0,θ,c0,cx,cy)
       
      x1     = x0 + cos(θ)(x-x0) + sin(θ)(y-y0)
