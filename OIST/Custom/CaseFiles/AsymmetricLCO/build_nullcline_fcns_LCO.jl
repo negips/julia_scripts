@@ -22,7 +22,7 @@ close("all")
 lafs = 16
 
 #include("select_nullclines.jl")
-sets              = [201]
+sets              = [204]
 
 cm                = get_cmap("tab10")
 
@@ -67,8 +67,7 @@ for λ in λvalues
   local nsteps        = 200000
   local f0x,f0y       = NullClines(f2,xi,yr0,yr1,nsteps,dτ)
   global plc         += 1
-  # PlotContainers[plc] = ax1.plot(f0x,f0y,linestyle="-",label="λ=$λ;")
-  PlotContainers[plc] = ax1.plot(f0x,f0y,linestyle="-",label="f(A,B)=0")
+  PlotContainers[plc] = ax1.plot(f0x,f0y,linestyle="-",label="λ=$λ;")
 end  
 
 
@@ -93,18 +92,17 @@ for λ in θvalues
   local θ             = λ*pi/180.0
   #local g2(x,y)       = RotFXY(x,y,θ,pars.gc0,pars.gcx,pars.gcy)
   local g2(x,y)       = RotXYFXY(x,y,Axis_X0,Axis_Y0,θ,pars.gc0,pars.gcx,pars.gcy)
-  local xi            = -3.0
+  local xi            = -2.0
   local yr0           = -100.0
   local yr1           =  10.0
   local dτ            = 1.0e-3
   local nsteps        = 200000
   local g20x,g20y     = NullClines(g2,xi,yr0,yr1,nsteps,dτ)
   global plc         += 1
-  # PlotContainers[plc] = ax1.plot(g20x,g20y,linestyle="--",label="θ=$λ")
-  PlotContainers[plc] = ax1.plot(g20x,g20y,linestyle="-",label="g(A,B)=0")
+  PlotContainers[plc] = ax1.plot(g20x,g20y,linestyle="--",label="θ=$λ")
   # legend()
 end  
-lg = legend(loc="center right")
+#legend()
 
 #PlotContainers[6] = ax1.plot(pars.xB,pars.yB,linestyle=" ",marker="o",fillstyle="none")
 #PlotContainers[7] = ax1.plot(pars.xdxB,pars.ydxB,linestyle=" ",marker="x")
@@ -124,7 +122,7 @@ h1.savefig(fname0)
 # Time dependent null-cline functions
 yin     = LinRange(-1.5,7.0,5000)
 #gt(z)   = -1.0/pars.gcx[1]*TransFXY(0.0,yin,z,ϕg,pars.gc0,pars.gcx,pars.gcy)
-ft(z)   = -1.0/pars.fcx[1]*TransFXY(0.0,yin,z,ϕf,pars.fc0,pars.fcx,pars.fcy)
+ft(z)   = -1.0/pars.fcx[1]*TransFXY(0.0,yin,z,0.0,pars.fc0,pars.fcx,pars.fcy)
 
 #gt(z)   = -1.0/pars.gcx[1]*RotFXY(0.0,yin,z,pars.gc0,pars.gcx,pars.gcy)
 gt(z)    = -1.0/pars.gcx[1]*RotXYFXY(0.0,yin,Axis_X0,Axis_Y0,z,pars.gc0,pars.gcx,pars.gcy)
@@ -172,9 +170,9 @@ pause(0.01)
 η  = 1.0
 
 println("Press x to stop. Any other key to continue")
-#xin = readline()
-#xin = "x"
-xin = "y"
+xin = readline()
+# xin = "x"
+#xin = "y"
 if xin !="x"
   # G(x,y,z) = TransFXY(x,y,z,ϕg,pars.gc0,pars.gcx,pars.gcy)*η
   F(x,y,z) = TransFXY(x,y,z,0.0,pars.fc0,pars.fcx,pars.fcy)/ϵ
@@ -186,8 +184,8 @@ if xin !="x"
   # Λ(x,y,z) = FXYZ(x,y,z,λc0,λcx,λcy,λcz)
   Flow(x,y,z1,z2) = [G(x,y,z1) F(x,y,z2)]
 
-  #close(h4)
-  #include("time_stepper_multiple_branch_crossings.jl")
+  close(h4)
+  include("time_stepper_multiple_LCO.jl")
 end
 
 

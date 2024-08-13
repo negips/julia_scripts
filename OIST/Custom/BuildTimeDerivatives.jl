@@ -186,6 +186,36 @@ function RotXYFXY(x,y,x0::Float64,y0::Float64,θ::Float64,c0,cx,cy)
 end  
 #---------------------------------------------------------------------- 
 """
+   function RotXYFXYZ(x,y,x0,y0,θ,c0,cx,cy)
+      
+     x1     = x0 + cos(θ)(x-x0) + sin(θ)(y-y0)
+     y1     = y0 - sin(θ)(x-x0) + cos(θ)(y-y0)
+     
+     F(x,y) = c0 + Σcx_i*x1^i + Σcy_i*y1^i
+
+     Positive θ is an anticlock-wise rotation of the function.
+     => Clockwise rotation of the arguments.
+
+"""
+function RotXYFXY(x,y,x0::Float64,y0::Float64,θ,c0,cx,cy)
+
+  nx = length(cx)
+  ny = length(cy)
+
+  s = c0
+  for i in 1:nx
+    s = s .+ cx[i]*(x0 .+ cos.(θ).*(x .- x0) .+ sin.(θ).*(y .- y0)).^i
+  end
+
+  for j in 1:ny
+    s = s .+ cy[j]*(y0 .- sin.(θ).*(x .- x0) .+ cos.(θ).*(y .- y0)).^j
+  end  
+
+  return s
+end  
+#---------------------------------------------------------------------- 
+
+"""
    function TransRotFXYZ(x,y,x0,y0,θ,c0,cx,cy)
       
      x1     = + cos(θ)(x-x0) + sin(θ)(y-y0)

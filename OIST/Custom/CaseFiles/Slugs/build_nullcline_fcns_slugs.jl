@@ -22,7 +22,7 @@ close("all")
 lafs = 16
 
 #include("select_nullclines.jl")
-sets              = [201]
+sets              = [205]
 
 cm                = get_cmap("tab10")
 
@@ -104,7 +104,7 @@ for λ in θvalues
   PlotContainers[plc] = ax1.plot(g20x,g20y,linestyle="-",label="g(A,B)=0")
   # legend()
 end  
-lg = legend(loc="center right")
+#lg = legend(loc="center right")
 
 #PlotContainers[6] = ax1.plot(pars.xB,pars.yB,linestyle=" ",marker="o",fillstyle="none")
 #PlotContainers[7] = ax1.plot(pars.xdxB,pars.ydxB,linestyle=" ",marker="x")
@@ -172,9 +172,9 @@ pause(0.01)
 η  = 1.0
 
 println("Press x to stop. Any other key to continue")
-#xin = readline()
+xin = readline()
 #xin = "x"
-xin = "y"
+#xin = "y"
 if xin !="x"
   # G(x,y,z) = TransFXY(x,y,z,ϕg,pars.gc0,pars.gcx,pars.gcy)*η
   F(x,y,z) = TransFXY(x,y,z,0.0,pars.fc0,pars.fcx,pars.fcy)/ϵ
@@ -187,7 +187,7 @@ if xin !="x"
   Flow(x,y,z1,z2) = [G(x,y,z1) F(x,y,z2)]
 
   #close(h4)
-  #include("time_stepper_multiple_branch_crossings.jl")
+  include("time_stepper_multiple_slugs.jl")
 end
 
 
