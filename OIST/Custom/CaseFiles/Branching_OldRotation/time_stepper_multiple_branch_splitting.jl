@@ -27,10 +27,7 @@ ifplot            = iffldplot || ifphplot
 
 Vol  = sum(Bg)
 A_eq = Aeq*Vol
-γ    = 0.0
-
-abar_hist = zeros(Float64,nsteps)
-γ_hist    = zeros(Float64,nsteps)
+γ    = -2.0
 
 for i in 1:nsteps
   global fld,fldlag,Rhs,Rhslag,dotfld
@@ -40,20 +37,15 @@ for i in 1:nsteps
   global framecount
   global γ
 
-  global abar_hist, γ_hist
-
   t = t + dt;
 
-  A_tot     = Bg'*fld[:,2]/Vol
+  A_tot     = Bg'*fld[:,2]
   abar      = A_tot/A_eq
 
   γ         = RK4!(λdot1,abar,γ,dt)
 
-  abar_hist[i] = abar
-  γ_hist[i]    = γ
-
   if verbosestep>0 && mod(i,verbosestep)==0
-    println("Step: $i/$nsteps, Time: $t, Atot/A_eq = $(A_tot/A_eq); γ: $(γ)")
+    println("Step: $i/$nsteps, Time: $t, Abar = $(abar); γ: $(γ)")
   end
 
   GetBDF!(bdf,3)
@@ -67,7 +59,7 @@ for i in 1:nsteps
     GetEXT!(ext,2)
   end
 
-  θpar      = (θ0 + (γ/1.8)*dθ)*π/180.0
+  θpar      = (θ0 + (γ)*dθ)*π/180.0
   #Ω         = 0.05
   #θpar      = (θ0 - (A_tot/A_eq)*dθ)*pi/180.0
   # θpar      = 0.0 # (θ0 + dθ*sin(2*π*Ω*t))*pi/180.0         # for G
@@ -186,19 +178,18 @@ t2d   = ones(npts)*Thist'
 x2d   = (Geom.xm1[:])*ones(nsurf_save)'
 
 cm2   = get_cmap("binary");
-h3    = figure(num=3,figsize=[5.0,8.0])
+h3    = figure(num=3,figsize=[8.0,8.0])
 pcm   = pcolormesh(x2d,t2d,fldhist[:,:,2])
 pcm.set_cmap(cm2)
 ax3   = h3.gca()
 ax3.invert_yaxis()
 #cb    = colorbar(orientation="vertical")
 if (ifsavext)
-  fname3 = @sprintf "./plots/spacetime"
+  fname3   = @sprintf "./plots/spacetime"
   h3.savefig(fname3)
 end  
 
-figure(num=4)
-plot(abar_hist,-γ_hist)
+
 
 #surf(t2d,x2d,fldhist[:,:,2],cmap=cm2,edgecolor="none")
 #ax3.elev = 94.0

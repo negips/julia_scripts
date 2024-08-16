@@ -22,7 +22,7 @@ X[end] = X[1]
 QTX = QT*(X.*vimult)
 
 # No dynamic phase here
-ifdynplot         = false
+#ifdynplot         = false
 ifplot            = iffldplot || ifphplot
 
 Vol  = sum(Bg)
@@ -31,6 +31,7 @@ A_eq = Aeq*Vol
 
 abar_hist = zeros(Float64,nsteps)
 γ_hist    = zeros(Float64,nsteps)
+
 
 for i in 1:nsteps
   global fld,fldlag,Rhs,Rhslag,dotfld
@@ -41,10 +42,10 @@ for i in 1:nsteps
   global γ
 
   global abar_hist, γ_hist
-
+ 
   t = t + dt;
 
-  A_tot     = Bg'*fld[:,2]/Vol
+  A_tot     = Bg'*fld[:,2]
   abar      = A_tot/A_eq
 
   γ         = RK4!(λdot1,abar,γ,dt)
@@ -67,7 +68,7 @@ for i in 1:nsteps
     GetEXT!(ext,2)
   end
 
-  θpar      = (θ0 + (γ/1.8)*dθ)*π/180.0
+  θpar      = (θ0 + (γ/1.0)*dθ)*π/180.0
   #Ω         = 0.05
   #θpar      = (θ0 - (A_tot/A_eq)*dθ)*pi/180.0
   # θpar      = 0.0 # (θ0 + dθ*sin(2*π*Ω*t))*pi/180.0         # for G
@@ -151,9 +152,10 @@ for i in 1:nsteps
       scat = ax1.plot(Intpg*fld[:,1],Intpg*fld[:,2],color="black",linewidth=2) 
     end
    
-    # Dynamic plot
+    # Dynamic phase plot
     if ifdynplot
-      λpl =ax2.plot(Geom.xm1[:],Q*λpar,color=cm(4-1));
+      # λpl =ax2.plot(Geom.xm1[:],Q*λpar,color=cm(4-1));
+      λpl = ax4.plot(abar,γ,color=cm(4-1),linestyle="none",marker="o",markersize=8);
     end
 
     # Dynamic null-clines
@@ -186,7 +188,7 @@ t2d   = ones(npts)*Thist'
 x2d   = (Geom.xm1[:])*ones(nsurf_save)'
 
 cm2   = get_cmap("binary");
-h3    = figure(num=3,figsize=[5.0,8.0])
+h3    = figure(num=3,figsize=[6.0,8.0])
 pcm   = pcolormesh(x2d,t2d,fldhist[:,:,2])
 pcm.set_cmap(cm2)
 ax3   = h3.gca()
@@ -197,8 +199,9 @@ if (ifsavext)
   h3.savefig(fname3)
 end  
 
+
 figure(num=4)
-plot(abar_hist,-γ_hist)
+plot(abar_hist,γ_hist)
 
 #surf(t2d,x2d,fldhist[:,:,2],cmap=cm2,edgecolor="none")
 #ax3.elev = 94.0
