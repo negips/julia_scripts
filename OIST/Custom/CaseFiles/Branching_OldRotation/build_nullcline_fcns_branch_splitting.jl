@@ -9,6 +9,7 @@ using Printf
 
 const SRC = "/home/prabal/workstation/git/julia/OIST/Custom"
 
+include("$SRC/print_params.jl")
 include("$SRC/GetDynamicNullCline.jl")
 include("$SRC/BuildTimeDerivatives.jl")
 include("$SRC/NullClines.jl")
@@ -205,29 +206,20 @@ pause(0.01)
 
 ϵ  = 0.1
 η  = 1.0
+F(x,y,z)          = TransFXY(x,y,z,ϕf,pars.fc0,pars.fcx,pars.fcy)/ϵ
+G(x,y,z)          = RotLinearFXY3(x,y,z,pars.gc0,pars.gcx,pars.gcy)
+Flow(x,y,z1,z2)   = [G(x,y,z1) F(x,y,z2)]
 
 println("Press x to stop. Any other key to continue")
 xin = readline()
 #xin = "x"
 #xin = "y"
 if xin !="x"
-  # G(x,y,z) = TransFXY(x,y,z,ϕg,pars.gc0,pars.gcx,pars.gcy)*η
-  F(x,y,z) = TransFXY(x,y,z,ϕf,pars.fc0,pars.fcx,pars.fcy)/ϵ
-
-  # G(x,y,z)  = RotFXY(x,y,z,pars.gc0,pars.gcx,pars.gcy)*η
-  #G(x,y,z)  = RotXYFXY(x,y,Axis_X0,Axis_Y0,z,pars.gc0,pars.gcx,pars.gcy)
-  # G(x,y,z)  = RotLinearFXY2(x,y,z,pars.gc0,pars.gcx,pars.gcy)
-  G(x,y,z)  = RotLinearFXY3(x,y,z,pars.gc0,pars.gcx,pars.gcy)
-
-  # F(x,y,z)  = RotFXY(x,y,z,pars.fc0,pars.fcx,pars.fcy)/ϵ
-
-  # Λ(x,y,z) = FXYZ(x,y,z,λc0,λcx,λcy,λcz)
-  Flow(x,y,z1,z2) = [G(x,y,z1) F(x,y,z2)]
-
-  close(h4)
+  # close(h4)
   include("time_stepper_multiple_branch_splitting.jl")
 end
 
+print_params(F,G,λdot1,pars,parsS)
 
 
 

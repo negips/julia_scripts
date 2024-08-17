@@ -244,7 +244,7 @@ function RotLinearFXY3(x,y,θ::Float64,c0,cx,cy)
   @assert length(cx) == length(cy) == 1 "Non-Linear function provided in RotLinearFXY"
 
   ϕ  = atan(cx[1],cy[1])
-  m  = tan(ϕ - θ)
+  # m  = tan(ϕ - θ)
   R  = sqrt(cy[1]^2 + cx[1]^2)
 
   s = c0 .+ R*(cos.(ϕ - θ).*y .+ sin.(ϕ - θ).*x)
