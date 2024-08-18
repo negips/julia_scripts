@@ -188,7 +188,7 @@ t2d   = ones(npts)*Thist'
 x2d   = (Geom.xm1[:])*ones(nsurf_save)'
 
 cm2   = get_cmap("binary");
-h3    = figure(num=3,figsize=[5.0,8.0])
+h3    = figure(num=3,figsize=[6.0,8.0])
 pcm   = pcolormesh(x2d,t2d,fldhist[:,:,2])
 pcm.set_cmap(cm2)
 ax3   = h3.gca()

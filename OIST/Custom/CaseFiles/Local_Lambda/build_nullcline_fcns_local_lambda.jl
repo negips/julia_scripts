@@ -24,7 +24,7 @@ close("all")
 lafs = 16
 
 #include("select_nullclines.jl")
-sets              = [210] # [20]
+sets              = [207] # [20]
 
 cm                = get_cmap("tab10")
 
@@ -58,12 +58,12 @@ if stabilizing
 else
   ϕfd   = -80.0
 end  
-println("F(x,y) Translated with Slope: $ϕfd Degrees")
-ϕf      = 0.0*ϕfd*π/180.0
+println("F(x,y) Translation along Slope: $ϕfd Degrees")
+ϕf      = ϕfd*π/180.0
 
 # Plot the null-cline
 λ0      = 0.0
-dλ      = 0.6
+dλ      = 0.0
 #λvalues = [λ0-dλ; λ0; λ0+dλ]
 λvalues = [λ0]
 θvalues = [0.0]
@@ -93,28 +93,20 @@ if g(100.0,0.0)>0
   pars.gcy        = -pars.gcy
   g(x,y)          = FXY(x,y,pars.gc0,pars.gcx,pars.gcy)
 end  
-stabilizing = true
-# Translated
-if stabilizing
-  ϕgd             = -30.0
-else
-  ϕgd             = 150.0
-end  
-#println("G(x,y) Translated with Slope: $ϕgd Degrees")
-ϕg                = ϕgd*π/180.0
 
 λvalues = [0.0]
 θ0      =   0.0
-dθ      =  -(30.0/1.8)
+dθ      = (30.0/1.8)
 θvalues = [θ0; θ0+dθ*2; θ0-dθ*2]
 Axis_X0 = 0.0
 Axis_Y0 = -pars.gcx[1]/pars.gcy[1]*Axis_X0
+X00     = 2.0
 #θvalues = [θ0]
 for λ in θvalues
   local θ             = λ*pi/180.0
   # local g2(x,y)       = RotFXY(x,y,θ,pars.gc0,pars.gcx,pars.gcy)
   # local g2(x,y)       = RotXYFXY(x,y,Axis_X0,Axis_Y0,θ,pars.gc0,pars.gcx,pars.gcy)
-  local g2(x,y)       = RotLinearFXY3(x,y,θ,pars.gc0,pars.gcx,pars.gcy)
+  local g2(x,y)       = RotLinearFXY5(x,y,θ,X00,pars.gc0,pars.gcx,pars.gcy)
 
   local xi            = -2.0
   local yr0           = -50.0
@@ -135,7 +127,7 @@ for λ in θvalues
 
   # legend()
 end  
-#legend()
+legend()
 
 #PlotContainers[6] = ax1.plot(pars.xB,pars.yB,linestyle=" ",marker="o",fillstyle="none")
 #PlotContainers[7] = ax1.plot(pars.xdxB,pars.ydxB,linestyle=" ",marker="x")
@@ -153,25 +145,20 @@ h1.savefig(fname0)
 
 # Time dependent null-cline functions
 yin     = LinRange(-1.5,7.0,5000)
-#gt(z)   = -1.0/pars.gcx[1]*TransFXY(0.0,yin,z,ϕg,pars.gc0,pars.gcx,pars.gcy)
-ft(z)   = -1.0/pars.fcx[1]*TransFXY(0.0,yin,z,ϕf,pars.fc0,pars.fcx,pars.fcy)
-
-#gt(z)   = -1.0/pars.gcx[1]*RotFXY(0.0,yin,z,pars.gc0,pars.gcx,pars.gcy)
-#gt(z)    = -1.0/pars.gcx[1]*RotXYFXY(0.0,yin,Axis_X0,Axis_Y0,z,pars.gc0,pars.gcx,pars.gcy)
-#slopeϕ  = atan(pars.gcx[1],pars.gcy[1])
-#gt(z)    = -1.0/(tan(slopeϕ-z)*pars.gcy[1])*RotLinearFXY3(0.0,yin,z,pars.gc0,pars.gcx,pars.gcy)
-gg(x,y,z) = RotLinearFXY3(x,y,z,pars.gc0,pars.gcx,pars.gcy)
+#ft(z)   = -1.0/pars.fcx[1]*TransFXY(0.0,yin,z,ϕf,pars.fc0,pars.fcx,pars.fcy)
+ff(x,y,z) = TransFXY(x,y,z,ϕf,pars.fc0,pars.fcx,pars.fcy)
+ft(z)     = GetDynamicNullCline(ff,yin,z)
+gg(x,y,z) = RotLinearFXY5(x,y,z,X00,pars.gc0,pars.gcx,pars.gcy)
 gt(z)     = GetDynamicNullCline(gg,yin,z)
 
-#ft(z)   = -1.0/pars.fcx[1]*RotFXY(0.0,yin,z,pars.fc0,pars.fcx,pars.fcy)
 
 #PlotContainers[6] = ax1.plot(gt(-20.0*π/180.0),yin,linestyle="-.",linewidth=2,color=cm(5));
 
 # Build Nullcline for the dynamic switching
 #---------------------------------------- 
-set               = 55
+set               = 57
 parsS             = GetNullClineParams(set)
-δ                 = 0.01
+δ                 = 0.10
 λdot0(x,y)        = (1.0/δ)*FXY(x,y,parsS.fc0,parsS.fcx,parsS.fcy)
 if λdot0(0.0,100.0)>0
   parsS.fc0        = -parsS.fc0
@@ -180,12 +167,9 @@ if λdot0(0.0,100.0)>0
 end  
 λdot1(x,y)        = (1.0/δ)*FXY(x,y,parsS.fc0,parsS.fcx,parsS.fcy)
 
-#α                 = 1.0
-#xc                = 1.0
-#λdot(x,y)         = (y-α*x)*(x^2 - xc^2)
-xi                =  -10.0
-yr0               =  0.0
-yr1               =  -15.0
+xi                =  -2.0
+yr0               =  -15.0
+yr1               =   20.0
 dτ                =  1.0e-3
 nsteps            = 50000
 λdot0x1,λdot0y1   = NullClines(λdot1,xi,yr0,yr1,nsteps,dτ)
@@ -196,18 +180,22 @@ ax4.plot(λdot0x1,λdot0y1,color=cm(3),linestyle="--")
 ax4.set_ylabel(L"λ", fontsize=lafs)
 ax4.set_xlabel(L"\widebar{A}", fontsize=lafs)
 
-ax4.set_xlim(-0.1,0.5)
-ax4.set_ylim(-2.2,2.2)
+ax4.set_xlim(-0.7,0.7)
+ax4.set_ylim(-2.5,2.5)
 fname0   = @sprintf "./plots/paramnullcline"
 h4.savefig(fname0)
 
 pause(0.01)
 
-ϵ  = 0.1
-η  = 1.0
-F(x,y,z)          = TransFXY(x,y,z,ϕf,pars.fc0,pars.fcx,pars.fcy)/ϵ
-G(x,y,z)          = RotLinearFXY3(x,y,z,pars.gc0,pars.gcx,pars.gcy)
-Flow(x,y,z1,z2)   = [G(x,y,z1) F(x,y,z2)]
+ϵ                 = 0.1
+η                 = 1.0
+Anorm             = 0.1
+λnorm             = dθ*π/180.0
+F(x,y,z)          = TransFXY(x,y,0.0,ϕf,pars.fc0,pars.fcx,pars.fcy)/ϵ
+G(x,y,z)          = RotLinearFXY5(x,y,z,X00,pars.gc0,pars.gcx,pars.gcy)
+H(x,y,z)          = FXY(y,z,parsS.fc0,parsS.fcx,parsS.fcy)./δ
+
+Flow(x,y,z)       = [G(x,y,z.*λnorm) F(x,y,z) H(x,y.*Anorm,z)]
 
 println("Press x to stop. Any other key to continue")
 xin = readline()
@@ -215,10 +203,10 @@ xin = readline()
 #xin = "y"
 if xin !="x"
   # close(h4)
-  include("time_stepper_multiple_sierpinsky.jl")
+  include("time_stepper_multiple_local_lambda.jl")
 end
 
-print_params(F,G,λdot1,pars,parsS)
+#print_params(F,G,λdot1,pars,parsS)
 
 
 
