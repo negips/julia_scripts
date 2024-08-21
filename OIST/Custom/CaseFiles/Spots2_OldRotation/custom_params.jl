@@ -33,7 +33,7 @@ ampζ0             = prec(0.0)
 Amp0              = zeros(prec,nflds) 
 Amp0              = [ampB0; ampA0; ampζ0]
 
-A0Off             = prec(4.0)         # Homogeneous state value
+A0Off             = prec(0.0)         # Homogeneous state value
 B0Off             = prec(0.0)         # Homogeneous state value
 ζ0Off             = prec(0.0)         # Homogeneous state value
 

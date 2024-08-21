@@ -171,7 +171,7 @@ h4.savefig(fname0)
 
 pause(0.01)
 
-ϵ  = 0.6
+ϵ  = 0.5
 η  = 1.0
 F(x,y,z)          = TransFXY(x,y,z,0.0,pars.fc0,pars.fcx,pars.fcy)/ϵ
 G(x,y,z)          = RotLinearFXY6(x,y,z,dθ*pi/180.0,X00,pars.gc0,pars.gcx,pars.gcy)/η

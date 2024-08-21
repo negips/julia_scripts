@@ -17,6 +17,7 @@ include("$SRC/NullClineFcn.jl")
 include("$SRC/ElementOf.jl")
 include("$SRC/NullClineParams.jl")
 include("$JULIACOMMON/MoveFigure.jl")
+include("../RenormalizeSystem.jl")
 
 close("all")
 
@@ -29,6 +30,14 @@ cm                = get_cmap("tab10")
 
 set               = sets[1]
 pars              = GetNullClineParams(set) 
+ifrenorm          = false
+
+if (ifrenorm)
+  Anorm,Bnorm = RenormalizeSystem!(pars)
+else
+  Anorm     = 1.0
+  Bnorm     = 1.0
+end
 
 h1                = figure(num=1)
 ax1               = h1.subplots()
@@ -147,8 +156,13 @@ legend()
 ax1.set_xlabel(L"B", fontsize=lafs)
 ax1.set_ylabel(L"A", fontsize=lafs)
 
-ax1.set_xlim(-1.5,5.0)
-ax1.set_ylim(-1.5,5.0)
+if (ifrenorm)
+  ax1.set_xlim(-0.5,2.0)
+  ax1.set_ylim(-0.5,2.0)
+else
+  ax1.set_xlim(-1.5,5.0)
+  ax1.set_ylim(-1.5,5.0)
+end  
 
 MoveFigure(h1,1250,830)
 fname0   = @sprintf "./plots/nullclines"
@@ -172,6 +186,7 @@ gt(z)     = GetDynamicNullCline(gg,yin,z)
 #---------------------------------------- 
 set               = 55
 parsS             = GetNullClineParams(set)
+# RenormalizeλSystem!(parsS,Anorm,Bnorm)
 δ                 = 0.005
 λdot0(x,y)        = (1.0/δ)*FXY(x,y,parsS.fc0,parsS.fcx,parsS.fcy)
 if λdot0(0.0,100.0)>0
@@ -197,8 +212,13 @@ ax4.plot(λdot0x1,λdot0y1,color=cm(3),linestyle="--")
 ax4.set_ylabel(L"λ", fontsize=lafs)
 ax4.set_xlabel(L"\widebar{A}", fontsize=lafs)
 
-ax4.set_xlim(0.1,0.5)
-ax4.set_ylim(-2.25,2.25)
+if (ifrenorm)
+  ax4.set_xlim(0.0,0.8)
+  ax4.set_ylim(-2.25,2.25)
+else  
+  ax4.set_xlim(0.1,0.5)
+  ax4.set_ylim(-2.25,2.25)
+end  
 fname0   = @sprintf "./plots/paramnullcline"
 h4.savefig(fname0)
 

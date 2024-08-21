@@ -20,8 +20,8 @@ ifglobal          = true
 nflds             = 2               # No of fields
 
 # Initialization
-ngauss            = 2
-x0gauss           = [30.0 65.0]           #xe*rand(ngauss)
+ngauss            = 1
+x0gauss           = [2.0]           #xe*rand(ngauss)
 ngauss            = length(x0gauss)
 ampgauss          = ones(Float64,ngauss)  #rand(ngauss)
 x0                = x0gauss[1]      # Gaussian Center
@@ -33,12 +33,20 @@ ampζ0             = prec(0.0)
 Amp0              = zeros(prec,nflds) 
 Amp0              = [ampB0; ampA0; ampζ0]
 
-A0Off             = prec(4.0)         # Homogeneous state value
+A0Off             = prec(0.0)         # Homogeneous state value
 B0Off             = prec(0.0)         # Homogeneous state value
 ζ0Off             = prec(0.0)         # Homogeneous state value
 
 Off0              = zeros(prec,nflds)
 Off0              = [B0Off; A0Off; ζ0Off]
+
+nwaves            = prec(4.0)           # Wave Number
+k0                = (2.0*π)/((xe - xs)/nwaves)
+kampA0            = prec(4.0)
+kampB0            = prec(0.0)
+kampζ0            = prec(0.0)
+kAmp0             = [kampB0; kampA0; kampζ0]
+
 
 σai               = prec(0.0)         # Initial Activator Noise
 σbi               = prec(0.0)         # Initial Inhibitor Noise Strength

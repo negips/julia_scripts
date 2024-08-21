@@ -82,7 +82,7 @@ if g(100.0,0.0)>0
 end  
 
 θ0      =   0.0
-dθ      =  -10.0
+dθ      =  -0.0
 λvalues = [0.0; -2.0; 2.0]
 θvalues = [θ0+dθ; θ0; θ0-dθ]
 Axis_X0 = 0.0
@@ -171,7 +171,7 @@ h4.savefig(fname0)
 
 pause(0.01)
 
-ϵ  = 0.6
+ϵ  = 0.2
 η  = 1.0
 F(x,y,z)          = TransFXY(x,y,z,0.0,pars.fc0,pars.fcx,pars.fcy)/ϵ
 G(x,y,z)          = RotLinearFXY6(x,y,z,dθ*pi/180.0,X00,pars.gc0,pars.gcx,pars.gcy)/η

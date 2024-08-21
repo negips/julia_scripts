@@ -26,7 +26,7 @@ ifdynplot         = true
 ifplot            = iffldplot || ifphplot
 
 Vol  = sum(Bg)
-A_eq = Aeq*Vol
+A_eq = Aeq*Vol*Anorm
 γ    = -2.0
 
 for i in 1:nsteps
