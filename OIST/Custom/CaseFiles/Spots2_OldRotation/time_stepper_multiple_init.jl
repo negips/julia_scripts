@@ -12,9 +12,9 @@ else
 end  
 
 #agauss      = exp.(-((Geom.xm1[:] .- x0)/σg).^2)# .*(sign.(Geom.xm1[:] .- x0))
-k0          = 7
-asin        = sin.(2.0*π/(xe-xs)*k0*Geom.xm1[:])
-acos        = cos.(2.0*π/(xe-xs)*k0*Geom.xm1[:])
+#k0          = 7
+asin        = vimultg.*(QT*sin.(k0*Geom.xm1[:]))
+acos        = vimultg.*(QT*cos.(k0*Geom.xm1[:]))
 
 ainit       = vimultg.*(QT*agauss)
 binit       = vimultg.*(QT*agauss)
@@ -30,7 +30,7 @@ Rhslag      = zeros(VT,ndof,2,nflds)
 #fld[:,1]    = ampB0*ainit .+ B0Off .+ σbi*(rand(ndof) .- 0.5)
 #fld[:,2]    = ampA0*binit .+ A0Off .+ σai*(rand(ndof) .- 0.5)
 for j in 1:nflds
-  fld[:,j]    = Amp0[j]*ainit .+ Off0[j] .+ σ0i[j]*(rand(ndof) .- 0.5)
+  fld[:,j]    = Amp0[j]*ainit .+ kAmp0[j]*asin .+ Off0[j] .+ σ0i[j]*(rand(ndof) .- 0.5)
 end  
 
 

@@ -42,14 +42,13 @@ Off0              = [B0Off; A0Off; ζ0Off]
 
 nwaves            = prec(4.0)           # Wave Number
 k0                = (2.0*π)/((xe - xs)/nwaves)
-kampA0            = prec(4.0)
+kampA0            = prec(0.0)
 kampB0            = prec(0.0)
 kampζ0            = prec(0.0)
 kAmp0             = [kampB0; kampA0; kampζ0]
 
-
-σai               = prec(0.0)         # Initial Activator Noise
-σbi               = prec(0.0)         # Initial Inhibitor Noise Strength
+σai               = prec(10.0)         # Initial Activator Noise
+σbi               = prec(10.0)         # Initial Inhibitor Noise Strength
 σζi               = prec(0.0)         # Initial Aux. Strength
 σ0i               = [σbi; σai; σζi]
 
