@@ -194,6 +194,20 @@ if (ifsavext)
   h3.savefig(fname3)
 end  
 
+h5    = figure(num=5)
+ax5   = h5.subplots()
+λx    = 2.0*sin.(2*π*10.0.*QTX/xe)
+
+pl_λx = ax5.plot(QTX,λx,color=cm(3))
+ax5.set_xlabel("x",fontsize=lafs)
+ax5.set_ylabel("λ",fontsize=lafs)
+
+if (ifsavext)
+  fname5 = @sprintf "./plots/lambda_spatial.eps"
+  h5.savefig(fname5)
+end  
+
+
 #surf(t2d,x2d,fldhist[:,:,2],cmap=cm2,edgecolor="none")
 #ax3.elev = 94.0
 #ax3.azim = 0.0

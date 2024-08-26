@@ -22,7 +22,7 @@ close("all")
 lafs = 16
 
 #include("select_nullclines.jl")
-sets              = [103]
+sets              = [211]
 
 cm                = get_cmap("tab10")
 
@@ -82,12 +82,12 @@ if g(100.0,0.0)>0
 end  
 
 θ0      =   0.0
-dθ      =  -0.0
+dθ      =  -10.0
 λvalues = [0.0; -2.0; 2.0]
 θvalues = [θ0+dθ; θ0; θ0-dθ]
 Axis_X0 = 0.0
 Axis_Y0 = -pars.gcx[1]/pars.gcy[1]*Axis_X0
-X00     = -0.5
+X00     = -0.0
 #θvalues = [θ0]
 for λ in λvalues
   local θ             = λ
@@ -116,8 +116,8 @@ legend()
 ax1.set_xlabel(L"B", fontsize=lafs)
 ax1.set_ylabel(L"A", fontsize=lafs)
 
-ax1.set_xlim(-8.0,8.0)
-ax1.set_ylim(-8.0,8.0)
+ax1.set_xlim(-2.0,8.0)
+ax1.set_ylim(-2.0,8.0)
 
 MoveFigure(h1,1250,830)
 fname0   = @sprintf "./plots/nullclines"
@@ -171,7 +171,7 @@ h4.savefig(fname0)
 
 pause(0.01)
 
-ϵ  = 0.6
+ϵ  = 0.1
 η  = 1.0
 F(x,y,z)          = TransFXY(x,y,z,0.0,pars.fc0,pars.fcx,pars.fcy)/ϵ
 G(x,y,z)          = RotLinearFXY6(x,y,z,dθ*pi/180.0,X00,pars.gc0,pars.gcx,pars.gcy)/η

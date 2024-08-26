@@ -63,7 +63,7 @@ for i in 1:nsteps
   Ω          = 0.0
   #θpar       = (θ0 .+ dθ*sin.(2*π*20.0.*QTX/xe .- Ω*t))*pi/180.0
   #θpar       = (θ0 .+ 2.0*sin.(2*π*10.0.*QTX/xe .- Ω*t))
-  θpar       = 2.0*ModuloStep(QTX,10.0)
+  θpar       = 2.0*ModuloStep(QTX,4.0)
   #θpar       = (θ0 .+ dθ*fld[:,2]/4.0)*pi/180.0
   #θpar      = (θ0 + (γ/1.8)*dθ)*π/180.0
   #θpar      = (θ0 - (A_tot/A_eq)*dθ)*pi/180.0
@@ -183,7 +183,7 @@ t2d   = ones(npts)*Thist'
 x2d   = (Geom.xm1[:])*ones(nsurf_save)'
 
 cm2   = get_cmap("binary");
-h3    = figure(num=3,figsize=[5.0,8.0])
+h3    = figure(num=3,figsize=[8.0,8.0])
 pcm   = pcolormesh(x2d,t2d,fldhist[:,:,2])
 pcm.set_cmap(cm2)
 ax3   = h3.gca()
