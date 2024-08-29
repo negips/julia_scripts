@@ -22,16 +22,12 @@ X[end] = X[1]
 QTX = QT*(X.*vimult)
 
 # No dynamic phase here
-#ifdynplot         = false
+ifdynplot         = true
 ifplot            = iffldplot || ifphplot
 
-Vol  = sum(Bg)
+Vol   = sum(Bg)
 A_sen = Asen*Vol
-γ    = 0.0
-
-abar_hist = zeros(Float64,nsteps)
-γ_hist    = zeros(Float64,nsteps)
-
+γ     = 2.0
 
 for i in 1:nsteps
   global fld,fldlag,Rhs,Rhslag,dotfld
@@ -41,17 +37,12 @@ for i in 1:nsteps
   global framecount
   global γ
 
-  global abar_hist, γ_hist
- 
   t = t + dt;
 
   A_tot     = Bg'*fld[:,2]
   abar      = A_tot/A_sen - Aeq
 
   γ         = RK4!(λdot1,abar,γ,dt)
-
-  abar_hist[i] = abar
-  γ_hist[i]    = γ
 
   if verbosestep>0 && mod(i,verbosestep)==0
     println("Step: $i/$nsteps, Time: $t, Abar = $(abar); γ: $(γ)")
@@ -152,7 +143,7 @@ for i in 1:nsteps
       scat = ax1.plot(Intpg*fld[:,1],Intpg*fld[:,2],color="black",linewidth=2) 
     end
    
-    # Dynamic phase plot
+    # Dynamic plot
     if ifdynplot
       # λpl =ax2.plot(Geom.xm1[:],Q*λpar,color=cm(4-1));
       λpl = ax4.plot(abar,γ,color=cm(4-1),linestyle="none",marker="o",markersize=8);
@@ -188,7 +179,7 @@ t2d   = ones(npts)*Thist'
 x2d   = (Geom.xm1[:])*ones(nsurf_save)'
 
 cm2   = get_cmap("binary");
-h3    = figure(num=3,figsize=[6.0,8.0])
+h3    = figure(num=3,figsize=[8.0,8.0])
 pcm   = pcolormesh(x2d,t2d,fldhist[:,:,2])
 pcm.set_cmap(cm2)
 ax3   = h3.gca()
@@ -198,11 +189,6 @@ if (ifsavext)
   fname3 = @sprintf "./plots/spacetime"
   h3.savefig(fname3)
 end  
-
-
-figure(num=4)
-plot(abar_hist,γ_hist)
-
 #surf(t2d,x2d,fldhist[:,:,2],cmap=cm2,edgecolor="none")
 #ax3.elev = 94.0
 #ax3.azim = 0.0

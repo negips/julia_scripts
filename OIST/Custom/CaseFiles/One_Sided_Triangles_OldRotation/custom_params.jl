@@ -72,7 +72,8 @@ ifplot            = iffldplot || ifphplot || ifdynplot
 plotfldi          = fill(true,nflds)
 plotfldi[1]       = true
 
-Aeq               = 0.650
+Aeq               = 0.30
+Asen              = 0.650
 
 
 # Saving Params

@@ -7,9 +7,21 @@ function print_params(f,g,h,pars,parsS)
   β1_1      = pars.fcx[1]
 
   f00(y)    = f(0.0,y,0.0)
-  roots_f   = find_zeros(f00,0.001,10.0)
-  α1_2      = roots_f[1]
-  α1_3      = roots_f[2]
+  roots_f   = find_zeros(f00,-10.0,10.0)
+  #α1_2      = roots_f[1]
+  #α1_3      = roots_f[2]
+
+  nonzeroroots = zeros(Float64,2)
+  j = 0
+  for i in 1:length(roots_f)
+    r = roots_f[i]
+    if (abs(r) > 1.0e-6) 
+      j = j+1
+      nonzeroroots[j] = r
+    end
+  end
+  α1_2      = nonzeroroots[1]
+  α1_3      = nonzeroroots[2]
 
   # g-parameters
   α2_0      = pars.gc0
@@ -23,7 +35,7 @@ function print_params(f,g,h,pars,parsS)
   α3_1      = parsS.fcx[1]
   
   γ3_1      = parsS.fcy[3]
-  abar      = 0.30
+  abar      = 0.00
   h0(y)     = h(abar,y)
   hroots_0  = find_zeros(h0,0.001,10.0)
   γ3_2      = hroots_0[1]

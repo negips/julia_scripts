@@ -131,7 +131,7 @@ for λ in θvalues
   elseif θ > 0.0 
     PlotContainers[plc] = ax1.plot(g20x,g20y,linestyle="--",label="λ=-2.0")
   else
-    PlotContainers[plc] = ax1.plot(g20x,g20y,linestyle="-",label="λ=0.0")
+    # PlotContainers[plc] = ax1.plot(g20x,g20y,linestyle="-",label="λ=0.0")
   end
  
   # legend()
@@ -171,7 +171,7 @@ gt(z)     = GetDynamicNullCline(gg,yin,z)
 
 # Build Nullcline for the dynamic switching
 #---------------------------------------- 
-set               = 55
+set               = 56
 parsS             = GetNullClineParams(set)
 δ                 = 0.0050
 λdot0(x,y)        = (1.0/δ)*FXY(x,y,parsS.fc0,parsS.fcx,parsS.fcy)
@@ -198,8 +198,8 @@ ax4.plot(λdot0x1,λdot0y1,color=cm(3),linestyle="--")
 ax4.set_ylabel(L"λ", fontsize=lafs)
 ax4.set_xlabel(L"\widebar{A}", fontsize=lafs)
 
-ax4.set_xlim(0.1,0.5)
-ax4.set_ylim(-2.0,2.0)
+ax4.set_xlim(-0.4,0.4)
+ax4.set_ylim(-2.5,2.5)
 fname0   = @sprintf "./plots/paramnullcline"
 h4.savefig(fname0)
 

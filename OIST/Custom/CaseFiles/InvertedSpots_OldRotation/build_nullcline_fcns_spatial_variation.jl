@@ -10,6 +10,7 @@ using Printf
 
 const SRC = "/home/prabal/workstation/git/julia/OIST/Custom"
 
+include("$SRC/print_params.jl")
 include("$SRC/BuildTimeDerivatives.jl")
 include("$SRC/NullClines.jl")
 include("$SRC/NullClineFcn.jl")
@@ -104,10 +105,19 @@ for λ in λvalues
   local nsteps        = 200000
   local g20x,g20y     = NullClines(g2,xi,yr0,yr1,nsteps,dτ)
   global plc         += 1
-  PlotContainers[plc] = ax1.plot(g20x,g20y,linestyle="--",label="λ=$λ")
+  #PlotContainers[plc] = ax1.plot(g20x,g20y,linestyle="--",label="λ=$λ")
+
+  if θ < 0.0
+    PlotContainers[plc] = ax1.plot(g20x,g20y,linestyle="--",label="λ=2.0")
+  elseif θ > 0.0 
+    PlotContainers[plc] = ax1.plot(g20x,g20y,linestyle="--",label="λ=-2.0")
+  else
+    # PlotContainers[plc] = ax1.plot(g20x,g20y,linestyle="-",label="λ=0.0")
+  end
+
   # legend()
 end  
-#legend()
+legend()
 
 #PlotContainers[6] = ax1.plot(pars.xB,pars.yB,linestyle=" ",marker="o",fillstyle="none")
 #PlotContainers[7] = ax1.plot(pars.xdxB,pars.ydxB,linestyle=" ",marker="x")
@@ -137,7 +147,7 @@ gt(z)    = -1.0/pars.gcx[1]*RotXYFXY(0.0,yin,Axis_X0,Axis_Y0,z,pars.gc0,pars.gcx
 
 # Build Nullcline for the dynamic switching
 #---------------------------------------- 
-set               = 55
+set               = 56
 parsS             = GetNullClineParams(set)
 δ                 = 0.0015
 λdot0(x,y)        = (1.0/δ)*FXY(x,y,parsS.fc0,parsS.fcx,parsS.fcy)
@@ -164,8 +174,8 @@ ax4.plot(λdot0x1,λdot0y1,color=cm(3),linestyle="--")
 ax4.set_ylabel(L"λ", fontsize=lafs)
 ax4.set_xlabel(L"\widebar{A}", fontsize=lafs)
 
-ax4.set_xlim(0.1,0.5)
-ax4.set_ylim(-2.0,2.0)
+ax4.set_xlim(-0.4,0.4)
+ax4.set_ylim(-2.5,2.5)
 fname0   = @sprintf "./plots/paramnullcline"
 h4.savefig(fname0)
 
@@ -187,7 +197,7 @@ if xin !="x"
   include("time_stepper_multiple_spatial_variation.jl")
 end
 
-
+print_params(F,G,λdot1,pars,parsS)
 
 
 

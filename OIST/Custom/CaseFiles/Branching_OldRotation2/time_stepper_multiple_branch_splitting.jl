@@ -26,7 +26,7 @@ ifdynplot         = true
 ifplot            = iffldplot || ifphplot
 
 Vol  = sum(Bg)
-A_eq = Aeq*Vol
+A_sen = Asen*Vol
 γ    = -2.0
 
 for i in 1:nsteps
@@ -40,7 +40,7 @@ for i in 1:nsteps
   t = t + dt;
 
   A_tot     = Bg'*fld[:,2]
-  abar      = A_tot/A_eq - 1.0
+  abar      = A_tot/A_sen - Aeq
 
   γ         = RK4!(λdot1,abar,γ,dt)
 

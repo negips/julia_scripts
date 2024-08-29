@@ -25,9 +25,9 @@ QTX = QT*(X.*vimult)
 ifdynplot         = false
 ifplot            = iffldplot || ifphplot
 
-Vol  = sum(Bg)
-A_eq = Aeq*Vol
-γ    = 2.0
+Vol   = sum(Bg)
+A_sen = Asen*Vol
+γ     = 2.0
 
 for i in 1:nsteps
   global fld,fldlag,Rhs,Rhslag,dotfld
@@ -40,7 +40,7 @@ for i in 1:nsteps
   t = t + dt;
 
   A_tot     = Bg'*fld[:,2]
-  abar      = A_tot/A_eq
+  abar      = A_tot/A_sen - Aeq
 
   γ         = RK4!(λdot1,abar,γ,dt)
 

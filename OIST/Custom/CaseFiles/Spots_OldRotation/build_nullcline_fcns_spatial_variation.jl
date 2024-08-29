@@ -104,7 +104,16 @@ for λ in λvalues
   local nsteps        = 200000
   local g20x,g20y     = NullClines(g2,xi,yr0,yr1,nsteps,dτ)
   global plc         += 1
-  PlotContainers[plc] = ax1.plot(g20x,g20y,linestyle="--",label="λ=$λ")
+  #PlotContainers[plc] = ax1.plot(g20x,g20y,linestyle="--",label="λ=$λ")
+
+  if θ < 0.0
+    PlotContainers[plc] = ax1.plot(g20x,g20y,linestyle="--",label="λ=2.0")
+  elseif θ > 0.0 
+    PlotContainers[plc] = ax1.plot(g20x,g20y,linestyle="--",label="λ=-2.0")
+  else
+    # PlotContainers[plc] = ax1.plot(g20x,g20y,linestyle="-",label="λ=0.0")
+  end
+
   # legend()
 end  
 legend()

@@ -130,7 +130,7 @@ for λ in θvalues
   elseif θ > 0.0 
     PlotContainers[plc] = ax1.plot(g20x,g20y,linestyle="--",label="λ=-2.0")
   else
-    PlotContainers[plc] = ax1.plot(g20x,g20y,linestyle="-",label="λ=0.0")
+    # PlotContainers[plc] = ax1.plot(g20x,g20y,linestyle="-",label="λ=0.0")
   end
 
   # legend()
@@ -197,8 +197,8 @@ ax4.plot(λdot0x1,λdot0y1,color=cm(3),linestyle="--")
 ax4.set_ylabel(L"λ", fontsize=lafs)
 ax4.set_xlabel(L"\widebar{A}", fontsize=lafs)
 
-ax4.set_xlim(-0.3,0.3)
-ax4.set_ylim(-2.25,2.25)
+ax4.set_xlim(-0.4,0.4)
+ax4.set_ylim(-2.5,2.5)
 fname0   = @sprintf "./plots/paramnullcline"
 h4.savefig(fname0)
 
