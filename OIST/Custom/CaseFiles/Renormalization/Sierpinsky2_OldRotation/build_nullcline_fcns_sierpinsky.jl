@@ -19,9 +19,13 @@ include("$SRC/ElementOf.jl")
 include("$SRC/NullClineParams.jl")
 include("$JULIACOMMON/MoveFigure.jl")
 
+include("../renormalize_system.jl")
+
 close("all")
 
 lafs = 16
+
+ifrenorm = true
 
 #include("select_nullclines.jl")
 sets              = [215] # [20]
@@ -30,6 +34,12 @@ cm                = get_cmap("tab10")
 
 set               = sets[1]
 pars              = GetNullClineParams(set) 
+
+if (ifrenorm) 
+  α1_2            = renormalize_system!(pars)
+else
+  α1_2            = 1.0
+end  
 
 h1                = figure(num=1)
 ax1               = h1.subplots()
@@ -107,7 +117,7 @@ end
 θ0      =   0.0
 dθ      =  -(33.0/1.8)
 θvalues = [θ0; θ0+dθ*2; θ0-dθ*2]
-Axis_X0 = 0.0
+Axis_X0 = 0.0/α1_2
 Axis_Y0 = -pars.gcx[1]/pars.gcy[1]*Axis_X0
 #θvalues = [θ0]
 for λ in θvalues
@@ -135,7 +145,7 @@ for λ in θvalues
 
   # legend()
 end  
- legend()
+#legend()
 
 #PlotContainers[6] = ax1.plot(pars.xB,pars.yB,linestyle=" ",marker="o",fillstyle="none")
 #PlotContainers[7] = ax1.plot(pars.xdxB,pars.ydxB,linestyle=" ",marker="x")
@@ -144,15 +154,20 @@ end
 ax1.set_xlabel(L"B", fontsize=lafs)
 ax1.set_ylabel(L"A", fontsize=lafs)
 
-ax1.set_xlim(-1.5,5.0)
-ax1.set_ylim(-1.5,5.0)
+if (ifrenorm)
+  ax1.set_xlim(-2.0,8.0)
+  ax1.set_ylim(-2.0,8.0)
+else
+  ax1.set_xlim(-1.5,5.0)
+  ax1.set_ylim(-1.5,5.0)
+end  
 
 MoveFigure(h1,1250,830)
 fname0   = @sprintf "./plots/nullclines"
 h1.savefig(fname0)
 
 # Time dependent null-cline functions
-yin     = LinRange(-1.5,7.0,5000)
+yin     = LinRange(-3.0,8.0,5000)
 #gt(z)   = -1.0/pars.gcx[1]*TransFXY(0.0,yin,z,ϕg,pars.gc0,pars.gcx,pars.gcy)
 ft(z)   = -1.0/pars.fcx[1]*TransFXY(0.0,yin,z,ϕf,pars.fc0,pars.fcx,pars.fcy)
 

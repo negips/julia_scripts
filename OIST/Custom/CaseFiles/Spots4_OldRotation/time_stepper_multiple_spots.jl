@@ -30,6 +30,7 @@ Vol  = sum(Bg)
 A_eq = Aeq*Vol
 γ    = 2.0
 
+
 for i in 1:nsteps
   global fld,fldlag,Rhs,Rhslag,dotfld
   global t
@@ -60,10 +61,10 @@ for i in 1:nsteps
     GetEXT!(ext,2)
   end
 
-  Ω          = 0.0
+  #Ω          = 0.0
   #θpar       = (θ0 .+ dθ*sin.(2*π*20.0.*QTX/xe .- Ω*t))*pi/180.0
-  #θpar       = (θ0 .+ 2.0*sin.(2*π*10.0.*QTX/xe .- Ω*t))
-  θpar       = 2.0*ModuloStep(QTX,4.0)
+  θpar       = (θ0 .+ 2.0*sin.(2*π*5.0.*QTX/xe .- Ω*t))
+  #θpar       = 2.0*ModuloStep(QTX,ΔX)
   #θpar       = (θ0 .+ dθ*fld[:,2]/4.0)*pi/180.0
   #θpar      = (θ0 + (γ/1.8)*dθ)*π/180.0
   #θpar      = (θ0 - (A_tot/A_eq)*dθ)*pi/180.0
@@ -200,8 +201,15 @@ end
 #ax3.roll = 0.0
 #draw()
 
-
-
+h5 = figure(num=5)
+ax5 = h5.subplots()
+ax5.plot(QTX,2.0*ModuloStep(QTX,ΔX))
+ax5.set_ylabel(L"λ",fontsize=lafs)
+ax5.set_xlabel(L"x",fontsize=lafs)
+if (ifsavext)
+  fname5 = @sprintf "./plots/lambda_spatial_spots.eps"
+  h5.savefig(fname5)
+end  
 
 
 

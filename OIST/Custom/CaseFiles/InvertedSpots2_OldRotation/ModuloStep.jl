@@ -1,9 +1,7 @@
 function ModuloStep(x,L::Float64)
 
-  L2 = 2.0*L
-
-  xfloor = floor.(x./L2)
-  xmod   = x/L2 .- xfloor .- 0.5
+  xfloor = floor.(x./L)
+  xmod   = x/L .- xfloor .- 0.5
 
   step = sign.(xmod)
   

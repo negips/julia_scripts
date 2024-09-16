@@ -59,6 +59,7 @@ function print_params(f,g,h,pars,parsS)
   @printf "γ3_1 = %.*f\n" ndec γ3_1
   @printf "γ3_2 = %.*f\n" ndec γ3_2
 
+  return nothing
 end 
 
 
