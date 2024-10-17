@@ -26,8 +26,8 @@ ngauss            = length(x0gauss)
 ampgauss          = ones(Float64,ngauss)  #rand(ngauss)
 x0                = x0gauss[1]      # Gaussian Center
 σg                = prec(2)         # Gaussian Std. Deviation
-ampA0             = prec(4.0)
-ampB0             = prec(0.0)
+ampA0             = prec(4.0)/Anorm
+ampB0             = prec(0.0)/Bnorm
 ampζ0             = prec(0.0)
 
 Amp0              = zeros(prec,nflds) 
@@ -74,7 +74,7 @@ plotfldi          = fill(true,nflds)
 plotfldi[1]       = true
 
 Aeq               = 0.30 #
-Asen              = 3.70/α1_2 # 0.035 for Set 20
+Asen              = 3.70/Anorm # 0.035 for Set 20
 
 
 # Saving Params

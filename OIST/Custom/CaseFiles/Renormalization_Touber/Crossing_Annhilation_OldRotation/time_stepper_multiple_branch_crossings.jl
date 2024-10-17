@@ -27,7 +27,7 @@ ifplot            = iffldplot || ifphplot
 
 Vol   = sum(Bg)
 A_sen = Asen*Vol
-γ     = 2.0
+γ     = 2.0/λnorm
 
 for i in 1:nsteps
   global fld,fldlag,Rhs,Rhslag,dotfld

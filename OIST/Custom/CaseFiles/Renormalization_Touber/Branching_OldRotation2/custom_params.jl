@@ -52,7 +52,7 @@ nsteps            = 17000             # No of steps
 nstep_switch1     = 3000             # Switch functions 1
 nstep_switch2     = 3400             # Switch again
 
-Ω                 = 0.02            # Time scale of parameter oscillation
+Ω                 = 0.00            # Time scale of parameter oscillation
 
 verbosestep       = 100
 plotupd           = 20

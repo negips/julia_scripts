@@ -121,7 +121,6 @@ end
 #println("G(x,y) Translated with Slope: $ϕgd Degrees")
 ϕg                = ϕgd*π/180.0
 
-λvalues = [0.0]
 λvalues = [0.0; 1.3; -1.3]
 θ0      =  0.0
 dθ      =  -(20.0/1.8)*λnorm

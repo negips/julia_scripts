@@ -27,7 +27,7 @@ ifplot            = iffldplot || ifphplot
 
 Vol  = sum(Bg)
 A_sen = Asen*Vol
-γ    = 0.0
+γ    = 0.0/λnorm
 
 abar_hist = zeros(Float64,nsteps)
 γ_hist    = zeros(Float64,nsteps)

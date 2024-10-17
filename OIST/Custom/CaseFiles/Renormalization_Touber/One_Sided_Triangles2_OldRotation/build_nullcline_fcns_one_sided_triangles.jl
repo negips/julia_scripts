@@ -26,20 +26,29 @@ close("all")
 lafs = 16
 
 ifrenorm = true
+iftouber = false
 
 #include("select_nullclines.jl")
 sets              = [214] #[20]
 
 cm                = get_cmap("tab10")
 
+# F,G
 set               = sets[1]
 pars              = GetNullClineParams(set) 
+# λ
+set               = 56
+parsS             = GetNullClineParams(set)
 
 if (ifrenorm) 
-  α1_2            = renormalize_system!(pars)
+  Anorm,Bnorm     = renormalize_system!(pars)
+  λnorm           = renormalize_λsystem!(parsS)
 else
-  α1_2            = 1.0
+  Anorm           = 1.0
+  Bnorm           = 1.0
+  λnorm           = 1.0
 end  
+
 
 h1                = figure(num=1)
 ax1               = h1.subplots()
@@ -113,18 +122,15 @@ end
 #println("G(x,y) Translated with Slope: $ϕgd Degrees")
 ϕg                = ϕgd*π/180.0
 
-λvalues = [0.0]
+λvalues = [0.0; 1.3; -1.3]
 θ0      =   0.0
-dθ      =  (-30.0)/1.8
+dθ      =  (-30.0/1.8)*λnorm
 θvalues = [θ0; θ0+dθ*2; θ0-dθ*2]
-Axis_X0 = 0.0/α1_2
+Axis_X0 = 0.0/Anorm
 Axis_Y0 = -pars.gcx[1]/pars.gcy[1]*Axis_X0
 #θvalues = [θ0]
-for λ in θvalues
-  local θ             = λ*pi/180.0
-  # local g2(x,y)       = RotFXY(x,y,θ,pars.gc0,pars.gcx,pars.gcy)
-  # local g2(x,y)       = RotXYFXY(x,y,Axis_X0,Axis_Y0,θ,pars.gc0,pars.gcx,pars.gcy)
-  # local g2(x,y)       = RotLinearFXY2(x,y,θ,pars.gc0,pars.gcx,pars.gcy)
+for λ in λvalues
+  local θ             = λ*dθ*pi/180.0
   local g2(x,y)       = RotLinearFXY3(x,y,θ,pars.gc0,pars.gcx,pars.gcy)
 
   local xi            = -2.0
@@ -134,23 +140,18 @@ for λ in θvalues
   local nsteps        = 200000
   local g20x,g20y     = NullClines(g2,xi,yr0,yr1,nsteps,dτ)
   global plc         += 1
-  # PlotContainers[plc] = ax1.plot(g20x,g20y,linestyle="--",label="θ=$λ")
 
-  if θ < 0.0
-    PlotContainers[plc] = ax1.plot(g20x,g20y,linestyle="--",label="λ=2.0")
-  elseif θ > 0.0 
-    PlotContainers[plc] = ax1.plot(g20x,g20y,linestyle="--",label="λ=-2.0")
+  if λ > 0.0
+    PlotContainers[plc] = ax1.plot(g20x,g20y,linestyle="--",label="λ=+$(λ)")
+  elseif λ < 0.0 
+    PlotContainers[plc] = ax1.plot(g20x,g20y,linestyle="--",label="λ=-$(λ)")
   else
-    # PlotContainers[plc] = ax1.plot(g20x,g20y,linestyle="-",label="λ=0.0")
+    # PlotContainers[plc] = ax1.plot(g20x,g20y,linestyle="-",label="λ=  $(λ)")
   end
- 
+
   # legend()
 end  
-# legend()
-
-#PlotContainers[6] = ax1.plot(pars.xB,pars.yB,linestyle=" ",marker="o",fillstyle="none")
-#PlotContainers[7] = ax1.plot(pars.xdxB,pars.ydxB,linestyle=" ",marker="x")
-#PlotContainers[8] = ax1.plot(pars.xdyB,pars.ydyB,linestyle=" ",marker="x")
+legend()
 
 ax1.set_xlabel(L"B", fontsize=lafs)
 ax1.set_ylabel(L"A", fontsize=lafs)
@@ -164,19 +165,14 @@ else
 end  
 
 MoveFigure(h1,1250,830)
-fname0   = @sprintf "./plots/nullclines"
+fname0   = @sprintf "./plots/nullclines_one_sided_triangles"
 h1.savefig(fname0)
 
 
 # Time dependent null-cline functions
 yin     = LinRange(-3.0,8.0,5000)
-#gt(z)   = -1.0/pars.gcx[1]*TransFXY(0.0,yin,z,ϕg,pars.gc0,pars.gcx,pars.gcy)
 ft(z)   = -1.0/pars.fcx[1]*TransFXY(0.0,yin,z,ϕf,pars.fc0,pars.fcx,pars.fcy)
 
-#gt(z)   = -1.0/pars.gcx[1]*RotFXY(0.0,yin,z,pars.gc0,pars.gcx,pars.gcy)
-#gt(z)    = -1.0/pars.gcx[1]*RotXYFXY(0.0,yin,Axis_X0,Axis_Y0,z,pars.gc0,pars.gcx,pars.gcy)
-#slopeϕ  = atan(pars.gcx[1],pars.gcy[1])
-#gt(z)    = -1.0/(tan(slopeϕ-z)*pars.gcy[1])*RotLinearFXY2(0.0,yin,z,pars.gc0,pars.gcx,pars.gcy)
 gg(x,y,z) = RotLinearFXY3(x,y,z,pars.gc0,pars.gcx,pars.gcy)
 gt(z)     = GetDynamicNullCline(gg,yin,z)
 
@@ -186,8 +182,6 @@ gt(z)     = GetDynamicNullCline(gg,yin,z)
 
 # Build Nullcline for the dynamic switching
 #---------------------------------------- 
-set               = 56
-parsS             = GetNullClineParams(set)
 δ                 = 0.005
 λdot0(x,y)        = (1.0/δ)*FXY(x,y,parsS.fc0,parsS.fcx,parsS.fcy)
 if λdot0(0.0,100.0)>0
@@ -197,9 +191,6 @@ if λdot0(0.0,100.0)>0
 end  
 λdot1(x,y)        = (1.0/δ)*FXY(x,y,parsS.fc0,parsS.fcx,parsS.fcy)
 
-#α                 = 1.0
-#xc                = 1.0
-#λdot(x,y)         = (y-α*x)*(x^2 - xc^2)
 xi                =  10.0
 yr0               =  0.0
 yr1               =  15.0
@@ -212,9 +203,13 @@ ax4               = h4.subplots()
 ax4.plot(λdot0x1,λdot0y1,color=cm(3),linestyle="--")
 ax4.set_ylabel(L"λ", fontsize=lafs)
 ax4.set_xlabel(L"\widebar{A}", fontsize=lafs)
-
-ax4.set_xlim(-0.4,0.4)
-ax4.set_ylim(-2.5,2.5)
+if (ifrenorm) 
+  ax4.set_xlim(-0.4,0.4)
+  ax4.set_ylim(-1.6,1.6)
+else  
+  ax4.set_xlim(-0.4,0.4)
+  ax4.set_ylim(-2.5,2.5)
+end  
 fname0   = @sprintf "./plots/paramnullcline"
 h4.savefig(fname0)
 

@@ -26,8 +26,8 @@ ngauss            = length(x0gauss)
 ampgauss          = ones(Float64,ngauss)  #rand(ngauss)
 x0                = x0gauss[1]      # Gaussian Center
 σg                = prec(2)         # Gaussian Std. Deviation
-ampA0             = prec(4.0)
-ampB0             = prec(0.0)
+ampA0             = prec(4.0)/Anorm
+ampB0             = prec(0.0)/Bnorm
 ampζ0             = prec(0.0)
 
 Amp0              = zeros(prec,nflds) 
@@ -52,7 +52,7 @@ nsteps            = 20000             # No of steps
 nstep_switch1     = 3000             # Switch functions 1
 nstep_switch2     = 3400             # Switch again
 
-Ω                 = 0.02            # Time scale of parameter oscillation
+Ω                 = 0.00            # Time scale of parameter oscillation
 
 verbosestep       = 100
 plotupd           = 20
@@ -73,7 +73,7 @@ plotfldi          = fill(true,nflds)
 plotfldi[1]       = false
 
 Aeq               = 0.30            # 0.01 for Set 20
-Asen              = 0.80/α1_2       # 0.01 for Set 20
+Asen              = 0.80/Anorm      # 0.01 for Set 20
 
 
 # Saving Params
