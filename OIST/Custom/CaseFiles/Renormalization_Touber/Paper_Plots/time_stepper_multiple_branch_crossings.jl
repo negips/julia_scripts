@@ -25,9 +25,9 @@ QTX = QT*(X.*vimult)
 ifdynplot         = false
 ifplot            = iffldplot || ifphplot
 
-Vol   = sum(Bg)
-A_sen = Aeq*Vol
-γ     = (2.0)/λnorm
+Vol  = sum(Bg)
+A_eq = Aeq*Vol
+γ    = 2.0
 
 for i in 1:nsteps
   global fld,fldlag,Rhs,Rhslag,dotfld
@@ -40,13 +40,12 @@ for i in 1:nsteps
   t = t + dt;
 
   A_tot     = Bg'*fld[:,2]/Vol
-  abar      = A_tot/A_sen - Aeq
+  abar      = A_tot/A_eq
 
-  # γ         = RK4!(λdot1,abar,γ,dt)
-  γ         = 0.0
+  γ         = RK4!(λdot1,abar,γ,dt)
 
   if verbosestep>0 && mod(i,verbosestep)==0
-    println("Step: $i/$nsteps, Time: $t, Abar = $(abar); γ: $(γ)")
+    println("Step: $i/$nsteps, Time: $t, Atot/A_eq = $(A_tot/A_eq); γ: $(γ)")
   end
 
   GetBDF!(bdf,3)
@@ -60,8 +59,11 @@ for i in 1:nsteps
     GetEXT!(ext,2)
   end
 
-  θpar      = 0.0 # for G
-  λpar      = 0.0 # for F
+  θpar      = (θ0 + (γ/1.8)*dθ)*π/180.0
+  #Ω         = 0.05
+  #θpar      = (θ0 - (A_tot/A_eq)*dθ)*pi/180.0
+  # θpar      = 0.0 # (θ0 + dθ*sin(2*π*Ω*t))*pi/180.0         # for G
+  λpar      = 0.0 # (λ0 - dλ*sin(2*π*Ω*t))                  # for F
   dotfld    = Flow(fld[:,1],fld[:,2],θpar,λpar)
 
   for j in 1:nflds
@@ -132,7 +134,7 @@ for i in 1:nsteps
     if (iffldplot)
       for j in 1:nflds
         if (plotfldi[j])
-          pl[j] = ax2.plot(Geom.xm1[:],Q*fld[:,j],color=cm(j-2));
+          pl[j] = ax2.plot(Geom.xm1[:],Q*fld[:,j],color=cm(j-1));
         end
       end  
     end
@@ -176,7 +178,7 @@ t2d   = ones(npts)*Thist'
 x2d   = (Geom.xm1[:])*ones(nsurf_save)'
 
 cm2   = get_cmap("binary");
-h3    = figure(num=3,figsize=[8.0,8.0])
+h3    = figure(num=3,figsize=[5.0,8.0])
 pcm   = pcolormesh(x2d,t2d,fldhist[:,:,2])
 pcm.set_cmap(cm2)
 ax3   = h3.gca()

@@ -31,13 +31,20 @@ sets              = [201]
 
 cm                = get_cmap("tab10")
 
+# F,G
 set               = sets[1]
 pars              = GetNullClineParams(set) 
+# λ
+set               = 56
+parsS             = GetNullClineParams(set)
 
 if (ifrenorm) 
-  α1_2            = renormalize_system!(pars)
+  Anorm,Bnorm     = renormalize_system!(pars)
+  λnorm           = renormalize_λsystem!(parsS)
 else
-  α1_2            = 1.0
+  Anorm           = 1.0
+  Bnorm           = 1.0
+  λnorm           = 1.0
 end  
 
 h1                = figure(num=1)
@@ -95,9 +102,9 @@ end
 
 λvalues = [0.0]
 θ0      =  0.0
-dθ      =  -20.0
+dθ      =  -(20.0/1.8)*λnorm
 θvalues = [θ0]
-Axis_X0 = 0.0/α1_2
+Axis_X0 = 0.0/Anorm
 Axis_Y0 = -pars.gcx[1]/pars.gcy[1]*Axis_X0
 #θvalues = [θ0]
 for λ in θvalues
@@ -117,10 +124,6 @@ for λ in θvalues
 end  
 #lg = legend(loc="center right")
 
-#PlotContainers[6] = ax1.plot(pars.xB,pars.yB,linestyle=" ",marker="o",fillstyle="none")
-#PlotContainers[7] = ax1.plot(pars.xdxB,pars.ydxB,linestyle=" ",marker="x")
-#PlotContainers[8] = ax1.plot(pars.xdyB,pars.ydyB,linestyle=" ",marker="x")
-
 ax1.set_xlabel(L"B", fontsize=lafs)
 ax1.set_ylabel(L"A", fontsize=lafs)
 
@@ -138,19 +141,11 @@ h1.savefig(fname0)
 
 # Time dependent null-cline functions
 yin     = LinRange(-3.0,8.0,5000)
-#gt(z)   = -1.0/pars.gcx[1]*TransFXY(0.0,yin,z,ϕg,pars.gc0,pars.gcx,pars.gcy)
 ft(z)   = -1.0/pars.fcx[1]*TransFXY(0.0,yin,z,ϕf,pars.fc0,pars.fcx,pars.fcy)
-
-#gt(z)   = -1.0/pars.gcx[1]*RotFXY(0.0,yin,z,pars.gc0,pars.gcx,pars.gcy)
-gt(z)    = -1.0/pars.gcx[1]*RotXYFXY(0.0,yin,Axis_X0,Axis_Y0,z,pars.gc0,pars.gcx,pars.gcy)
-#ft(z)   = -1.0/pars.fcx[1]*RotFXY(0.0,yin,z,pars.fc0,pars.fcx,pars.fcy)
-
-#PlotContainers[6] = ax1.plot(gt(-20.0*π/180.0),yin,linestyle="-.",linewidth=2,color=cm(5));
+gt(z)   = -1.0/pars.gcx[1]*RotXYFXY(0.0,yin,Axis_X0,Axis_Y0,z,pars.gc0,pars.gcx,pars.gcy)
 
 # Build Nullcline for the dynamic switching
 #---------------------------------------- 
-set               = 55
-parsS             = GetNullClineParams(set)
 δ                 = 0.0015
 λdot0(x,y)        = (1.0/δ)*FXY(x,y,parsS.fc0,parsS.fcx,parsS.fcy)
 if λdot0(0.0,100.0)>0
@@ -160,9 +155,6 @@ if λdot0(0.0,100.0)>0
 end  
 λdot1(x,y)         = (1.0/δ)*FXY(x,y,parsS.fc0,parsS.fcx,parsS.fcy)
 
-#α                 = 1.0
-#xc                = 1.0
-#λdot(x,y)         = (y-α*x)*(x^2 - xc^2)
 xi                =  10.0
 yr0               =  0.0
 yr1               =  15.0
@@ -175,9 +167,14 @@ ax4               = h4.subplots()
 ax4.plot(λdot0x1,λdot0y1,color=cm(3),linestyle="--")
 ax4.set_ylabel(L"λ", fontsize=lafs)
 ax4.set_xlabel(L"\widebar{A}", fontsize=lafs)
+if (ifrenorm) 
+  ax4.set_xlim(-0.4,0.4)
+  ax4.set_ylim(-1.6,1.6)
+else  
+  ax4.set_xlim(-0.4,0.4)
+  ax4.set_ylim(-2.5,2.5)
+end  
 
-ax4.set_xlim(0.1,0.5)
-ax4.set_ylim(-2.0,2.0)
 fname0   = @sprintf "./plots/paramnullcline"
 h4.savefig(fname0)
 

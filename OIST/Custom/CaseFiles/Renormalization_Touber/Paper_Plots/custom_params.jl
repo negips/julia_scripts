@@ -26,8 +26,8 @@ ngauss            = length(x0gauss)
 ampgauss          = ones(Float64,ngauss)  #rand(ngauss)
 x0                = x0gauss[1]      # Gaussian Center
 σg                = prec(2)         # Gaussian Std. Deviation
-ampA0             = prec(4.0)/Anorm
-ampB0             = prec(0.0)/Bnorm
+ampA0             = prec(4.0)
+ampB0             = prec(0.0)
 ampζ0             = prec(0.0)
 
 Amp0              = zeros(prec,nflds) 
@@ -48,7 +48,7 @@ Off0              = [B0Off; A0Off; ζ0Off]
 
 # Simulation
 dt                = prec(0.0025)       # Time step
-nsteps            = 10000             # No of steps
+nsteps            = 30000             # No of steps
 nstep_switch1     = 3000             # Switch functions 1
 nstep_switch2     = 3400             # Switch again
 
@@ -64,16 +64,15 @@ iffldplot         = true      # Plot fields
 ifphplot          = true      # Plot Phase A-B
 ifdynplot         = false     # Plot dynamic phase (ζ)
 initplot          = true      # Plot initial conditions
-ifdynnull         = false     # Plot null-clines dynamically
+ifdynnull         = true      # Plot null-clines dynamically
 ifsaveframe       = true
 ifsavext          = true
 
 ifplot            = iffldplot || ifphplot || ifdynplot 
 plotfldi          = fill(true,nflds)
-plotfldi[1]       = false
+plotfldi[1]       = true
 
-Aeq               = 0.30
-Asen              = 0.8/Anorm     # 0.01 for Set 20
+Aeq               = 0.008     # 0.01 for Set 20
 
 
 # Saving Params
