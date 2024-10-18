@@ -10,7 +10,7 @@ using Printf
 
 const SRC = "/home/prabal/workstation/git/julia/OIST/Custom"
 
-include("$SRC/print_params.jl")
+include("../print_params.jl")
 include("$SRC/GetDynamicNullCline.jl")
 include("$SRC/BuildTimeDerivatives.jl")
 include("$SRC/NullClines.jl")
@@ -127,7 +127,7 @@ dθ      =  -(33.0/1.8)*λnorm
 θvalues = [θ0; θ0+dθ*2; θ0-dθ*2]
 Axis_X0 = 0.0/Anorm
 Axis_Y0 = -pars.gcx[1]/pars.gcy[1]*Axis_X0
-#θvalues = [θ0]
+X00     = 0.0*λnorm/Bnorm
 for λ in λvalues
   local θ             = λ*dθ*pi/180.0
   local g2(x,y)       = RotLinearFXY3(x,y,θ,pars.gc0,pars.gcx,pars.gcy)
@@ -226,6 +226,19 @@ end
 
 print_params(F,G,λdot1,pars,parsS)
 
+ndec = 5
+@printf "ϵ   = %.*f\n" ndec ϵ
+@printf "η   = %.*f\n" ndec η
+@printf "ν   = %.*f\n" ndec δ
+
+prec = Float64
+include("custom_params.jl")
+@printf "Additional Params\n"
+@printf "D_{A}   = %.*f\n" ndec γa/ϵ
+@printf "Δϕ      = %.*f\n" ndec dθ*π/180.0
+@printf "β3      = %.*f\n" ndec X00
+@printf "A0      = %.*f\n" ndec Asen
+@printf "A_{eq}  = %.*f\n" ndec Aeq
 
 
 

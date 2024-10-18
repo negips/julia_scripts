@@ -10,7 +10,7 @@ using Printf
 
 const SRC = "/home/prabal/workstation/git/julia/OIST/Custom"
 
-include("$SRC/print_params.jl")
+include("../print_params.jl")
 # include("$SRC/GetDynamicNullCline.jl")
 # include("$SRC/BuildTimeDerivatives.jl")
 include("$SRC/NullClines.jl")
@@ -109,10 +109,6 @@ f0x,f0y           = NullClines(f,xi,yr0,yr1,nsteps,dτ)
 PlotContainers    = Array{Any}(undef,10)
 
 PlotContainers[1] = ax1.plot(f0x,f0y,color=cm(0),label="f(A,B)=0")
-# PlotContainers[2] = ax1.plot(pars.xA,pars.yA,linestyle=" ",marker="s",fillstyle="none")
-# PlotContainers[3] = ax1.plot(pars.xdxA,pars.ydxA,linestyle=" ",marker="x")
-# PlotContainers[4] = ax1.plot(pars.xdyA,pars.ydyA,linestyle=" ",marker="x")
-
 
 xi                = -10.0
 yr0               = -50.0
@@ -129,11 +125,7 @@ end
 
 g0x,g0y           = NullClines(g,xi,yr0,yr1,nsteps,dτ)
 
-
 PlotContainers[5] = ax1.plot(g0x,g0y,color=cm(1),label="g(A,B)=0")
-# PlotContainers[6] = ax1.plot(pars.xB,pars.yB,linestyle=" ",marker="o",fillstyle="none")
-# PlotContainers[7] = ax1.plot(pars.xdxB,pars.ydxB,linestyle=" ",marker="x")
-# PlotContainers[8] = ax1.plot(pars.xdyB,pars.ydyB,linestyle=" ",marker="x")
 
 if (ifrenorm)
   ax1.set_xlim(-3.5,10.0)
@@ -147,10 +139,22 @@ ax1.set_ylabel(L"A", fontsize=lafs)
 
 lg = legend(loc="center right")
 
-#ax1.set_xlim(-3.0,8.0)
-#ax1.set_ylim(-3.0,8.0)
 
 MoveFigure(h1,1250,500)
+
+
+# Build Nullcline for the dynamic switching
+#---------------------------------------- 
+δ                 = 0.005
+λdot0(x,y)        = (1.0/δ)*FXY(x,y,parsS.fc0,parsS.fcx,parsS.fcy)
+if λdot0(0.0,100.0)>0
+  parsS.fc0        = -parsS.fc0
+  parsS.fcx        = -parsS.fcx
+  parsS.fcy        = -parsS.fcy
+end  
+λdot1(x,y)         = (1.0/δ)*FXY(x,y,parsS.fc0,parsS.fcx,parsS.fcy)
+
+
 
 pause(0.01)
 
@@ -160,12 +164,19 @@ xin = readline()
 #xin = " "
 ϵ  = 0.1
 η  = 1.0
-if xin !="x"
-  F(x,y) =  f(x,y)/ϵ
-  G(x,y) =  g(x,y)*η
+F(x,y) =  f(x,y)/ϵ
+G(x,y) =  g(x,y)*η
 
+if xin !="x"
   Flow(x,y) = [G(x,y) F(x,y)]
   include("phase_flow.jl")
 end
+F2(x,y,z) = F(x,y)
+G2(x,y,z) = G(x,y)
+
+print_params(F2,G2,λdot1,pars,parsS)
+
+
+
 
 

@@ -4,9 +4,9 @@
 
 U                 = prec(0)         # Convection
 γ                 = prec(1)         # Diffusion (Generic) 
-γa                = prec(0.2)       # Diffusion (activator)
-γb                = prec(0.01)      # Diffusion (inhibitor)
-γζ                = prec(0.001)        # Diffusion for auxillary variable
+γa                = prec(2.0)*ϵ       # Diffusion (activator)
+γb                = prec(1.0)*ϵ^2     # Diffusion (inhibitor)
+γζ                = prec(0.001)       # Diffusion for auxillary variable
 γall              = [γb γa γζ]
 σa                =  0.0e-2          # Activator Noise Strength
 σb                =  0.0             # Inhibitor Noise Strength

@@ -10,7 +10,7 @@ using Printf
 
 const SRC = "/home/prabal/workstation/git/julia/OIST/Custom"
 
-include("$SRC/print_params.jl")
+include("../print_params.jl")
 include("$SRC/BuildTimeDerivatives.jl")
 include("$SRC/NullClines.jl")
 include("$SRC/NullClineFcn.jl")
@@ -217,6 +217,20 @@ end
 
 print_params(F,G,λdot1,pars,parsS)
 
+ndec = 5
+@printf "ϵ   = %.*f\n" ndec ϵ
+@printf "η   = %.*f\n" ndec η
+@printf "ν   = %.*f\n" ndec δ
+
+include("sem_init_ref.jl")
+include("custom_params.jl")
+
+@printf "Additional Params\n"
+@printf "D_{A}   = %.*f\n" ndec γa/ϵ
+@printf "Δϕ      = %.*f\n" ndec dθ*π/180.0
+@printf "β3      = %.*f\n" ndec X00
+@printf "A0      = %.*f\n" ndec Asen
+@printf "A_{eq}  = %.*f\n" ndec Aeq
 
 
 

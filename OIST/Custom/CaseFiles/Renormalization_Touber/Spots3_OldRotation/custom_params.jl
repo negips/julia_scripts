@@ -80,7 +80,8 @@ ifplot            = iffldplot || ifphplot || ifdynplot
 plotfldi          = fill(true,nflds)
 plotfldi[1]       = false
 
-Aeq               = 0.008     # 0.01 for Set 20
+Aeq               = 0.30
+Asen              = 0.8/Anorm     # 0.01 for Set 20
 
 
 # Saving Params

@@ -10,7 +10,7 @@ using Printf
 
 const SRC = "/home/prabal/workstation/git/julia/OIST/Custom"
 
-include("$SRC/print_params.jl")
+include("../print_params.jl")
 include("$SRC/BuildTimeDerivatives.jl")
 include("$SRC/NullClines.jl")
 include("$SRC/NullClineFcn.jl")
@@ -196,6 +196,10 @@ if xin !="x"
 end
 
 print_params(F,G,λdot1,pars,parsS)
+
+ndec = 5
+@printf "ϵ   = %.*f\n" ndec ϵ
+@printf "η   = %.*f\n" ndec η
 
 
 
