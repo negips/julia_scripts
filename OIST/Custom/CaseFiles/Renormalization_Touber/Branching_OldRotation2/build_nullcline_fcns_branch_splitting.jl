@@ -150,7 +150,7 @@ for λ in λvalues
 
   # legend()
 end  
-legend()
+# legend()
 
 if (ifrenorm)
   ax1.set_xlim(-2.0,8.0)

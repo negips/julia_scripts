@@ -4,9 +4,9 @@
 
 U                 = prec(0)         # Convection
 γ                 = prec(1)         # Diffusion (Generic) 
-γa                = prec(2.0)*ϵ     # Diffusion (activator)
-γb                = prec(1.0)*ϵ^2   # Diffusion (inhibitor)
-γζ                = prec(0.001)     # Diffusion for auxillary variable
+γa                = prec(0.2)       # Diffusion (activator)
+γb                = prec(0.01)      # Diffusion (inhibitor)
+γζ                = prec(0.001)        # Diffusion for auxillary variable
 γall              = [γb γa γζ]
 σa                =  0.0e-2          # Activator Noise Strength
 σb                =  0.0             # Inhibitor Noise Strength
@@ -14,20 +14,20 @@ U                 = prec(0)         # Convection
 σall              = [σb σa σζ]
 
 ifsparse          = true
-ifperiodic        = true
+ifperiodic        = false
 ifglobal          = true
 
 nflds             = 2               # No of fields
 
 # Initialization
-ngauss            = 2
-x0gauss           = [30.0 65.0]           #xe*rand(ngauss)
+ngauss            = 1
+x0gauss           = [5.0]           #xe*rand(ngauss)
 ngauss            = length(x0gauss)
 ampgauss          = ones(Float64,ngauss)  #rand(ngauss)
 x0                = x0gauss[1]      # Gaussian Center
 σg                = prec(2)         # Gaussian Std. Deviation
-ampA0             = prec(4.0)/Anorm
-ampB0             = prec(0.0)/Bnorm
+ampA0             = prec(4.0)
+ampB0             = prec(0.0)
 ampζ0             = prec(0.0)
 
 Amp0              = zeros(prec,nflds) 
@@ -48,11 +48,11 @@ Off0              = [B0Off; A0Off; ζ0Off]
 
 # Simulation
 dt                = prec(0.0025)       # Time step
-nsteps            = 17000             # No of steps
+nsteps            = 10000             # No of steps
 nstep_switch1     = 3000             # Switch functions 1
 nstep_switch2     = 3400             # Switch again
 
-Ω                 = 0.00            # Time scale of parameter oscillation
+Ω                 = 0.02            # Time scale of parameter oscillation
 
 verbosestep       = 100
 plotupd           = 20
@@ -64,17 +64,15 @@ iffldplot         = true      # Plot fields
 ifphplot          = true      # Plot Phase A-B
 ifdynplot         = false     # Plot dynamic phase (ζ)
 initplot          = true      # Plot initial conditions
-ifdynnull         = true      # Plot null-clines dynamically
-ifsaveframe       = true      # save individual frames
-ifsavext          = true      # Save X-T plot
-
+ifdynnull         = false     # Plot null-clines dynamically
+ifsaveframe       = false
+ifsavext          = false
 
 ifplot            = iffldplot || ifphplot || ifdynplot 
 plotfldi          = fill(true,nflds)
 plotfldi[1]       = false
 
-Aeq               = 0.30
-Asen              = 1.00/Anorm
+Aeq               = 0.008     # 0.01 for Set 20
 
 
 # Saving Params

@@ -150,7 +150,7 @@ for λ in λvalues
 
   # legend()
 end  
-legend()
+# legend()
 
 ax1.set_xlabel(L"B", fontsize=lafs)
 ax1.set_ylabel(L"A", fontsize=lafs)
