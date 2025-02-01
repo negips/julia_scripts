@@ -7,8 +7,8 @@ using IterativeSolvers
 using SpecialFunctions
 using Roots
 using Random
-using GenericLinearAlgebra          # For eigvals for BigFloat
-using DoubleFloats
+# using GenericLinearAlgebra          # For eigvals for BigFloat
+# using DoubleFloats
 using Printf
 using JLD2
 
@@ -18,17 +18,13 @@ include("ArnIRst.jl")
 include("ExplicitShiftedQR.jl")
 include("BulgeChase.jl")
 include("IRAM.jl")
-include("RK4.jl")
+#include("RK4.jl")
+include("$JULIACOMMON/RK4.jl")
 
 close("all")
 
 # Ifglobal
 ifglobal = true
-
-# Include the function files
-include("sem_main.jl")
-
-rng = MersenneTwister(1235)
 
 rcParams = PyPlot.PyDict(PyPlot.matplotlib."rcParams")
 
@@ -51,23 +47,45 @@ rcParams = PyPlot.PyDict(PyPlot.matplotlib."rcParams")
 
 ω  = [ω1, ω2, ω3, ω4, ω5, ω6, ω7, ω8, ω9, ω10, ω11, ω12, ω13, ω14, ω15]
 #Ω  = im*(U*U/8.0 .- U*U/(4.0*γ) .+ γ^(1.0/3.0)*(U^(4.0/3.0))/(160.0^(2.0/3.0))*ω)
-cd = imag(γ)
-μ0 = U*U/8.0
-dμ = -(U*U/8.0)*(1.0/cx0)
-Ω  = im*(μ0 .- U*U/(4.0*γ) .+ (γ*dμ*dμ)^(1.0/3.0)*ω)
+
+U     = 1.0
+ϕ     = -π/4.0
+R     = 1.0
+γ     = R*exp(im*ϕ)
+μx    = U/8.0 
+μ0    = (U^2)/(4.0*γ) - ((γ*μx*μx)^(1.0/3.0))*ω1 
+
+
+#cd = imag(γ)
+#μ0 = U*U/8.0
+#dμ = -(U*U/8.0)*(1.0/cx0)
+#Ω  = im*(μ0 .- U*U/(4.0*γ) .+ (γ*dμ*dμ)^(1.0/3.0)*ω)
+Ω  = (μ0 .- U*U/(4.0*γ) .+ (γ*μx*μx)^(1.0/3.0)*ω)
+
+# Include the function files
+include("sem_main.jl")
+
+rng = MersenneTwister(1235)
+
 
 rcParams["markers.fillstyle"] = "none"
 hλ = figure(num=1,figsize=[8.,6.]);
 ax1 = gca()
-pΛ = ax1.plot(real.(Ω),imag.(Ω),linestyle="none",marker="o",markersize=8)
+pΛ = ax1.plot(imag.(Ω),real.(Ω),linestyle="none",marker="o",markersize=8)
+Ωi_max = maximum(abs.(imag.(Ω)))
+Ωr_min = minimum(real.(Ω))
+Ωr_max = maximum(real.(Ω))
+
+ax1.set_xlim((-2*Ωi_max,2*Ωi_max))
+ax1.set_ylim((1.1*Ωr_min,1.0))
 
 xg    = QT*(vimult.*Geom.xm1[:])
 
-Nev         = 10                          # Number of eigenvalues to calculate
-EKryl       = Int64(floor(2.5*Nev))       # Additional size of Krylov space
+Nev         = 5                           # Number of eigenvalues to calculate
+EKryl       = Int64(floor(4*Nev))       # Additional size of Krylov space
 LKryl       = Nev + EKryl                 # Total Size of Krylov space    
 ngs         = 2                           # Number of Gram-Schmidt
-tol         = prec(1.0e-24)
+tol         = prec(1.0e-10)
 
 vt    = VT # Complex{prec}
 #vt    = Float64
@@ -92,7 +110,7 @@ r[1]  = prec(0)
 ifarnoldi   = true
 ifoptimal   = false     # Calculate optimal responses
 ifadjoint   = false     # Superceded by ifoptimal
-ifplot      = true 
+ifplot      = false 
 verbose     = true
 eigupd      = true
 reortho     = 500
@@ -138,7 +156,7 @@ if (ifplot)
 end
 
 # Start iterations
-ifdirect = false
+ifdirect = true
 println("Starting Iterations")
 
 while (~ifconv)
@@ -254,14 +272,17 @@ while (~ifconv)
         λi = atan.(imag(evs),real.(evs))/DT
         
         λ  = λr .+ im*λi
-        Lesshafft_λ = one*im*λ
+        Lesshafft_λ = λ
         
-        pλ = ax1.plot(real.(Lesshafft_λ),imag.(Lesshafft_λ), linestyle="none",marker=".", markersize=8)
+        pλ = ax1.plot(imag.(Lesshafft_λ),real.(Lesshafft_λ), linestyle="none",marker=".", markersize=8)
         if ifoptimal
           ax1.autoscale(enable=true,axis="both")
         else
-          ax1.set_xlim((-5.0,8.0))
-          ax1.set_ylim((-7.5,2.5))
+          # ax1.set_xlim((-5.0,8.0))
+          # ax1.set_ylim((-7.5,2.5))
+          ax1.set_xlim((-2.0*Ωi_max,2*Ωi_max))
+          ax1.set_ylim((1.1*Ωr_min,1.0))
+
         end  
            
         draw()
@@ -338,7 +359,7 @@ if (ifarnoldi)
   
   λ  = λr .+ im*λi
   
-  Lesshafft_λ = one*im*λ
+  Lesshafft_λ = one*λ
 
   if (eigupd)
     l0 = ax1.get_lines()
@@ -347,7 +368,7 @@ if (ifarnoldi)
     end
   end  
 
-  pλ = ax1.plot(real.(Lesshafft_λ),imag.(Lesshafft_λ), linestyle="none",marker=".", markersize=8)
+  pλ = ax1.plot(imag.(Lesshafft_λ),real.(Lesshafft_λ), linestyle="none",marker=".", markersize=8)
  
 # Eigenvectors  
   eigvec = V[:,1:Nev]*F.vectors
@@ -380,7 +401,7 @@ if (ifsave)
 end  
 
 
-
+println("Done.")
 
 
 

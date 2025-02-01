@@ -7,8 +7,8 @@ using IterativeSolvers
 using SpecialFunctions
 using Roots
 using Random
-using GenericLinearAlgebra          # For eigvals for BigFloat
-using DoubleFloats
+# using GenericLinearAlgebra          # For eigvals for BigFloat
+# using DoubleFloats
 using Printf
 using JLD2
 
@@ -18,7 +18,8 @@ include("ArnIRst.jl")
 include("ExplicitShiftedQR.jl")
 include("BulgeChase.jl")
 include("IRAM.jl")
-include("RK4.jl")
+#include("RK4.jl")
+include("$JULIACOMMON/RK4.jl")
 
 close("all")
 
@@ -63,11 +64,11 @@ pΛ = ax1.plot(real.(Ω),imag.(Ω),linestyle="none",marker="o",markersize=8)
 
 xg    = QT*(vimult.*Geom.xm1[:])
 
-Nev         = 10                          # Number of eigenvalues to calculate
+Nev         = 5                           # Number of eigenvalues to calculate
 EKryl       = Int64(floor(2.5*Nev))       # Additional size of Krylov space
 LKryl       = Nev + EKryl                 # Total Size of Krylov space    
 ngs         = 2                           # Number of Gram-Schmidt
-tol         = prec(1.0e-24)
+tol         = prec(1.0e-10)
 
 vt    = VT # Complex{prec}
 #vt    = Float64
@@ -138,7 +139,7 @@ if (ifplot)
 end
 
 # Start iterations
-ifdirect = false
+ifdirect = true
 println("Starting Iterations")
 
 while (~ifconv)

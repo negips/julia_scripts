@@ -8,7 +8,6 @@ using SpecialFunctions
 using Roots
 using Random
 using GenericLinearAlgebra          # For eigvals for BigFloat
-using DoubleFloats
 using Printf
 using JLD2
 
@@ -50,24 +49,20 @@ rcParams = PyPlot.PyDict(PyPlot.matplotlib."rcParams")
 ω15 = find_zero(airyai,(-17.5,-16.8))
 
 ω  = [ω1, ω2, ω3, ω4, ω5, ω6, ω7, ω8, ω9, ω10, ω11, ω12, ω13, ω14, ω15]
-#Ω  = im*(U*U/8.0 .- U*U/(4.0*γ) .+ γ^(1.0/3.0)*(U^(4.0/3.0))/(160.0^(2.0/3.0))*ω)
-cd = imag(γ)
-μ0 = U*U/8.0
-dμ = -(U*U/8.0)*(1.0/cx0)
-Ω  = im*(μ0 .- U*U/(4.0*γ) .+ (γ*dμ*dμ)^(1.0/3.0)*ω)
+Ω  = im*(U*U/8.0 .- U*U/(4.0*γ) .+ γ^(1.0/3.0)*(U^(4.0/3.0))/(160.0^(2.0/3.0))*ω)
 
 rcParams["markers.fillstyle"] = "none"
 hλ = figure(num=1,figsize=[8.,6.]);
 ax1 = gca()
-pΛ = ax1.plot(real.(Ω),imag.(Ω),linestyle="none",marker="o",markersize=8)
+pΛ = plot(real.(Ω),imag.(Ω),linestyle="none",marker="o",markersize=8)
 
 xg    = QT*(vimult.*Geom.xm1[:])
 
-Nev         = 10                          # Number of eigenvalues to calculate
-EKryl       = Int64(floor(2.5*Nev))       # Additional size of Krylov space
-LKryl       = Nev + EKryl                 # Total Size of Krylov space    
-ngs         = 2                           # Number of Gram-Schmidt
-tol         = prec(1.0e-24)
+Nev   = 15               # Number of eigenvalues to calculate
+EKryl = Int64(floor(2.5*Nev))           # Additional size of Krylov space
+LKryl = Nev + EKryl     # Total Size of Krylov space    
+ngs     = 2       # Number of Gram-Schmidt
+tol     = prec(1.0e-24)
 
 vt    = VT # Complex{prec}
 #vt    = Float64
@@ -78,7 +73,7 @@ Vold  = zeros(vt,ndof,LKryl+1)
 H     = zeros(vt,LKryl+1,LKryl)
 Hold  = zeros(vt,LKryl+1,LKryl)
 
-r = randn(vt,ndof)
+r     = randn(vt,ndof)
 
 #if prec == BigFloat
 #  r   = rand(prec,ndof) + im*rand(prec,ndof);
@@ -87,13 +82,13 @@ r = randn(vt,ndof)
 #end  
 
 r     = (one+one*im)sin.(5*pi*xg[:])
-r[1]  = prec(0)
+r[1]  = zro # 0.0
 
 ifarnoldi   = true
-ifoptimal   = false     # Calculate optimal responses
+ifoptimal   = false      # Calculate optimal responses
 ifadjoint   = false     # Superceded by ifoptimal
-ifplot      = true 
-verbose     = true
+ifplot      = false 
+verbose     = false
 eigupd      = true
 reortho     = 500
 if (ifoptimal)
@@ -102,8 +97,21 @@ else
   arnstep   = reortho
 end  
 verbosestep = arnstep #500
-nsteps      = 50000000
+nsteps      = 10000000
 ifsave      = false
+
+# Add corruption to the Arnoldi vector
+ifcorrupt   = true
+if (ifcorrupt)
+  dict_opt = load("nev15.jld2")
+  opt_eig  = get(dict_opt, "evs", 1);
+  opt_egv  = get(dict_opt, "eigvec", 1);
+
+  sigma    = diagm(opt_eig)
+  nopt     = length(opt_eig)
+  scale    = VT(1.0e-10)
+end  
+
 
 nkryl   = 0
 block   = 1
@@ -129,7 +137,7 @@ ifconv = false
 t = zro*dt        # Time
 i = 0             # Istep
 
-maxouter_it = 150
+maxouter_it = 200
 major_it    = 1
 
 if (ifplot)
@@ -183,10 +191,7 @@ while (~ifconv)
 #   Adjoint Operator BCs    
     AOPg[1,:] = bc
     AOPg[1,1] = one + im*zro        # Change operator for BC
-#    OPg       = Cg .+ Sg .+ Lg .+ Fg
-#    for j in 1:ndof
-#      OPg[j,:] = OPg[j,:]./Bg[j]
-#    end  
+
 #   Direct Operator BCs 
     OPg[1,:] = bc
     OPg[1,1] = one + im*zro        # Change operator for BC
@@ -203,7 +208,6 @@ while (~ifconv)
   end
 
   if (ifarnoldi)
-
 #   Plotting 
     if ifplot && mod(i,reortho)==0
       if (i>reortho) 
@@ -214,8 +218,20 @@ while (~ifconv)
       pv1 = ax2.plot(xg,real.(v),linestyle="-")
     end  
 
+
 #   Expand Krylov space
     if mod(i,arnstep)==0
+
+#     Adding corruption to Arnoldi vector      
+      if (ifcorrupt)
+        rd     = randn(VT,nopt)
+        rd     = rd/norm(rd)
+        v_corr = scale*opt_egv*sigma*rd
+        cor_sq = abs(v_corr'*(Bg.*v_corr))
+        cnorm  = sqrt(cor_sq)
+#        @printf "IStep: %3i, Corruption amplitude: %12e\n" i cnorm
+        v      = v .+ v_corr
+      end  
 
       if nkryl == LKryl
         Hold = H
@@ -260,8 +276,8 @@ while (~ifconv)
         if ifoptimal
           ax1.autoscale(enable=true,axis="both")
         else
-          ax1.set_xlim((-5.0,8.0))
-          ax1.set_ylim((-7.5,2.5))
+          ax1.set_xlim((-5.0,5.0))
+          ax1.set_ylim((-7.5,1.5))
         end  
            
         draw()
@@ -277,9 +293,9 @@ while (~ifconv)
       vmin = 1.5*minimum(real.(v))
       vmax = 1.5*maximum(real.(v))
 #      ax2.set_ylim((vmin,vmax))
-      ax2.set_ylim((-2.0,2.0))
+      ax2.set_ylim((-1.0,1.0))
      
-      pause(0.00001)
+      pause(0.0001)
       draw() 
     end  
 
@@ -298,12 +314,9 @@ while (~ifconv)
      
       pv1 = ax2.plot(xg,real.(v),linestyle="-")
 
-      vmin = 2.0*minimum(real.(v))
-      vmax = 2.0*maximum(real.(v))
-      dv   = abs(vmax-vmin)
-#      ax2.set_ylim((vmin,vmax))
-      ax2.set_ylim((-dv,dv))
-     
+      vmin = 1.5*minimum(real.(v))
+      vmax = 1.5*maximum(real.(v))
+      ax2.set_ylim((vmin,vmax))
     end 
   
     if i==nsteps
@@ -316,7 +329,7 @@ end       # while ...
 if (ifarnoldi)
   Hr = H[1:Nev,1:Nev]
 
-  if prec != Float64
+  if prec == BigFloat
 #   eigvals works for BigFloat
 #   But eigvecs does not. So if we want the eigenvectors
 #   Need to come back to Float64/ComplexF64
@@ -339,14 +352,7 @@ if (ifarnoldi)
   λ  = λr .+ im*λi
   
   Lesshafft_λ = one*im*λ
-
-  if (eigupd)
-    l0 = ax1.get_lines()
-    for il = 2:length(l0)
-      l0[il].remove()
-    end
-  end  
-
+  
   pλ = ax1.plot(real.(Lesshafft_λ),imag.(Lesshafft_λ), linestyle="none",marker=".", markersize=8)
  
 # Eigenvectors  
@@ -355,29 +361,23 @@ if (ifarnoldi)
   hev = figure(num=3,figsize=[8.,6.]);
   ax3 = gca()
   for j in 1:Nev
-    local pvec1 = ax3.plot(xg,real.(eigvec[:,j]),linestyle="-")
+    local pvec1 = ax3.plot(xg,real.(eigvec[:,j]),linestyle="--")
 #    local pvec2 = ax3.plot(xg,imag.(eigvec[:,j]),linestyle="-.")
-#    local pveca = ax3.plot(xg,abs.(eigvec[:,j]),linestyle="-")
+    local pveca = ax3.plot(xg,abs.(eigvec[:,j]),linestyle="-")
+   
+#    local pvecl = ax3.semilogy(xg,abs.(real.(eigvec[:,j])) .+ 1.0e-6,linestyle=":")
   end
-
-#  Ar        = eigvec'*diagm(Bg)*OPg*eigvec
-#  λ_opt     = one*im*eigvals(Ar);
-#  pλ2       = ax1.plot(real.(λ_opt),imag.(λ_opt), linestyle="none",marker=".", markersize=8)
-#  ax1.set_xlim((-4.0,8.0))
-#  ax1.set_ylim((-7.5,2.5))
-
 else
   hev = figure(num=3,figsize=[8.,6.]);
   ax3 = gca()
   pvec = ax3.plot(xg,real.(v),linestyle="-")
 end
 
-vnorm = norm(eigvec'*diagm(Bg)*eigvec - I)
-@printf("Vnorm: %12e", vnorm)
-
-if (ifsave)
-  save("nev15_corr_e-2_double64.jld2","evs",evs, "evec",eigvec);
+if (ifoptimal)
+  vnorm = norm(eigvec'*diagm(Bg)*eigvec - I)
+  @printf("Vnorm: %12e", vnorm)
 end  
+
 
 
 
