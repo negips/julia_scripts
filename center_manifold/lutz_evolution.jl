@@ -48,12 +48,13 @@ rcParams = PyPlot.PyDict(PyPlot.matplotlib."rcParams")
 ω  = [ω1, ω2, ω3, ω4, ω5, ω6, ω7, ω8, ω9, ω10, ω11, ω12, ω13, ω14, ω15]
 #Ω  = im*(U*U/8.0 .- U*U/(4.0*γ) .+ γ^(1.0/3.0)*(U^(4.0/3.0))/(160.0^(2.0/3.0))*ω)
 
+Ω0    = im*1.0
 U     = 1.0
 ϕ     = -π/4.0
 R     = 1.0
 γ     = R*exp(im*ϕ)
 μx    = U/8.0 
-μ0    = (U^2)/(4.0*γ) - ((γ*μx*μx)^(1.0/3.0))*ω1 
+μ0    = Ω0 + (U^2)/(4.0*γ) - ((γ*μx*μx)^(1.0/3.0))*ω1 
 
 
 #cd = imag(γ)
@@ -67,17 +68,6 @@ include("sem_main.jl")
 
 rng = MersenneTwister(1235)
 
-
-rcParams["markers.fillstyle"] = "none"
-hλ = figure(num=1,figsize=[8.,6.]);
-ax1 = gca()
-pΛ = ax1.plot(imag.(Ω),real.(Ω),linestyle="none",marker="o",markersize=8)
-Ωi_max = maximum(abs.(imag.(Ω)))
-Ωr_min = minimum(real.(Ω))
-Ωr_max = maximum(real.(Ω))
-
-ax1.set_xlim((-2*Ωi_max,2*Ωi_max))
-ax1.set_ylim((1.1*Ωr_min,1.0))
 
 xg    = QT*(vimult.*Geom.xm1[:])
 
@@ -123,6 +113,10 @@ verbosestep = arnstep #500
 nsteps      = 50000000
 ifsave      = false
 
+if (ifadjoint)
+  Ω = conj.(Ω)
+end  
+
 nkryl   = 0
 block   = 1
 h,θ,v  = ArnUpd(V,block,Bg,r,nkryl,ngs)
@@ -141,7 +135,26 @@ dt = prec(0.0001)
 bc = zeros(vt,1,ndof);
 Rhs = similar(v)
 
+
+# Plots
+#-------------------------------------------------- 
+rcParams["markers.fillstyle"] = "none"
+hλ = figure(num=1,figsize=[8.,6.]);
+ax1 = gca()
+pΛ = ax1.plot(imag.(Ω),real.(Ω),linestyle="none",marker="o",markersize=8)
+Ωi_max = maximum(abs.(imag.(Ω)))
+Ωr_min = minimum(real.(Ω))
+Ωr_max = maximum(real.(Ω))
+
+ax1.set_xlim((-2*Ωi_max,2*Ωi_max))
+ax1.set_ylim((1.1*Ωr_min,1.0))
 rcParams["markers.fillstyle"] = "full"
+if (ifplot)
+  hv  = figure(num=2,figsize=[8.,6.]);
+  ax2 = gca()
+end
+#-------------------------------------------------- 
+
 
 ifconv = false
 t = zro*dt        # Time
@@ -149,11 +162,6 @@ i = 0             # Istep
 
 maxouter_it = 150
 major_it    = 1
-
-if (ifplot)
-  hv  = figure(num=2,figsize=[8.,6.]);
-  ax2 = gca()
-end
 
 # Start iterations
 ifdirect = true
@@ -334,6 +342,8 @@ while (~ifconv)
 
 end       # while ... 
 
+
+# Plotting after convergence
 if (ifarnoldi)
   Hr = H[1:Nev,1:Nev]
 
@@ -375,11 +385,13 @@ if (ifarnoldi)
   
   hev = figure(num=3,figsize=[8.,6.]);
   ax3 = gca()
+  c_map = get_cmap("tab10")
   for j in 1:Nev
-    local pvec1 = ax3.plot(xg,real.(eigvec[:,j]),linestyle="-")
-#    local pvec2 = ax3.plot(xg,imag.(eigvec[:,j]),linestyle="-.")
+    local pvec1 = ax3.plot(xg,real.(eigvec[:,j]),linestyle="-" ,color=c_map(j-1),label="ϕ$(j)(x)")
+    local pvec2 = ax3.plot(xg,imag.(eigvec[:,j]),linestyle="-.",color=c_map(j-1),label="ϕ$(j)(x)")
 #    local pveca = ax3.plot(xg,abs.(eigvec[:,j]),linestyle="-")
   end
+  legend()
 
 #  Ar        = eigvec'*diagm(Bg)*OPg*eigvec
 #  λ_opt     = one*im*eigvals(Ar);
