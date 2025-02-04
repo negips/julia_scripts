@@ -21,6 +21,20 @@ include("IRAM.jl")
 #include("RK4.jl")
 include("$JULIACOMMON/RK4.jl")
 
+
+#---------------------------------------------------------------------- 
+function oblique_removal!(r::AbstractVector,v::AbstractVector,w::AbstractVector,B::AbstractVector)
+
+  α   = w'*(B.*r)
+
+  for i in LinearIndices(r)
+    r[i] = r[i] - v[i]*α
+  end
+   
+  return nothing  
+end
+#---------------------------------------------------------------------- 
+
 close("all")
 
 # Ifglobal
@@ -29,23 +43,23 @@ ifglobal = true
 rcParams = PyPlot.PyDict(PyPlot.matplotlib."rcParams")
 
 # Analytical Eigenvalues
-ω1 = find_zero(airyai,(-3.0,-0.0))
-ω2 = find_zero(airyai,(-5.0,-3.0))
-ω3 = find_zero(airyai,(-6.0,-5.0))
-ω4 = find_zero(airyai,(-7.0,-6.0))
-ω5 = find_zero(airyai,(-8.0,-7.0))
-ω6 = find_zero(airyai,(-9.5,-8.0))
-ω7 = find_zero(airyai,(-10.5,-9.5))
-ω8 = find_zero(airyai,(-11.8,-10.5))
-ω9 = find_zero(airyai,(-12.0,-11.8))
-ω10 = find_zero(airyai,(-12.9,-12.0))
-ω11 = find_zero(airyai,(-13.8,-12.9))
-ω12 = find_zero(airyai,(-14.8,-13.8))
-ω13 = find_zero(airyai,(-15.8,-14.8))
-ω14 = find_zero(airyai,(-16.8,-15.8))
-ω15 = find_zero(airyai,(-17.5,-16.8))
+ω1    = find_zero(airyai,(-3.0,-0.0))
+ω2    = find_zero(airyai,(-5.0,-3.0))
+ω3    = find_zero(airyai,(-6.0,-5.0))
+ω4    = find_zero(airyai,(-7.0,-6.0))
+ω5    = find_zero(airyai,(-8.0,-7.0))
+ω6    = find_zero(airyai,(-9.5,-8.0))
+ω7    = find_zero(airyai,(-10.5,-9.5))
+ω8    = find_zero(airyai,(-11.8,-10.5))
+ω9    = find_zero(airyai,(-12.0,-11.8))
+ω10   = find_zero(airyai,(-12.9,-12.0))
+ω11   = find_zero(airyai,(-13.8,-12.9))
+ω12   = find_zero(airyai,(-14.8,-13.8))
+ω13   = find_zero(airyai,(-15.8,-14.8))
+ω14   = find_zero(airyai,(-16.8,-15.8))
+ω15   = find_zero(airyai,(-17.5,-16.8))
 
-ω  = [ω1, ω2, ω3, ω4, ω5, ω6, ω7, ω8, ω9, ω10, ω11, ω12, ω13, ω14, ω15]
+ω     = [ω1, ω2, ω3, ω4, ω5, ω6, ω7, ω8, ω9, ω10, ω11, ω12, ω13, ω14, ω15]
 #Ω  = im*(U*U/8.0 .- U*U/(4.0*γ) .+ γ^(1.0/3.0)*(U^(4.0/3.0))/(160.0^(2.0/3.0))*ω)
 
 Ω0    = im*1.0
@@ -56,10 +70,13 @@ R     = 1.0
 μx    = U/8.0 
 μ0    = Ω0 + (U^2)/(4.0*γ) - ((γ*μx*μx)^(1.0/3.0))*ω1 
 
-# U     = conj(U)
-# γ     = conj(γ)
-# μ0    = conj(μ0)
-# μx    = conj(μx)
+ifconj = false
+if (ifconj)
+  U    = conj(U)
+  γ    = conj(γ)
+  μ0   = conj(μ0)
+  μx   = conj(μx)
+end  
 
 #cd = imag(γ)
 #μ0 = U*U/8.0
@@ -70,13 +87,29 @@ R     = 1.0
 # Include the function files
 include("sem_main.jl")
 
+# Load Eigenvectors
+Dir         = load("direct_GL_nev5.jld2")
+Adj         = load("adjoint_GL_nev5.jld2")
+λ0          = Dir["evs"]
+i1          = argmax(real.(λ0))
+v1          = Dir["evec"][:,i1]
+λ1          = λ0[i1]
+λ0          = Adj["evs"]
+i1          = argmax(real.(λ0))
+w1          = Adj["evec"][:,i1]
+# Normalize vectors
+α1          = v1'*(Bg.*v1)
+v1          = v1./α1
+α1          = (w1'*(Bg.*v1))'
+w1          = w1./α1
+
+
 rng = MersenneTwister(1235)
 
 
-xg    = QT*(vimult.*Geom.xm1[:])
-
+xg          = QT*(vimult.*Geom.xm1[:])
 Nev         = 5                           # Number of eigenvalues to calculate
-EKryl       = Int64(floor(4*Nev))       # Additional size of Krylov space
+EKryl       = Int64(floor(4*Nev))         # Additional size of Krylov space
 LKryl       = Nev + EKryl                 # Total Size of Krylov space    
 ngs         = 2                           # Number of Gram-Schmidt
 tol         = prec(1.0e-10)
@@ -84,22 +117,30 @@ tol         = prec(1.0e-10)
 vt    = VT # Complex{prec}
 #vt    = Float64
 
-V     = zeros(vt,ndof,LKryl+1)
-Vold  = zeros(vt,ndof,LKryl+1)
+ndofE = ndof + 1
+V     = zeros(vt,ndofE,LKryl+1)
+Vold  = zeros(vt,ndofE,LKryl+1)
 
 H     = zeros(vt,LKryl+1,LKryl)
 Hold  = zeros(vt,LKryl+1,LKryl)
 
-r = randn(vt,ndof)
+BgE         = zeros(vt,ndofE)
+BgE[1:ndof] = copy(Bg)
+BgE[ndofE]  = 1.0
 
-#if prec == BigFloat
-#  r   = rand(prec,ndof) + im*rand(prec,ndof);
-#else
-#  r   = randn(vt,ndof);
-#end  
 
-r     = (one+one*im)sin.(5*pi*xg[:])
+
+r     = randn(vt,ndofE)
+if prec == BigFloat
+  r   = rand(prec,ndofE) + im*rand(prec,ndofE);
+else
+  r   = randn(vt,ndofE);
+end  
+#r     = (one+one*im)sin.(5*pi*xg[:])
 r[1]  = prec(0)
+
+rview = view(r,1:ndof)
+oblique_removal!(rview,v1,w1,Bg)
 
 ifarnoldi   = true
 ifoptimal   = false     # Calculate optimal responses
@@ -121,16 +162,16 @@ if (ifadjoint)
   Ω = conj.(Ω)
 end  
 
-nkryl   = 0
-block   = 1
-h,θ,v  = ArnUpd(V,block,Bg,r,nkryl,ngs)
-V[:,1] = v
-nkryl  = 0
+nkryl       = 0
+block       = 1
+h,θ,v       = ArnUpd(V,block,BgE,r,nkryl,ngs)
+V[:,1]      = v
+nkryl       = 0
 
-cm    = get_cmap("tab10");
-rgba0 = cm(0) 
-rgba1 = cm(1) 
-rgba2 = cm(2) 
+cm          = get_cmap("tab10");
+rgba0       = cm(0) 
+rgba1       = cm(1) 
+rgba2       = cm(2) 
 
 dt = prec(0.0001)
 
@@ -167,15 +208,39 @@ i = 0             # Istep
 maxouter_it = 150
 major_it    = 1
 
+
+# Build Forcing 
+temp        = SLap*(Q*v1)
+temp[1]     = 0.0
+g15         = temp - (Q*v1)*(Q*w1)'*(B.*temp)
+δ15         = w1'*QT*(B.*g15)
+g15_1       = QT*(B.*g15)
+
+temp        = Q*(xg.*v1)
+temp[1]     = 0.0
+g25         = temp - (Q*v1)*(Q*w1)'*(B.*temp)
+δ25         = w1'*QT*(B.*g25)
+g25_1       = QT*(B.*g25)
+
+# Extended vector (for the resolvent calculations)
+v1E         = zeros(vt,ndofE)
+v1E[1:ndof] = copy(v1)
+w1E         = zeros(vt,ndofE)
+w1E[1:ndof] = copy(w1)
+
+
+
 # Start iterations
-ifdirect = true
+ifdirect    = true
 println("Starting Iterations")
+
+OPgE        = spzeros(vt,ndofE,ndofE)
 
 while (~ifconv)
   global V,H,v
   global t, i
   global plr,pli
-  global OPg, AOPg
+  global OPg, AOPg, OPgE
   global nkryl
   global hλ, ax1
   global ifconv
@@ -218,8 +283,13 @@ while (~ifconv)
 #      OPg[j,:] = OPg[j,:]./Bg[j]
 #    end  
 #   Direct Operator BCs 
-    OPg[1,:] = bc
-    OPg[1,1] = one + im*zro        # Change operator for BC
+    OPg[1,:]            = bc
+    OPg[1,1]            = one + im*zro        # Change operator for BC
+    OPgE[1:ndof,1:ndof] = copy(OPg)
+    OPgE[ndofE,ndofE]   = λ1
+#    OPgE[1:ndof,ndofE]  = copy(g15_1)
+    OPgE[1:ndof,ndofE]  = copy(g25_1)
+    OPgE[1,ndofE]       = zro
 
   end  
 
@@ -227,10 +297,13 @@ while (~ifconv)
   v[1]      = zro + im*zro
 
   if ifdirect
-    v       = RK4!(OPg,v,dt)
+    v       = RK4!(OPgE,v,dt)
   else
     v       = RK4!(AOPg,v,dt)
   end
+
+  # Remove components
+  oblique_removal!(v,v1E,w1E,BgE)
 
   if (ifarnoldi)
 
@@ -241,8 +314,9 @@ while (~ifconv)
           lo.remove()
         end  
       end  
-      pv1 = ax2.plot(xg,real.(v),linestyle="-")
-    end  
+      pv1 = ax2.plot(xg,real.(v[1:ndof]),linestyle="-")
+    end
+
 
 #   Expand Krylov space
     if mod(i,arnstep)==0
@@ -252,7 +326,7 @@ while (~ifconv)
         Vold = V
         vold = v
       end
-      V,H,nkryl,β,major_it = IRAM!(V,H,Bg,v,nkryl,LKryl,major_it,Nev,ngs)
+      V,H,nkryl,β,major_it = IRAM!(V,H,BgE,v,nkryl,LKryl,major_it,Nev,ngs)
 
       v   = V[:,nkryl]
 
@@ -305,10 +379,10 @@ while (~ifconv)
 
 #   Plotting      
     if (ifplot && mod(i,reortho)==0)
-      pv2 = ax2.plot(xg,real.(v),linestyle="--")
+      pv2 = ax2.plot(xg,real.(v(1:ndof)),linestyle="--")
 
-      vmin = 1.5*minimum(real.(v))
-      vmax = 1.5*maximum(real.(v))
+      vmin = 1.5*minimum(real.(v[1:ndof]))
+      vmax = 1.5*maximum(real.(v[1:ndof]))
 #      ax2.set_ylim((vmin,vmax))
       ax2.set_ylim((-2.0,2.0))
      
@@ -331,8 +405,8 @@ while (~ifconv)
      
       pv1 = ax2.plot(xg,real.(v),linestyle="-")
 
-      vmin = 2.0*minimum(real.(v))
-      vmax = 2.0*maximum(real.(v))
+      vmin = 2.0*minimum(real.(v[1:ndof]))
+      vmax = 2.0*maximum(real.(v[1:ndof]))
       dv   = abs(vmax-vmin)
 #      ax2.set_ylim((vmin,vmax))
       ax2.set_ylim((-dv,dv))
@@ -391,8 +465,8 @@ if (ifarnoldi)
   ax3 = gca()
   c_map = get_cmap("tab10")
   for j in 1:Nev
-    local pvec1 = ax3.plot(xg,real.(eigvec[:,j]),linestyle="-" ,color=c_map(j-1),label="ϕ$(j)(x)")
-    local pvec2 = ax3.plot(xg,imag.(eigvec[:,j]),linestyle="-.",color=c_map(j-1)) # ,label="ϕ$(j)(x)")
+    local pvec1 = ax3.plot(xg,real.(eigvec[1:ndof,j]),linestyle="-" ,color=c_map(j-1),label="ϕ$(j)(x)")
+    local pvec2 = ax3.plot(xg,imag.(eigvec[1:ndof,j]),linestyle="-.",color=c_map(j-1)) # ,label="ϕ$(j)(x)")
 #    local pveca = ax3.plot(xg,abs.(eigvec[:,j]),linestyle="-")
   end
   legend()
@@ -406,22 +480,32 @@ if (ifarnoldi)
 else
   hev = figure(num=3,figsize=[8.,6.]);
   ax3 = gca()
-  pvec = ax3.plot(xg,real.(v),linestyle="-")
+  pvec = ax3.plot(xg,real.(v[1:ndof]),linestyle="-")
 end
 
-vnorm = norm(eigvec'*diagm(Bg)*eigvec - I)
-@printf("Vnorm: %12e", vnorm)
+vnorm = norm(eigvec'*diagm(BgE)*eigvec - I)
+@printf("Vnorm: %12e\n", vnorm)
 
 if (ifsave)
-  if (ifadjoint)
-    fname = "adjoint_GL_nev"*"$Nev"*".jld2"
-    save(fname,"evs",λ, "evec",eigvec);
+  if (ifconj)
+    if (ifadjoint)
+      fname = "adjoint_conj_GL_nev"*"$Nev"*".jld2"
+      save(fname,"evs",λ, "evec",eigvec);
+    else
+      fname = "direct_resolvent_conj_GL_nev"*"$Nev"*".jld2"
+      save(fname,"evs",λ, "evec",eigvec);
+    end
   else
-    fname = "direct_GL_nev"*"$Nev"*".jld2"
-    save(fname,"evs",λ, "evec",eigvec);
-  end  
-end  
-
+    if (ifadjoint)
+      fname = "adjoint_GL_nev"*"$Nev"*".jld2"
+      save(fname,"evs",λ, "evec",eigvec);
+    else
+      fname = "direct_resolvent_GL_y25_nev"*"$Nev"*".jld2"
+      save(fname,"evs",λ, "evec",eigvec);
+    end
+  end
+  println(fname*" saved.")
+end 
 
 println("Done.")
 

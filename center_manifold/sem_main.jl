@@ -53,9 +53,9 @@ if (ifsparse)
   else
 #   Diffusion term with integration by parts    
 #    L,B,OP,Conv,Src,Lap,Fd = AssembleMatrixLesshafftSparse(U,γ,c0,cx0,whichsrc,Geom.cnv,Geom.wlp,Geom.xm1,Geom.bm1,Basis,lx1,nel,prec);
-    L,B,OP,Conv,Src,Lap,Fd = AssembleMatrixGLSparse(U,γ,μ0,μx,whichsrc,Geom.cnv,Geom.wlp,Geom.xm1,Geom.bm1,Basis,lx1,nel,prec);
+    L,B,OP,Conv,Src,Lap,Fd,SLap = AssembleMatrixGLSparse(U,γ,μ0,μx,whichsrc,Geom.gradx,Geom.cnv,Geom.wlp,Geom.xm1,Geom.bm1,Basis,lx1,nel,prec);
 
-    AL,AB,AOP,AConv,ASrc,ALap,AFd = AssembleAdjointGLSparse(U,γ,μ0,μx,whichsrc,Geom.cnv,Geom.wlp,Geom.xm1,Geom.bm1,Basis,lx1,nel,prec);
+    AL,AB,AOP,AConv,ASrc,ALap,AFd,SLap = AssembleAdjointGLSparse(U,γ,μ0,μx,whichsrc,Geom.gradx,Geom.cnv,Geom.wlp,Geom.xm1,Geom.bm1,Basis,lx1,nel,prec);
   end
 else
   L,B,OP,Conv,Src,Lap,Fd = AssembleMatrixLesshafft2(U,γ,c0,Geom.cnv,Geom.wlp,Geom.xm1,Geom.bm1,Basis,lx1,nel,prec);
@@ -84,7 +84,7 @@ if ifglobal
   Sg    = QT*Src*Q     # Global Src matrix
   Fg    = QT*Fd*Q      # Global Feedback matrix
   Bg    = QT*B         # Global Mass vector
-  Big   = one./Bg      # Global inverse Mass vector
+  Bgi   = one./Bg      # Global inverse Mass vector
   Mdg   = QT*Md*Q      # Global Dialiased Weight Matrix for inner products 
   
   OPg   = QT*(L)*Q./Bg

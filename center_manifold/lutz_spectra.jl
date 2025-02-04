@@ -29,23 +29,23 @@ ifglobal = true
 rcParams = PyPlot.PyDict(PyPlot.matplotlib."rcParams")
 
 # Analytical Eigenvalues
-ω1 = find_zero(airyai,(-3.0,-0.0))
-ω2 = find_zero(airyai,(-5.0,-3.0))
-ω3 = find_zero(airyai,(-6.0,-5.0))
-ω4 = find_zero(airyai,(-7.0,-6.0))
-ω5 = find_zero(airyai,(-8.0,-7.0))
-ω6 = find_zero(airyai,(-9.5,-8.0))
-ω7 = find_zero(airyai,(-10.5,-9.5))
-ω8 = find_zero(airyai,(-11.8,-10.5))
-ω9 = find_zero(airyai,(-12.0,-11.8))
-ω10 = find_zero(airyai,(-12.9,-12.0))
-ω11 = find_zero(airyai,(-13.8,-12.9))
-ω12 = find_zero(airyai,(-14.8,-13.8))
-ω13 = find_zero(airyai,(-15.8,-14.8))
-ω14 = find_zero(airyai,(-16.8,-15.8))
-ω15 = find_zero(airyai,(-17.5,-16.8))
+ω1    = find_zero(airyai,(-3.0,-0.0))
+ω2    = find_zero(airyai,(-5.0,-3.0))
+ω3    = find_zero(airyai,(-6.0,-5.0))
+ω4    = find_zero(airyai,(-7.0,-6.0))
+ω5    = find_zero(airyai,(-8.0,-7.0))
+ω6    = find_zero(airyai,(-9.5,-8.0))
+ω7    = find_zero(airyai,(-10.5,-9.5))
+ω8    = find_zero(airyai,(-11.8,-10.5))
+ω9    = find_zero(airyai,(-12.0,-11.8))
+ω10   = find_zero(airyai,(-12.9,-12.0))
+ω11   = find_zero(airyai,(-13.8,-12.9))
+ω12   = find_zero(airyai,(-14.8,-13.8))
+ω13   = find_zero(airyai,(-15.8,-14.8))
+ω14   = find_zero(airyai,(-16.8,-15.8))
+ω15   = find_zero(airyai,(-17.5,-16.8))
 
-ω  = [ω1, ω2, ω3, ω4, ω5, ω6, ω7, ω8, ω9, ω10, ω11, ω12, ω13, ω14, ω15]
+ω     = [ω1, ω2, ω3, ω4, ω5, ω6, ω7, ω8, ω9, ω10, ω11, ω12, ω13, ω14, ω15]
 #Ω  = im*(U*U/8.0 .- U*U/(4.0*γ) .+ γ^(1.0/3.0)*(U^(4.0/3.0))/(160.0^(2.0/3.0))*ω)
 
 Ω0    = im*1.0
@@ -56,10 +56,13 @@ R     = 1.0
 μx    = U/8.0 
 μ0    = Ω0 + (U^2)/(4.0*γ) - ((γ*μx*μx)^(1.0/3.0))*ω1 
 
-# U     = conj(U)
-# γ     = conj(γ)
-# μ0    = conj(μ0)
-# μx    = conj(μx)
+ifconj = true
+if (ifconj)
+  U    = conj(U)
+  γ    = conj(γ)
+  μ0   = conj(μ0)
+  μx   = conj(μx)
+end  
 
 #cd = imag(γ)
 #μ0 = U*U/8.0
@@ -73,10 +76,9 @@ include("sem_main.jl")
 rng = MersenneTwister(1235)
 
 
-xg    = QT*(vimult.*Geom.xm1[:])
-
+xg          = QT*(vimult.*Geom.xm1[:])
 Nev         = 5                           # Number of eigenvalues to calculate
-EKryl       = Int64(floor(4*Nev))       # Additional size of Krylov space
+EKryl       = Int64(floor(4*Nev))         # Additional size of Krylov space
 LKryl       = Nev + EKryl                 # Total Size of Krylov space    
 ngs         = 2                           # Number of Gram-Schmidt
 tol         = prec(1.0e-10)
@@ -103,7 +105,7 @@ r[1]  = prec(0)
 
 ifarnoldi   = true
 ifoptimal   = false     # Calculate optimal responses
-ifadjoint   = false     # Superceded by ifoptimal
+ifadjoint   = true     # Superceded by ifoptimal
 ifplot      = false 
 verbose     = true
 eigupd      = true
@@ -410,18 +412,28 @@ else
 end
 
 vnorm = norm(eigvec'*diagm(Bg)*eigvec - I)
-@printf("Vnorm: %12e", vnorm)
+@printf("Vnorm: %12e\n", vnorm)
 
 if (ifsave)
-  if (ifadjoint)
-    fname = "adjoint_GL_nev"*"$Nev"*".jld2"
-    save(fname,"evs",λ, "evec",eigvec);
+  if (ifconj)
+    if (ifadjoint)
+      fname = "adjoint_conj_GL_nev"*"$Nev"*".jld2"
+      save(fname,"evs",λ, "evec",eigvec);
+    else
+      fname = "direct_conj_GL_nev"*"$Nev"*".jld2"
+      save(fname,"evs",λ, "evec",eigvec);
+    end
   else
-    fname = "direct_GL_nev"*"$Nev"*".jld2"
-    save(fname,"evs",λ, "evec",eigvec);
-  end  
-end  
-
+    if (ifadjoint)
+      fname = "adjoint_GL_nev"*"$Nev"*".jld2"
+      save(fname,"evs",λ, "evec",eigvec);
+    else
+      fname = "direct_GL_nev"*"$Nev"*".jld2"
+      save(fname,"evs",λ, "evec",eigvec);
+    end
+  end
+  println(fname*" saved.")
+end 
 
 println("Done.")
 

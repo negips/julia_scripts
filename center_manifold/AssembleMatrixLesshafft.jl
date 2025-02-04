@@ -498,7 +498,7 @@ function AssembleAdjointLesshafftSparse(U,γ,c0,cx0,whichsrc,cnv,wlp,xm1,bm1,Bas
       return A, B, OP, Conv, Src, Lap, Fd
 end
 #---------------------------------------------------------------------- 
-function AssembleMatrixGLSparse(U,γ,μ0,μx,whichsrc,cnv,wlp,xm1,bm1,Basis,lx1,nel,prec)
+function AssembleMatrixGLSparse(U,γ,μ0,μx,whichsrc,gradx,cnv,wlp,xm1,bm1,Basis,lx1,nel,prec)
 
 #     Building the Complex Ginzburg Landau model problem from
 #     Lutz Lesshafft (2018) Artificial eigenmodes in truncated flow domains
@@ -519,6 +519,7 @@ function AssembleMatrixGLSparse(U,γ,μ0,μx,whichsrc,cnv,wlp,xm1,bm1,Basis,lx1,
 #     Conv  - Convection term:                  -Udψ/dx
 #     Src   - Spatially varying source term:    μ(x)ψ
 #     Lap   - Weak Laplacian:                   γd²ψ/dx²
+#     SLap  - Regular Laplacian (no BM1)         d²ψ/dx²
 #     B     - Mass matrix:
 #     Fd    - Feedback Matrix:                  F(x,s)ψ
 #     A     - Combined operator:    -Udψ/dx + μ(x)ψ + γd²ψ/dx² + F(x,s)ψ
@@ -530,7 +531,7 @@ function AssembleMatrixGLSparse(U,γ,μ0,μx,whichsrc,cnv,wlp,xm1,bm1,Basis,lx1,
       xa    = prec(1)           # Feedback destination point
       xs    = prec(39)          # Feedback source point
       b     = prec(0.1)         # Exponential drop off rate for feedback
-      c0    = prec(1.0)
+      c0    = prec(0.0)
 
       fact  = prec(100)
       zro   = prec(0)
@@ -550,6 +551,7 @@ function AssembleMatrixGLSparse(U,γ,μ0,μx,whichsrc,cnv,wlp,xm1,bm1,Basis,lx1,
       Conv = spzeros(VT,dof,dof)
       Src  = spzeros(VT,dof,dof)
       Lap  = spzeros(VT,dof,dof)
+      SLap = spzeros(VT,dof,dof)
       Fd   = spzeros(VT,dof,dof)
       Binv = zeros(VT,lx1,nel);
 
@@ -594,6 +596,7 @@ function AssembleMatrixGLSparse(U,γ,μ0,μx,whichsrc,cnv,wlp,xm1,bm1,Basis,lx1,
         Conv[j1:j2,j1:j2] = -U.*cnv[:,:,i]
         Src[j1:j2,j1:j2]  = Mμ
         Lap[j1:j2,j1:j2]  = γ.*wlp[:,:,i]
+        SLap[j1:j2,j1:j2] = gradx[:,:,i]*gradx[:,:,i]
 
 #       Sub matrix 
         subm = -U.*cnv[:,:,i] + Mμ + γ.*wlp[:,:,i];
@@ -614,10 +617,10 @@ function AssembleMatrixGLSparse(U,γ,μ0,μx,whichsrc,cnv,wlp,xm1,bm1,Basis,lx1,
       end
 
       println("Direct Sparse Matrices Built")
-      return A, B, OP, Conv, Src, Lap, Fd
+      return A, B, OP, Conv, Src, Lap, Fd, SLap
 end
 #---------------------------------------------------------------------- 
-function AssembleAdjointGLSparse(U,γ,μ0,μx,whichsrc,cnv,wlp,xm1,bm1,Basis,lx1,nel,prec)
+function AssembleAdjointGLSparse(U,γ,μ0,μx,whichsrc,gradx,cnv,wlp,xm1,bm1,Basis,lx1,nel,prec)
 
 #     Building the Complex Ginzburg Landau model problem from
 #     Lutz Lesshafft (2018) Artificial eigenmodes in truncated flow domains
@@ -649,7 +652,7 @@ function AssembleAdjointGLSparse(U,γ,μ0,μx,whichsrc,cnv,wlp,xm1,bm1,Basis,lx1
       xa    = prec(1)           # Feedback destination point
       xs    = prec(39)          # Feedback source point
       b     = prec(0.1)         # Exponential drop off rate for feedback
-      c0    = prec(1.0)
+      c0    = prec(0.0)
 
       fact  = prec(100)
       zro   = prec(0)
@@ -673,6 +676,7 @@ function AssembleAdjointGLSparse(U,γ,μ0,μx,whichsrc,cnv,wlp,xm1,bm1,Basis,lx1
       Conv = spzeros(VT,dof,dof)
       Src  = spzeros(VT,dof,dof)
       Lap  = spzeros(VT,dof,dof)
+      SLap = spzeros(VT,dof,dof)
       Fd   = spzeros(VT,dof,dof)
       Binv = zeros(VT,lx1,nel);
 
@@ -703,7 +707,7 @@ function AssembleAdjointGLSparse(U,γ,μ0,μx,whichsrc,cnv,wlp,xm1,bm1,Basis,lx1
 #       Standard source term
         if (whichsrc==1)
           if i==1
-            @printf "Using Linear Decrease x/%3.2f for source term.\n" cx0 
+            @printf "Using Linear Decrease x/%3.2f for source term.\n" μx 
           end  
           μ   = (μ0' .- xm1[:,i]*μx')
         else
@@ -722,6 +726,7 @@ function AssembleAdjointGLSparse(U,γ,μ0,μx,whichsrc,cnv,wlp,xm1,bm1,Basis,lx1
         if i==nel
           Lap[j2,j2]      = Lap[j2,j2] - U/γ2
         end 
+        SLap[j1:j2,j1:j2] = gradx[:,:,i]*gradx[:,:,i]
 
 #       Sub matrix 
         subm = U.*cnv[:,:,i] + Mμ + γ2.*wlp[:,:,i];
@@ -741,7 +746,7 @@ function AssembleAdjointGLSparse(U,γ,μ0,μx,whichsrc,cnv,wlp,xm1,bm1,Basis,lx1
       end
 
       println("Adjoint Sparse Matrices Built")
-      return A, B, OP, Conv, Src, Lap, Fd
+      return A, B, OP, Conv, Src, Lap, Fd, SLap
 end
 #---------------------------------------------------------------------- 
 
