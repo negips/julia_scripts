@@ -142,6 +142,8 @@ r[1]  = prec(0)
 rview = view(r,1:ndof)
 oblique_removal!(rview,v1,w1,Bg)
 
+
+ifsave      = false
 ifarnoldi   = true
 ifoptimal   = false     # Calculate optimal responses
 ifadjoint   = false     # Superceded by ifoptimal
@@ -156,7 +158,6 @@ else
 end  
 verbosestep = arnstep #500
 nsteps      = 50000000
-ifsave      = false
 
 if (ifadjoint)
   Ω = conj.(Ω)
@@ -210,17 +211,19 @@ major_it    = 1
 
 
 # Build Forcing 
-temp        = SLap*(Q*v1)
-temp[1]     = 0.0
-g15         = temp - (Q*v1)*(Q*w1)'*(B.*temp)
-δ15         = w1'*QT*(B.*g15)
-g15_1       = QT*(B.*g15)
-
 temp        = Q*(xg.*v1)
-temp[1]     = 0.0
+#temp[1]     = 0.0
+α15         = (Q*w1)'*(B.*temp)
+g15         = temp - (Q*v1)*α15
+δ15         = w1'*QT*(B.*g15)
+g15_1       = Bgi.*(QT*(B.*g15))
+
+
+temp        = SLap*(Q*v1)
+#temp[1]     = 0.0
 g25         = temp - (Q*v1)*(Q*w1)'*(B.*temp)
 δ25         = w1'*QT*(B.*g25)
-g25_1       = QT*(B.*g25)
+g25_1       = Bgi.*(QT*(B.*g25))
 
 # Extended vector (for the resolvent calculations)
 v1E         = zeros(vt,ndofE)
@@ -287,8 +290,8 @@ while (~ifconv)
     OPg[1,1]            = one + im*zro        # Change operator for BC
     OPgE[1:ndof,1:ndof] = copy(OPg)
     OPgE[ndofE,ndofE]   = λ1
-#    OPgE[1:ndof,ndofE]  = copy(g15_1)
-    OPgE[1:ndof,ndofE]  = copy(g25_1)
+    OPgE[1:ndof,ndofE]  = copy(g15_1)
+#    OPgE[1:ndof,ndofE]  = copy(g25_1)
     OPgE[1,ndofE]       = zro
 
   end  
