@@ -10,7 +10,8 @@ using Random
 # using DoubleFloats
 using Printf
 using JLD2
-
+using Peaks
+using Statistics
 
 include("ArnUpd.jl")
 include("ArnIRst.jl")
@@ -68,7 +69,7 @@ R     = 1.0
 δγ    = -0.0*(exp(im*ϕ))
 γ     = γ + δγ
 
-δμx   = -0.1*(U/8)
+δμx   = -0.05*(U/8)
 μx    = μx + δμx
 
 Ω  = (μ0 .- U*U/(4.0*γ) .+ (γ*μx*μx)^(1.0/3.0)*ω)
@@ -125,7 +126,7 @@ rgba0 = cm(0)
 rgba1 = cm(1) 
 rgba2 = cm(2) 
 
-dt    = prec(0.0005)
+dt    = prec(0.001)
 
 bc    = zeros(vt,1,ndof);
 NGL(x)= NLGinzburgLandau(OPg,ones(vt,ndof),x,δ5,vt(0),vt(0),true,false)  
@@ -212,14 +213,43 @@ while (~ifconv)
 
 end       # while ... 
 
+if !ifconv
+  h3  = figure(num=3,figsize=[8.,6.]);
+  ax3 = gca()
+  ax3.plot(Time,real.(Hist))
+  ax3.set_xlabel(L"t",fontsize=lafs)
+  ax3.set_ylabel(L"A",fontsize=lafs)
+  
+  
+  # Frequency
+  peak_ind    = argmaxima(real.(Hist))
+  peak_times  = Time[peak_ind]
+  delta_times = diff(peak_times)
+  afreq       = 2.0*π./delta_times
+  npeaks      = length(afreq)
+  if npeaks > 9
+    ωend      = afreq[npeaks-9:npeaks]
+  else
+    ωend      = afreq
+    println("Not enough cycles: $npeaks")
+  end
+  
+  ωmean       = mean(ωend)
+  @printf("δμx: %.5f ; Ω: %.4e \n", δμx, ωmean)
 
-h3  = figure(num=3,figsize=[8.,6.]);
-ax3 = gca()
-ax3.plot(Time,real.(Hist))
-ax3.set_xlabel(L"t",fontsize=lafs)
-ax3.set_ylabel(L"A",fontsize=lafs)
+  δμx_v     = zeros(Float64,10)
+  Ω_v       = zeros(Float64,10)
+
+  δμx_v[2]  = -0.0125
+  Ω_v[2]    = 1.0519
+
+end
 
 println("Done.")
+
+
+
+
 
 
 
