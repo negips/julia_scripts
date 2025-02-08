@@ -66,10 +66,10 @@ R     = 1.0
 δ5    = (-1.0 + 1.0im)*0.1
 
 
-δγ    = -0.0*(exp(im*ϕ))
+δγ    = -0.025*(exp(im*0))
 γ     = γ + δγ
 
-δμx   = -0.05*(U/8)
+δμx   = -0.00*(U/8)
 μx    = μx + δμx
 
 Ω  = (μ0 .- U*U/(4.0*γ) .+ (γ*μx*μx)^(1.0/3.0)*ω)
@@ -97,14 +97,14 @@ rng   = MersenneTwister(1235)
 xg    = QT*(vimult.*Geom.xm1[:])
 vt    = VT
 
-v     = randn(vt,ndof)*0.1;
+v     = randn(vt,ndof)*1.0;
 
 ifplot      = true 
 verbose     = true
 nsteps      = 500000
 ifsave      = false
-plotstep    = 1000
-verbosestep = 1000
+plotstep    = 2000
+verbosestep = 2000
 histstep    = 10
 nhist       = Int(nsteps/histstep)
 
@@ -235,13 +235,37 @@ if !ifconv
   end
   
   ωmean       = mean(ωend)
-  @printf("δμx: %.5f ; Ω: %.4e \n", δμx, ωmean)
+  @printf("δμx : %.5f ; Ω: %.4e \n", δμx, ωmean)
+  @printf("δγ_r: %.5f ; Ω: %.4e \n", real(δγ), ωmean)
 
-  δμx_v     = zeros(Float64,10)
-  Ω_v       = zeros(Float64,10)
+  # Saved values
+  δμx_v     = zeros(Float64,7)
+  Ω_v1      = zeros(Float64,7)
 
-  δμx_v[2]  = -0.0125
-  Ω_v[2]    = 1.0519
+  δμx_v[1]  = -0.00313
+  Ω_v1[1]   =  1.0139
+ 
+  δμx_v[2]  = -0.00625
+  Ω_v1[2]   =  1.0272
+
+  δμx_v[3]  = -0.0125
+  Ω_v1[3]   =  1.0519
+
+  δμx_v[4]  = -0.01875
+  Ω_v1[4]   =  1.0753
+
+  δμx_v[5]  = -0.025
+  Ω_v1[5]   =  1.0977
+
+  δμx_v[6]  = -0.03125
+  Ω_v1[6]   =  1.1194
+
+  δμx_v[7]  = -0.0375
+  Ω_v1[7]   =  1.1403
+
+  δγ_v      = zeros(Float64,10)
+  Ω_v2      = zeros(Float64,10)
+
 
 end
 
