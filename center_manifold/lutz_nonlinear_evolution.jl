@@ -66,7 +66,7 @@ R     = 1.0
 δ5    = (-1.0 + 1.0im)*0.1
 
 
-δγ    = -0.025*(exp(im*0))
+δγ    = -0.10*(exp(im*0))
 γ     = γ + δγ
 
 δμx   = -0.00*(U/8)
@@ -155,7 +155,7 @@ while (~ifconv)
   global t, i
   global plr,pli
   global OPg
-  global hλ, ax2
+  global hλ, hv, ax2
 
   local β
 
@@ -204,6 +204,7 @@ while (~ifconv)
     dv   = abs(vmax-vmin)
     ax2.set_ylim((vmin,vmax))
 #    ax2.set_ylim((-dv,dv))
+    hv.show()    
    
   end 
   
@@ -266,7 +267,12 @@ if !ifconv
   δγ_v      = zeros(Float64,10)
   Ω_v2      = zeros(Float64,10)
 
+  δγ_v[1]   = -0.0250
+  Ω_v2[1]   =  1.0037
 
+  δγ_v[2]   = -0.0500
+  Ω_v2[2]   =  1.0081
+ 
 end
 
 println("Done.")
