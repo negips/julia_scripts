@@ -103,9 +103,11 @@ r = randn(vt,ndof)
 r     = (one+one*im)sin.(5*pi*xg[:])
 r[1]  = prec(0)
 
+
+ifsave      = true
 ifarnoldi   = true
 ifoptimal   = false     # Calculate optimal responses
-ifadjoint   = true     # Superceded by ifoptimal
+ifadjoint   = true      # Superceded by ifoptimal
 ifplot      = false 
 verbose     = true
 eigupd      = true
@@ -117,7 +119,6 @@ else
 end  
 verbosestep = arnstep #500
 nsteps      = 50000000
-ifsave      = false
 
 if (ifadjoint)
   Ω = conj.(Ω)
@@ -418,19 +419,19 @@ if (ifsave)
   if (ifconj)
     if (ifadjoint)
       fname = "adjoint_conj_GL_nev"*"$Nev"*".jld2"
-      save(fname,"evs",λ, "evec",eigvec);
     else
       fname = "direct_conj_GL_nev"*"$Nev"*".jld2"
-      save(fname,"evs",λ, "evec",eigvec);
     end
+    
+    save(fname,"evs",λ, "evec",eigvec);
   else
     if (ifadjoint)
       fname = "adjoint_GL_nev"*"$Nev"*".jld2"
-      save(fname,"evs",λ, "evec",eigvec);
     else
       fname = "direct_GL_nev"*"$Nev"*".jld2"
-      save(fname,"evs",λ, "evec",eigvec);
     end
+
+    save(fname,"evs",λ, "evec",eigvec);
   end
   println(fname*" saved.")
 end 

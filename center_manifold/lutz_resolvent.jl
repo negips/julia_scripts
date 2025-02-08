@@ -143,7 +143,8 @@ rview = view(r,1:ndof)
 oblique_removal!(rview,v1,w1,Bg)
 
 
-ifsave      = false
+ifg15       = false
+ifsave      = true
 ifarnoldi   = true
 ifoptimal   = false     # Calculate optimal responses
 ifadjoint   = false     # Superceded by ifoptimal
@@ -290,8 +291,11 @@ while (~ifconv)
     OPg[1,1]            = one + im*zro        # Change operator for BC
     OPgE[1:ndof,1:ndof] = copy(OPg)
     OPgE[ndofE,ndofE]   = λ1
-    OPgE[1:ndof,ndofE]  = copy(g15_1)
-#    OPgE[1:ndof,ndofE]  = copy(g25_1)
+    if (ifg15) 
+      OPgE[1:ndof,ndofE]  = copy(g15_1)
+    else  
+      OPgE[1:ndof,ndofE]  = copy(g25_1)
+    end  
     OPgE[1,ndofE]       = zro
 
   end  
@@ -503,7 +507,11 @@ if (ifsave)
       fname = "adjoint_GL_nev"*"$Nev"*".jld2"
       save(fname,"evs",λ, "evec",eigvec);
     else
-      fname = "direct_resolvent_GL_y25_nev"*"$Nev"*".jld2"
+      if (ifg15)
+        fname = "direct_resolvent_GL_y15_nev"*"$Nev"*".jld2"
+      else
+        fname = "direct_resolvent_GL_y25_nev"*"$Nev"*".jld2"
+      end  
       save(fname,"evs",λ, "evec",eigvec);
     end
   end

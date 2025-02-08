@@ -189,10 +189,10 @@ v1    = v1./α1
 α1    = (w1'*(Bg.*v1))'
 w1    = w1./α1
 
-α2    = v2'*(Bg.*v2)
-v2    = v2./α2
-α2    = (w2'*(Bg.*v2))'
-w2    = w2./α2
+# α2    = v2'*(Bg.*v2)
+# v2    = v2./α2
+# α2    = (w2'*(Bg.*v2))'
+# w2    = w2./α2
 
 
 # Plotting
@@ -246,6 +246,15 @@ z225        = (wl)'*(B.*(SLap*(y25l)))
 
 z555        = (wl)'*(B.*((conj.(vl).*vl).*vl))
 
+@printf("z_{15}  : %5.3f %5.3fi\n",real(z15) , imag(z15))
+@printf("z_{115} : %5.3f %5.3fi\n",real(z115), imag(z115))
+@printf("z_{125} : %5.3f %5.3fi\n",real(z125), imag(z125))
+
+@printf("z_{25}  : %5.3f %5.3fi\n",real(z25) , imag(z25))
+@printf("z_{215} : %5.3f %5.3fi\n",real(z215), imag(z215))
+@printf("z_{225} : %5.3f %5.3fi\n",real(z225), imag(z225))
+
+@printf("z_{555} : %5.3f %5.3fi\n",real(z555), imag(z555))
 
 # Spectra Plot
 
