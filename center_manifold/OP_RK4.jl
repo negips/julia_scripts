@@ -12,5 +12,18 @@ function OP_RK4!(OP,v,dt)
   v .= v .+ dt/six*(OP(v) .+ two*OP(v1) .+ two*OP(v2) .+ OP(v3))
 
   return v    
-end  
+end
+#---------------------------------------------------------------------- 
+function OP_RK4(OP,v::T,dt::Float64) where T <: Union{ComplexF64,Float64}
+
+  two = T(2)
+  six = T(6)
+
+  v1 = v + dt/two*OP(v)
+  v2 = v + dt/two*OP(v1)
+  v3 = v + dt*OP(v2)
+  v  = v + dt/six*(OP(v) + two*OP(v1) + two*OP(v2) + OP(v3))
+
+  return v    
+end
 

@@ -12,6 +12,8 @@ using Random
 using Printf
 using JLD2
 using IterativeSolvers
+using Peaks
+using Statistics
 
 
 include("ArnUpd.jl")
@@ -21,6 +23,7 @@ include("BulgeChase.jl")
 include("IRAM.jl")
 #include("RK4.jl")
 include("$JULIACOMMON/RK4.jl")
+include("OP_RK4.jl")
 
 close("all")
 
@@ -56,6 +59,7 @@ R     = 1.0
 γ     = R*exp(im*ϕ)
 μx    = U/8.0 
 μ0    = Ω0 + (U^2)/(4.0*γ) - ((γ*μx*μx)^(1.0/3.0))*ω1 
+δ5    = (-1.0 + 1.0im)*0.1
 
 ifconj = false
 if (ifconj)
@@ -282,7 +286,211 @@ pleg = legend(loc="center left",fontsize=12)
 hλ.savefig("GL_spectra.eps")
 
 
+#---------------------------------------------------------------------- 
+function StuartLandau(Z::T,ω,μ1,μ2,δ5,z1,z11,z12,z2,z22,z21,zzz) where {T <: Number}
 
+  DZ = T(0)
+  DZ = ω*Z + μ1*z1*Z + (μ1^2)*z11*Z + μ1*μ2*(z12 + z21)*Z + μ2*z2*Z + (μ2^2)*z22*Z + δ5*zzz*conj.(Z).*Z.*Z
+
+  return DZ
+end
+#---------------------------------------------------------------------- 
+
+ωc           = Ω[1]
+SLμ(x,μ1,μ2) = StuartLandau(x,ωc,μ1,μ2,δ5,z15,z115,z125,z25,z225,z215,z555) 
+
+
+# Saved values (Ginzburg-Landau)
+#-------------------------------------------------- 
+δμx_v     = zeros(Float64,7)
+Ω_v1      = zeros(Float64,7)
+
+δμx_v[1]  = -0.00313
+Ω_v1[1]   =  1.0139
+
+δμx_v[2]  = -0.00625
+Ω_v1[2]   =  1.0272
+
+δμx_v[3]  = -0.0125
+Ω_v1[3]   =  1.0519
+
+δμx_v[4]  = -0.01875
+Ω_v1[4]   =  1.0753
+
+δμx_v[5]  = -0.025
+Ω_v1[5]   =  1.0977
+
+δμx_v[6]  = -0.03125
+Ω_v1[6]   =  1.1194
+
+δμx_v[7]  = -0.0375
+Ω_v1[7]   =  1.1403
+
+δγ_v      = zeros(Float64,10)
+Ω_v2      = zeros(Float64,10)
+
+δγ_v[1]   = -0.0250
+Ω_v2[1]   =  1.0037
+
+δγ_v[2]   = -0.0500
+Ω_v2[2]   =  1.0081
+
+δγ_v[3]   = -0.1000
+Ω_v2[3]   =  1.0174
+
+δγ_v[4]   = -0.1500
+Ω_v2[4]   =  1.0278
+
+δγ_v[5]   = -0.2000
+Ω_v2[5]   =  1.0401
+
+δγ_v[6]   = -0.2500
+Ω_v2[6]   =  1.0542
+
+δγ_v[7]   = -0.3000
+Ω_v2[7]   =  1.0708
+
+δγ_v[8]   = -0.3500
+Ω_v2[8]   =  1.0899
+
+δγ_v[9]   = -0.4000
+Ω_v2[9]   =  1.1117
+
+δγ_v[10]  = -0.4500
+Ω_v2[10]  =  1.1368
+#-------------------------------------------------- 
+
+# μ' variation
+@printf("\n μ' variation: δ'_{3} \n")
+
+dt          = 0.001
+nsteps      = 1000000
+histstep    = 10
+nhist       = Int(nsteps/histstep)
+
+zhist       = zeros(vt,nhist)
+Time        = zeros(Float64,nhist)
+
+t = 0.0
+z = vt(0.01)
+
+SL_Ω_v1     = 0.0*Ω_v1
+
+for jj in 1:length(δμx_v)
+
+  global z,t
+  
+  δμ1         = -δμx_v[jj]
+  δμ2         = 0.0
+  SL(x)       = SLμ(x,δμ1,δμ2)
+  
+  t = 0.0
+  z = vt(0.01)
+  for i in 1:nsteps
+  
+    t = t + dt
+    z = OP_RK4(SL,z,dt)
+  
+    if (mod(i,histstep) == 0)
+      j = Int(i/histstep)
+      zhist[j] = z
+      Time[j] = t
+    end  
+  
+  end
+
+  # Frequency
+  peak_ind    = argmaxima(real.(zhist))
+  peak_times  = Time[peak_ind]
+  delta_times = diff(peak_times)
+  afreq       = 2.0*π./delta_times
+  npeaks      = length(afreq)
+  if npeaks > 9
+    ωend      = afreq[npeaks-9:npeaks]
+  else
+    ωend      = afreq
+    println("Not enough cycles: $npeaks")
+  end
+
+  ωmean       = mean(ωend)
+  @printf("δμx : %.5f ; Ω: %.4e; ΩGL: %.4e \n", δμ1, ωmean, Ω_v1[jj])
+  SL_Ω_v1[jj] = ωmean
+end
+
+h4  = figure(num=4,figsize=[8.0,7.0])
+ax4 = gca() 
+ax4.plot(-δμx_v/abs(μx),Ω_v1,linestyle="none",marker="o",markersize=8,label="Ginzburg-Landau")
+rcParams["markers.fillstyle"] = "none"
+ax4.plot(-δμx_v/abs(μx),SL_Ω_v1,linestyle="none",marker="s",markersize=8,label="Center-Manifold")
+rcParams["markers.fillstyle"] = "full"
+
+ax4.set_ylabel(L"Ω",fontsize=18)
+ax4.set_xlabel(L"δ'_{3}/|δ^{0}_{3}|",fontsize=18)
+pleg4 = legend(loc="upper left",fontsize=12)
+h4.savefig("center_manifold_omega1.eps")
+
+
+# Viscosity variation
+@printf("\n γ (viscosity) variation: δ'_{4} \n")
+nsteps      = 2000000
+nhist       = Int(nsteps/histstep)
+
+zhist       = zeros(vt,nhist)
+Time        = zeros(Float64,nhist)
+
+SL_Ω_v2     = 0.0*Ω_v2
+
+for jj in 1:length(δγ_v)
+
+  global z,t
+  
+  δμ1         = 0.0
+  δμ2         = δγ_v[jj]
+  SL(x)       = SLμ(x,δμ1,δμ2)
+  
+  t = 0.0
+  z = vt(0.01)
+  for i in 1:nsteps
+  
+    t = t + dt
+    z = OP_RK4(SL,z,dt)
+  
+    if (mod(i,histstep) == 0)
+      j = Int(i/histstep)
+      zhist[j] = z
+      Time[j] = t
+    end  
+  
+  end
+
+  # Frequency
+  peak_ind    = argmaxima(real.(zhist))
+  peak_times  = Time[peak_ind]
+  delta_times = diff(peak_times)
+  afreq       = 2.0*π./delta_times
+  npeaks      = length(afreq)
+  if npeaks > 9
+    ωend      = afreq[npeaks-9:npeaks]
+  else
+    ωend      = afreq
+    println("Not enough cycles: $npeaks")
+  end
+
+  ωmean       = mean(ωend)
+  @printf("δγ : %.5f ; Ω: %.4e; ΩGL: %.4e \n", -δμ2, ωmean, Ω_v2[jj])
+  SL_Ω_v2[jj] = ωmean
+end
+
+h5  = figure(num=5,figsize=[8.0,7.0])
+ax5 = gca() 
+ax5.plot(-δγ_v/abs(γ),Ω_v2,linestyle="none",marker="o",markersize=8,label="Ginzburg-Landau")
+rcParams["markers.fillstyle"] = "none"
+ax5.plot(-δγ_v/abs(γ),SL_Ω_v2,linestyle="none",marker="s",markersize=8,label="Center-Manifold")
+rcParams["markers.fillstyle"] = "full"
+ax5.set_ylabel(L"Ω",fontsize=18)
+ax5.set_xlabel(L"-δ'_{4}/|δ^{0}_{4}|",fontsize=18)
+pleg5 = legend(loc="upper left",fontsize=12)
+h5.savefig("center_manifold_omega2.eps")
 
 println("Done.")
 
