@@ -13,6 +13,7 @@ using PolynomialBases
 prec  = Float64
 
 VT  = Complex{prec}
+#VT  = Float64
 
 one = prec(1.0)
 zro = prec(0.0)
