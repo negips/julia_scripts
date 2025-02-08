@@ -219,11 +219,11 @@ pw2         = ax3.plot(xg,imag.(w1),linestyle="--",color=c_map(1)) #
 # pw3         = ax3.plot(xg,real.(w2),linestyle="--",color=c_map(3),label="W2(x)")
 # pw4         = ax3.plot(xg,imag.(w2),linestyle="-.",color=c_map(3)) # ,label="ϕ$(j)(x)")
 
-py15_1      = ax3.plot(xg,real.(y15),linestyle="-",color=c_map(2),label=L"\mathfrak{R}(y_{15})")
+py15_1      = ax3.plot(xg,real.(y15),linestyle="-",color=c_map(2),label=L"\mathfrak{R}(y^{1}_{15})")
 #py15_2      = ax3.plot(xg,imag.(y15),linestyle="-.",color=c_map(2),label=L"\mathfrak{Im}(y_{15})") #
 py15_2      = ax3.plot(xg,imag.(y15),linestyle="--",color=c_map(2)) #
 
-py25_1      = ax3.plot(xg,real.(y25),linestyle="-",color=c_map(3),label=L"\mathfrak{R}(y_{25})")
+py25_1      = ax3.plot(xg,real.(y25),linestyle="-",color=c_map(3),label=L"\mathfrak{R}(y^{1}_{25})")
 #py25_2      = ax3.plot(xg,imag.(y25),linestyle="-.",color=c_map(3),label=L"\mathfrak{Im}(y_{25})") #
 py25_2      = ax3.plot(xg,imag.(y25),linestyle="--",color=c_map(3)) #
 
@@ -302,62 +302,68 @@ SLμ(x,μ1,μ2) = StuartLandau(x,ωc,μ1,μ2,δ5,z15,z115,z125,z25,z225,z215,z55
 
 # Saved values (Ginzburg-Landau)
 #-------------------------------------------------- 
-δμx_v     = zeros(Float64,7)
-Ω_v1      = zeros(Float64,7)
+δμx_v     = zeros(Float64,8)
+Ω_v1      = zeros(Float64,8)
 
-δμx_v[1]  = -0.00313
-Ω_v1[1]   =  1.0139
+δμx_v[1]  = -0.0000
+Ω_v1[1]   =  1.0000
 
-δμx_v[2]  = -0.00625
-Ω_v1[2]   =  1.0272
+δμx_v[2]  = -0.00313
+Ω_v1[2]   =  1.0139
 
-δμx_v[3]  = -0.0125
-Ω_v1[3]   =  1.0519
+δμx_v[3]  = -0.00625
+Ω_v1[3]   =  1.0272
 
-δμx_v[4]  = -0.01875
-Ω_v1[4]   =  1.0753
+δμx_v[4]  = -0.0125
+Ω_v1[4]   =  1.0519
 
-δμx_v[5]  = -0.025
-Ω_v1[5]   =  1.0977
+δμx_v[5]  = -0.01875
+Ω_v1[5]   =  1.0753
 
-δμx_v[6]  = -0.03125
-Ω_v1[6]   =  1.1194
+δμx_v[6]  = -0.025
+Ω_v1[6]   =  1.0977
 
-δμx_v[7]  = -0.0375
-Ω_v1[7]   =  1.1403
+δμx_v[7]  = -0.03125
+Ω_v1[7]   =  1.1194
 
-δγ_v      = zeros(Float64,10)
-Ω_v2      = zeros(Float64,10)
+δμx_v[8]  = -0.0375
+Ω_v1[8]   =  1.1403
 
-δγ_v[1]   = -0.0250
-Ω_v2[1]   =  1.0037
+δγ_v      = zeros(Float64,11)
+Ω_v2      = zeros(Float64,11)
 
-δγ_v[2]   = -0.0500
-Ω_v2[2]   =  1.0081
+δγ_v[1]   = -0.0000
+Ω_v2[1]   =  1.0000
 
-δγ_v[3]   = -0.1000
-Ω_v2[3]   =  1.0174
+δγ_v[2]   = -0.0250
+Ω_v2[2]   =  1.0037
 
-δγ_v[4]   = -0.1500
-Ω_v2[4]   =  1.0278
+δγ_v[3]   = -0.0500
+Ω_v2[3]   =  1.0081
 
-δγ_v[5]   = -0.2000
-Ω_v2[5]   =  1.0401
+δγ_v[4]   = -0.1000
+Ω_v2[4]   =  1.0174
 
-δγ_v[6]   = -0.2500
-Ω_v2[6]   =  1.0542
+δγ_v[5]   = -0.1500
+Ω_v2[5]   =  1.0278
 
-δγ_v[7]   = -0.3000
-Ω_v2[7]   =  1.0708
+δγ_v[6]   = -0.2000
+Ω_v2[6]   =  1.0401
 
-δγ_v[8]   = -0.3500
-Ω_v2[8]   =  1.0899
+δγ_v[7]   = -0.2500
+Ω_v2[7]   =  1.0542
 
-δγ_v[9]   = -0.4000
-Ω_v2[9]   =  1.1117
+δγ_v[8]   = -0.3000
+Ω_v2[8]   =  1.0708
 
-δγ_v[10]  = -0.4500
-Ω_v2[10]  =  1.1368
+δγ_v[9]   = -0.3500
+Ω_v2[9]   =  1.0899
+
+δγ_v[10]  = -0.4000
+Ω_v2[10]  =  1.1117
+
+δγ_v[11]  = -0.4500
+Ω_v2[11]  =  1.1368
 #-------------------------------------------------- 
 
 # μ' variation
@@ -375,8 +381,9 @@ t = 0.0
 z = vt(0.01)
 
 SL_Ω_v1     = 0.0*Ω_v1
+SL_Ω_v1[1]  = 1.0
 
-for jj in 1:length(δμx_v)
+for jj in 2:length(δμx_v)
 
   global z,t
   
@@ -439,8 +446,9 @@ zhist       = zeros(vt,nhist)
 Time        = zeros(Float64,nhist)
 
 SL_Ω_v2     = 0.0*Ω_v2
+SL_Ω_v2[1]  = 1.0
 
-for jj in 1:length(δγ_v)
+for jj in 2:length(δγ_v)
 
   global z,t
   
