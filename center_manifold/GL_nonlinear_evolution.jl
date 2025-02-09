@@ -29,9 +29,9 @@ lafs        = 16
 lgfs        = 12
 
 # Ifglobal
-ifglobal = true
+ifglobal    = true
 
-rcParams = PyPlot.PyDict(PyPlot.matplotlib."rcParams")
+rcParams    = PyPlot.PyDict(PyPlot.matplotlib."rcParams")
 
 # Analytical Eigenvalues
 ω1    = find_zero(airyai,(-3.0,-0.0))
@@ -50,7 +50,7 @@ rcParams = PyPlot.PyDict(PyPlot.matplotlib."rcParams")
 ω14   = find_zero(airyai,(-16.8,-15.8))
 ω15   = find_zero(airyai,(-17.5,-16.8))
 
-ω  = [ω1, ω2, ω3, ω4, ω5, ω6, ω7, ω8, ω9, ω10, ω11, ω12, ω13, ω14, ω15]
+ω     = [ω1, ω2, ω3, ω4, ω5, ω6, ω7, ω8, ω9, ω10, ω11, ω12, ω13, ω14, ω15]
 #Ω  = im*(U*U/8.0 .- U*U/(4.0*γ) .+ γ^(1.0/3.0)*(U^(4.0/3.0))/(160.0^(2.0/3.0))*ω)
 
 # Ginzburg Landau Parameters
@@ -67,13 +67,13 @@ R     = 1.0
 δ5    = (-1.0 + 0.0im)*0.1
 
 
-δγ    = 0.10*(exp(im*0))
+δγ    = 0.0*(exp(im*0))
 γ     = γ + δγ
 
 δμx   = -0.00*(U/8)
 μx    = μx + δμx
 
-Ω  = (μ0 .- U*U/(4.0*γ) .+ (γ*μx*μx)^(1.0/3.0)*ω)
+Ω     = (μ0 .- U*U/(4.0*γ) .+ (γ*μx*μx)^(1.0/3.0)*ω)
 
 
 rcParams["markers.fillstyle"] = "none"
@@ -98,16 +98,17 @@ rng   = MersenneTwister(1235)
 xg    = QT*(vimult.*Geom.xm1[:])
 vt    = VT
 
-v     = randn(vt,ndof)*1.0;
+#v     = randn(vt,ndof)*1.0;
+v     = 1.0*exp.(-(xg.-5.75).^2)
 v     = v .+ conj.(v)
 
 ifplot      = true 
 verbose     = true
-nsteps      = 1500000
-ifsave      = false
+nsteps      = 10000000
+ifsave      = true
 plotstep    = 20000
 verbosestep = 20000
-histstep    = 10
+histstep    = 1000
 nhist       = Int(nsteps/histstep)
 
 Hist        = zeros(vt,nhist)
@@ -276,6 +277,13 @@ if !ifconv
 #  Ω_v2[2]   =  1.0081
  
 end
+
+
+if (ifsave)
+  fname = "GL_BaseState5.jld2"
+  save(fname,"xg",xg,"basestate",v,"U",U,"γ",γ,"μx",μx,"μ0",μ0,"δ5",δ5,"δγ",δγ,"δμx",δμx);
+  println(fname*" saved.")
+end 
 
 println("Done.")
 

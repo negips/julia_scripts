@@ -27,6 +27,9 @@ include("OP_RK4.jl")
 
 close("all")
 
+lgfs = 14
+lafs = 18
+
 # Ifglobal
 ifglobal = true
 
@@ -227,10 +230,10 @@ py25_1      = ax3.plot(xg,real.(y25),linestyle="-",color=c_map(3),label=L"\mathf
 #py25_2      = ax3.plot(xg,imag.(y25),linestyle="-.",color=c_map(3),label=L"\mathfrak{Im}(y_{25})") #
 py25_2      = ax3.plot(xg,imag.(y25),linestyle="--",color=c_map(3)) #
 
-ax3.set_xlabel(L"x",fontsize=16)
-ax3.set_ylabel(L"A",fontsize=16)
+ax3.set_xlabel(L"x",fontsize=lafs)
+ax3.set_ylabel(L"A",fontsize=lafs)
 
-legend(fontsize=14)
+legend(fontsize=lgfs)
 hev.savefig("GL_fields.eps")
 #---------------------------------------------------------------------- 
 
@@ -265,7 +268,7 @@ z555        = (wl)'*(B.*((conj.(vl).*vl).*vl))
 # Plots
 #-------------------------------------------------- 
 rcParams["markers.fillstyle"] = "none"
-hλ          = figure(num=1,figsize=[6.0,5.]);
+hλ          = figure(num=1,figsize=[8.0,6.0]);
 ax1         = gca()
 nω          = 10
 pΛ1         = ax1.plot(imag.(Ω[1:nω]),real.(Ω[1:nω]),linestyle="none",marker="o",markersize=8,label="Analytical - [0,∞)")
@@ -280,9 +283,9 @@ rcParams["markers.fillstyle"] = "full"
 # Arnoldi Eigenvalues
 λ           = Dir["evs"]
 pΛ2         = ax1.plot(imag.(λ),real.(λ),linestyle="none",marker="o",markersize=4,label="Numerical - [0,40]")
-ax1.set_xlabel(L"\mathfrak{Im}(ω)",fontsize=18)
-ax1.set_ylabel(L"\mathfrak{R}(ω)",fontsize=18)
-pleg = legend(loc="center left",fontsize=12)
+ax1.set_xlabel(L"\mathfrak{Im}(ω)",fontsize=lafs)
+ax1.set_ylabel(L"\mathfrak{R}(ω)",fontsize=lafs)
+pleg = legend(loc="center left",fontsize=lgfs)
 hλ.savefig("GL_spectra.eps")
 
 
@@ -424,16 +427,16 @@ for jj in 2:length(δμx_v)
   SL_Ω_v1[jj] = ωmean
 end
 
-h4  = figure(num=4,figsize=[8.0,7.0])
+h4  = figure(num=4,figsize=[8.0,6.0])
 ax4 = gca() 
 ax4.plot(-δμx_v/abs(μx),Ω_v1,linestyle="none",marker="o",markersize=8,label="Ginzburg-Landau")
 rcParams["markers.fillstyle"] = "none"
 ax4.plot(-δμx_v/abs(μx),SL_Ω_v1,linestyle="none",marker="s",markersize=8,label="Center-Manifold")
 rcParams["markers.fillstyle"] = "full"
 
-ax4.set_ylabel(L"Ω",fontsize=18)
-ax4.set_xlabel(L"δ'_{3}/|δ^{0}_{3}|",fontsize=18)
-pleg4 = legend(loc="upper left",fontsize=12)
+ax4.set_ylabel(L"Ω",fontsize=lafs)
+ax4.set_xlabel(L"δ'_{3}/|δ^{0}_{3}|",fontsize=lafs)
+pleg4 = legend(loc="upper left",fontsize=lgfs)
 h4.savefig("center_manifold_omega1.eps")
 
 
@@ -489,15 +492,15 @@ for jj in 2:length(δγ_v)
   SL_Ω_v2[jj] = ωmean
 end
 
-h5  = figure(num=5,figsize=[8.0,7.0])
+h5  = figure(num=5,figsize=[8.0,6.0])
 ax5 = gca() 
 ax5.plot(-δγ_v/abs(γ),Ω_v2,linestyle="none",marker="o",markersize=8,label="Ginzburg-Landau")
 rcParams["markers.fillstyle"] = "none"
 ax5.plot(-δγ_v/abs(γ),SL_Ω_v2,linestyle="none",marker="s",markersize=8,label="Center-Manifold")
 rcParams["markers.fillstyle"] = "full"
-ax5.set_ylabel(L"Ω",fontsize=18)
-ax5.set_xlabel(L"-δ'_{4}/|δ^{0}_{4}|",fontsize=18)
-pleg5 = legend(loc="upper left",fontsize=12)
+ax5.set_ylabel(L"Ω",fontsize=lafs)
+ax5.set_xlabel(L"-δ'_{4}/|δ^{0}_{4}|",fontsize=lafs)
+pleg5 = legend(loc="upper left",fontsize=lgfs)
 h5.savefig("center_manifold_omega2.eps")
 
 println("Done.")
