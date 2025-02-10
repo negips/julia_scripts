@@ -181,10 +181,13 @@ pcm   = pcolormesh(x2d,t2d,fldhist[:,:,2])
 pcm.set_cmap(cm2)
 ax3   = h3.gca()
 ax3.invert_yaxis()
+ax3.set_ylabel("t",fontsize=lafs)
+ax3.set_xlabel("x",fontsize=lafs)
 # cb    = colorbar(orientation="vertical")
 if (ifsavext)
   fname3 = @sprintf "./plots/spacetime"
   h3.savefig(fname3)
+  println("Saved Figure "*fname3)
 end  
 
 #surf(t2d,x2d,fldhist[:,:,2],cmap=cm2,edgecolor="none")

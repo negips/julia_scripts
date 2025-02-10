@@ -29,8 +29,11 @@ Rhslag      = zeros(VT,ndof,2,nflds)
 
 #fld[:,1]    = ampB0*ainit .+ B0Off .+ σbi*(rand(ndof) .- 0.5)
 #fld[:,2]    = ampA0*binit .+ A0Off .+ σai*(rand(ndof) .- 0.5)
+
+#rng         = MersenneTwister(1230) # for D=2.0
+rng         = MersenneTwister(1234) # for D=40.0
 for j in 1:nflds
-  fld[:,j]    = Amp0[j]*ainit .+ Off0[j] .+ σ0i[j]*(rand(ndof) .- 0.5)
+  fld[:,j]    = Amp0[j]*ainit .+ Off0[j] .+ σ0i[j]*(rand(rng,ndof) .- 0.5)
 end  
 
 

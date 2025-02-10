@@ -32,6 +32,10 @@ A_sen = Asen*Vol
 abar_hist = zeros(Float64,nsteps)
 γ_hist    = zeros(Float64,nsteps)
 
+γhist       = zeros(VT,nsurf_save)
+Abarhist    = zeros(VT,nsurf_save)
+γhist[1]    = γ
+Abarhist[1] = (Bg'*fld[:,2])/A_sen - Aeq
 
 for i in 1:nsteps
   global fld,fldlag,Rhs,Rhslag,dotfld
@@ -106,6 +110,10 @@ for i in 1:nsteps
     for j in 1:nflds
       fldhist[:,k,j] = Q*fld[:,j]
     end
+
+    γhist[k]   = γ
+    Abarhist[k]= abar
+   
   end  
 
   if ifplot && mod(i,plotupd)==0
@@ -197,11 +205,29 @@ ax3.invert_yaxis()
 if (ifsavext)
   fname3 = @sprintf "./plots/spacetime"
   h3.savefig(fname3)
+  println("Saved Figure "*fname3)
 end  
 
+h5,(ax5,ax6) = subplots(1,2,sharey=true,figsize=[8.0,8.0])
+ax5.set_position([0.125, 0.10, 0.55, 0.8])
+ax6.set_position([0.700, 0.10, 0.20, 0.8])
+sca(ax5)
+pcm   = pcolormesh(x2d,t2d,fldhist[:,:,2])
+pcm.set_cmap(cm2)
+ax5.set_ylabel("t",fontsize=lafs)
+ax5.set_xlabel("x",fontsize=lafs)
+ax5.invert_yaxis()
 
-figure(num=4)
-plot(abar_hist,γ_hist)
+ax6.plot(γhist,Thist,linewidth=2,color=cm(3))
+ax6.set_xlabel("λ",fontsize=lafs)
+if (ifsavext)
+  fname4   = @sprintf "./plots/spacetime2"
+  h5.savefig(fname4)
+  println("Saved Figure "*fname4)
+end  
+
+#figure(num=4)
+#plot(abar_hist,γ_hist)
 
 #surf(t2d,x2d,fldhist[:,:,2],cmap=cm2,edgecolor="none")
 #ax3.elev = 94.0

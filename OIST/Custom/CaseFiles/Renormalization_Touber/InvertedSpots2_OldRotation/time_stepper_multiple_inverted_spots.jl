@@ -181,10 +181,13 @@ pcm   = pcolormesh(x2d,t2d,fldhist[:,:,2])
 pcm.set_cmap(cm2)
 ax3   = h3.gca()
 ax3.invert_yaxis()
+ax3.set_ylabel("t",fontsize=lafs)
+ax3.set_xlabel("x",fontsize=lafs)
 # cb    = colorbar(orientation="vertical")
 if (ifsavext)
   fname3 = @sprintf "./plots/spacetime"
   h3.savefig(fname3)
+  println("Saved Figure "*fname3)
 end  
 
 h5    = figure(num=5)
@@ -198,6 +201,7 @@ ax5.set_ylabel("λ",fontsize=lafs)
 if (ifsavext)
   fname5 = @sprintf "./plots/lambda_spatial_inverted_spots.eps"
   h5.savefig(fname5)
+  println("Saved Figure "*fname5)
 end  
 
 
