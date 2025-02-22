@@ -200,18 +200,22 @@ if (ifsavext)
 end  
 
 
-h5,(ax5,ax6) = subplots(1,2,sharey=true,figsize=[8.0,8.0])
-ax5.set_position([0.125, 0.10, 0.55, 0.8])
-ax6.set_position([0.700, 0.10, 0.20, 0.8])
+h5,(ax5,ax6) = subplots(1,2,sharey=true,figsize=[8.0,8.0],gridspec_kw=Dict("width_ratios"=>[3, 1]),layout="constrained")
+#ax5.set_position([0.125, 0.10, 0.55, 0.8])
+#ax6.set_position([0.700, 0.10, 0.20, 0.8])
+
 sca(ax5)
 pcm   = pcolormesh(x2d,t2d,fldhist[:,:,2])
 pcm.set_cmap(cm2)
 ax5.set_ylabel("t",fontsize=lafs)
 ax5.set_xlabel("x",fontsize=lafs)
 ax5.invert_yaxis()
+cb    = colorbar(location="top")
 
 ax6.plot(γhist,Thist,linewidth=2,color=cm(3))
 ax6.set_xlabel("λ",fontsize=lafs)
+
+
 if (ifsavext)
   fname4   = @sprintf "./plots/spacetime2"
   h5.savefig(fname4)
