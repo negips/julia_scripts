@@ -62,15 +62,15 @@ R     = 1.0
 γ_0   = R*exp(im*ϕ)
 γ     = copy(γ_0)
 
-μx_0  = U/8.0 
-μx    = copy(μx_0)
+μx_0  = -U/8.0 
+μx    =  copy(μx_0)
 
 μ0    = Ω0 + (U^2)/(4.0*γ) - ((γ*μx*μx)^(1.0/3.0))*ω1
 δ5    = (-1.0 + 1.0im)*0.1
 
 Ω     = (μ0 .- U*U/(4.0*γ) .+ (γ*μx*μx)^(1.0/3.0)*ω)
 
-nγ    = 1
+nγ    = 20
 if nγ == 1
   δγ_v  = zeros(Float64,1)
 else
@@ -78,17 +78,17 @@ else
 end  
 
 
-nμx   = 10
+nμx   = 20
 if nμx == 1
   δμx_v = zeros(Float64,1) 
 else
   δμx_v = LinRange(0.0,0.25,nμx)*abs(μx_0)
 end  
 
-ifplot      = true
+ifplot      = false
 verbose     = false
-nsteps      = 200000
-ifsave      = false
+nsteps      = 300000
+ifsave      = true
 plotstep    = 2000
 verbosestep = 2000
 histstep    = 10
@@ -112,9 +112,9 @@ for iμ in 1:nμx
   global γ, μx
   
   δγ  = -δγ_v[iγ]
-  δμx = -δμx_v[iμ]
+  δμx =  δμx_v[iμ]
 
-  @printf("\nδμx : %.5f ; δγ_r: %.5f \n\n", δμx, real(δγ))
+  @printf("\n(%2d,%2d): δμx : %.5f ; δγ_r: %.5f \n\n", iγ, iμ, δμx, real(δγ))
 
   γ   = γ_0  + δγ
   μx  = μx_0 + δμx
@@ -193,7 +193,6 @@ for iμ in 1:nμx
     end 
   
   end       # i in 1:nsteps 
-
   
   
   # Frequency
@@ -216,6 +215,14 @@ for iμ in 1:nμx
 
 end   # iμ  
 end   # iγ  
+
+
+if (ifsave)
+  fname = "GL_omega_parametric.jld2"
+  save(fname,"U",U,"γ_0",γ_0,"μx_0",μx_0,"μ0",μ0,"δ5",δ5,"Ω0",Ω0,"δγ_v",δγ_v,"δμx_v",δμx_v,"ω_matrix",ω_matrix);
+  println(fname*" saved.")
+end 
+
 
 println("Done.")
 

@@ -12,7 +12,7 @@ include("sem_geom.jl")
 
 include("AssembleMatrix.jl")
 
-include("AssembleMatrixLesshafft.jl")
+include("AssembleMatrixGinzburgLandau.jl")
 
 include("AssembleMatrixModifiedDiffusion.jl")
 
@@ -44,19 +44,11 @@ whichsrc    = 1               # 1: Linear Decrease; 2: Tanh(x) saturation
 ifsparse  = true
 ifmoddiff = false
 if (ifsparse)
-  if (ifmoddiff)
-#   Diffusion without integration by parts    
-    L,B,OP,Conv,Src,Lap,Fd = AssembleMatrixModDiffSparse(U,γ,c0,cx0,whichsrc,Geom.cnv,Geom.lap,Geom.xm1,Geom.bm1,Basis,lx1,nel,prec);
-
-    AL,AB,AOP,AConv,ASrc,ALap,AFd = AssembleAdjointModDiffSparse(U,γ,c0,cx0,whichsrc,Geom.cnv,Geom.lap,Geom.xm1,Geom.bm1,Basis,lx1,nel,prec);
-
-  else
 #   Diffusion term with integration by parts    
 #    L,B,OP,Conv,Src,Lap,Fd = AssembleMatrixLesshafftSparse(U,γ,c0,cx0,whichsrc,Geom.cnv,Geom.wlp,Geom.xm1,Geom.bm1,Basis,lx1,nel,prec);
     L,B,OP,Conv,Src,Lap,Fd,SLap = AssembleMatrixGLSparse(U,γ,μ0,μx,whichsrc,Geom.gradx,Geom.cnv,Geom.wlp,Geom.xm1,Geom.bm1,Basis,lx1,nel,prec);
 
     AL,AB,AOP,AConv,ASrc,ALap,AFd,SLap = AssembleAdjointGLSparse(U,γ,μ0,μx,whichsrc,Geom.gradx,Geom.cnv,Geom.wlp,Geom.xm1,Geom.bm1,Basis,lx1,nel,prec);
-  end
 else
   L,B,OP,Conv,Src,Lap,Fd = AssembleMatrixLesshafft2(U,γ,c0,Geom.cnv,Geom.wlp,Geom.xm1,Geom.bm1,Basis,lx1,nel,prec);
 end  
