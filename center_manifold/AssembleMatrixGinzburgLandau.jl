@@ -80,7 +80,7 @@ function AssembleMatrixGLSparse(U,γ,μ0,μx,whichsrc,gradx,cnv,wlp,xm1,bm1,Basi
 #       Standard source term
         if (whichsrc==1)
           if (i==1)
-            @printf "Using Linear Decrease x/%3.2f for source term.\n" abs(μx)
+            @printf "Using Linear Decrease x/%4.3f for source term.\n" abs(μx)
           end  
           μ   = (μ0 .+ xm1[:,i]*μx)
         else
@@ -206,7 +206,7 @@ function AssembleAdjointGLSparse(U,γ,μ0,μx,whichsrc,gradx,cnv,wlp,xm1,bm1,Bas
 #       Standard source term
         if (whichsrc==1)
           if i==1
-            @printf "Using Linear Decrease x/%3.2f for source term.\n" abs(μx)
+            @printf "Using Linear Decrease x/%4.3f for source term.\n" abs(μx)
           end  
           μ   = (μ0' .+ xm1[:,i]*μx')
         else
