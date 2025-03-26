@@ -87,12 +87,10 @@ end
 
 ifplot      = false
 verbose     = false
-nsteps      = 300000
 ifsave      = true
 plotstep    = 2000
 verbosestep = 2000
 histstep    = 10
-nhist       = Int(nsteps/histstep)
 
 if (ifplot)
   hv  = figure(num=2,figsize=[8.,6.]);
@@ -101,20 +99,21 @@ if (ifplot)
   ax2.set_ylabel(L"A",fontsize=lafs)
 end
 
-ω_matrix    = zeros(Float64,nγ,nμx)
+#ω_matrix    = zeros(Float64,nγ,nμx)
+#ω_std       = zeros(Float64,nγ,nμx)
 
 for iγ in 1:nγ
 for iμ in 1:nμx
 
   global hv
   global ax2
-  global ω_matrix
+  global ω_matrix,ω_std
   global γ, μx
   
   δγ  = -δγ_v[iγ]
   δμx =  δμx_v[iμ]
 
-  @printf("\n(%2d,%2d): δμx : %.5f ; δγ_r: %.5f \n\n", iγ, iμ, δμx, real(δγ))
+  @printf("\n(%2d,%2d): δμx: %.5f ; δγ_r: %.5f \n\n", iγ, iμ, δμx, real(δγ))
 
   γ   = γ_0  + δγ
   μx  = μx_0 + δμx
@@ -134,7 +133,13 @@ for iμ in 1:nμx
   
   v     = randn(vt,ndof)*1.0;
   
-  
+  if (iγ < 4 && iμ < 4)
+    nsteps = 800000
+  else
+    nsteps = 400000
+  end
+  nhist = Int(nsteps/histstep)
+
   Hist  = zeros(vt,nhist)
   Time  = zeros(Float64,nhist)
   
@@ -209,9 +214,11 @@ for iμ in 1:nμx
   end
   
   ωmean       = mean(ωend)
-  @printf("\nδμx : %.5f ; δγ_r: %.5f ; Ω: %.4e \n\n", δμx, real(δγ), ωmean)
+  ωstd        = std(ωend)
+  @printf("\nδμx: %.5f ; δγ_r: %.5f ; Ω: %.4f ; STD(Ω): %.4f \n\n", δμx, real(δγ), ωmean, ωstd)
   # @printf("δγ_r: %.5f ; Ω: %.4e \n", real(δγ), ωmean)
   ω_matrix[iγ,iμ] = ωmean
+  ω_std[iγ,iμ]    = ωstd
 
 end   # iμ  
 end   # iγ  
@@ -219,7 +226,7 @@ end   # iγ
 
 if (ifsave)
   fname = "GL_omega_parametric.jld2"
-  save(fname,"U",U,"γ_0",γ_0,"μx_0",μx_0,"μ0",μ0,"δ5",δ5,"Ω0",Ω0,"δγ_v",δγ_v,"δμx_v",δμx_v,"ω_matrix",ω_matrix);
+  save(fname,"U",U,"γ_0",γ_0,"μx_0",μx_0,"μ0",μ0,"δ5",δ5,"Ω0",Ω0,"δγ_v",δγ_v,"δμx_v",δμx_v,"ω_matrix",ω_matrix,"ω_std",ω_std);
   println(fname*" saved.")
 end 
 
