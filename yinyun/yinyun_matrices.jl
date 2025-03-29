@@ -18,7 +18,7 @@ function YinyunMatrix(nr::Integer,nc::Integer,α::Real,β::Real,kai::Real,δ::Re
 
   for ci in XI
 
-    println(ci)
+    # println(ci)
 
     r0 = ci[1]
     c0 = ci[2]
@@ -34,7 +34,7 @@ function YinyunMatrix(nr::Integer,nc::Integer,α::Real,β::Real,kai::Real,δ::Re
     lc_1 = r0  + (c_1-1)*nr
     lc1  = r0  + (c1-1)*nr
 
-    println([l0; lr_1; lr1; lc_1; lc1])
+    # println([l0; lr_1; lr1; lc_1; lc1])
 
     # Across Rows
     if (r0 == 1)
@@ -79,6 +79,8 @@ function YinyunMatrix(nr::Integer,nc::Integer,α::Real,β::Real,kai::Real,δ::Re
     end
 
   end       # ci in XI
+
+  M[n,n] = M[n,n] - γ
 
   return M
 end  
