@@ -10,14 +10,18 @@ else
     agauss    = agauss .+ ampgauss[i]*exp.(-((Geom.xm1[:] .- x0gauss[i])/σg).^2)
   end
 end  
+  
+astep      = tanh.((Geom.xm1[:] .- x0step)/epsstep)
 
-#agauss      = exp.(-((Geom.xm1[:] .- x0)/σg).^2)# .*(sign.(Geom.xm1[:] .- x0))
 k0          = 7
 asin        = sin.(2.0*π/(xe-xs)*k0*Geom.xm1[:])
 acos        = cos.(2.0*π/(xe-xs)*k0*Geom.xm1[:])
 
 ainit       = vimultg.*(QT*agauss)
 binit       = vimultg.*(QT*agauss)
+
+astepg      = vimultg.*(QT*astep)
+
 
 #nflds       = 2                                 # No of fields
 fld         = zeros(VT,ndof,nflds)
@@ -27,13 +31,10 @@ fldlag      = zeros(VT,ndof,2,nflds)
 Rhs         = zeros(VT,ndof,nflds)
 Rhslag      = zeros(VT,ndof,2,nflds)
 
-
-
 #fld[:,1]    = ampB0*ainit .+ B0Off .+ σbi*(rand(ndof) .- 0.5)
 #fld[:,2]    = ampA0*binit .+ A0Off .+ σai*(rand(ndof) .- 0.5)
-rng         = MersenneTwister(1234)
 for j in 1:nflds
-  fld[:,j]    = Amp0[j]*ainit .+ Off0[j] .+ σ0i[j]*(rand(rng,ndof) .- 0.5)
+  fld[:,j]    = Amp0[j]*ainit .+ Off0[j] .+ Step0[j]*astepg .+ σ0i[j]*(rand(ndof) .- 0.5)  
 end  
 
 

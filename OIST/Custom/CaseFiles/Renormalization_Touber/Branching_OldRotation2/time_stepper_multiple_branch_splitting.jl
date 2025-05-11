@@ -142,7 +142,7 @@ for i in 1:nsteps
     if (iffldplot)
       for j in 1:nflds
         if (plotfldi[j])
-          pl[j] = ax2.plot(Geom.xm1[:],Q*fld[:,j],color=cm(j-1));
+          pl[j] = ax2.plot(Geom.xm1[:],Q*fld[:,j],color=cm(0));
         end
       end  
     end
@@ -188,7 +188,7 @@ x2d   = (Geom.xm1[:])*ones(nsurf_save)'
 
 cm2   = get_cmap("binary");
 h3    = figure(num=3,figsize=[8.0,8.0])
-pcm   = pcolormesh(x2d,t2d,fldhist[:,:,2])
+pcm   = pcolormesh(x2d,t2d,fldhist[:,:,2],vmin=-1.2,vmax=6.2)
 pcm.set_cmap(cm2)
 ax3   = h3.gca()
 ax3.invert_yaxis()
@@ -205,12 +205,12 @@ h5,(ax5,ax6) = subplots(1,2,sharey=true,figsize=[8.0,8.0],gridspec_kw=Dict("widt
 #ax6.set_position([0.700, 0.10, 0.20, 0.8])
 
 sca(ax5)
-pcm   = pcolormesh(x2d,t2d,fldhist[:,:,2])
+pcm   = pcolormesh(x2d,t2d,fldhist[:,:,2],vmin=-1.2,vmax=6.2)
 pcm.set_cmap(cm2)
 ax5.set_ylabel("t",fontsize=lafs)
 ax5.set_xlabel("x",fontsize=lafs)
 ax5.invert_yaxis()
-cb    = colorbar(location="top")
+#cb    = colorbar(location="top")
 
 ax6.plot(γhist,Thist,linewidth=2,color=cm(3))
 ax6.set_xlabel("λ",fontsize=lafs)

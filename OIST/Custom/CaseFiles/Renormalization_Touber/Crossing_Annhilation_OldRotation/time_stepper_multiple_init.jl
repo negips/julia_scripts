@@ -66,7 +66,7 @@ pl = Array{Any}(undef,nflds)
 if initplot
   for j in 1:nflds
     if (plotfldi[j])
-      pl[j] = ax2.plot(Geom.xm1[:],Q*fld[:,j],color=cm(j-1));
+      pl[j] = ax2.plot(Geom.xm1[:],Q*fld[:,j],color=cm(j-2));
 #      pl2   = ax2.plot(Geom.xm1[:],Q*fld[:,2],color=rgba1);
     end
   end  

@@ -7,6 +7,7 @@ using LinearAlgebra
 using Roots
 using PyPlot
 using Printf
+using Random
 
 const SRC = "/home/prabal/workstation/git/julia/OIST/Custom"
 

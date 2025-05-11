@@ -4,9 +4,9 @@
 
 U                 = prec(0)         # Convection
 γ                 = prec(1)         # Diffusion (Generic) 
-γa                = prec(0.2)       # Diffusion (activator)
+γa                = prec(0.01)       # Diffusion (activator)
 γb                = prec(0.01)      # Diffusion (inhibitor)
-γζ                = prec(0.001)        # Diffusion for auxillary variable
+γζ                = prec(0.001)     # Diffusion for auxillary variable
 γall              = [γb γa γζ]
 σa                =  0.0e-2          # Activator Noise Strength
 σb                =  0.0             # Inhibitor Noise Strength
@@ -20,14 +20,14 @@ ifglobal          = true
 nflds             = 2               # No of fields
 
 # Initialization
-x0gauss           = [50.0 65.0]           #xe*rand(ngauss)
-ngauss            = length(x0gauss)
 ngauss            = 1
+x0gauss           = [20.0]           #xe*rand(ngauss)
+ngauss            = length(x0gauss)
 ampgauss          = ones(Float64,ngauss)  #rand(ngauss)
 x0                = x0gauss[1]      # Gaussian Center
 σg                = prec(2)         # Gaussian Std. Deviation
-ampA0             = prec(4.0)/Anorm
-ampB0             = prec(0.0)/Bnorm
+ampA0             = prec(0.0)
+ampB0             = prec(0.0)
 ampζ0             = prec(0.0)
 
 Amp0              = zeros(prec,nflds) 
@@ -40,15 +40,22 @@ B0Off             = prec(0.0)         # Homogeneous state value
 Off0              = zeros(prec,nflds)
 Off0              = [B0Off; A0Off; ζ0Off]
 
-σai               = prec(0.0)         # Initial Activator Noise
-σbi               = prec(0.0)         # Initial Inhibitor Noise Strength
+x0step            = 20.0            #xe*tanh(x)
+epsstep           = 0.1             # tanh((x-x0)/eps)
+stepA0            = prec(2.0)
+stepB0            = prec(-2.0)
+stepζ0            = prec(0.0)
+Step0             = [stepA0; stepB0; stepζ0]
+
+σai               = prec(8.0)         # Initial Activator Noise
+σbi               = prec(8.0)         # Initial Inhibitor Noise Strength
 σζi               = prec(0.0)         # Initial Aux. Strength
 σ0i               = [σbi; σai; σζi]
 
 
 # Simulation
 dt                = prec(0.0025)       # Time step
-nsteps            = 12000             # No of steps
+nsteps            = 10000             # No of steps
 nstep_switch1     = 3000             # Switch functions 1
 nstep_switch2     = 3400             # Switch again
 
@@ -64,22 +71,14 @@ iffldplot         = true      # Plot fields
 ifphplot          = true      # Plot Phase A-B
 ifdynplot         = false     # Plot dynamic phase (ζ)
 initplot          = true      # Plot initial conditions
-ifdynnull         = true      # Plot null-clines dynamically
-ifsaveframe       = true
-ifsavext          = true
+ifdynnull         = false     # Plot null-clines dynamically
+ifsaveframe       = false
+ifsavext          = false
 
 ifplot            = iffldplot || ifphplot || ifdynplot 
 plotfldi          = fill(true,nflds)
-plotfldi[1]       = false
+plotfldi[1]       = true
 
-Aeq               = 0.47
-Asen              = 0.40/Anorm
-
-
-# Saving Params
-# Standard diffusion params used:
-# γa = 0.2
-# γb = 0.01
-
+Aeq               = 0.008     # 0.01 for Set 20
 
 
