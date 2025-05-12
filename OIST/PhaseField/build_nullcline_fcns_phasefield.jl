@@ -26,7 +26,9 @@ include("$JULIACOMMON/MoveFigure.jl")
 """
 function DFX(x,y,ϵ)
 
-  df = -tanh.(y/ϵ) .- x
+  α  = 1.0/(tanh(1.0/ϵ))
+
+  df = -α*tanh.(y/ϵ) .- x
 
   return df
 end  
@@ -39,7 +41,9 @@ end
 """
 function DFY(x,y,ϵ)
 
-  df = -tanh.(x/ϵ) .- y
+  α  = 1.0/(tanh(1.0/ϵ))
+
+  df = -α*tanh.(x/ϵ) .- y
 
   return df
 end  
@@ -61,19 +65,21 @@ PlotContainers    = Array{Any}(undef,20)
 
 # ϕ1
 #---------------------------------------------------------------------- 
+ϵ           = 0.05
+α           = 1.0/(tanh(1.0/ϵ))
+npts        = 1000000
 
-
-# Plot the null-cline
-ϵ           = 0.1
 plc = 0
-ϕ2_tmp      = LinRange(-5.0,5.0,5000)
-f_null      = -tanh.(ϕ2_tmp/ϵ)
+ϕ2_tmp      = LinRange(-5.0,5.0,npts)
+f_null      = -α*tanh.(ϕ2_tmp/ϵ)
 
 plc         += 1
 PlotContainers[plc] = ax1.plot(ϕ2_tmp,f_null,linestyle="-",label="f(A,B)=0")
 
-ϕ1_tmp      = LinRange(-5.0,5.0,5000)
-g_null      = -tanh.(ϕ1_tmp/ϵ)
+# ϕ2
+#---------------------------------------------------------------------- 
+ϕ1_tmp      = LinRange(-5.0,5.0,npts)
+g_null      = -α*tanh.(ϕ1_tmp/ϵ)
 
 plc         += 1
 PlotContainers[plc] = ax1.plot(g_null,ϕ1_tmp,linestyle="-",label="g(A,B)=0")

@@ -55,15 +55,15 @@ Step0             = [stepA0; stepB0; stepζ0]
 
 # Simulation
 dt                = prec(0.0025)       # Time step
-nsteps            = 10000             # No of steps
+nsteps            = 10000            # No of steps
 nstep_switch1     = 3000             # Switch functions 1
 nstep_switch2     = 3400             # Switch again
 
 Ω                 = 0.02            # Time scale of parameter oscillation
 
 verbosestep       = 100
-plotupd           = 20
-surf_save         = 20
+plotupd           = 50
+surf_save         = 50
 nsurf_save        = floor(Int,nsteps/surf_save)+1
 
 
