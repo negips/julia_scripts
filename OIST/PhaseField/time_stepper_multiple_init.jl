@@ -54,8 +54,13 @@ time        = range(0.,step=dt,length=nsteps);
 h2          = figure(num=2)
 ax2         = h2.subplots()
 ax2.set_xlabel(L"x", fontsize=lafs)
-ax2.set_ylabel(L"A", fontsize=lafs)
+ax2.set_ylabel(L"ϕ_{1},ϕ_{2}", fontsize=lafs)
 MoveFigure(h2,1250,10)
+if (ftype == 1)
+  ax2.set_ylim(-2.0,2.0)
+else
+  ax2.set_ylim(-0.5,1.5)
+end
 
 t           = 0.
 
@@ -68,7 +73,7 @@ for i in 1:nflds
 end  
 
 # Plot Initial Conditions
-pl = Array{Any}(undef,nflds)
+pl = Array{Any}(undef,nflds+1)
 if initplot
   for j in 1:nflds
     if (plotfldi[j])

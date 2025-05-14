@@ -2,7 +2,7 @@
 
 # Setting the parameters here
 
-U                 = prec(0)         # Convection
+U                 = prec(1)         # Convection
 γ                 = prec(1)         # Diffusion (Generic) 
 γa                = prec(0.01)       # Diffusion (activator)
 γb                = prec(0.01)      # Diffusion (inhibitor)
@@ -33,8 +33,8 @@ ampζ0             = prec(0.0)
 Amp0              = zeros(prec,nflds) 
 Amp0              = [ampB0; ampA0; ampζ0]
 
-A0Off             = prec(0.0)         # Homogeneous state value
-B0Off             = prec(0.0)         # Homogeneous state value
+A0Off             = prec(0.5)         # Homogeneous state value
+B0Off             = prec(0.5)         # Homogeneous state value
 ζ0Off             = prec(0.0)         # Homogeneous state value
 
 Off0              = zeros(prec,nflds)
@@ -54,12 +54,10 @@ Step0             = [stepA0; stepB0; stepζ0]
 
 
 # Simulation
-dt                = prec(0.0025)       # Time step
+dt                = prec(0.01)       # Time step
 nsteps            = 10000            # No of steps
 nstep_switch1     = 3000             # Switch functions 1
 nstep_switch2     = 3400             # Switch again
-
-Ω                 = 0.02            # Time scale of parameter oscillation
 
 verbosestep       = 100
 plotupd           = 50
@@ -78,7 +76,5 @@ ifsavext          = false
 ifplot            = iffldplot || ifphplot || ifdynplot 
 plotfldi          = fill(true,nflds)
 plotfldi[1]       = true
-
-Aeq               = 0.008     # 0.01 for Set 20
 
 

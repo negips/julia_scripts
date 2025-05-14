@@ -60,7 +60,7 @@ for i in 1:nsteps
   dotfld    = Flow(fld[:,1],fld[:,2])
 
   for j in 1:nflds
-    rhs           = dotfld[:,j] .- Filg*fld[:,j];
+    rhs           = dotfld[:,j] .- Filg*fld[:,j] .+ Cg*fld[:,j];
     rhs1          = ext[1]*rhs + ext[2]*Rhslag[:,1,j] + ext[3]*Rhslag[:,2,j];
 
     Rhslag[:,2,j] = copy(Rhslag[:,1,j]);
@@ -100,7 +100,8 @@ for i in 1:nsteps
           if (plotfldi[j])
             pl[j][1].remove()
           end
-        end  
+        end
+        pl[nflds+1][1].remove()
        end  
        if (ifphplot)
          scat[1].remove()
@@ -129,7 +130,8 @@ for i in 1:nsteps
         if (plotfldi[j])
           pl[j] = ax2.plot(Geom.xm1[:],Q*fld[:,j],color=cm(j-1));
         end
-      end  
+      end
+      pl[nflds+1] = ax2.plot(Geom.xm1[:],Q*(fld[:,1] .+ fld[:,2]),color=cm(nflds));
     end
     # Phase plot    
     if ifphplot
