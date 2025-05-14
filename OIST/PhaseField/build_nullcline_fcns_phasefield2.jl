@@ -79,7 +79,8 @@ function DFY2(x,y,ϵ)
 end  
 #---------------------------------------------------------------------- 
 
-ftype = 1
+# Function type
+ftype = 2
 
 close("all")
 
