@@ -168,9 +168,22 @@ end
 t2d   = ones(npts)*Thist'
 x2d   = (Geom.xm1[:])*ones(nsurf_save)'
 
-cm2   = get_cmap("binary");
+if (ftype == 1)
+  vmin = -1.0
+  vmax =  1.0
+elseif (ftype == 2)
+  vmin =  0.0
+  vmax =  1.0
+elseif (ftype == 3)
+  vmin = -1.0
+  vmax =  1.0
+end  
+
+
+#cm2   = get_cmap("binary");
+cm2   = get_cmap("seismic") # coolwarm, bwr, seismic
 h3    = figure(num=3,figsize=[5.0,8.0])
-pcm   = pcolormesh(x2d,t2d,fldhist[:,:,2])
+pcm   = pcolormesh(x2d,t2d,fldhist[:,:,2],vmin=vmin,vmax=vmax)
 pcm.set_cmap(cm2)
 ax3   = h3.gca()
 ax3.invert_yaxis()

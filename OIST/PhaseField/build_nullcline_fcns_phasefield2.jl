@@ -81,7 +81,7 @@ end
 """
    function DFX3(x,y,ϵ)
 
-     Fx = -(x + α*y^3)
+     Fx = -(x^3 + y)
 
 """
 function DFX3(x,y,ϵ)
@@ -96,7 +96,7 @@ end
 """
    function DFY3(x,y,ϵ)
 
-     Fy = -(y + α*x^3)
+     Fy = -(y^3 + x)
 
 """
 function DFY3(x,y,ϵ)
