@@ -78,9 +78,39 @@ function DFY2(x,y,ϵ)
   return df
 end  
 #---------------------------------------------------------------------- 
+"""
+   function DFX3(x,y,ϵ)
+
+     Fx = -(x + α*y^3)
+
+"""
+function DFX3(x,y,ϵ)
+
+  α  = 1.0
+
+  df = -y .- (x.^3)
+
+  return df
+end  
+#---------------------------------------------------------------------- 
+"""
+   function DFY3(x,y,ϵ)
+
+     Fy = -(y + α*x^3)
+
+"""
+function DFY3(x,y,ϵ)
+
+  α  = 1.0
+
+  df = -x .- (y.^3)
+
+  return df
+end  
+#---------------------------------------------------------------------- 
 
 # Function type
-ftype = 2
+ftype = 3
 
 close("all")
 
@@ -107,8 +137,11 @@ npts        = 1000000
 
 if (ftype == 1)
   f_null      = -α*tanh.(ϕ2_tmp/ϵ)
-else
+elseif (ftype == 2)
   f_null      = -0.5*(-1.0 .+ α*tanh.((2.0*ϕ2_tmp .- 1.0)/ϵ))
+elseif (ftype == 3)
+  sgn         = sign.(ϕ2_tmp)
+  f_null      = -sgn.*(abs.(ϕ2_tmp).^(1/3))
 end  
 
 plc         += 1
@@ -120,8 +153,11 @@ PlotContainers[plc] = ax1.plot(f_null,ϕ2_tmp,linestyle="-",label=L"f(ϕ_{1},ϕ_
 ϕ1_tmp      = LinRange(-5.0,5.0,npts)
 if (ftype == 1)
   g_null      = -α*tanh.(ϕ1_tmp/ϵ)
-else  
+elseif (ftype == 2) 
   g_null      = -0.5*(-1.0 .+ α*tanh.((2.0*ϕ1_tmp .- 1.0)/ϵ))
+elseif (ftype == 3)
+  sgn         = sign.(ϕ1_tmp)
+  g_null      = -sgn.*(abs.(ϕ1_tmp).^(1/3))
 end  
 
 plc         += 1
@@ -130,9 +166,12 @@ PlotContainers[plc] = ax1.plot(ϕ1_tmp,g_null,linestyle="-",label=L"g(ϕ_{1},ϕ_
 if (ftype == 1)
   ax1.set_xlim(-2.0,2.0)
   ax1.set_ylim(-2.0,2.0)
-else
+elseif (ftype == 2)
   ax1.set_xlim(-0.5,1.5)
   ax1.set_ylim(-0.5,1.5)
+elseif (ftype == 3)
+  ax1.set_xlim(-2.0,2.0)
+  ax1.set_ylim(-2.0,2.0)
 end
 
 legend(fontsize=lgfs)
@@ -151,9 +190,12 @@ ax1.set_ylabel(L"ϕ_{2}",fontsize=lafs)
 if (ftype == 1)
   F(x,y)            = DFX(x,y,ϵ)/η
   G(x,y)            = DFY(x,y,ϵ)/η
-else
+elseif (ftype == 2)
   F(x,y)            = DFX2(x,y,ϵ)/η
   G(x,y)            = DFY2(x,y,ϵ)/η
+elseif (ftype == 3)
+  F(x,y)            = DFX3(x,y,ϵ)/η
+  G(x,y)            = DFY3(x,y,ϵ)/η
 end  
 Flow(x,y)         = [F(x,y) G(x,y)]
 

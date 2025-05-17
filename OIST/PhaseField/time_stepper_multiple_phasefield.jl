@@ -26,8 +26,6 @@ ifdynplot         = false
 ifplot            = iffldplot || ifphplot
 
 Vol  = sum(Bg)
-A_eq = Aeq*Vol
-γ    = 2.0
 
 for i in 1:nsteps
   global fld,fldlag,Rhs,Rhslag,dotfld
@@ -35,12 +33,10 @@ for i in 1:nsteps
   global pl,pl2,scat,λpl
   global PlotContainers
   global framecount
-  global γ
 
   t = t + dt;
 
   A_tot     = Bg'*fld[:,2]/Vol
-  abar      = A_tot/A_eq
 
   if verbosestep>0 && mod(i,verbosestep)==0
     println("Step: $i/$nsteps, Time: $t")

@@ -58,8 +58,10 @@ ax2.set_ylabel(L"ϕ_{1},ϕ_{2}", fontsize=lafs)
 MoveFigure(h2,1250,10)
 if (ftype == 1)
   ax2.set_ylim(-2.0,2.0)
-else
+elseif (ftype == 2)
   ax2.set_ylim(-0.5,1.5)
+elseif (ftype == 3)
+  ax2.set_ylim(-2.0,2.0)
 end
 
 t           = 0.
