@@ -71,7 +71,7 @@ ifsavext          = true
 
 ifplot            = iffldplot || ifphplot || ifdynplot 
 plotfldi          = fill(true,nflds)
-plotfldi[1]       = true
+plotfldi[1]       = false
 
 Aeq               = 0.30 #
 Asen              = 3.70/Anorm # 0.035 for Set 20

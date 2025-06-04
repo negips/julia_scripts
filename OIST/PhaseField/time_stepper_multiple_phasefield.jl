@@ -25,15 +25,7 @@ QTX = QT*(X.*vimult)
 ifdynplot         = false
 ifplot            = iffldplot || ifphplot
 
-Vol   = sum(Bg)
-A_sen = Asen*Vol
-γ     = 2.0/λnorm
-
-γhist       = zeros(VT,nsurf_save)
-Abarhist    = zeros(VT,nsurf_save)
-γhist[1]    = γ
-Abarhist[1] = (Bg'*fld[:,2])/A_sen - Aeq
-
+Vol  = sum(Bg)
 
 for i in 1:nsteps
   global fld,fldlag,Rhs,Rhslag,dotfld
@@ -41,17 +33,13 @@ for i in 1:nsteps
   global pl,pl2,scat,λpl
   global PlotContainers
   global framecount
-  global γ
 
   t = t + dt;
 
-  A_tot     = Bg'*fld[:,2]
-  abar      = A_tot/A_sen - Aeq
-
-  γ         = RK4!(λdot1,abar,γ,dt)
+  A_tot     = Bg'*fld[:,2]/Vol
 
   if verbosestep>0 && mod(i,verbosestep)==0
-    println("Step: $i/$nsteps, Time: $t, Atot/A_eq = $(abar); γ: $(γ)")
+    println("Step: $i/$nsteps, Time: $t")
   end
 
   GetBDF!(bdf,3)
@@ -65,15 +53,10 @@ for i in 1:nsteps
     GetEXT!(ext,2)
   end
 
-  θpar      = (θ0 + (γ/1.0)*dθ)*π/180.0
-  #Ω         = 0.05
-  #θpar      = (θ0 - (A_tot/A_eq)*dθ)*pi/180.0
-  # θpar      = 0.0 # (θ0 + dθ*sin(2*π*Ω*t))*pi/180.0         # for G
-  λpar      = 0.0 # (λ0 - dλ*sin(2*π*Ω*t))                  # for F
-  dotfld    = Flow(fld[:,1],fld[:,2],θpar,λpar)
+  dotfld    = Flow(fld[:,1],fld[:,2])
 
   for j in 1:nflds
-    rhs           = dotfld[:,j] .- Filg*fld[:,j];
+    rhs           = dotfld[:,j] .- Filg*fld[:,j] .+ Cg*fld[:,j];
     rhs1          = ext[1]*rhs + ext[2]*Rhslag[:,1,j] + ext[3]*Rhslag[:,2,j];
 
     Rhslag[:,2,j] = copy(Rhslag[:,1,j]);
@@ -103,10 +86,6 @@ for i in 1:nsteps
     for j in 1:nflds
       fldhist[:,k,j] = Q*fld[:,j]
     end
-
-    γhist[k]   = γ
-    Abarhist[k]= abar
-   
   end  
 
   if ifplot && mod(i,plotupd)==0
@@ -117,7 +96,8 @@ for i in 1:nsteps
           if (plotfldi[j])
             pl[j][1].remove()
           end
-        end  
+        end
+        pl[nflds+1][1].remove()
        end  
        if (ifphplot)
          scat[1].remove()
@@ -144,13 +124,14 @@ for i in 1:nsteps
     if (iffldplot)
       for j in 1:nflds
         if (plotfldi[j])
-          pl[j] = ax2.plot(Geom.xm1[:],Q*fld[:,j],color=cm(0));
+          pl[j] = ax2.plot(Geom.xm1[:],Q*fld[:,j],color=cm(j-1));
         end
-      end  
+      end
+      pl[nflds+1] = ax2.plot(Geom.xm1[:],Q*(fld[:,1] .+ fld[:,2]),color=cm(nflds));
     end
     # Phase plot    
     if ifphplot
-      scat = ax1.plot(Intpg*fld[:,1],Intpg*fld[:,2],color="black",linewidth=2) 
+      scat = ax1.plot(Intpg*fld[:,1],Intpg*fld[:,2],color="gray",linewidth=2) 
     end
    
     # Dynamic plot
@@ -187,9 +168,22 @@ end
 t2d   = ones(npts)*Thist'
 x2d   = (Geom.xm1[:])*ones(nsurf_save)'
 
-cm2   = get_cmap("binary");
-h3    = figure(num=3,figsize=[8.0,8.0])
-pcm   = pcolormesh(x2d,t2d,fldhist[:,:,2],vmin=-1.2,vmax=6.2)
+if (ftype == 1)
+  vmin = -1.0
+  vmax =  1.0
+elseif (ftype == 2)
+  vmin =  0.0
+  vmax =  1.0
+elseif (ftype == 3)
+  vmin = -1.0
+  vmax =  1.0
+end  
+
+
+#cm2   = get_cmap("binary");
+cm2   = get_cmap("seismic") # coolwarm, bwr, seismic
+h3    = figure(num=3,figsize=[5.0,8.0])
+pcm   = pcolormesh(x2d,t2d,fldhist[:,:,2],vmin=vmin,vmax=vmax)
 pcm.set_cmap(cm2)
 ax3   = h3.gca()
 ax3.invert_yaxis()
@@ -197,28 +191,7 @@ ax3.invert_yaxis()
 if (ifsavext)
   fname3 = @sprintf "./plots/spacetime"
   h3.savefig(fname3)
-  println("Saved Figure "*fname3)
 end  
-
-
-h5,(ax5,ax6) = subplots(1,2,sharey=true,figsize=[8.0,8.0])
-ax5.set_position([0.125, 0.10, 0.55, 0.8])
-ax6.set_position([0.700, 0.10, 0.20, 0.8])
-sca(ax5)
-pcm   = pcolormesh(x2d,t2d,fldhist[:,:,2],vmin=-1.2,vmax=6.2)
-pcm.set_cmap(cm2)
-ax5.set_ylabel("t",fontsize=lafs)
-ax5.set_xlabel("x",fontsize=lafs)
-ax5.invert_yaxis()
-
-ax6.plot(γhist,Thist,linewidth=2,color=cm(3))
-ax6.set_xlabel("λ",fontsize=lafs)
-if (ifsavext)
-  fname4   = @sprintf "./plots/spacetime2"
-  h5.savefig(fname4)
-  println("Saved Figure "*fname4)
-end  
-
 
 #surf(t2d,x2d,fldhist[:,:,2],cmap=cm2,edgecolor="none")
 #ax3.elev = 94.0

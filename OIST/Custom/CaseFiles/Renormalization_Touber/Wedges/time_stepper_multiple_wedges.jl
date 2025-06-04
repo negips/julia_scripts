@@ -176,19 +176,36 @@ t2d   = ones(npts)*Thist'
 x2d   = (Geom.xm1[:])*ones(nsurf_save)'
 
 cm2   = get_cmap("binary");
-h3    = figure(num=3,figsize=[8.0,8.0])
-pcm   = pcolormesh(x2d,t2d,fldhist[:,:,2])
+h3    = figure(num=3,figsize=[7.0,8.0])
+pcm   = pcolormesh(x2d,t2d,fldhist[:,:,2],vmin=-1.2,vmax=6.2)
 pcm.set_cmap(cm2)
 ax3   = h3.gca()
 ax3.invert_yaxis()
 ax3.set_ylabel("t",fontsize=lafs)
 ax3.set_xlabel("x",fontsize=lafs)
-# cb    = colorbar(orientation="vertical")
+h3.tight_layout()
+cb    = colorbar(location="top")
 if (ifsavext)
   fname3 = @sprintf "./plots/spacetime"
   h3.savefig(fname3)
   println("Saved Figure "*fname3)
 end  
+
+if ifannotate
+  
+  txt1 = ax1.text(2.2, 6.6, "Pigmentation", fontsize=12,
+                  rotation=-15, rotation_mode="anchor")
+  txt2 = ax1.text(0.5,-1.1, "Refractory", fontsize=12,
+                  rotation=-15, rotation_mode="anchor")
+  txt3 = ax1.text(-0.05,2.0, "Wave front", fontsize=12,
+                  rotation=80, rotation_mode="anchor") 
+  txt4 = ax1.text(5.0,3.5, "Wave back", fontsize=12,
+                  rotation=-95, rotation_mode="anchor")
+  # Phase plot 
+  annfname   = @sprintf "./plots/phase_%06i" framecount
+  h1.savefig(annfname)
+end  
+
 
 #surf(t2d,x2d,fldhist[:,:,2],cmap=cm2,edgecolor="none")
 #ax3.elev = 94.0

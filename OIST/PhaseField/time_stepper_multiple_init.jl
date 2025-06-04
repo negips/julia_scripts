@@ -10,14 +10,18 @@ else
     agauss    = agauss .+ ampgauss[i]*exp.(-((Geom.xm1[:] .- x0gauss[i])/σg).^2)
   end
 end  
+  
+astep      = tanh.((Geom.xm1[:] .- x0step)/epsstep)
 
-#agauss      = exp.(-((Geom.xm1[:] .- x0)/σg).^2)# .*(sign.(Geom.xm1[:] .- x0))
 k0          = 7
 asin        = sin.(2.0*π/(xe-xs)*k0*Geom.xm1[:])
 acos        = cos.(2.0*π/(xe-xs)*k0*Geom.xm1[:])
 
 ainit       = vimultg.*(QT*agauss)
 binit       = vimultg.*(QT*agauss)
+
+astepg      = vimultg.*(QT*astep)
+
 
 #nflds       = 2                                 # No of fields
 fld         = zeros(VT,ndof,nflds)
@@ -27,13 +31,10 @@ fldlag      = zeros(VT,ndof,2,nflds)
 Rhs         = zeros(VT,ndof,nflds)
 Rhslag      = zeros(VT,ndof,2,nflds)
 
-
-
 #fld[:,1]    = ampB0*ainit .+ B0Off .+ σbi*(rand(ndof) .- 0.5)
 #fld[:,2]    = ampA0*binit .+ A0Off .+ σai*(rand(ndof) .- 0.5)
-rng         = MersenneTwister(1234)
 for j in 1:nflds
-  fld[:,j]    = Amp0[j]*ainit .+ Off0[j] .+ σ0i[j]*(rand(rng,ndof) .- 0.5)
+  fld[:,j]    = Amp0[j]*ainit .+ Off0[j] .+ Step0[j]*astepg .+ σ0i[j]*(rand(ndof) .- 0.5)  
 end  
 
 
@@ -53,8 +54,15 @@ time        = range(0.,step=dt,length=nsteps);
 h2          = figure(num=2)
 ax2         = h2.subplots()
 ax2.set_xlabel(L"x", fontsize=lafs)
-ax2.set_ylabel(L"A", fontsize=lafs)
+ax2.set_ylabel(L"ϕ_{1},ϕ_{2}", fontsize=lafs)
 MoveFigure(h2,1250,10)
+if (ftype == 1)
+  ax2.set_ylim(-2.0,2.0)
+elseif (ftype == 2)
+  ax2.set_ylim(-0.5,1.5)
+elseif (ftype == 3)
+  ax2.set_ylim(-2.0,2.0)
+end
 
 t           = 0.
 
@@ -67,7 +75,7 @@ for i in 1:nflds
 end  
 
 # Plot Initial Conditions
-pl = Array{Any}(undef,nflds)
+pl = Array{Any}(undef,nflds+1)
 if initplot
   for j in 1:nflds
     if (plotfldi[j])
