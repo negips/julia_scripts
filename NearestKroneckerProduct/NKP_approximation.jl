@@ -70,7 +70,8 @@ Fld   = zeros(Float64,lx1,ly1)
 for ci in CartesianIndices(Fld)
   x = X2D[ci]
   y = Y2D[ci]
-  Fld[ci] = 0.0*rand(rng) + cos(π*x) + sin(π*y) + tan(x+y)
+  # Fld[ci] = 0.0*rand(rng) + cos(π*x) + sin(π*y) + tan(x+y)
+  Fld[ci] = cos(π*x)*sin(π*y) + 0.1*rand(rng)
 end
 
 Fv = Fld[:]
@@ -97,18 +98,22 @@ Fy = reshape(fy,ly1,ly1)
 
 Fld_rec = kron(diag(Fy)',diag(Fx))        # Reconstructed field
 
+Fmin  = minimum(Fld[:])
+Fmax  = maximum(Fld[:])
 
 close("all")
-cm2   = get_cmap("hot");
-h1    = figure(num=1,figsize=[16.0,6.0])
-axs   = h1.subplots(1,3,sharey=true)
-pcm1  = axs[1].pcolormesh(X2D,Y2D,Fld)
+cm2    = get_cmap("Spectral");
+#h1,axs = figure(num=1,figsize=[16.0,6.0])
+h1,axs = subplots(1,3,sharey=true,figsize=[16.0,8.0],layout="constrained" )
+pcm1   = axs[1].pcolormesh(X2D,Y2D,Fld,vmin=Fmin,vmax=Fmax)
 pcm1.set_cmap(cm2)
+cb1    = colorbar(pcm1,location="left")
 
-pcm2  = axs[2].pcolormesh(X2D,Y2D,Fld_rec)
+pcm2  = axs[2].pcolormesh(X2D,Y2D,Fld_rec,vmin=Fmin,vmax=Fmax)
 pcm2.set_cmap(cm2)
+#cb2    = colorbar(pcm2,location="top")
 
-pcm3  = axs[3].pcolormesh(X2D,Y2D,(Fld .- Fld_rec))
+pcm3  = axs[3].pcolormesh(X2D,Y2D,(Fld .- Fld_rec),vmin=Fmin,vmax=Fmax)
 pcm3.set_cmap(cm2)
 
 #ax3   = h3.gca()
