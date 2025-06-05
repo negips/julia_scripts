@@ -8,6 +8,8 @@ using PyPlot
 using Random
 using Printf
 
+include("../TensorOPs/TensorOPs.jl")
+
 #----------------------------------------------------------------------  
 function ReArrangement(A,m1,m2,n1,n2)
 
@@ -77,20 +79,23 @@ X3D   = reshape(kron(Vz',X2D),lx1,ly1,lz1)
 Xf2D  = IntpX*X2D*(IntpY');
 Xf3D  = zeros(Float64,Nxpf,Nypf,Nzpf)
 
+Wk    = zeros(Float64,Nxpf,Nypf,Nzpf)
+
 # Tensor Operations 3D
-for k in 1:lz1
-  for j in 1:ly1
-    Xf3D[:,j,k] = IntpX*X3D[:,j,k]
-  end  
-end  
-for k in 1:lz1
-  Xf3D[:,:,k] = Xf3D[:,1:ly1,k]*(IntpY')
-end
-tmp = reshape(Xf3D,Nxpf*Nypf,Nzpf)
-for i in 1:Nxpf*Nypf
-  tmp[i,:] = (tmp[i,1:lz1]')*(IntpZ')
-end
-Xf3D = reshape(tmp,Nxpf,Nypf,Nzpf)
+# for k in 1:lz1
+#   for j in 1:ly1
+#     Xf3D[:,j,k] = IntpX*X3D[:,j,k]
+#   end  
+# end  
+# for k in 1:lz1
+#   Xf3D[:,:,k] = Xf3D[:,1:ly1,k]*(IntpY')
+# end
+# tmp = reshape(Xf3D,Nxpf*Nypf,Nzpf)
+# for i in 1:Nxpf*Nypf
+#   tmp[i,:] = (tmp[i,1:lz1]')*(IntpZ')
+# end
+# Xf3D = reshape(tmp,Nxpf,Nypf,Nzpf)
+tensorOP3D!(Xf3D,X3D,IntpX,IntpY,IntpZ,Wk)
 
 
 # Y-direction
