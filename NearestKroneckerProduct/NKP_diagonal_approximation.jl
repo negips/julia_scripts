@@ -135,8 +135,8 @@ TsFld = zeros(Float64,lx1,ly1)
 ErFld = zeros(Float64,lx1,ly1)
 Fld   = zeros(Float64,lx1,ly1)
 for ci in CartesianIndices(Fld)
-  x = X2D[ci]
-  y = Y2D[ci]
+  x         = X2D[ci]
+  y         = Y2D[ci]
   ErFld[ci] = 1.0*(rand(rng) - 0.5)
   TsFld[ci] = 1.0*cos(8.0*π*x)*sin(5.5*π*y)
   Fld[ci]   = TsFld[ci] + ErFld[ci]
@@ -200,11 +200,6 @@ axs[3].set_title("Reconstructed Tensor Field")
 # pcm4   = axs[4].pcolormesh(Xf2D,Yf2D,(Fldf .- Fldf_r),vmin=Fmin,vmax=Fmax)
 # pcm4.set_cmap(cm2)
 
-#ax3   = h3.gca()
-#ax3.invert_yaxis()
-#ax3.set_ylabel("t",fontsize=lafs)
-#ax3.set_xlabel("x",fontsize=lafs)
-# cb    = colorbar(orientation="vertical")
 
 
 @printf "Done"
