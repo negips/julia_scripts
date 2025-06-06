@@ -36,27 +36,27 @@ end
 #----------------------------------------------------------------------  
 
 
-Nx    = 4
+Nx    = 8
 lx1   = Nx+1
 Bx    = LobattoLegendre(Nx)
-Vx    = ones(Float64,lx1)
-Nxpf  = 8
+Vx    = ones(Float64,lx1,1)
+Nxpf  = 100
 XfRef = LinRange(-1.0,1.0,Nxpf)
 IntpX = interpolation_matrix(XfRef,Bx.nodes,Bx.baryweights)
 
-Ny    = 4
+Ny    = 12
 ly1   = Ny+1
 By    = LobattoLegendre(Ny)
-Vy    = ones(Float64,ly1)
-Nypf  = 8
+Vy    = ones(Float64,ly1,1)
+Nypf  = 100
 YfRef = LinRange(-1.0,1.0,Nypf)
 IntpY = interpolation_matrix(YfRef,By.nodes,By.baryweights)
 
-Nz    = 4
+Nz    = 8
 lz1   = Nz+1
 Bz    = LobattoLegendre(Nz)
-Vz    = ones(Float64,lz1)
-Nzpf  = 8
+Vz    = ones(Float64,lz1,1)
+Nzpf  = 100
 ZfRef = LinRange(-1.0,1.0,Nzpf)
 IntpZ = interpolation_matrix(ZfRef,Bz.nodes,Bz.baryweights)
 
@@ -67,55 +67,77 @@ ye    = 2.0
 zs    = 0.0
 ze    = 1.0
 
-
+Wk2   = zeros(Float64,Nxpf,Nypf)
+Wk3   = zeros(Float64,Nxpf,Nypf,Nzpf)
+one2  = ones(Float64,1,1)
+one3  = ones(Float64,1,1,1)
 
 # X-direction
 X     = zeros(Float64,lx1)
 for i in 1:lx1
   X[i] = map_from_canonical(Bx.nodes[i],xs,xe,Bx)
 end
-X2D   = kron(Vy',X)
-X3D   = reshape(kron(Vz',X2D),lx1,ly1,lz1)
-Xf2D  = IntpX*X2D*(IntpY');
+XM    = reshape(X,lx1,1)
+X2D   = zeros(Float64,lx1,ly1)
+Xf2D  = zeros(Float64,Nxpf,Nypf)
+
+X3D   = zeros(Float64,lx1,ly1,lz1)
 Xf3D  = zeros(Float64,Nxpf,Nypf,Nzpf)
 
-Wk    = zeros(Float64,Nxpf,Nypf,Nzpf)
+tensorOP2D!(X2D,one2,XM,Vy,Wk2)
+tensorOP3D!(X3D,one3,XM,Vy,Vz,Wk3)
 
-# Tensor Operations 3D
-# for k in 1:lz1
-#   for j in 1:ly1
-#     Xf3D[:,j,k] = IntpX*X3D[:,j,k]
-#   end  
-# end  
-# for k in 1:lz1
-#   Xf3D[:,:,k] = Xf3D[:,1:ly1,k]*(IntpY')
-# end
-# tmp = reshape(Xf3D,Nxpf*Nypf,Nzpf)
-# for i in 1:Nxpf*Nypf
-#   tmp[i,:] = (tmp[i,1:lz1]')*(IntpZ')
-# end
-# Xf3D = reshape(tmp,Nxpf,Nypf,Nzpf)
-tensorOP3D!(Xf3D,X3D,IntpX,IntpY,IntpZ,Wk)
-
+tensorOP2D!(Xf2D,X2D,IntpX,IntpY,Wk2)
+tensorOP3D!(Xf3D,X3D,IntpX,IntpY,IntpZ,Wk3)
 
 # Y-direction
 Y     = zeros(Float64,ly1)
 for i in 1:ly1
   Y[i] = map_from_canonical(By.nodes[i],ys,ye,By)
 end
-Y2D   = kron(Y',Vx)
-Yf2D  = IntpX*Y2D*(IntpY');
+#Y2D   = kron(Y',Vx)
+#Yf2D  = IntpX*Y2D*(IntpY');
+
+YM    = reshape(Y,ly1,1)
+Y2D   = zeros(Float64,lx1,ly1)
+Yf2D  = zeros(Float64,Nxpf,Nypf)
+
+Y3D   = zeros(Float64,lx1,ly1,lz1)
+Yf3D  = zeros(Float64,Nxpf,Nypf,Nzpf)
+
+tensorOP2D!(Y2D,one2,Vx,YM,Wk2)
+tensorOP3D!(Y3D,one3,Vx,YM,Vz,Wk3)
+
+tensorOP2D!(Yf2D,Y2D,IntpX,IntpY,Wk2)
+tensorOP3D!(Yf3D,Y3D,IntpX,IntpY,IntpZ,Wk3)
+
+# Z-direction
+Z     = zeros(Float64,lz1)
+for i in 1:lz1
+  Z[i] = map_from_canonical(By.nodes[i],zs,ze,Bz)
+end
+ZM    = reshape(Z,lz1,1)
+#Z2D   = zeros(Float64,lx1,ly1)
+#Zf2D  = zeros(Float64,Nxpf,Nypf)
+
+Y3D   = zeros(Float64,lx1,ly1,lz1)
+Yf3D  = zeros(Float64,Nxpf,Nypf,Nzpf)
+
+#tensorOP2D!(Y2D,one2,Vx,YM,Wk2)
+tensorOP3D!(Y3D,one3,Vx,Vy,ZM,Wk3)
+
+#tensorOP2D!(Yf2D,Y2D,IntpX,IntpY,Wk2)
+tensorOP3D!(Yf3D,Y3D,IntpX,IntpY,IntpZ,Wk3)
 
 
-
-rng   = MersenneTwister(1234)
+#rng   = MersenneTwister(1234)
 TsFld = zeros(Float64,lx1,ly1)
 ErFld = zeros(Float64,lx1,ly1)
 Fld   = zeros(Float64,lx1,ly1)
 for ci in CartesianIndices(Fld)
   x = X2D[ci]
   y = Y2D[ci]
-  ErFld[ci] = 2.5*(rand(rng) - 0.5)
+  ErFld[ci] = 1.0*(rand(rng) - 0.5)
   TsFld[ci] = 1.0*cos(8.0*π*x)*sin(5.5*π*y)
   Fld[ci]   = TsFld[ci] + ErFld[ci]
 end
@@ -161,16 +183,19 @@ h1,axs = subplots(1,3,sharey=true,figsize=[16.0,6.0],layout="constrained" )
 pcm1   = axs[1].pcolormesh(Xf2D,Yf2D,TsFldf,vmin=Fmin,vmax=Fmax)
 pcm1.set_cmap(cm2)
 cb1    = colorbar(pcm1,location="left")
+axs[1].set_title("Tensor Field")
 
 # Total Field
 pcm2   = axs[2].pcolormesh(Xf2D,Yf2D,Fldf,vmin=Fmin,vmax=Fmax)
 pcm2.set_cmap(cm2)
 #cb1    = colorbar(pcm1,location="left")
+axs[2].set_title("Total Field")
 
 # Reconstructed Field
 pcm3   = axs[3].pcolormesh(Xf2D,Yf2D,Fldf_r,vmin=Fmin,vmax=Fmax)
 pcm3.set_cmap(cm2)
 #cb2    = colorbar(pcm2,location="top")
+axs[3].set_title("Reconstructed Tensor Field")
 
 # pcm4   = axs[4].pcolormesh(Xf2D,Yf2D,(Fldf .- Fldf_r),vmin=Fmin,vmax=Fmax)
 # pcm4.set_cmap(cm2)
