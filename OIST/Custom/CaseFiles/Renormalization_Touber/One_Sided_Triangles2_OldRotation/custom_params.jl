@@ -73,7 +73,7 @@ plotfldi          = fill(true,nflds)
 plotfldi[1]       = false
 
 Aeq               = 0.47
-Asen              = 0.40/Anorm
+Asen              = 0.60 # 0.40/Anorm
 
 
 # Saving Params
