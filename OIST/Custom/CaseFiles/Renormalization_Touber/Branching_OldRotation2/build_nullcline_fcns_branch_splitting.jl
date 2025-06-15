@@ -28,6 +28,7 @@ lgfs = 12
 
 ifrenorm = true
 iftouber = false
+ifλnorm2 = true
 
 #include("select_nullclines.jl")
 sets              = [207]     # 21
@@ -44,11 +45,20 @@ parsS             = GetNullClineParams(set)
 if (ifrenorm) 
   Anorm,Bnorm     = renormalize_system!(pars)
   λnorm           = renormalize_λsystem!(parsS)
+  if (ifλnorm2)
+    λnorm2        = renormalize_λsystem2!(parsS)
+  else
+    λnorm2        = 1.0
+  end
 else
   Anorm           = 1.0
   Bnorm           = 1.0
   λnorm           = 1.0
+  λnorm2          = 1.0
 end  
+
+# Round off parameters
+round_params!(pars,parsS,4)
 
 h1                = figure(num=1)
 ax1               = h1.subplots()
@@ -177,7 +187,7 @@ gt(z)     = GetDynamicNullCline(gg,yin,z)
 
 # Build Nullcline for the dynamic switching
 #---------------------------------------- 
-δ                 = 0.005
+δ                 = 0.03 # 0.005/λnorm2
 λdot0(x,y)        = (1.0/δ)*FXY(x,y,parsS.fc0,parsS.fcx,parsS.fcy)
 if λdot0(0.0,100.0)>0
   parsS.fc0        = -parsS.fc0
