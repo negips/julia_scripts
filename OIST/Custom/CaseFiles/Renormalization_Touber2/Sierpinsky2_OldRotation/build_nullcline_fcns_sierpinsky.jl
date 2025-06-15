@@ -46,39 +46,39 @@ function set_simple_params!(pars,parsS)
   return nothing
 end
 #---------------------------------------------------------------------- 
-function round_params!(pars,parsS,nsig::Int)
-
-   # α1       = -0.066
-   # α2       =  6.69
-   # α3       = -0.45
-   # β0       =  0.00
-   # β1       =  0.64
-   # β2       = -0.77
-   # γ1       =  0.63
-   # γ2       = -0.16
-
-   pars.fcx[1]    = round(pars.fcx[1],sigdigits=nsig)
-   pars.fcy[2]    = round(pars.fcy[2],sigdigits=nsig) 
-   pars.fcy[3]    = round(pars.fcy[3],sigdigits=nsig) 
-
-   pars.gc0       = round(pars.gc0,sigdigits=nsig)    
-   pars.gcx[1]    = round(pars.gcx[1],sigdigits=nsig) 
-   pars.gcy[1]    = round(pars.gcy[1],sigdigits=nsig) 
-
-   parsS.fcx[1]   = round(parsS.fcx[1],sigdigits=nsig)
-
-   parsS.fcy[1]   = round(parsS.fcy[1],sigdigits=nsig)
-   parsS.fcy[2]   = round(parsS.fcy[2],sigdigits=nsig)
-   parsS.fcy[3]   = round(parsS.fcy[3],sigdigits=nsig)
-
-   parsS.gcx[1]   = round(parsS.gcx[1],sigdigits=nsig)
-
-   parsS.gcy[1]   = round(parsS.gcy[1],sigdigits=nsig)
-   parsS.gcy[2]   = round(parsS.gcy[2],sigdigits=nsig)
-
-  return nothing
-end
-#---------------------------------------------------------------------- 
+# function round_params!(pars,parsS,nsig::Int)
+# 
+#    # α1       = -0.066
+#    # α2       =  6.69
+#    # α3       = -0.45
+#    # β0       =  0.00
+#    # β1       =  0.64
+#    # β2       = -0.77
+#    # γ1       =  0.63
+#    # γ2       = -0.16
+# 
+#    pars.fcx[1]    = round(pars.fcx[1],sigdigits=nsig)
+#    pars.fcy[2]    = round(pars.fcy[2],sigdigits=nsig) 
+#    pars.fcy[3]    = round(pars.fcy[3],sigdigits=nsig) 
+# 
+#    pars.gc0       = round(pars.gc0,sigdigits=nsig)    
+#    pars.gcx[1]    = round(pars.gcx[1],sigdigits=nsig) 
+#    pars.gcy[1]    = round(pars.gcy[1],sigdigits=nsig) 
+# 
+#    parsS.fcx[1]   = round(parsS.fcx[1],sigdigits=nsig)
+# 
+#    parsS.fcy[1]   = round(parsS.fcy[1],sigdigits=nsig)
+#    parsS.fcy[2]   = round(parsS.fcy[2],sigdigits=nsig)
+#    parsS.fcy[3]   = round(parsS.fcy[3],sigdigits=nsig)
+# 
+#    parsS.gcx[1]   = round(parsS.gcx[1],sigdigits=nsig)
+# 
+#    parsS.gcy[1]   = round(parsS.gcy[1],sigdigits=nsig)
+#    parsS.gcy[2]   = round(parsS.gcy[2],sigdigits=nsig)
+# 
+#   return nothing
+# end
+# #---------------------------------------------------------------------- 
 
 close("all")
 

@@ -74,6 +74,8 @@ plotfldi[1]       = false
 
 Aeq               = 0.47
 Asen              = 0.40/Anorm
+# Aeq               = 0.30
+# Asen              = 0.38 # 0.40/Anorm
 
 
 # Saving Params

@@ -27,6 +27,7 @@ lafs = 16
 
 ifrenorm = true
 iftouber = false
+ifλnorm2 = true
 
 #include("select_nullclines.jl")
 sets              = [214] #[20]
@@ -43,11 +44,20 @@ parsS             = GetNullClineParams(set)
 if (ifrenorm) 
   Anorm,Bnorm     = renormalize_system!(pars)
   λnorm           = renormalize_λsystem!(parsS)
+  if (ifλnorm2)
+    λnorm2        = renormalize_λsystem2!(parsS)
+  else
+    λnorm2        = 1.0
+  end
 else
   Anorm           = 1.0
   Bnorm           = 1.0
   λnorm           = 1.0
+  λnorm2          = 1.0
 end  
+
+# set_simple_params!(pars,parsS)
+round_params!(pars,parsS,4)
 
 
 h1                = figure(num=1)
@@ -182,7 +192,7 @@ gt(z)     = GetDynamicNullCline(gg,yin,z)
 
 # Build Nullcline for the dynamic switching
 #---------------------------------------- 
-δ                 = 0.005
+δ                 = 0.03 # 0.005/λnorm2
 λdot0(x,y)        = (1.0/δ)*FXY(x,y,parsS.fc0,parsS.fcx,parsS.fcy)
 if λdot0(0.0,100.0)>0
   parsS.fc0        = -parsS.fc0
@@ -231,21 +241,38 @@ if xin !="x"
   include("time_stepper_multiple_one_sided_triangles.jl")
 end
 
-print_params(F,G,λdot1,pars,parsS)
+ndec = 4 
+print_params(F,G,λdot1,pars,parsS,ndec)
 
-ndec = 5
-@printf "ϵ   = %.*f\n" ndec ϵ
-@printf "η   = %.*f\n" ndec η
-@printf "ν   = %.*f\n" ndec δ
+fmt = Printf.Format("%s\t = %.$(ndec)e\n")
+Printf.format(stdout,fmt,"ϵ",ϵ) #
+Printf.format(stdout,fmt,"η",η) #
+Printf.format(stdout,fmt,"ν",δ) #
+
 
 prec = Float64
 include("custom_params.jl")
-@printf "Additional Params\n"
-@printf "D_{A}   = %.*f\n" ndec γa/ϵ
-@printf "Δϕ      = %.*f\n" ndec dθ*π/180.0
-@printf "β3      = %.*f\n" ndec X00
-@printf "A0      = %.*f\n" ndec Asen
-@printf "A_{eq}  = %.*f\n" ndec Aeq
+Printf.format(stdout,fmt,"D_{A}",γa/ϵ) #
+Printf.format(stdout,fmt,"Δϕ",dθ*π/180.0) #
+Printf.format(stdout,fmt,"β3",X00) #
+Printf.format(stdout,fmt,"δ1",Asen) #
+Printf.format(stdout,fmt,"A_{eq}",Aeq) #
+
+# print_params(F,G,λdot1,pars,parsS)
+# 
+# ndec = 5
+# @printf "ϵ   = %.*f\n" ndec ϵ
+# @printf "η   = %.*f\n" ndec η
+# @printf "ν   = %.*f\n" ndec δ
+# 
+# prec = Float64
+# include("custom_params.jl")
+# @printf "Additional Params\n"
+# @printf "D_{A}   = %.*f\n" ndec γa/ϵ
+# @printf "Δϕ      = %.*f\n" ndec dθ*π/180.0
+# @printf "β3      = %.*f\n" ndec X00
+# @printf "A0      = %.*f\n" ndec Asen
+# @printf "A_{eq}  = %.*f\n" ndec Aeq
 
 
 
