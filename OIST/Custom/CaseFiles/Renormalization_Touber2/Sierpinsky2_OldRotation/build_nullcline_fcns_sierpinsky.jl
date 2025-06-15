@@ -112,6 +112,7 @@ else
   Anorm           = 1.0
   Bnorm           = 1.0
   λnorm           = 1.0
+  λnorm2          = 1.0
 end  
 
 
