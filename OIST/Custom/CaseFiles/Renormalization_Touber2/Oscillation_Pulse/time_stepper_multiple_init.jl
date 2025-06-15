@@ -1,25 +1,29 @@
 
 println("Time-Stepping Initialization")
 
-agauss      = 0.0*Geom.xm1[:]
-if ngauss == 1
-  agauss      = exp.(-((Geom.xm1[:] .- x0)/σg).^2)
-else  
-  for i in 1:ngauss
-    global agauss
-    agauss    = agauss .+ ampgauss[i]*exp.(-((Geom.xm1[:] .- x0gauss[i])/σg).^2)
-  end
-end  
+# agauss      = 0.0*Geom.xm1[:]
+# if ngauss == 1
+#   agauss      = exp.(-((Geom.xm1[:] .- x0)/σg).^2)
+# else  
+#   for i in 1:ngauss
+#     global agauss
+#     agauss    = agauss .+ ampgauss[i]*exp.(-((Geom.xm1[:] .- x0gauss[i])/σg).^2)
+#   end
+# end  
+# 
+# #agauss      = exp.(-((Geom.xm1[:] .- x0)/σg).^2)# .*(sign.(Geom.xm1[:] .- x0))
+# awave       = 0.0.*Geom.xm1[:]
+# for i in 1:nk0
+#   harmonic    = Normk0[i]
+#   amp_A       = Ak0[i]
+#   K0          = 2.0*π/(xe-xs)
+#   awave      .= awave .+ amp_A*sin.(K0*harmonic*Geom.xm1[:])
+#   # bwave       = bwave .+ amp_B*sin.(K0*harmonic*Geom.xm1[:])
+# end
+# 
+# ainit       = vimultg.*(QT*agauss)
+# binit       = vimultg.*(QT*agauss)
 
-#agauss      = exp.(-((Geom.xm1[:] .- x0)/σg).^2)# .*(sign.(Geom.xm1[:] .- x0))
-k0          = 7
-asin        = sin.(2.0*π/(xe-xs)*k0*Geom.xm1[:])
-acos        = cos.(2.0*π/(xe-xs)*k0*Geom.xm1[:])
-
-ainit       = vimultg.*(QT*agauss)
-binit       = vimultg.*(QT*agauss)
-
-#nflds       = 2                                 # No of fields
 fld         = zeros(VT,ndof,nflds)
 dotfld      = zeros(VT,ndof,nflds)
 fldlag      = zeros(VT,ndof,2,nflds)
@@ -29,9 +33,35 @@ Rhslag      = zeros(VT,ndof,2,nflds)
 
 #fld[:,1]    = ampB0*ainit .+ B0Off .+ σbi*(rand(ndof) .- 0.5)
 #fld[:,2]    = ampA0*binit .+ A0Off .+ σai*(rand(ndof) .- 0.5)
+# for j in 1:nflds
+#   fld[:,j]    = Amp0[j]*ainit .+ Off0[j] .+ σ0i[j]*(rand(ndof) .- 0.5)
+# end  
+
+# Initial Condition
 for j in 1:nflds
-  fld[:,j]    = Amp0[j]*ainit .+ Off0[j] .+ σ0i[j]*(rand(ndof) .- 0.5)
+
+  # Gaussian
+  for i in 1:ngauss
+    amp       = Amp0[j]*ampgauss[i]
+    fld[:,j]  = fld[:,j] .+ amp*vimultg.*QT*exp.(-0.5*((Geom.xm1[:] .- x0gauss[i])/σg).^2)
+  end
+
+  # Wavenumber
+  for i in 1:nk0
+    nk          = Normk0[i]
+    amp         = ampk0[i,j]
+    K0          = 2.0*π/(xe-xs)
+    fld[:,j]    = fld[:,j] .+ amp*vimultg.*QT*sin.(K0*nk*Geom.xm1[:])
+  end
+
+  # Homogeneous and Noise
+  fld[:,j]      = fld[:,j] .+ Off0[j] .+ σ0i[j]*(rand(ndof) .- 0.5)
+
 end  
+
+
+
+
 
 
 fldhist     = zeros(VT,npts,nsurf_save,nflds)

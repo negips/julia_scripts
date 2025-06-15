@@ -20,21 +20,28 @@ ifglobal          = true
 nflds             = 2               # No of fields
 
 # Initialization
-ngauss            = 2
+ngauss            = 0
 x0gauss           = [30.0 65.0]           #xe*rand(ngauss)
 ngauss            = length(x0gauss)
 ampgauss          = ones(Float64,ngauss)  #rand(ngauss)
 x0                = x0gauss[1]      # Gaussian Center
 σg                = prec(2)         # Gaussian Std. Deviation
-ampA0             = prec(4.0)/Anorm
+ampA0             = prec(0.0)/Anorm
 ampB0             = prec(0.0)/Bnorm
 ampζ0             = prec(0.0)
 
 Amp0              = zeros(prec,nflds) 
 Amp0              = [ampB0; ampA0; ampζ0]
 
-A0Off             = prec(0.0)         # Homogeneous state value
-B0Off             = prec(0.0)         # Homogeneous state value
+Normk0            = [8.0]           # Normalized Wavenumbers
+nk0               = length(Normk0)
+Ak0               = [1.0; 0.25]./Anorm
+Bk0               = [1.0; 0.25]./Bnorm
+ampk0             = [Ak0 Bk0]
+
+
+A0Off             = prec(2.0)         # Homogeneous state value
+B0Off             = prec(1.5)         # Homogeneous state value
 ζ0Off             = prec(0.0)         # Homogeneous state value
 
 Off0              = zeros(prec,nflds)
@@ -48,7 +55,7 @@ Off0              = [B0Off; A0Off; ζ0Off]
 
 # Simulation
 dt                = prec(0.0025)       # Time step
-nsteps            = 17000             # No of steps
+nsteps            = 25000             # No of steps
 nstep_switch1     = 3000             # Switch functions 1
 nstep_switch2     = 3400             # Switch again
 
@@ -73,7 +80,7 @@ ifplot            = iffldplot || ifphplot || ifdynplot
 plotfldi          = fill(true,nflds)
 plotfldi[1]       = false
 
-Aeq               = 0.20
+Aeq               = 0.50
 Asen              = 2.50/Anorm
 
 

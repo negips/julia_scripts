@@ -18,7 +18,7 @@ one = prec(1.0)
 zro = prec(0.0)
 
 # define nodal bases
-N           = 6 ;                              # polynomial degree
+N           = 11 ;                              # polynomial degree
 lx1         = N+1;                              # No of points
 Basis       = LobattoLegendre(N, prec)          # Polynomial Basis
 
@@ -29,7 +29,7 @@ Basisd      = LobattoLegendre(Nd, prec)         # Polynomial Basis
 #basis2 = GaussLegendre(N)
 
 xs          = prec(0.)                          # Domain start
-xe          = prec(100.0)                        # Domain end
+xe          = prec(200.0)                        # Domain end
 
 nel         = 120                                # No of elements
 nnodes      = nel+1;                            # No of nodes

@@ -212,22 +212,39 @@ pars.gc0        = pars.gc0/η
 pars.gcx        = pars.gcx/η
 pars.gcy        = pars.gcy/η
 
-print_params(F,G,λdot1,pars,parsS)
+#print_params(F,G,λdot1,pars,parsS)
 
-ndec = 5
-@printf "ϵ   = %.*f\n" ndec ϵ
-@printf "η   = %.*f\n" ndec η
-@printf "ν   = %.*f\n" ndec δ
+ndec = 4 
+print_params(F,G,λdot1,pars,parsS,ndec)
 
-include("sem_init_ref.jl")
+fmt = Printf.Format("%s\t = %.$(ndec)e\n")
+Printf.format(stdout,fmt,"ϵ",ϵ) #
+Printf.format(stdout,fmt,"η",η) #
+Printf.format(stdout,fmt,"ν",δ) #
+
+
+prec = Float64
 include("custom_params.jl")
+Printf.format(stdout,fmt,"D_{A}",γa/ϵ) #
+Printf.format(stdout,fmt,"Δϕ",dθ*π/180.0) #
+Printf.format(stdout,fmt,"β3",X00) #
+Printf.format(stdout,fmt,"δ1",Asen) #
+Printf.format(stdout,fmt,"A_{eq}",Aeq) #
 
-@printf "Additional Params\n"
-@printf "D_{A}   = %.*f\n" ndec γa/ϵ
-@printf "Δϕ      = %.*f\n" ndec dθ*π/180.0
-@printf "β3      = %.*f\n" ndec X00
-@printf "A0      = %.*f\n" ndec Asen
-@printf "A_{eq}  = %.*f\n" ndec Aeq
+# ndec = 5
+# @printf "ϵ   = %.*f\n" ndec ϵ
+# @printf "η   = %.*f\n" ndec η
+# @printf "ν   = %.*f\n" ndec δ
+# 
+# include("sem_init_ref.jl")
+# include("custom_params.jl")
+# 
+# @printf "Additional Params\n"
+# @printf "D_{A}   = %.*f\n" ndec γa/ϵ
+# @printf "Δϕ      = %.*f\n" ndec dθ*π/180.0
+# @printf "β3      = %.*f\n" ndec X00
+# @printf "A0      = %.*f\n" ndec Asen
+# @printf "A_{eq}  = %.*f\n" ndec Aeq
 
 
 

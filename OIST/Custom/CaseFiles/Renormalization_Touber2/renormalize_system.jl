@@ -118,6 +118,21 @@ function renormalize_λsystem!(parsS)
   return λnorm
 end 
 #---------------------------------------------------------------------- 
+function renormalize_λsystem2!(parsS)
+
+  λnorm     = abs(parsS.fcy[3])
+
+  # h-parameters
+  parsS.fc0        = parsS.fc0/λnorm
+  parsS.fcx[1]     = parsS.fcx[1]/λnorm
+
+  parsS.fcy[1]     = parsS.fcy[1]/λnorm
+  parsS.fcy[2]     = parsS.fcy[2]/λnorm
+  parsS.fcy[3]     = parsS.fcy[3]/λnorm
+
+  return λnorm
+end 
+#---------------------------------------------------------------------- 
 
 
 
