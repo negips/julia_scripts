@@ -74,7 +74,7 @@ plotfldi          = fill(true,nflds)
 plotfldi[1]       = false
 
 Aeq               = 0.30 #
-Asen              = 5.54 #3.70/Anorm # 0.035 for Set 20
+Asen              = 5.548 #3.70/Anorm # 0.035 for Set 20
 
 
 # Saving Params
