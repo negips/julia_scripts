@@ -86,6 +86,7 @@ lafs = 16
 
 ifrenorm = true
 iftouber = false
+ifλnorm2 = true
 
 #include("select_nullclines.jl")
 sets              = [215] # [20]
@@ -102,6 +103,11 @@ parsS             = GetNullClineParams(set)
 if (ifrenorm) 
   Anorm,Bnorm     = renormalize_system!(pars)
   λnorm           = renormalize_λsystem!(parsS)
+  if (ifλnorm2)
+    λnorm2        = renormalize_λsystem2!(parsS)
+  else
+    λnorm2        = 1.0
+  end
 else
   Anorm           = 1.0
   Bnorm           = 1.0
@@ -242,7 +248,7 @@ gt(z)     = GetDynamicNullCline(gg,yin,z)
 
 # Build Nullcline for the dynamic switching
 #---------------------------------------- 
-δ                 = 0.01
+δ                 = 0.061# 0.01/λnorm2
 λdot0(x,y)        = (1.0/δ)*FXY(x,y,parsS.fc0,parsS.fcx,parsS.fcy)
 if λdot0(0.0,100.0)>0
   parsS.fc0        = -parsS.fc0
@@ -298,6 +304,7 @@ fmt = Printf.Format("%s\t = %.$(ndec)e\n")
 Printf.format(stdout,fmt,"ϵ",ϵ) #
 Printf.format(stdout,fmt,"η",η) #
 Printf.format(stdout,fmt,"ν",δ) #
+
 
 prec = Float64
 include("custom_params.jl")
