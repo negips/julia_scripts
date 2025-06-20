@@ -69,33 +69,33 @@ function GradFXY(x,y,cx,cy)
 end  
 #---------------------------------------------------------------------- 
 
-"""
-   function FXYZ(x,y,z,c0,cx,cy)
-
-     F(x,y,z) = c0 + Σcx_i*x^i + Σcy_i*y^i + Σcz_i*z^i
-
-"""
-function FXYZ(x,y,z,c0,cx,cy,cz)
-  nx = length(cx)
-  ny = length(cy)
-  nz = length(cz)
-
-  s = c0
-  for i in 1:nx
-    s = s .+ cx[i]*x.^i
-  end
-
-  for j in 1:ny
-    s = s .+ cy[j]*y.^j
-  end  
-
-  for k in 1:nz
-    s = s .+ cz[k]*z.^k
-  end  
- 
-  return s
-end  
-#---------------------------------------------------------------------- 
+# """
+#    function FXYZ(x,y,z,c0,cx,cy)
+# 
+#      F(x,y,z) = c0 + Σcx_i*x^i + Σcy_i*y^i + Σcz_i*z^i
+# 
+# """
+# function FXYZ(x,y,z,c0,cx,cy,cz)
+#   nx = length(cx)
+#   ny = length(cy)
+#   nz = length(cz)
+# 
+#   s = c0
+#   for i in 1:nx
+#     s = s .+ cx[i]*x.^i
+#   end
+# 
+#   for j in 1:ny
+#     s = s .+ cy[j]*y.^j
+#   end  
+# 
+#   for k in 1:nz
+#     s = s .+ cz[k]*z.^k
+#   end  
+#  
+#   return s
+# end  
+# #---------------------------------------------------------------------- 
 """
    function TransFXYZ(x,y,λ,c0,cx,cy)
 
@@ -465,6 +465,24 @@ function TERR_F(x,y,c0,cx,cy)
   end  
 
   return er
+end  
+#---------------------------------------------------------------------- 
+"""
+   function FXYZ(x,y,z,c0,cx,cy,cz)
+
+     F(x,y,z) = c0 + Σcx_i*x^i + Σcy_i*y^i + Σcz_i*z^i
+
+"""
+function FXYZ(x,y,z,c0,cx,cy,cz)
+
+  s0 = c0
+  sx = FX(x,0.0,cx)
+  sy = FX(y,0.0,cy)
+  sz = FX(z,0.0,cz)
+
+  s  = s0 .+ sx .+ sy .+ sz
+
+  return s
 end  
 #---------------------------------------------------------------------- 
 
