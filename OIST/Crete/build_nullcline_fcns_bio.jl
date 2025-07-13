@@ -79,8 +79,8 @@ MoveFigure(h1,1250,830)
 fname0   = @sprintf "./plots/nullclines"
 #h1.savefig(fname0)
 
-ϵ  = 1.0E+1
-η  = 1.0E+1
+ϵ  = 1.0E-1
+η  = 1.0E+0
 Flow(x,y)   = [g(x,y)/η f(x,y)/ϵ]
 
 println("Press x to stop. Any other key to continue")
@@ -92,11 +92,6 @@ if xin !="x"
   include("time_stepper_multiple_init.jl")
 end
 
-# ndec = 4 
-# fmt = Printf.Format("%s\t = %.$(ndec)e\n")
-# Printf.format(stdout,fmt,"ϵ",ϵ) #
-# Printf.format(stdout,fmt,"η",η) #
-# Printf.format(stdout,fmt,"ν",δ) #
 
 
 

@@ -8,13 +8,17 @@ using Printf
 using PyPlot,PyCall
 using Roots
 
+const SRC = "/home/prabal/workstation/git/julia/OIST/Custom"
+
 include("FitzhughNagumo.jl")
-include("../NullClines.jl")
+include("$SRC/NullClines.jl")
 include("$JULIACOMMON/MoveFigure.jl")
 
 lafs  = 16
-a     = -0.50
-b     =  0.50
+a     =  3.00
+b     = -1.00
+R     =  1.0
+m     =  0.75
 
 cm    = get_cmap("tab10");
 
@@ -26,7 +30,7 @@ ax1 = h1.subplots()
 cmapU = cm(0)
 cmapV = cm(1)
 
-Uu,Uv,Vu,Vv = FitzhughNagumoNullClines(a,b)
+Uu,Uv,Vu,Vv = FitzhughNagumoNullClines2(a,b,R,m)
 
 nullc_u = ax1.plot(Uu,Uv,linestyle="-",color=cmapU,linewidth=2)
 nullc_v = ax1.plot(Vu,Vv,linestyle="-",color=cmapV,linewidth=2)
@@ -36,12 +40,14 @@ ax1.set_ylabel(L"v", fontsize=lafs)
 
 title = "a=$a; b=$b"
 ax1.set_title(title, fontsize=lafs)
-ax1.set_xlim(-3.0,3.0)
-ax1.set_ylim(-3.0,4.0)
+ax1.set_xlim(-1.0,3.0)
+ax1.set_ylim(-1.0,4.0)
 MoveFigure(h1,1250,500)
 
 #ax1.legend(fontsize=12)
 
 
 #legend()
+
+println("Done.")
 

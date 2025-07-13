@@ -49,6 +49,8 @@ time        = range(0.,step=dt,length=nsteps);
 
 h2          = figure(num=2)
 ax2         = h2.subplots()
+ax2.set_xlabel(L"x", fontsize=lafs)
+ax2.set_ylabel(L"A", fontsize=lafs)
 MoveFigure(h2,1250,10)
 
 t           = 0.
@@ -66,8 +68,9 @@ pl = Array{Any}(undef,nflds)
 if initplot
   for j in 1:nflds
     if (plotfldi[j])
-      pl[j] = ax2.plot(Geom.xm1[:],Q*fld[:,j],color=cm(0));
-#      pl2   = ax2.plot(Geom.xm1[:],Q*fld[:,2],color=rgba1);
+      # pl[j] = ax2.plot(Geom.xm1[:],Q*fld[:,j],color=cm(0));
+      pl[j] = ax2.plot(Geom.xm1[:],Q*fld[:,j],color=rgba0);
+      # pl2   = ax2.plot(Geom.xm1[:],Q*fld[:,2],color=rgba1);
     end
   end  
   if ifphplot

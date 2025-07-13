@@ -58,7 +58,8 @@ for i in 1:nsteps
   γ_hist[i]    = γ
 
   if verbosestep>0 && mod(i,verbosestep)==0
-    println("Step: $i/$nsteps, Time: $t, Abar = $(abar); γ: $(γ)")
+    # println("Step: $i/$nsteps, Time: $t, Abar = $(abar); γ: $(γ)")
+    @printf("Step: %6i/%6i; Time: %.4e; Abar: %7.5e; γ: %.4g\n", i,nsteps,t,abar,γ)
   end
 
   GetBDF!(bdf,3)
@@ -201,6 +202,9 @@ pcm   = pcolormesh(x2d,t2d,fldhist[:,:,2],vmin=-1.2,vmax=6.2)
 pcm.set_cmap(cm2)
 ax3   = h3.gca()
 ax3.invert_yaxis()
+ax3.set_ylabel("t",fontsize=lafs)
+ax3.set_xlabel("x",fontsize=lafs)
+
 #cb    = colorbar(orientation="vertical")
 if (ifsavext)
   fname3 = @sprintf "./plots/spacetime"

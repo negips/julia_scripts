@@ -201,9 +201,9 @@ if (ifsavext)
 end  
 
 
-h5,(ax5,ax6) = subplots(1,2,sharey=true,figsize=[8.0,8.0])
-ax5.set_position([0.125, 0.10, 0.55, 0.8])
-ax6.set_position([0.700, 0.10, 0.20, 0.8])
+h5,(ax5,ax6) = subplots(1,2,sharey=true,figsize=[8.0,8.0],gridspec_kw=Dict("width_ratios"=>[3, 1]),layout="constrained")
+#ax5.set_position([0.125, 0.10, 0.55, 0.8])
+#ax6.set_position([0.700, 0.10, 0.20, 0.8])
 sca(ax5)
 pcm   = pcolormesh(x2d,t2d,fldhist[:,:,2],vmin=-1.2,vmax=6.2)
 pcm.set_cmap(cm2)

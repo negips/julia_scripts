@@ -84,7 +84,7 @@ for i in 1:nsteps
     fldlag[:,2,j] = copy(fldlag[:,1,j]);
     fldlag[:,1,j] = copy(fld[:,j]);
 
-#   Noise    
+    # Noise    
     Σ             = σall[j]*(rand(ndof) .- 0.5)
     Rhs[:,j]      = Rhs[:,j] .+ Bg.*Σ
   end

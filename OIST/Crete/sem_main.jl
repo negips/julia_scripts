@@ -7,16 +7,12 @@ using Printf
 
 # Include the function files
 
-include("sem_geom.jl")
-include("sem_init_ref.jl")
-
-include("AssembleMatrix.jl")
+include("$SRC/sem_geom.jl")
 include("$SRC/AssembleMatrix.jl")
-
-include("Sem_QQT.jl")
+include("$SRC/Sem_QQT.jl")
 
 # Load Parameters
-include("fitzhughnagumo_params.jl")
+#include("custom_params.jl")
 
 # Generate the geomerty dependent matrices
 Geom = sem_geom(Basis,Basisd,xc,N,Nd,nel,dxm1,dxtm1,prec);
@@ -47,18 +43,27 @@ end
 for i in 1:nel
   j1 = (i-1)*lx1 + 1;
   j2 = i*lx1;
-# Dealiased Mass matrix
+  # Dealiased Mass matrix
   Md[j1:j2,j1:j2] = (Geom.intpm1d')*diagm(Geom.bm1d[:,i])*Geom.intpm1d
 end
 
 # Build Filter Matrix
 Fil,OPf = BuildFilter(M2N,N2M,lx1,nel,prec,ifsparse)
 
-# Build Interpolation Matrix
+# Interpolation Operator
 Intp    = AssembleInterpolation(Geom.intpm1d,nel,ifsparse)
 
-
 #ifglobal = true
+
+ndof2 = ndof + ndof
+# Build Matrix for 2 fields together
+if (ifsparse)
+  L2g    = spzeros(VT,ndof2,ndof2)
+  Z2g    = spzeros(VT,ndof,ndof)
+else
+  L2g    = zeros(VT,ndof2,ndof2)
+  Z2g    = zeros(VT,ndof,ndof)
+end
 
 if ifglobal
   Cg    = QT*Conv*Q    # Global Convection matrix
@@ -67,23 +72,16 @@ if ifglobal
   Filg  = QT*Fil*Q     # Global Filter matrix
   Intpg = Intp*Q       # Global Interpolation matrix
 
-#  Fg    = QT*Fd*Q      # Global Feedback matrix
-#  BgM   = QT*diagm(B)*Q         # Global Mass vector
   Bg    = QT*B
   Big   = one./Bg      # Global inverse Mass vector
   Mdg   = QT*Md*Q      # Global Dialiased Weight Matrix for inner products 
-  
+ 
   OPg   = QT*(L)*Q./Bg
-  @printf("Direct Global Matrices Built\n")
 
-#  ACg    = QT*AConv*Q    # Global Convection matrix
-#  ALg    = QT*ALap*Q     # Global Laplacian matrix
-#  ASg    = QT*ASrc*Q     # Global Src matrix
-#  AFg    = QT*AFd*Q      # Global Feedback matrix
-#
-#  AOPg   = QT*(AL)*Q./Bg
-#
-#  @printf("Adjoint Global Matrices Built\n")
+  # Operator for 2 fields together.
+  L2g   = [Z2g Z2g;γall[1]*Lg Z2g]
+  B2g   = [Bg; Bg]
+  @printf("Direct Global Matrices Built\n")
   
 end
 

@@ -27,13 +27,12 @@ ifplot            = iffldplot || ifphplot
 
 Vol   = sum(Bg)
 A_sen = Asen*Vol
-γ     = (2.0)/λnorm
+γ     = -0.0/λnorm
 
 γhist       = zeros(VT,nsurf_save)
 Abarhist    = zeros(VT,nsurf_save)
 γhist[1]    = γ
 Abarhist[1] = (Bg'*fld[:,2])/A_sen - Aeq
-
 
 for i in 1:nsteps
   global fld,fldlag,Rhs,Rhslag,dotfld
@@ -48,7 +47,7 @@ for i in 1:nsteps
   A_tot     = Bg'*fld[:,2]
   abar      = A_tot/A_sen - Aeq
 
-  γ         = RK4!(λdot1,abar,γ,dt)
+  γ         = 0.0 # RK4!(λdot1,abar,γ,dt)
 
   if verbosestep>0 && mod(i,verbosestep)==0
     println("Step: $i/$nsteps, Time: $t, Abar = $(abar); γ: $(γ)")
@@ -65,11 +64,8 @@ for i in 1:nsteps
     GetEXT!(ext,2)
   end
 
-  θpar      = (θ0 + (γ/1.0)*dθ)*π/180.0
-  #Ω         = 0.05
-  #θpar      = (θ0 - (A_tot/A_eq)*dθ)*pi/180.0
-  # θpar      = 0.0 # (θ0 + dθ*sin(2*π*Ω*t))*pi/180.0         # for G
-  λpar      = 0.0 # (λ0 - dλ*sin(2*π*Ω*t))                  # for F
+  θpar      = 0 #γ   # for G
+  λpar      = 0.0 # for F
   dotfld    = Flow(fld[:,1],fld[:,2],θpar,λpar)
 
   for j in 1:nflds
@@ -90,11 +86,21 @@ for i in 1:nsteps
     Rhs[:,j]      = Rhs[:,j] .+ Bg.*Σ
   end
 
+  Rhs2 = Rhs[:]
+  M2   = bdf[1]/dt*diagm(B2g) .- L2g;
+  a2   = gmres(M2,Rhs2,abstol=1.0e-10,verbose=false)
   for j in 1:nflds
-    M         = bdf[1]/dt*diagm(Bg) .- γall[j]*Lg;
-    a         = gmres(M,Rhs[:,j],abstol=1.0e-10,verbose=false)
-    fld[:,j]  = copy(a)
+    k1 = (j-1)*ndof + 1
+    k2 = j*ndof
+    fld[1:ndof,j]  = copy(a2[k1:k2])
   end
+
+#
+#  for j in 1:nflds
+#    M         = bdf[1]/dt*diagm(Bg) .- γall[j]*Lg;
+#    a         = gmres(M,Rhs[:,j],abstol=1.0e-10,verbose=false)
+#    fld[:,j]  = copy(a)
+#  end
 
   # Save for surface plot  
   if surf_save>0 && mod(i,surf_save)==0
@@ -143,7 +149,7 @@ for i in 1:nsteps
     if (iffldplot)
       for j in 1:nflds
         if (plotfldi[j])
-          pl[j] = ax2.plot(Geom.xm1[:],Q*fld[:,j],color=cm(0));
+          pl[j] = ax2.plot(Geom.xm1[:],Q*fld[:,j],color=cm(j-1));
         end
       end  
     end
@@ -193,37 +199,43 @@ pcm   = pcolormesh(x2d,t2d,fldhist[:,:,2],vmin=-1.2,vmax=6.2)
 pcm.set_cmap(cm2)
 ax3   = h3.gca()
 ax3.invert_yaxis()
-ax3.set_ylabel("t",fontsize=lafs)
-ax3.set_xlabel("x",fontsize=lafs)
 #cb    = colorbar(orientation="vertical")
 if (ifsavext)
-  fname3 = @sprintf "./plots/spacetime"
+  fname3   = @sprintf "./plots/spacetime"
   h3.savefig(fname3)
   println("Saved Figure "*fname3)
 end  
-#surf(t2d,x2d,fldhist[:,:,2],cmap=cm2,edgecolor="none")
-#ax3.elev = 94.0
-#ax3.azim = 0.0
-#ax3.roll = 0.0
-#draw()
 
-h5,(ax5,ax6) = subplots(1,2,sharey=true,figsize=[8.0,8.0])
-ax5.set_position([0.125, 0.10, 0.55, 0.8])
-ax6.set_position([0.700, 0.10, 0.20, 0.8])
+
+h5,(ax5,ax6) = subplots(1,2,sharey=true,figsize=[8.0,8.0],gridspec_kw=Dict("width_ratios"=>[3, 1]),layout="constrained")
+#ax5.set_position([0.125, 0.10, 0.55, 0.8])
+#ax6.set_position([0.700, 0.10, 0.20, 0.8])
+
 sca(ax5)
 pcm   = pcolormesh(x2d,t2d,fldhist[:,:,2],vmin=-1.2,vmax=6.2)
 pcm.set_cmap(cm2)
 ax5.set_ylabel("t",fontsize=lafs)
 ax5.set_xlabel("x",fontsize=lafs)
 ax5.invert_yaxis()
+#cb    = colorbar(location="top")
 
 ax6.plot(γhist,Thist,linewidth=2,color=cm(3))
 ax6.set_xlabel("λ",fontsize=lafs)
+
+
 if (ifsavext)
   fname4   = @sprintf "./plots/spacetime2"
   h5.savefig(fname4)
   println("Saved Figure "*fname4)
 end  
+
+
+#surf(t2d,x2d,fldhist[:,:,2],cmap=cm2,edgecolor="none")
+#ax3.elev = 94.0
+#ax3.azim = 0.0
+#ax3.roll = 0.0
+#draw()
+
 
 
 

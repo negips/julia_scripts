@@ -23,8 +23,8 @@ include("../renormalize_system.jl")
 
 close("all")
 
-lafs = 16
-
+lafs  = 16
+lgfs  = 12
 ifrenorm = true
 
 #include("select_nullclines.jl")
@@ -165,7 +165,7 @@ nsteps            = 50000
 
 h4                = figure(num=4)
 ax4               = h4.subplots()
-ax4.plot(λdot0x1,λdot0y1,color=cm(3),linestyle="--")
+ax4.plot(λdot0x1,λdot0y1,color=cm(3),linestyle="-",label=L"h(\widebar{A},λ)=0")
 ax4.set_ylabel(L"λ", fontsize=lafs)
 ax4.set_xlabel(L"\widebar{A}", fontsize=lafs)
 if (ifrenorm) 
@@ -176,6 +176,7 @@ else
   ax4.set_ylim(-2.5,2.5)
 end  
 
+legend(fontsize=lgfs)
 fname0   = @sprintf "./plots/paramnullcline"
 h4.savefig(fname0)
 

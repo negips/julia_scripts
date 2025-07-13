@@ -61,6 +61,10 @@ time        = range(0.,step=dt,length=nsteps);
 
 h2          = figure(num=2)
 ax2         = h2.subplots()
+ax2.set_xlim(xs,xe)
+ax2.set_ylim(-1.5,6.0)
+ax2.set_xlabel(L"x", fontsize=lafs)
+ax2.set_ylabel(L"u,v", fontsize=lafs)
 MoveFigure(h2,1250,10)
 
 t           = 0.
@@ -78,7 +82,14 @@ pl = Array{Any}(undef,nflds)
 if initplot
   for j in 1:nflds
     if (plotfldi[j])
-      pl[j] = ax2.plot(Geom.xm1[:],Q*fld[:,j],color=cm(j-1));
+      if j == 1
+        col = cmapV
+      elseif j == 2
+        col = cmapU
+      else
+        col = cmap(j-1)
+      end  
+      pl[j] = ax2.plot(Geom.xm1[:],Q*fld[:,j],color=col);
 #      pl2   = ax2.plot(Geom.xm1[:],Q*fld[:,2],color=rgba1);
     end
   end  
@@ -123,9 +134,8 @@ if initplot
     end
 
     # Start Stepper
-    include("time_stepper_multiple_bio.jl")
-
-  end       # StepperStart
+    include("time_stepper_multiple_FitzHughNagumo.jl")
+  end       # StepperStart != "x"
 
 end
 

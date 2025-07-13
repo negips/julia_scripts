@@ -8,6 +8,8 @@ using Roots
 
 close("all")
 
+const SRC = "/home/prabal/workstation/git/julia/OIST/Custom"
+
 # Include the function files
 include("sem_main.jl")
 include("FitzhughNagumo.jl")
@@ -123,7 +125,7 @@ for i in 1:nsteps
       pl2 = ax2.plot(Geom.xm1[:],Q*fld[:,2],color=rgba1);
 
       if ifphplot
-        scat = ax1.plot(fld[:,1],fld[:,2],color="black") 
+        scat = ax1.plot(Intpg*fld[:,1],Intpg*fld[:,2],color="black") 
       end
       pause(0.001)
     end     # mod(i,plotupd)

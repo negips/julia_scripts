@@ -209,7 +209,7 @@ nsteps            = 50000
 
 h4                = figure(num=4)
 ax4               = h4.subplots()
-ax4.plot(λdot0x1,λdot0y1,color=cm(3),linestyle="--")
+ax4.plot(λdot0x1,λdot0y1,color=cm(3),linestyle="-",label=L"h(\widebar{A},λ)=0")
 ax4.set_ylabel(L"λ", fontsize=lafs)
 ax4.set_xlabel(L"\widebar{A}", fontsize=lafs)
 if (ifrenorm) 

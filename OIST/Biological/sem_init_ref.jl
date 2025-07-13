@@ -22,7 +22,7 @@ N           = 12 ;                              # polynomial degree
 lx1         = N+1;                              # No of points
 Basis       = LobattoLegendre(N, prec)          # Polynomial Basis
 
-Nd          = Int64(floor(N*1.5)+1)             # polynomial degree
+Nd          = Int64(floor(N*3)+1)             # polynomial degree
 lx1d        = Nd+1;                             # No of points
 Basisd      = LobattoLegendre(Nd, prec)         # Polynomial Basis
 
@@ -31,7 +31,7 @@ Basisd      = LobattoLegendre(Nd, prec)         # Polynomial Basis
 xs          = prec(0.)                          # Domain start
 xe          = prec(100.0)                       # Domain end
 
-nel         = 60                                # No of elements
+nel         = 120                                # No of elements
 nnodes      = nel+1;                            # No of nodes
 xc          = range(xs,stop=xe,length=nnodes)   # Element coordinates
 

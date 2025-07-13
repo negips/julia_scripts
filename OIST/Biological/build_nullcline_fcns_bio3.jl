@@ -30,7 +30,7 @@ iftouber = false
 ifλnorm2 = true
 
 #include("select_nullclines.jl")
-#sets              = [201]
+sets              = [201]
 
 cm                = get_cmap("tab10")
 
@@ -46,32 +46,45 @@ MoveFigure(h1,1250,830)
 PlotContainers    = Array{Any}(undef,20)
 plc               = 0
 
-# dϕ/dt
+# dv/dt
 gc0         = 0.0
-gc1         = [-1.0]                 # ϕ
-gc2         = [1.5]                  # X # 1.5
-g(x,y)      = FXY(x,y,gc0,gc1,gc2)
+gc1         = [0.0]                  # v
+gc2         = [-5.0]                 # x
+gc3         = [-6.0; 7.0; -1.0]      # ϕ
+g(x,y,z)    = FXYZ(x,y,z,gc0,gc1,gc2,gc3)
 
-# d²X/dt²
+# dx/dt
 fc0         = 0.0
-fc1         = [-5.0]                 # ϕ
-fc2         = [-6.0; 7.0; -1.0]      # X
-f(x,y)      = FXY(x,y,fc0,fc1,fc2)
+fc1         = [1.0]                  # v
+fc2         = [0.0]                  # x
+fc3         = [0.0]                  # ϕ
+f(x,y,z)    = FXYZ(x,y,z,fc0,fc1,fc2,fc3)
+
+# dϕ/dt
+hc0         = 0.0
+hc1         = [0.0]                  # v
+hc2         = [-1.0]                 # x
+hc3         = [1.5]                  # ϕ
+h(x,y,z)    = FXYZ(x,y,z,hc0,hc1,hc2,hc3)
+
 
 xi          = -5.0
 yr0         = -10.0
 yr1         =  50.0
-dτ          = 1.0e-3
-nsteps      = 200000
-g0x,g0y     = NullClines(g,xi,yr0,yr1,nsteps,dτ)
-f0x,f0y     = NullClines(f,xi,yr0,yr1,nsteps,dτ)
+dτ          =  1.0e-3
+nsteps      =  200000
+g2(y,z)     = g(0.0,y,z)
+g0x,g0y     = NullClines(g2,xi,yr0,yr1,nsteps,dτ)
+h2(y,z)     = h(0.0,y,z)
+h0x,h0y     = NullClines(h2,xi,yr0,yr1,nsteps,dτ)
 plc        += 1
 PlotContainers[plc] = ax1.plot(g0x,g0y,linestyle="-")
 plc        += 1
-PlotContainers[plc] = ax1.plot(f0x,f0y,linestyle="-")
+PlotContainers[plc] = ax1.plot(h0x,h0y,linestyle="-")
 
 ax1.set_xlim(-2.0,7.0)
 ax1.set_ylim(-2.0,7.0)
+
 
 
 
@@ -79,17 +92,17 @@ MoveFigure(h1,1250,830)
 fname0   = @sprintf "./plots/nullclines"
 #h1.savefig(fname0)
 
-ϵ  = 1.0E+1
-η  = 1.0E+1
-Flow(x,y)   = [g(x,y)/η f(x,y)/ϵ]
+ϵ  = 0.1
+η  = 1.0
+Flow(x,y,z)   = [g(x,y,z) f(x,y,z) h(x,y,z)]
 
 println("Press x to stop. Any other key to continue")
-xin = readline()
-#xin = "x"
+# xin = readline()
+xin = "x"
 #xin = "y"
 if xin !="x"
   # close(h4)
-  include("time_stepper_multiple_init.jl")
+  # include("time_stepper_multiple_oscillation_pulse.jl")
 end
 
 # ndec = 4 
