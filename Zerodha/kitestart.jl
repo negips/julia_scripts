@@ -37,8 +37,8 @@ end
 
 DotEnv.load!()
 
-key         = ENV["KITE_API_KEY"]
-secret      = ENV["KITE_API_SECRET"]
+key         = ENV["FIRST_API_KEY"]
+secret      = ENV["FIRST_API_SECRET"]
 
 KiteAPI.init(key,secret)
 
@@ -55,9 +55,14 @@ KiteAPI.gen_access_token(request_token)
 sto   = "BEL"
 Ex    = "NSE"
 
-ltp   = KiteAPI.last_trading_price(Ex,sto)
+#ltp   = KiteAPI.last_trading_price(Ex,sto)
+profile   = KiteAPI.get_user_profile()
+equity    = KiteAPI.get_user_margins("equity")
+commodity = KiteAPI.get_user_margins("commodity")
+holdings  = KiteAPI.get_holdings()
+positions = KiteAPI.get_positions()
 
-@printf("LTP of Stock %s at Exchange %s = %s\n",sto,Ex,ltp)
+# @printf("LTP of Stock %s at Exchange %s = %s\n",sto,Ex,ltp)
 
 println("Done.")
 
