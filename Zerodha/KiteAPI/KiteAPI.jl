@@ -11,6 +11,7 @@ using SHA
 using Printf
 
 const API_ENDPOINT = "https://api.kite.trade"
+const X_KITE_VER   = "3"
 
 # API_KEY = ""
 # API_SECRET = ""
@@ -19,19 +20,22 @@ const API_ENDPOINT = "https://api.kite.trade"
 include("KiteStruct.jl")
 include("connect.jl")
 include("KiteConstructor.jl")
+
 include("quote.jl")
 include("user.jl")
 include("portfolio.jl")
 
 # Struct/Constructor
-export      KiteConnect
+export      KiteConnection
 
 
 # Connect
-export      init, 
+export      kite_get_tokens, 
             gen_request_token,
             gen_access_token, 
-            set_access_token
+            set_access_token,
+            kite_close_session,
+            kite_std_header
 
 # Quote
 export      last_trading_price

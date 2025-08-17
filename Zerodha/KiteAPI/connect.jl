@@ -1,25 +1,27 @@
 """
-  'init(api_key::String, api_secret::String)`
+  'kite_get_tokens(api_key::String, api_secret::String)`
 
 Setup your KiteAPI session by providing your API key and
 API secret which you get from Zerodha
 """
-function kite_new_tokens(api_key::String,api_secret::String)
+function kite_get_tokens(api_key::String,api_secret::String)
 
+  # Request token
   rtoken = gen_request_token(api_key)
+  # Access token
   atoken = gen_access_token(api_key,api_secret,rtoken)
 
+  return rtoken,atoken
 end
 
 """
   'gen_request_token()`
 
-Setup your KiteAPI session by providing your API key and
-API secret which you get from Zerodha
+Generate the request token
 """
 function gen_request_token(key::String)
 
-   url = "https://kite.trade/connect/login?api_key="*API_KEY
+   url = "https://kite.trade/connect/login?api_key="*key
    # println(url)
    @printf("Login at: %s\n",url)
    
@@ -30,23 +32,6 @@ function gen_request_token(key::String)
    return request_token
 end  
 #---------------------------------------------------------------------- 
-
-
-function get_http_headers()
-  hdr = [ "X-Kite-Version" => "3",
-          "Authorization" => "token $API_KEY:$ACCESS_TOKEN"
-        ]
-  return hdr
-end
-
-function http_get(url_fragment::String)
-
-  url = "$API_ENDPOINT/$url_fragment"
-  r = HTTP.request("GET", url, get_http_headers())
-
-  return JSON.parse(String(r.body))
-end
-
 """
   `gen_access_token(request_token::String)`
 
@@ -56,27 +41,55 @@ function gen_access_token(key::String,secret::String,request_token::String)
   
   checksum  = bytes2hex(sha256(key * request_token * secret))
   url       = "$API_ENDPOINT/session/token"
-  header    = [ "X-Kite-Version" => "3",
+  header    = [ "X-Kite-Version" => X_KITE_VER,
                 "Content-Type"   => "application/x-www-form-urlencoded" ]
-  body      = "api_key=$API_KEY&request_token=$request_token&checksum=$checksum"
+  body      = "api_key=$(key)&request_token=$(request_token)&checksum=$(checksum)"
 
   res       = HTTP.post(url, header, body)
-  r         = JSON.parse(String(res.body))
-  # global ACCESS_TOKEN = r["data"]["access_token"]
-  access_token = r["data"]["access_token"]
+  jres      = JSON.parse(String(res.body))
+  access_token = jres["data"]["access_token"]
 
   return access_token
 end
-
+#---------------------------------------------------------------------- 
 """
-  `set_access_token(access_token::String)`
+  `kite_std_header(conn::KiteConnection)`
 
-Set the access token as a global in the Module
+Create the standard header for HTTP GET/PUT/POST
 """
-function set_access_token(access_token::String)
+function kite_std_header(conn)
 
-  global ACCESS_TOKEN = access_token
+  key       = conn.api_key
+  atoken    = conn.access_token
+  header  = [ "X-Kite-Version" => X_KITE_VER,
+              "Content-Type"   => "application/x-www-form-urlencoded",
+              "Authorization"  => "token $(key):$(atoken)"
+            ]
+
+  return header
 end
+#---------------------------------------------------------------------- 
+"""
+  `kite_close_session(conn::KiteConnection)`
+
+This call invalidates the access_token and destroys the API session. After this, the user should be sent through a new login flow before further interactions. This does not log the user out of the official Kite web or mobile applications.
+"""
+function kite_close_session(conn)
+
+  key       = conn.api_key
+  atoken    = conn.access_token
+  header    = [ "X-Kite-Version" => "3" ]
+  url       = "$API_ENDPOINT/session/token?api_key=$(key)&access_token=$(atoken)"
+  resp      = HTTP.request("DELETE", url, header)
+  jresp     = JSON.parse(String(resp.body))
+  
+  return jresp
+end
+#---------------------------------------------------------------------- 
+
+
+
+
 
 
 

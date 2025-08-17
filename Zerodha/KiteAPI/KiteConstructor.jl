@@ -1,16 +1,17 @@
 #     Add Definition of Constructors here
 #---------------------------------------------------------------------- 
 """
-      function KiteConnection(field::Array)
+      function KiteConnection(key::String,secret::String)
         
-      Constructor for the KiteConnection
+      Create a new connection from the API key and API secret.
 
 """
 function KiteConnection(key::String,secret::String)
 
+  # Get new tokens
+  rtoken,atoken = kite_get_tokens(key,secret)
 
-  rtoken = ""
-  atoken = ""
+  # Create Connection object
   return KiteConnection(key,secret,rtoken,atoken)
 end        
 

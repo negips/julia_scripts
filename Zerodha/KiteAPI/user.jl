@@ -1,46 +1,53 @@
 """
-    get_user_profile()
+    get_user_profile(conn::KiteConnection)
 
-Get the user profile
+While a successful token exchange returns the full user profile, it's possible to retrieve it any point of time with the /user/profile API. Do note that the profile API does not return any of the tokens.
 
 """
-function get_user_profile()
+function get_user_profile(conn::KiteConnection)
 
   url_fragment = "/user/profile"
   url = API_ENDPOINT*url_fragment 
-  header  = [ "X-Kite-Version" => "3",
-              "Content-Type"   => "application/x-www-form-urlencoded",
-              "Authorization"  => "token $(API_KEY):$(ACCESS_TOKEN)"
-            ]
+  # header  = [ "X-Kite-Version" => "3",
+  #             "Content-Type"   => "application/x-www-form-urlencoded",
+  #             "Authorization"  => "token $(API_KEY):$(ACCESS_TOKEN)"
+  #           ]
+
+  header    = kite_std_header(conn)
 
   resp      = HTTP.get(url,header)
   jresp     = JSON.parse(String(resp.body))
-
-  # last_price = res["data"][instrument]["last_price"]
 
   return jresp
 end
 #---------------------------------------------------------------------- 
 """
-    get_user_margins(segment::String)
+    get_user_margins(conn::KiteConnection,segment::String)
 
-Get the user funds and margins
+A GET request to /user/margins/:segment returns funds, cash, and margin information for the user. Segment in the URI can be either equity or commodity.
 
 """
-function get_user_margins(segment::String)
+function get_user_margins(conn::KiteConnection,segment::String)
 
-  @assert (segment == "equity" || segment == "commodity") "segment must be either commodity or equity"   
+  @assert (segment == "equity" || segment == "commodity") "segment must be either commodity or equity"
 
   url_fragment = "/user/margins/"*segment
   url = API_ENDPOINT*url_fragment 
-  header  = [ "X-Kite-Version" => "3",
-              "Content-Type"   => "application/x-www-form-urlencoded",
-              "Authorization"  => "token $(API_KEY):$(ACCESS_TOKEN)"
-            ]
+  # header  = [ "X-Kite-Version" => "3",
+  #             "Content-Type"   => "application/x-www-form-urlencoded",
+  #             "Authorization"  => "token $(API_KEY):$(ACCESS_TOKEN)"
+  #           ]
+
+  header    = kite_std_header(conn)
 
   resp      = HTTP.get(url,header)
   jresp     = JSON.parse(String(resp.body))
 
   return jresp
 end
+#---------------------------------------------------------------------- 
+
+
+
+
 
