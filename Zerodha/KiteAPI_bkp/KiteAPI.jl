@@ -11,21 +11,14 @@ using SHA
 using Printf
 
 const API_ENDPOINT = "https://api.kite.trade"
+API_KEY = ""
+API_SECRET = ""
+ACCESS_TOKEN = ""
 
-# API_KEY = ""
-# API_SECRET = ""
-# ACCESS_TOKEN = ""
-
-include("KiteStruct.jl")
 include("connect.jl")
-include("KiteConstructor.jl")
 include("quote.jl")
 include("user.jl")
 include("portfolio.jl")
-
-# Struct/Constructor
-export      KiteConnect
-
 
 # Connect
 export      init, 

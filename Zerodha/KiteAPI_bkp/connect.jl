@@ -4,11 +4,9 @@
 Setup your KiteAPI session by providing your API key and
 API secret which you get from Zerodha
 """
-function kite_new_tokens(api_key::String,api_secret::String)
-
-  rtoken = gen_request_token(api_key)
-  atoken = gen_access_token(api_key,api_secret,rtoken)
-
+function init(api_key::String, api_secret::String)
+  global API_KEY = api_key
+  global API_SECRET = api_secret
 end
 
 """
@@ -17,7 +15,7 @@ end
 Setup your KiteAPI session by providing your API key and
 API secret which you get from Zerodha
 """
-function gen_request_token(key::String)
+function gen_request_token()
 
    url = "https://kite.trade/connect/login?api_key="*API_KEY
    # println(url)
@@ -52,9 +50,8 @@ end
 
 Generate the access token by passing in yout request token
 """
-function gen_access_token(key::String,secret::String,request_token::String)
-  
-  checksum  = bytes2hex(sha256(key * request_token * secret))
+function gen_access_token(request_token::String)
+  checksum  = bytes2hex(sha256(API_KEY * request_token * API_SECRET))
   url       = "$API_ENDPOINT/session/token"
   header    = [ "X-Kite-Version" => "3",
                 "Content-Type"   => "application/x-www-form-urlencoded" ]
@@ -62,10 +59,9 @@ function gen_access_token(key::String,secret::String,request_token::String)
 
   res       = HTTP.post(url, header, body)
   r         = JSON.parse(String(res.body))
-  # global ACCESS_TOKEN = r["data"]["access_token"]
-  access_token = r["data"]["access_token"]
+  global ACCESS_TOKEN = r["data"]["access_token"]
 
-  return access_token
+  return nothing
 end
 
 """
