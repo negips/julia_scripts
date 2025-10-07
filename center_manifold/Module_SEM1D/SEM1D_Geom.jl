@@ -1,4 +1,4 @@
-function SEM_GeoMat(Basis::BT,Basisd::BT,Inp::SEM_Input;Dtype=Float64) where {BT<:NodalBasis} 
+function SEMGeoMat(Basis::BT,Basisd::BT,Inp::SEMInput;Dtype=Float64) where {BT<:NodalBasis} 
       # Generate the geometric matrices
 
       # Input:
@@ -77,7 +77,7 @@ function SEM_GeoMat(Basis::BT,Basisd::BT,Inp::SEM_Input;Dtype=Float64) where {BT
       # WLap = -[ (BM1*∇v)^T.(∇) ]
       WLap   = zeros(Dtype,lx1,lx1,nel)
       for i in 1:nel
-        dvdx         = Diagonal(bm1[:,i])*DrT*Diagonal(rxm1[:,i])
+        dvdx         = DrT*Diagonal(rxm1[:,i])*Diagonal(bm1[:,i])
         WLap[:,:,i]  = -dvdx*Gradx[:,:,i]
       end
 
@@ -87,7 +87,7 @@ function SEM_GeoMat(Basis::BT,Basisd::BT,Inp::SEM_Input;Dtype=Float64) where {BT
         Lap[:,:,i] = Diagonal(bm1[:,i])*Gradx[:,:,i]*Gradx[:,:,i]
       end
 
-      Geom = SEM_GeoMat{Dtype}(xm1,xrm1,rxm1,jacm1,jacmi,bm1,Gradx,Intpm1d,Gradxd,bm1d,Bintpd,Convd,WLap,Lap)
+      Geom = SEMGeoMat{Dtype}(xm1,xrm1,rxm1,jacm1,jacmi,bm1,Gradx,Intpm1d,Gradxd,bm1d,Bintpd,Convd,WLap,Lap)
 
       println("SEM Geom: Done")
 

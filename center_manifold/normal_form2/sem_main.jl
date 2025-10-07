@@ -79,11 +79,11 @@ if ifglobal
   Bgi   = one./Bg      # Global inverse Mass vector
   Mdg   = QT*Md*Q      # Global Dialiased Weight Matrix for inner products 
   
-  OPg   = QT*(L)*Q./Bg
+  OPg   = QT*(L)*Q
   @printf("Direct Global Matrices Built\n")
 
   ACg    = QT*AConv*Q  # Global Convection matrix
-  ALg    = QT*ALap*Q   # Global Laplacian matrix
+  ALg    = QT*ALap*Q   # Global Adjoint Laplacian matrix
   ASg    = QT*ASrc*Q   # Global Src matrix
   AFg    = QT*AFd*Q    # Global Feedback matrix
 

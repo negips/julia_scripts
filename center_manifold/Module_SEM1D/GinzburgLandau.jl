@@ -1,4 +1,4 @@
-function GinzburgLandauLocalOP(δ::Vector{T},Inp::SEM_Input,GeoM::SEM_GeoMat{GT},B::NodalBasis) where {T<:Number,GT<:Number}
+function GinzburgLandauLocalOP(δ::Vector{T},Inp::SEMInput,GeoM::SEMGeoMat{GT},B::NodalBasis) where {T<:Number,GT<:Number}
 
 #     Building the Complex Ginzburg Landau model problem from
 
@@ -46,7 +46,7 @@ function GinzburgLandauLocalOP(δ::Vector{T},Inp::SEM_Input,GeoM::SEM_GeoMat{GT}
 end
 #---------------------------------------------------------------------- 
 
-function GinzburgLandauSparse(δ::Vector{T},Inp::SEM_Input,GeoM::SEM_GeoMat{GT},B::NodalBasis) where {T<:Number,GT<:Number}
+function GinzburgLandauSparse(δ::Vector{T},Inp::SEMInput,GeoM::SEMGeoMat{GT},B::NodalBasis) where {T<:Number,GT<:Number}
 
 #     Building the Complex Ginzburg Landau model problem
 
@@ -157,11 +157,11 @@ function AssembleAdjointGLSparse(U,γ,μ0,μx,whichsrc,gradx,cnv,wlp,xm1,bm1,Bas
 
       cutoff = fact*eps(prec)
 
-      if (abs(c0)>cutoff)
-        @printf "Feedback not implemented for Adjoint Equations yet.\n"
-        @printf "Setting c0=0.0\n"
-        c0 = zro
-      end  
+      # if (abs(c0)>cutoff)
+      #   @printf "Feedback not implemented for Adjoint Equations yet.\n"
+      #   @printf "Setting c0=0.0\n"
+      #   c0 = zro
+      # end  
 
       dof = nel*lx1;
 
@@ -200,9 +200,9 @@ function AssembleAdjointGLSparse(U,γ,μ0,μx,whichsrc,gradx,cnv,wlp,xm1,bm1,Bas
     
 #       Standard source term
         if (whichsrc==1)
-          if i==1
-            @printf "Using Linear Decrease x/%4.3f for source term.\n" abs(μx)
-          end  
+          # if i==1
+          #   @printf "Using Linear Decrease x/%4.3f for source term.\n" abs(μx)
+          # end  
           μ   = (μ0' .+ xm1[:,i]*μx')
         else
           if i==1
@@ -243,7 +243,7 @@ function AssembleAdjointGLSparse(U,γ,μ0,μx,whichsrc,gradx,cnv,wlp,xm1,bm1,Bas
       return A, B, OP, Conv, Src, Lap, Fd, SLap
 end
 #---------------------------------------------------------------------- 
-function AdjointGinzburgLandauSparse(δ::Vector{T},Inp::SEM_Input,GeoM::SEM_GeoMat{GT},B::NodalBasis) where {T<:Number,GT<:Number}
+function AdjointGinzburgLandauSparse(δ::Vector{T},Inp::SEMInput,GeoM::SEMGeoMat{GT},B::NodalBasis) where {T<:Number,GT<:Number}
 
 
 #     Building the Adjoint Complex Ginzburg Landau model problem
@@ -317,8 +317,68 @@ function AdjointGinzburgLandauSparse(δ::Vector{T},Inp::SEM_Input,GeoM::SEM_GeoM
       return A, B, OP, Conv, Src, Lap
 end
 #---------------------------------------------------------------------- 
+function GLSetBC!(A::AbstractMatrix{T},lbc::Bool,rbc::Bool,ifperiodic::Bool) where {T<:Number}
+
+  r,c = size(A)
+
+  if (ifperiodic)
+    # do nothing
+  else
+    if lbc
+      A[1,:] = zeros(T,1,c)
+      A[1,1] = T(1)
+    end
+    if rbc
+      A[r,:] = zeros(T,1,c)
+      A[r,c] = T(1)
+    end
+  end  
+  return nothing
+end
+#---------------------------------------------------------------------- 
+function SEM_SetBC!(v::AbstractVector{T},lbc::Bool,rbc::Bool) where {T<:Number}
 
 
+  if lbc
+    v[1]   = T(0)
+  end
+  if rbc
+    v[end] = T(0)
+  end
 
+  return nothing
+end
+#---------------------------------------------------------------------- 
+function GLAnalyticalSpectra(δ::Vector{T}) where {T<:Number}
+
+  # Analytical Eigenvalues on a semi-infinite domain
+  
+  # Zeros of the Airy function
+  ω1        = find_zero(airyai,(-3.0,-0.0))
+  ω2        = find_zero(airyai,(-5.0,-3.0))
+  ω3        = find_zero(airyai,(-6.0,-5.0))
+  ω4        = find_zero(airyai,(-7.0,-6.0))
+  ω5        = find_zero(airyai,(-8.0,-7.0))
+  ω6        = find_zero(airyai,(-9.5,-8.0))
+  ω7        = find_zero(airyai,(-10.5,-9.5))
+  ω8        = find_zero(airyai,(-11.8,-10.5))
+  ω9        = find_zero(airyai,(-12.0,-11.8))
+  ω10       = find_zero(airyai,(-12.9,-12.0))
+  ω11       = find_zero(airyai,(-13.8,-12.9))
+  ω12       = find_zero(airyai,(-14.8,-13.8))
+  ω13       = find_zero(airyai,(-15.8,-14.8))
+  ω14       = find_zero(airyai,(-16.8,-15.8))
+  ω15       = find_zero(airyai,(-17.5,-16.8))
+  ω         = [ω1, ω2, ω3, ω4, ω5, ω6, ω7, ω8, ω9, ω10, ω11, ω12, ω13, ω14, ω15]
+
+  U         = -δ[1]
+  μ0        =  δ[2]
+  μx        =  δ[3]
+  γ         =  δ[4]
+
+  Ω         = (μ0 .- U*U/(4.0*γ) .+ (γ*μx*μx)^(1.0/3.0)*ω)
+
+  return Ω
+end
 
 

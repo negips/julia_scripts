@@ -10,6 +10,8 @@
       using LinearAlgebra
       using PolynomialBases
       using SparseArrays
+      using SpecialFunctions
+      using Roots
 
 
 #     Basic definitions: 
@@ -19,6 +21,8 @@
       include("SEM1D_Structs.jl")         # 
       include("SEM1D_Constructors.jl")    #
       include("SEM1D_Geom.jl")            #
+      include("GinzburgLandau.jl")        #
+      include("SEM1D_QQT.jl")             #
 
 
 #    Abstracts  
@@ -29,13 +33,20 @@
 #     Structures (and Constructors) 
 #--------------------------------------------------      
 
-      export SEM_Input,
-             SEM_GeoMat
+      export SEMInput,
+             SEMGeoMat
 
 
 #     Functions
 #--------------------------------------------------      
 
+      export GinzburgLandauSparse,
+             AdjointGinzburgLandauSparse,
+             GLSetBC!,
+             SEM_SetBC!,
+             GLAnalyticalSpectra,
+             SEM_QQT,
+             SEM_Global_Num
 
       end         # Module SEM1D       
 #---------------------------------------------------------------------- 

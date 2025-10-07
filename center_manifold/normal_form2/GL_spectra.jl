@@ -119,7 +119,7 @@ r           = r .+ conj.(r)
 r[1]        = prec(0)
 
 
-ifsave      = true
+ifsave      = false
 ifarnoldi   = true
 ifoptimal   = false     # Calculate optimal responses
 ifadjoint   = false     # Superceded by ifoptimal

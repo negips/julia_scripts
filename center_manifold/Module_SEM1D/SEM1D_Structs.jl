@@ -1,7 +1,7 @@
 #     Add Definition of new structures here
 #---------------------------------------------------------------------- 
 """
-      struct SEM_Input
+      struct SEMInput
 
       Has fields:
 
@@ -13,26 +13,30 @@
       xs    - Start of domain
       xe    - End of domain
       xc    - Vector of nodes
+      lbc   - left boundary condition: true => Dirichlet
+      rbc   - right boundary condition true => Dirichlet
       Dtype - Datatype
 
 """
-struct SEM_Input <: AbstractParams
+struct SEMInput <: AbstractParams
 
-  N::Int
-  lx1::Int
-  Nd::Int
-  lxd::Int
-  nel::Int
-  xs::Float64
-  xe::Float64
-  xc::Vector{Float64}
-  Dtype::DataType
+      N::Int
+      lx1::Int
+      Nd::Int
+      lxd::Int
+      nel::Int
+      xs::Float64
+      xe::Float64
+      xc::Vector{Float64}
+      lbc::Bool
+      rbc::Bool
+      Dtype::DataType
 
 end
 #----------------------------------------------------------------------       
 
 """
-      struct SEM_GeoMat{T}
+      struct SEMGeoMat{T}
 
       Has fields:
 
@@ -52,7 +56,7 @@ end
       Lap         - Laplacian w/o integration by parts
 
 """
-struct SEM_GeoMat{T<:Number} <: AbstractGeometry
+struct SEMGeoMat{T<:Number} <: AbstractGeometry
 
       xm1;
       xrm1;
