@@ -49,8 +49,7 @@ function ArnIRst(V::Matrix,Hes::Matrix,b::Int,B::Union{Vector,Matrix},k::Int,kma
         Hs,Q  = RevFrancisSeq(H,μ,nμ)     
         v     = V[:,1:kk]*Q[:,Nev+1]        # Part of new residual vector
         βk    = Hs[Nev+1,Nev]               # e_k+1^T*H*e_k         # This in principle is zero
-#        println("βk After ImplicitQR: $βk")
-        @printf "βk After ImplicitQR: %12e, %12eim\n" real(βk) imag(βk)
+        # @printf "βk After ImplicitQR: %12e, %12eim\n" real(βk) imag(βk)
 
         hdiff = norm(H) - norm(Hs);
         if (abs(hdiff)>1.0e-12)
@@ -77,7 +76,7 @@ function ArnIRst(V::Matrix,Hes::Matrix,b::Int,B::Union{Vector,Matrix},k::Int,kma
 #        Hs,Q  = FrancisSeqExact(H,b,μ,nμ)     
         v     = V[:,1:kk]*Q[:,Nev+1]        # Part of new residual vector
         βk    = Hs[Nev+1,Nev]               # e_k+1^T*H*e_k         # This in principle is zero
-        @printf "βk After ImplicitQR: %12e, %12eim\n" real(βk) imag(βk)
+        # @printf "βk After ImplicitQR: %12e, %12eim\n" real(βk) imag(βk)
 
         hdiff = norm(H) - norm(Hs);
         if (abs(hdiff)>1.0e-12)
@@ -164,8 +163,7 @@ function ArnBIRst(V::Matrix,Hes::Matrix,b::Int,B::Union{Vector,Matrix},k::Int,km
         Hs,Q  = RevFrancisSeq(H,μ,nμ)     
         v     = V[:,1:kk]*Q[:,Nev+1]        # Part of new residual vector
         βk    = Hs[Nev+1,Nev]               # e_k+1^T*H*e_k         # This in principle is zero
-#        println("βk After ImplicitQR: $βk")
-        @printf "βk After ImplicitQR: %8e\n" βk
+        # @printf "βk After ImplicitQR: %8e\n" βk
 
         hdiff = norm(H) - norm(Hs);
         if (abs(hdiff)>1.0e-12)
@@ -192,7 +190,7 @@ function ArnBIRst(V::Matrix,Hes::Matrix,b::Int,B::Union{Vector,Matrix},k::Int,km
 #        Hs,Q  = FrancisSeqExact(H,b,μ,nμ)     
         v     = V[:,1:kk]*Q[:,Nev+1]        # Part of new residual vector
         βk    = Hs[Nev+1,Nev]               # e_k+1^T*H*e_k         # This in principle is zero
-        @printf "βk After ImplicitQR: %8e\n" βk
+        # @printf "βk After ImplicitQR: %8e\n" βk
 
         hdiff = norm(H) - norm(Hs);
         if (abs(hdiff)>1.0e-12)

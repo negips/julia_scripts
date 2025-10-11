@@ -115,14 +115,14 @@ function GLLapNLTerm(n0::Int,Ord0::Int,nc::Int,MV1::AbstractMatrix{T},Ord1::Int,
       ind_total = [ind1[:]; mode]
       sort!(ind_total)
       if (ind_total == ind0)    # Matching polynomials
-        println("Index Match: $ind1, $mode: $ind0")
+        # println("Index Match: $ind1, $mode: $ind0")
         h[topi] .= h[topi] .+ Lap*MV1[topi,i]
       end
 
       ind_total = [ind1[:]; modeC]
       sort!(ind_total)
       if (ind_total == ind0)    # Matching polynomials
-        println("Index Match: $ind1, $modeC: $ind0")
+        # println("Index Match: $ind1, $modeC: $ind0")
         h[boti] .= h[boti] .+ LapC*MV1[boti,i]
       end            
     end           # i
@@ -135,7 +135,7 @@ end
 
 Np    = 12
 Npd   = 19
-nel   = 41
+nel   = 61
 xs    = 0.0
 xe    = 40.0
 lbc   = true
@@ -197,7 +197,7 @@ dt                = 1.0e-4
 StpInp            = StepperArnoldi.StepperInput(ifadjoint,ifoptimal,ifverbose,verbosestep,nsteps,dt)
 
 ifarnoldi         = true 
-ifverbose         = true
+ifverbose         = false
 vlen              = ndof
 nev               = 1
 ekryl             = 15  
@@ -229,13 +229,13 @@ ArnAdj      = StepperArnoldi.StepArn(AOPg,Bg,StpInp,ArnInp,Inp.lbc,Inp.rbc)
 
 pl3   = ax1.plot(imag.(ArnDir.evals),real.(ArnDir.evals),linestyle="none",marker="s",markersize=4)
 
-cm    = get_cmap("tab20")
+cm    = get_cmap("tab10")
 xg    = QT*(vimult.*GeoM.xm1[:])
 
 # Build Center-Manifold matrices
 v1    = copy(ArnDir.evecs[:,1])
 w1    = copy(ArnAdj.evecs[:,1])
-j0    = 76
+j0    = argmin(abs.(xg .- 6.0))
 renormalize_evec!(v1,j0)
 renormalize_evecs!(v1,w1,Bg)
 v2    = conj.(v1)
@@ -253,7 +253,8 @@ ax2.plot(xg,real.(v1),linewidth=2,linestyle="-", color=cm(0),label=L"\mathfrak{R
 ax2.plot(xg,imag.(v1),linewidth=2,linestyle="--",color=cm(0),label=L"\mathfrak{Im}(ϕ)")
 ax2.plot(xg,real.(w1),linewidth=2,linestyle="-", color=cm(1),label=L"\mathfrak{R}(χ)")
 ax2.plot(xg,imag.(w1),linewidth=2,linestyle="--",color=cm(1),label=L"\mathfrak{Im}(χ)")
-ax2.plot(xg,ψ,linewidth=2,linestyle="-",color=cm(2),label=L"\mathfrak{R}(ψ)")
+ax2.plot(xg,real.(ψ) ,linewidth=2,linestyle="-", color=cm(2),label=L"\mathfrak{R}(ψ)")
+ax2.plot(xg,imag.(ψ) ,linewidth=2,linestyle="--",color=cm(2),label=L"\mathfrak{Im}(ψ)")
 
 zro   = 0.0*v1
 
@@ -287,9 +288,9 @@ end
 ΓH    = zeros(ComplexF64,n,h)
 λh    = [0.0im; im; -im; 2.3im; -2.3im]
 f1    = 1.0/(sqrt(2.0))*[ψ;ψ]
-f2    = [ψ;zro]
+f2    = [ψ;  zro]
 f3    = [zro;ψ]
-f4    = [ψ;zro]
+f4    = [ψ;  zro]
 f5    = [zro;ψ]
 F     = [f1 f2 f3 f4 f5]
 
@@ -326,24 +327,28 @@ for i in 1:p
   end  
   Rp[:,i]         = copy(r)
   
+  @views SEM1D.SEM_SetBC!(r[ind1],Inp.lbc,Inp.rbc)
+  @views SEM1D.SEM_SetBC!(r[ind2],Inp.lbc,Inp.rbc)
+ 
   ω               = λp[i]
   Res1            = DQ*(ω*I - OPg)*DQ
   vp1             = copy(r[ind1])
   gmres!(vp1,Res1,r[ind1])
   Vp[ind1,i]      = copy(vp1)
 
+  
   Res2            = AQ*(ω*I - OPCg)*AQ
   vp2             = copy(r[ind2])
   gmres!(vp2,Res2,r[ind2])
   Vp[ind2,i]      = copy(vp2)
 
   vnorm = sqrt(abs(Vp[:,i]'*(Bg2.*Vp[:,i])))
-  if vnorm>1.0e-12
-    leg = L"\mathfrak{R}(vp"*"$i"*L")"
-    ax2.plot(xg,real.(vp1),linewidth=2,linestyle="-", color=cm(n+i),label=leg)
-    leg = L"\mathfrak{R}(vp"*"$i"*L")"
-    ax2.plot(xg,real.(vp2),linewidth=2,linestyle="--",color=cm(n+i),label=leg)
-  end  
+  # if vnorm>1.0e-12
+  #   leg = L"\mathfrak{R}(vp"*"$i"*L")"
+  #   ax2.plot(xg,real.(vp1),linewidth=2,linestyle="-", color=cm(n+i),label=leg)
+  #   leg = L"\mathfrak{R}(vp"*"$i"*L")"
+  #   ax2.plot(xg,real.(vp2),linewidth=2,linestyle="--",color=cm(n+i),label=leg)
+  # end  
 end  
 
 
@@ -365,7 +370,10 @@ for i in 1:h
     end
   end  
   Rh[:,i]         = copy(r)
-  
+ 
+  @views SEM1D.SEM_SetBC!(r[ind1],Inp.lbc,Inp.rbc)
+  @views SEM1D.SEM_SetBC!(r[ind2],Inp.lbc,Inp.rbc)
+ 
   ω               = λh[i]
   Res1            = DQ*(ω*I - OPg)*DQ
   vh1             = copy(r[ind1])
@@ -378,12 +386,12 @@ for i in 1:h
   Vh[ind2,i]      = copy(vh2)
 
   vnorm = sqrt(abs(Vh[:,i]'*(Bg2.*Vh[:,i])))
-  if vnorm>1.0e-12
-    leg = L"\mathfrak{R}(vh"*"$i"*L")"
-    ax2.plot(xg,real.(vh1),linewidth=1,linestyle="-", color=cm(n+p+i),label=leg)
-    leg = L"\mathfrak{R}(vh"*"$i"*L")"
-    ax2.plot(xg,real.(vh2),linewidth=3,linestyle="--",color=cm(n+p+i),label=leg)
-  end  
+  # if vnorm>1.0e-12
+  #   leg = L"\mathfrak{R}(vh"*"$i"*L")"
+  #   ax2.plot(xg,real.(vh1),linewidth=1,linestyle="-", color=cm(n+p+i),label=leg)
+  #   leg = L"\mathfrak{R}(vh"*"$i"*L")"
+  #   ax2.plot(xg,real.(vh2),linewidth=3,linestyle="--",color=cm(n+p+i),label=leg)
+  # end  
 end  
 
 Vext  = [V  Vp    Vh]
@@ -409,7 +417,7 @@ for i in 1:Nt
 
   H2[:,i]   = copy(h_asymp)
   hnorm     = h_asymp'*(Bg2.*h_asymp)
-  println("Index: $ind, Norm: $hnorm")
+  # println("Index: $ind, Norm: $hnorm")
   # if abs(hnorm)>1.0e-12
   #   leg = L"\mathfrak{R}(lapl"*"$i"*L")"
   #   ax2.plot(xg,real.(H2[ind1,i]),linewidth=1,linestyle="-", color=cm(m+i),label=leg)
@@ -430,7 +438,7 @@ for i in 1:Nt
   local i2  = ind[2]+1
   local i3  = ind[3]+1
 
-  # println("($i1,$i2)")
+  # println("($i1,$i2,$i3)")
 
   Ord1 = 1
   Ord2 = 1
