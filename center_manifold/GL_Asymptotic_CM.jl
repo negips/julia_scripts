@@ -133,7 +133,7 @@ SysMat_O2   = BuildAsympSystem(Ord,m,Khat)
 # Reduced Matrix terms
 G_O2        = zeros(ComplexF64,m,Nt)
 
-for i in 1:2 #Nt
+for i in 1:Nt
   ind       = CenterManifold.GetPolynomialIndices(i,Ord,m)
 
   println("Solving for $(ind .+ 1)")
@@ -152,12 +152,14 @@ for i in 1:2 #Nt
   Ord3      = 1
   h_NL      = GLStdAsympNLTerm(i,Ord,m,Vext,Vext,Vext,Ord1,Ord2,Ord3)
   h_asymp  .= h_asymp .+ h_NL
+  println("|NL|: $(norm(h_NL))")
 
   h_offd    = zeros(ComplexF64,N)
   for j in 1:(i-1)
     h_offd .= h_offd .+ SysMat_O2[i,j]*Y_O2[:,j]
   end
   h_asymp  .= h_asymp .- h_offd
+  println("|h_offd|: $(norm(h_offd))")
 
   ω         = 0.0im
   for j in 1:Ord
@@ -169,7 +171,7 @@ for i in 1:2 #Nt
   CQ  = Matrix{ComplexF64}(I,Nby2,Nby2)
   for j in 1:n
     if abs(Khat[j,j] - ω) < 1.0e-12
-      println("Resonant λh: $i, $j")
+      # println("Resonant ω: $(ω)")
       β           = W[:,j]'*(Bg2.*h_asymp)
       G_O2[j,i]   = β
       
@@ -181,6 +183,7 @@ for i in 1:2 #Nt
   @views SEM1D.SEM_SetBC!(h_asymp[ind1],Inp.lbc,Inp.rbc)
   @views SEM1D.SEM_SetBC!(h_asymp[ind2],Inp.lbc,Inp.rbc)
 
+  println("|r|: $(norm(h_asymp))")
   Y_O2[:,i]       = copy(h_asymp)
 
   Res1            = DQ*(ω*I - OPg)*DQ
