@@ -607,6 +607,31 @@ function GetPolynomialIndices(n::Int,ord::Int,nc::Int)
   return ind
 end
 #---------------------------------------------------------------------- 
+"""
+      GetIndexNumber(Ind::AbstractVector{Int},ord::Int,nc::Int)
+      
+      Generate the nth row in the matrix for GetPowers.
+
+"""
+function GetIndexNumber(Ind::AbstractVector{Int},nc::Int)
+
+  ord  = length(Ind)
+  Nt   = NInteractionTerms(ord,nc)
+  IndS = sort(Ind)
+
+  n    = -1
+  ind  = fill(-99,ord)
+  for i in 1:Nt
+    UpdatePolynomialIndex!(ind,ord,nc)
+    if (ind == IndS)
+      n = i
+    end  
+  end
+
+  return n
+end
+#---------------------------------------------------------------------- 
+
 function newindex(jo::Int,nc::Int,np::Int,ns::Int)
 
   cm  = nc + np     # Center Manifold Dimension

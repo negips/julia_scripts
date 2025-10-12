@@ -35,6 +35,7 @@ module CenterManifold
          NextRow!,
          UpdatePolynomialIndex!,
          GetPolynomialIndices,
+         GetIndexNumber,
          newindex,
          oldindex,
          GetInteractionTerms,
