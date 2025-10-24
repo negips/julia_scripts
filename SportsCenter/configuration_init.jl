@@ -87,12 +87,12 @@ name                    = "Futsal"
 courts                  = 2
 slots                   = 15
 occupancy               = 0.00
-price                   = 2000.0
+price                   = 1000.0
 All_sports[i]           = DailySport(name,courts,slots,occupancy,price) 
 
 i                       = i+1       # 12
 name                    = "Snooker"
-courts                  = 4
+courts                  = 5
 slots                   = 15
 occupancy               = 0.00
 price                   = 500.0

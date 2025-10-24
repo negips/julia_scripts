@@ -58,7 +58,7 @@ SetOccupancy!(All_sports[i],occupancy)
 
 i                       = i+1       # 12
 name                    = "Snooker"
-occupancy               = 0.00
+occupancy               = 0.50
 SetOccupancy!(All_sports[i],occupancy)
 
 

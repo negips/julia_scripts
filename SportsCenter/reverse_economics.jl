@@ -11,8 +11,7 @@ Total_Investment        = Land_Investment + Construction_Investment
 
 Tax_Rate                = 0.34
 Interest_Rate           = 0.05
-
-Break_Even              = 9.0            # years
+Break_Even              = 16.0            # years
 
 Investment_Value        = Total_Investment*(1.0 + Interest_Rate)^Break_Even
 Required_Profit         = Total_Investment*(1.0 + Interest_Rate)/Break_Even

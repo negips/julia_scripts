@@ -74,8 +74,10 @@ ifverbose               = true
 
 include("configuration_init.jl")
 #include("configuration4.jl")
-#include("configuration_full_capacity.jl")
+#include("configuration_quarter_capacity.jl")
 #include("configuration_half_capacity.jl")
+include("configuration_threefourths_capacity.jl")
+#include("configuration_full_capacity.jl")
 
 Total_Monthly_Revenue   = 0.0
 Total_Daily_Revenue     = 0.0
