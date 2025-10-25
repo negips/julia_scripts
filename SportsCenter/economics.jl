@@ -2,92 +2,29 @@
 
 using Printf
 
-
-mutable struct DailySport
-
-  Name::String
-  Courts::Int
-  Slots::Int
-  Occupancy::Float64
-  Price::Float64
-  Daily_Collection::Float64
-  MonthlyCollection::Float64
-
-end   
-#---------------------------------------------------------------------- 
-mutable struct MemberSport
-
-  Name::String
-  Capacity::Int
-  Slots::Int
-  Occupancy::Float64
-  Price::Float64
-  Daily_Collection::Float64
-  MonthlyCollection::Float64
-
-end   
-#---------------------------------------------------------------------- 
-function DailySport(name::String,courts::Int,slots::Int,occupancy::Float64,price::Float64)
-
-  daily_court_hours     = courts*slots
-  daily_collection      = daily_court_hours*occupancy*price
-  monthly_collection    = daily_collection*30
-
-  sport = DailySport(name,courts,slots,occupancy,price,daily_collection,monthly_collection)
-
-  return sport
-end  
-#---------------------------------------------------------------------- 
-function SetPrice!(sport::DailySport,price::Float64)
-
-  daily_court_hours           = sport.Courts*sport.Slots
-  occupancy                   = sport.Occupancy
-  daily_collection            = daily_court_hours*occupancy*price
-  monthly_collection          = daily_collection*30
-
-  sport.Price                 = price
-  sport.Daily_Collection      = daily_collection
-  sport.MonthlyCollection     = monthly_collection
-
-  return nothing
-end  
-#---------------------------------------------------------------------- 
-function SetOccupancy!(sport::DailySport,occupancy::Float64)
-
-  price                       = sport.Price
-  daily_court_hours           = sport.Courts*sport.Slots
-
-  daily_collection            = daily_court_hours*occupancy*price
-  monthly_collection          = daily_collection*30
-
-  sport.Occupancy             = occupancy
-  sport.Daily_Collection      = daily_collection
-  sport.MonthlyCollection     = monthly_collection
-
-  return nothing
-end  
+include("structures.jl")
 #---------------------------------------------------------------------- 
 
 const OneLakh           = 1.0e5
 const OneCrore          = 1.0e7
-ifverbose               = true
+ifverbose               = false
 
 include("configuration_init.jl")
 #include("configuration4.jl")
-#include("configuration_quarter_capacity.jl")
+include("configuration_quarter_capacity.jl")
 #include("configuration_half_capacity.jl")
-include("configuration_threefourths_capacity.jl")
+#include("configuration_threefourths_capacity.jl")
 #include("configuration_full_capacity.jl")
 
 Total_Monthly_Revenue   = 0.0
 Total_Daily_Revenue     = 0.0
 for sport in All_sports
   global Total_Monthly_Revenue, Total_Daily_Revenue
-  Total_Monthly_Revenue = Total_Monthly_Revenue + sport.MonthlyCollection
-  Total_Daily_Revenue   = Total_Daily_Revenue + sport.Daily_Collection
+  Total_Monthly_Revenue = Total_Monthly_Revenue + sport.MonthlyRevenue
+  Total_Daily_Revenue   = Total_Daily_Revenue + sport.DailyRevenue
 
   if (ifverbose)
-    revenue       = sport.MonthlyCollection
+    revenue       = sport.MonthlyRevenue
     occup         = sport.Occupancy
     @printf("%12s, at Occupancy: %.2f, Monthly Collection: %.3f Lakh\n", sport.Name, occup, revenue/OneLakh)
   end

@@ -1,6 +1,6 @@
 # Economics of Sports Center.
 
-All_sports = Vector{Any}(undef,12)
+All_sports = Vector{DailySport}(undef,12)
 
 i                       = 1         # 1
 name                    = "Badminton"
