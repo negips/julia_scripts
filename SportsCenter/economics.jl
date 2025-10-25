@@ -47,7 +47,7 @@ function SetPrice!(sport::DailySport,price::Float64)
 
   sport.Price                 = price
   sport.Daily_Collection      = daily_collection
-  sport.MonthlyCollection    = monthly_collection
+  sport.MonthlyCollection     = monthly_collection
 
   return nothing
 end  
