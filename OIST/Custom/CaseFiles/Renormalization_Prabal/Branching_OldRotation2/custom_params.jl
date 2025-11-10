@@ -4,7 +4,7 @@
 
 U                 = prec(0)         # Convection
 γ                 = prec(1)         # Diffusion (Generic) 
-γa                = prec(20.0)*ϵ     # Diffusion (activator)
+γa                = prec(2.0)*ϵ     # Diffusion (activator)
 γb                = prec(1.0)*ϵ^2   # Diffusion (inhibitor)
 γζ                = prec(0.001)     # Diffusion for auxillary variable
 γall              = [γb γa γζ]

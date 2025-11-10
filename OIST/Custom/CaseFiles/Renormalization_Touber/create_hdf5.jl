@@ -2,7 +2,7 @@
 
 using HDF5
 
-function write_params(group,f,g,h,pars,parsS,Da,ϵ,ν,ndigits)
+function write_params(group,f,g,h,pars,parsS,Da,β3,ϵ,ν,Asen,Aeq,ndigits,ifλ)
 
   # f-parameters
   α1        = pars.fcy[3]
@@ -48,18 +48,42 @@ function write_params(group,f,g,h,pars,parsS,Da,ϵ,ν,ndigits)
   write_dataset(group,"β0",round(β0,digits=ndigits)) 
   write_dataset(group,"β1",round(β1,digits=ndigits)) 
   write_dataset(group,"β2",round(β2,digits=ndigits)) 
+  if (ifλ)
+    write_dataset(group,"β3",round(β3,digits=ndigits)) 
+  end  
 
-  @printf "h-params\n"
-  write_dataset(group,"γ1",round(γ1,digits=ndigits)) 
-  # write_dataset(group,"γ2",round(γ2,digits=ndigits)) 
-  write_dataset(group,"ν",ν/abs(γ2))
+  if (ifλ)
+    @printf "h-params\n"
+    write_dataset(group,"γ1",round(γ1,digits=ndigits)) 
+    # write_dataset(group,"γ2",round(γ2,digits=ndigits)) 
+    write_dataset(group,"ν",ν/abs(γ2))
+    write_dataset(group,"δ",Asen)
+    write_dataset(group,"Aeq",Aeq)
+  end  
+
+  return nothing
+end 
+#---------------------------------------------------------------------- 
+function write_data(group,x,time,B_hist,A_hist,λ_hist,ifλ)
+
+  # x
+  write_dataset(group,"x",x) 
+  # Time
+  write_dataset(group,"time",time) 
+  # Inhibitor
+  write_dataset(group,"B_hist",B_hist)
+  # Activator
+  write_dataset(group,"A_hist",A_hist)
+
+  if (ifλ)
+    write_dataset(group,"λ_hist",λ_hist)
+  end  
 
   return nothing
 end 
 #---------------------------------------------------------------------- 
 
-fname = "wedges.h5"
-fid   = h5open(fname, "w")
+fid     = h5open(fnameh5, "w")
 # parameter data        
 g1 = create_group(fid,"Params") 
 #g2 = create_group(fid,"Data")        
@@ -67,44 +91,13 @@ g1 = create_group(fid,"Params")
 # # Parameters
 ndigits = 4
 Da      = γa/ϵ
-write_params(g1,F,G,λdot1,pars,parsS,Da,ϵ,ν,ndigits)
+write_params(g1,F,G,λdot1,pars,parsS,Da,β3,ϵ,ν,Asen,Aeq,ndigits,ifλ)
 
-# write_dataset(g1,"ndim",re2.hdr.ldim)
-# write_dataset(g1,"nelgv",re2.hdr.nelgv)
-# write_dataset(g1,"nelgt",re2.hdr.nelgt)
-# write_dataset(g1,"wdsize",re2.hdr.wdsize)
-# write_dataset(g1,"ncurve",re2.ncurve)
-# 
-# # Data
-# write_dataset(g2,"xc",re2.xc)
-# write_dataset(g2,"yc",re2.yc)
-# write_dataset(g2,"zc",re2.zc)
-# write_dataset(g2,"bcs",re2.cbl)
-# write_dataset(g2,"bcparams",re2.bl)
-# if (re2.ncurve>0)
-#   write_dataset(g2,"curveieg",re2.curveieg)
-#   write_dataset(g2,"curveiside",re2.curveiside)
-#   write_dataset(g2,"curveparam",re2.curveparam)
-#   write_dataset(g2,"curvetype",re2.curvetype)
-# end  
-# 
-# # .ma2 
-# h  = create_group(fid,"Ma2")
-# h1 = create_group(h,"Params")
-# h2 = create_group(h,"Data")
-# 
-# # Parameters
-# write_dataset(h1,"d2",map.hdr.d2)
-# write_dataset(h1,"depth",map.hdr.depth)
-# write_dataset(h1,"nactive",map.hdr.nactive)
-# write_dataset(h1,"nel",map.hdr.nel)
-# write_dataset(h1,"noutflow",map.hdr.noutflow)
-# write_dataset(h1,"npts",map.hdr.npts)
-# write_dataset(h1,"nrank",map.hdr.nrank)
-# write_dataset(h1,"ifsorted",ifsorted)
-# 
-# # Data
-# write_dataset(h2,"pmap",map.pmap)
-# write_dataset(h2,"vmap",map.vmap)
+g2 = create_group(fid,"Data")
+write_data(g2,Geom.xm1[:],Thist,fldhist[:,:,1],fldhist[:,:,2],γhist,ifλ)
+
+@printf("%s HDF file saved\n",fnameh5)
+
 close(fid)
+
 

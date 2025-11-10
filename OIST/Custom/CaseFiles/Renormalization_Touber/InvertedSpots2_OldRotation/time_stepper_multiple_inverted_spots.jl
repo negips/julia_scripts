@@ -204,6 +204,13 @@ if (ifsavext)
   println("Saved Figure "*fname5)
 end  
 
+if (ifhdf5)
+  ifλ       = true
+  fnameh5   = "inverted_spots.h5"
+  β3        = 0.0
+  γhist     = λx
+  include("../create_hdf5.jl")
+end  
 
 #surf(t2d,x2d,fldhist[:,:,2],cmap=cm2,edgecolor="none")
 #ax3.elev = 94.0

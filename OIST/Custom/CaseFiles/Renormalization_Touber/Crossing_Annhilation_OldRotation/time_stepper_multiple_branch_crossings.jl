@@ -219,6 +219,12 @@ if (ifsavext)
   println("Saved Figure "*fname4)
 end  
 
+if (ifhdf5)
+  ifλ       = true
+  fnameh5   = "crossing_waves.h5"
+  β3        = 0.0
+  include("../create_hdf5.jl")
+end  
 
 #surf(t2d,x2d,fldhist[:,:,2],cmap=cm2,edgecolor="none")
 #ax3.elev = 94.0

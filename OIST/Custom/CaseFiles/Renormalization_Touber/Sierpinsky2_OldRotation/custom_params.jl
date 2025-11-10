@@ -66,8 +66,8 @@ ifdynplot         = true     # Plot dynamic phase (ζ)
 initplot          = true      # Plot initial conditions
 ifdynnull         = true      # Plot null-clines dynamically
 ifsaveframe       = true
-ifsavext          = true
-
+ifsavext          = false
+ifhdf5            = true      # Save HDF5 file
 
 ifplot            = iffldplot || ifphplot || ifdynplot 
 plotfldi          = fill(true,nflds)

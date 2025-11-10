@@ -43,7 +43,7 @@ end
 for i in 1:nel
   j1 = (i-1)*lx1 + 1;
   j2 = i*lx1;
-  # Dealiased Mass matrix
+# Dealiased Mass matrix
   Md[j1:j2,j1:j2] = (Geom.intpm1d')*diagm(Geom.bm1d[:,i])*Geom.intpm1d
 end
 

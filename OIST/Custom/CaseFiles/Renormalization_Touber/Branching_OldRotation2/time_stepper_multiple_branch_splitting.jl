@@ -25,9 +25,9 @@ QTX = QT*(X.*vimult)
 ifdynplot         = true
 ifplot            = iffldplot || ifphplot
 
-Vol  = sum(Bg)
+Vol   = sum(Bg)
 A_sen = Asen*Vol
-γ    = -0.0/λnorm
+γ     = -0.0/λnorm
 
 γhist       = zeros(VT,nsurf_save)
 Abarhist    = zeros(VT,nsurf_save)
@@ -222,17 +222,18 @@ if (ifsavext)
   println("Saved Figure "*fname4)
 end  
 
+if (ifhdf5)
+  ifλ       = true
+  fnameh5   = "branching_waves.h5"
+  β3        = 0.0
+  include("../create_hdf5.jl")
+end  
 
 #surf(t2d,x2d,fldhist[:,:,2],cmap=cm2,edgecolor="none")
 #ax3.elev = 94.0
 #ax3.azim = 0.0
 #ax3.roll = 0.0
 #draw()
-
-
-
-
-
 
 
 

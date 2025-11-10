@@ -50,7 +50,6 @@ if (ifrenorm)
   else
     λnorm2        = 1.0
   end
- 
 else
   Anorm           = 1.0
   Bnorm           = 1.0

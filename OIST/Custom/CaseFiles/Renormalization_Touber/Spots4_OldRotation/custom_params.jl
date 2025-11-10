@@ -4,8 +4,8 @@
 
 U                 = prec(0)         # Convection
 γ                 = prec(1)         # Diffusion (Generic) 
-γa                = prec(0.2)       # Diffusion (activator)
-γb                = prec(0.01)      # Diffusion (inhibitor)
+γa                = 5.0*ϵ           # Diffusion (activator)
+γb                = ϵ^2             # Diffusion (inhibitor)
 γζ                = prec(0.001)        # Diffusion for auxillary variable
 γall              = [γb γa γζ]
 σa                =  0.0e-2          # Activator Noise Strength
@@ -20,28 +20,35 @@ ifglobal          = true
 nflds             = 2               # No of fields
 
 # Initialization
-ngauss            = 2
-x0gauss           = [33.0 67.0]           #xe*rand(ngauss)
+ngauss            = 1
+x0gauss           = [2.0]           #xe*rand(ngauss)
 ngauss            = length(x0gauss)
 ampgauss          = ones(Float64,ngauss)  #rand(ngauss)
 x0                = x0gauss[1]      # Gaussian Center
 σg                = prec(2)         # Gaussian Std. Deviation
-ampA0             = prec(4.0)/Anorm
-ampB0             = prec(0.0)/Bnorm
+ampA0             = prec(0.0)
+ampB0             = prec(0.0)
 ampζ0             = prec(0.0)
 
 Amp0              = zeros(prec,nflds) 
 Amp0              = [ampB0; ampA0; ampζ0]
 
-A0Off             = prec(0.0)         # Homogeneous state value
-B0Off             = prec(0.0)         # Homogeneous state value
-ζ0Off             = prec(0.0)         # Homogeneous state value
+A0Off             = prec(1.37)/Anorm      # Homogeneous state value
+B0Off             = prec(1.00)/Bnorm      # Homogeneous state value
+ζ0Off             = prec(0.00)            # Homogeneous state value
 
 Off0              = zeros(prec,nflds)
 Off0              = [B0Off; A0Off; ζ0Off]
 
-σai               = prec(0.0)         # Initial Activator Noise
-σbi               = prec(0.0)         # Initial Inhibitor Noise Strength
+nwaves            = prec(5.0)           # Wave Number
+k0                = (2.0*π)/((xe - xs)/nwaves)
+kampA0            = prec(0.0)
+kampB0            = prec(0.0)
+kampζ0            = prec(0.0)
+kAmp0             = [kampB0; kampA0; kampζ0]
+
+σai               = prec(3.0)         # Initial Activator Noise
+σbi               = prec(2.0)         # Initial Inhibitor Noise Strength
 σζi               = prec(0.0)         # Initial Aux. Strength
 σ0i               = [σbi; σai; σζi]
 
@@ -52,7 +59,8 @@ nsteps            = 10000             # No of steps
 nstep_switch1     = 3000             # Switch functions 1
 nstep_switch2     = 3400             # Switch again
 
-Ω                 = 0.02            # Time scale of parameter oscillation
+Ω                 = 0.00            # Time scale of parameter oscillation
+ΔX                = 2.50
 
 verbosestep       = 100
 plotupd           = 20
@@ -65,9 +73,10 @@ ifphplot          = true      # Plot Phase A-B
 ifdynplot         = false     # Plot dynamic phase (ζ)
 initplot          = true      # Plot initial conditions
 ifdynnull         = false     # Plot null-clines dynamically
-ifsaveframe       = true
+ifsaveframe       = false
 ifsavext          = true
 ifhdf5            = true      # Save HDF5 file
+
 
 ifplot            = iffldplot || ifphplot || ifdynplot 
 plotfldi          = fill(true,nflds)

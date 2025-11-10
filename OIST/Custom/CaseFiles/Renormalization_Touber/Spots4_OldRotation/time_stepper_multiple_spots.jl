@@ -14,6 +14,7 @@ include("$JULIACOMMON/GetEXT.jl")
 include("$JULIACOMMON/GetBDF.jl")
 include("$JULIACOMMON/GetBDF.jl")
 include("RK4.jl")
+include("ModuloStep.jl")
 
 include("time_stepper_multiple_init.jl")
 
@@ -25,10 +26,10 @@ QTX = QT*(X.*vimult)
 ifdynplot         = false
 ifplot            = iffldplot || ifphplot
 
-Vol   = sum(Bg)
-A_sen = Aeq*Vol
-γ     = (0.0)/λnorm
-γhist = zeros(VT,nsurf_save)
+Vol  = sum(Bg)
+A_eq = Aeq*Vol
+γ    = 2.0
+
 
 for i in 1:nsteps
   global fld,fldlag,Rhs,Rhslag,dotfld
@@ -41,13 +42,12 @@ for i in 1:nsteps
   t = t + dt;
 
   A_tot     = Bg'*fld[:,2]/Vol
-  abar      = A_tot/A_sen - Aeq
+  abar      = A_tot/A_eq
 
-  # γ         = RK4!(λdot1,abar,γ,dt)
-  γ         = 0.0
+  γ         = 0.0 # RK4!(λdot1,abar,γ,dt)
 
   if verbosestep>0 && mod(i,verbosestep)==0
-    println("Step: $i/$nsteps, Time: $t, Abar = $(abar); γ: $(γ)")
+    println("Step: $i/$nsteps, Time: $t, Atot/A_eq = $(A_tot/A_eq); γ: $(γ)")
   end
 
   GetBDF!(bdf,3)
@@ -61,8 +61,8 @@ for i in 1:nsteps
     GetEXT!(ext,2)
   end
 
-  θpar      = 0.0 # for G
-  λpar      = 0.0 # for F
+  θpar      = 2.0*ModuloStep(QTX,ΔX)/λnorm
+  λpar      = 0.0 # (λ0 - dλ*sin(2*π*Ω*t))                  # for F
   dotfld    = Flow(fld[:,1],fld[:,2],θpar,λpar)
 
   for j in 1:nflds
@@ -133,7 +133,7 @@ for i in 1:nsteps
     if (iffldplot)
       for j in 1:nflds
         if (plotfldi[j])
-          pl[j] = ax2.plot(Geom.xm1[:],Q*fld[:,j],color=cm(j-2));
+          pl[j] = ax2.plot(Geom.xm1[:],Q*fld[:,j],color=cm(j-1));
         end
       end  
     end
@@ -191,17 +191,31 @@ if (ifsavext)
   println("Saved Figure "*fname3)
 end  
 
-if (ifhdf5)
-  ifλ       = false
-  fnameh5   = "slugs.h5"
-  include("../create_hdf5.jl")
-end  
-
 #surf(t2d,x2d,fldhist[:,:,2],cmap=cm2,edgecolor="none")
 #ax3.elev = 94.0
 #ax3.azim = 0.0
 #ax3.roll = 0.0
 #draw()
+
+h5  = figure(num=5)
+ax5 = h5.subplots()
+λx  = 2.0*ModuloStep(QTX,ΔX)/λnorm
+ax5.plot(QTX,λx,color=cm(3))
+ax5.set_ylabel(L"λ",fontsize=lafs)
+ax5.set_xlabel(L"x",fontsize=lafs)
+if (ifsavext)
+  fname5 = @sprintf "./plots/lambda_spatial_spots.eps"
+  h5.savefig(fname5)
+  println("Saved Figure "*fname5)
+end  
+
+if (ifhdf5)
+  ifλ       = true
+  fnameh5   = "spots.h5"
+  β3        = X00
+  γhist     = λx
+  include("../create_hdf5.jl")
+end  
 
 
 

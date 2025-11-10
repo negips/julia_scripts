@@ -74,6 +74,7 @@ initplot          = true      # Plot initial conditions
 ifdynnull         = false     # Plot null-clines dynamically
 ifsaveframe       = false
 ifsavext          = true
+ifhdf5            = true      # Save HDF5 file
 
 ifplot            = iffldplot || ifphplot || ifdynplot 
 plotfldi          = fill(true,nflds)

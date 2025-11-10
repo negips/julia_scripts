@@ -27,7 +27,9 @@ ifplot            = iffldplot || ifphplot
 
 Vol   = sum(Bg)
 A_sen = Asen*Vol
-γ     = 2.0
+γ     = 0.0
+γhist = zeros(VT,nsurf_save)
+
 
 for i in 1:nsteps
   global fld,fldlag,Rhs,Rhslag,dotfld
@@ -212,6 +214,9 @@ if ifannotate
 end  
 
 if (ifhdf5)
+  ifλ       = false
+  fnameh5   = "wedges.h5"
+  β3        = 0.0
   include("../create_hdf5.jl")
 end  
 

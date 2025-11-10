@@ -27,7 +27,8 @@ ifplot            = iffldplot || ifphplot
 
 Vol   = sum(Bg)
 A_sen = Aeq*Vol
-γ     = (2.0)/λnorm
+γ     = 0.0
+γhist = zeros(VT,nsurf_save)
 
 for i in 1:nsteps
   global fld,fldlag,Rhs,Rhslag,dotfld
@@ -190,16 +191,17 @@ if (ifsavext)
   println("Saved Figure "*fname3)
 end  
 
+if (ifhdf5)
+  ifλ       = false
+  fnameh5   = "symmetric_LCO.h5"
+  include("../create_hdf5.jl")
+end  
+
 #surf(t2d,x2d,fldhist[:,:,2],cmap=cm2,edgecolor="none")
 #ax3.elev = 94.0
 #ax3.azim = 0.0
 #ax3.roll = 0.0
 #draw()
-
-
-
-
-
 
 
 

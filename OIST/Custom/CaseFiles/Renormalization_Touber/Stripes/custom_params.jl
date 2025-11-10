@@ -4,7 +4,7 @@
 
 U                 = prec(0)         # Convection
 γ                 = prec(1)         # Diffusion (Generic) 
-γa                = prec(2.0)*ϵ       # Diffusion (activator)
+γa                = prec(40.0)*ϵ       # Diffusion (activator)
 γb                = prec(1.0)*ϵ^2      # Diffusion (inhibitor)
 γζ                = prec(0.001)        # Diffusion for auxillary variable
 γall              = [γb γa γζ]
@@ -67,6 +67,7 @@ initplot          = true      # Plot initial conditions
 ifdynnull         = false     # Plot null-clines dynamically
 ifsaveframe       = true
 ifsavext          = true
+ifhdf5            = true      # Save HDF5 file
 
 ifplot            = iffldplot || ifphplot || ifdynplot 
 plotfldi          = fill(true,nflds)
