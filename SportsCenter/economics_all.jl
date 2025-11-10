@@ -9,8 +9,10 @@ include("structures.jl")
 const OneLakh           = 1.0e5
 const OneCrore          = 1.0e7
 ifverbose               = true
+lafs                    = 12
+lgfs                    = 12
 
-Land_Investment         = 5.0e7
+Land_Investment         = 10.0e7
 Construction_Investment = 10.0e7 
 Total_Investment        = Land_Investment + Construction_Investment
 Tax_Rate                = 0.34
@@ -44,7 +46,7 @@ ax1.plot(Years,Req_Monthly_Profit,linestyle="-",marker="o",markersize=6,color=cm
 xticks = Start_Year:2:End_Year
 ax1.set_xticks(xticks)
 ax1.grid()
-ax1.set_ylabel("Monthly Profit (Lakhs)")
+ax1.set_ylabel("Required Monthly Profit (Lakhs)")
 ax1.set_xlabel("Years")
 
 # ax2 = ax1.twinx()
@@ -86,7 +88,37 @@ include("configuration_full_capacity.jl")
 FCapEconomics     = GetCenterEconomics(All_sports,Tax_Rate,Depreciation,Monthly_Operating_Expenses)
 fcap_pr           = fill(FCapEconomics.MonthlyProfit,Total_Years)./OneLakh
 ax1.plot(Years,fcap_pr,linestyle="--",color=cm(5))
+#---------------------------------------------------------------------- 
 
+
+# Parametric with occupancy
+
+Occup              = 0.2:0.05:1.0
+nOccup             = length(Occup)
+OccupancyEconomics = Vector{CenterEconomics}(undef,nOccup)
+PaybackPeriod      = zeros(Float64,nOccup)
+
+for i in 1:nOccup
+  occ = Occup[i]
+  SetAllOccupancy!(All_sports,occ)
+  # Remove Basketball and Volleyball
+  SetOccupancy!(All_sports[6],0.0)
+  SetOccupancy!(All_sports[7],0.0)
+
+  OccupancyEconomics[i] = GetCenterEconomics(All_sports,Tax_Rate,Depreciation,Monthly_Operating_Expenses)
+  PaybackPeriod[i]      = Total_Investment*(1.0 + Interest_Rate)/OccupancyEconomics[i].YearlyProfit
+end  
+
+h2  = figure(num=2,figsize=[10.0,7.0])
+ax3 = gca()
+ax3.plot(Occup,PaybackPeriod,linestyle="-",marker="o",markersize=6,color=cm(0))
+ax3.grid()
+ax3.set_ylabel("Time-Adjusted Payback Period (Years)",fontsize=lafs)
+ax3.set_xlabel("Occupancy",fontsize=lafs)
+heading = @sprintf("Total Investment: %.1f Cr.", Total_Investment/OneCrore)
+ax3.set_title(heading)
+
+h2.savefig("PaybackPeriod_Occupancy.png")
 
 #---------------------------------------------------------------------- 
 println("Done.")

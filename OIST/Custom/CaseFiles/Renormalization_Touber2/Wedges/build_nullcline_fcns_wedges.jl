@@ -147,14 +147,14 @@ gt(z)   = -1.0/pars.gcx[1]*RotXYFXY(0.0,yin,Axis_X0,Axis_Y0,z,pars.gc0,pars.gcx,
 
 # Build Nullcline for the dynamic switching
 #---------------------------------------- 
-δ                 = 0.0015
-λdot0(x,y)        = (1.0/δ)*FXY(x,y,parsS.fc0,parsS.fcx,parsS.fcy)
+ν                 = 0.0015
+λdot0(x,y)        = (1.0/ν)*FXY(x,y,parsS.fc0,parsS.fcx,parsS.fcy)
 if λdot0(0.0,100.0)>0
   parsS.fc0        = -parsS.fc0
   parsS.fcx        = -parsS.fcx
   parsS.fcy        = -parsS.fcy
 end  
-λdot1(x,y)         = (1.0/δ)*FXY(x,y,parsS.fc0,parsS.fcx,parsS.fcy)
+λdot1(x,y)         = (1.0/ν)*FXY(x,y,parsS.fc0,parsS.fcx,parsS.fcy)
 
 xi                =  10.0
 yr0               =  0.0

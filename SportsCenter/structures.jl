@@ -80,6 +80,16 @@ function SetOccupancy!(sport::DailySport,occupancy::Float64)
   return nothing
 end  
 #---------------------------------------------------------------------- 
+function SetAllOccupancy!(Sports::Vector{DailySport},occupancy::Float64)
+
+  ns = length(Sports)
+  for i in 1:ns
+    SetOccupancy!(Sports[i],occupancy)
+  end  
+
+  return nothing
+end  
+#---------------------------------------------------------------------- 
 function GetCenterEconomics(AllSports::Vector{DailySport},taxrate,depreciation,MonthlyOpExp)
 
       TotalMonthlyRevenue     = 0.0
@@ -102,22 +112,18 @@ function GetCenterEconomics(AllSports::Vector{DailySport},taxrate,depreciation,M
 
       return Economics
 
-  # Sports::Vector{Sport}
-  # DailyRevenue::Float64
-  # MonthlyRevenue::Float64
-  # YearlyyRevenue::Float64
-  # DailyOpExpenses::Float64
-  # MonthlyOpExpenses::Float64
-  # YearlyOpExpenses::Float64
-  # Depreciation::Float64
-  # TaxRate::Float64
-  # MonthlyProfit::Float64
-  # YearlyProfit::Float64
-
 end
+#---------------------------------------------------------------------- 
+function PrintRevenue(Sports::Vector{DailySport})
 
-
-
+  One_Lakh         = 1.0e5
+  for sport in Sports
+    revenue       = sport.MonthlyRevenue
+    occup         = sport.Occupancy
+    @printf("%12s, at Occupancy: %.2f, Monthly Collection: %.3f Lakh\n", sport.Name, occup, revenue/One_Lakh)
+  end
+end  
+#---------------------------------------------------------------------- 
 
 
 

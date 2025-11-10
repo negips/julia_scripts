@@ -211,6 +211,9 @@ if ifannotate
   h1.savefig(annfname)
 end  
 
+if (ifhdf5)
+  include("../create_hdf5.jl")
+end  
 
 #surf(t2d,x2d,fldhist[:,:,2],cmap=cm2,edgecolor="none")
 #ax3.elev = 94.0
