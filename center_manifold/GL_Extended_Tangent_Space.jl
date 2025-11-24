@@ -24,6 +24,16 @@ for i in 1:p
 end
 
 # Forcing Modes
+
+# Forcing Shape
+x0    = 5.0
+ψ     = exp.(-(xg .- x0).^2)
+ax2.plot(xg,real.(ψ) ,linewidth=2,linestyle="-", color=cm(2),label=L"\mathfrak{R}(ψ)")
+ax2.plot(xg,imag.(ψ) ,linewidth=2,linestyle="--",color=cm(2),label=L"\mathfrak{Im}(ψ)")
+
+
+ψn    = sqrt(ψ'*(Bg.*ψ))
+ψ    .= ψ./ψn
 Lθ    = zeros(ComplexF64,N,h)
 f1    = 1.0/(sqrt(2.0))*[ψ;ψ]
 f2    = [ψ;  zro]
