@@ -171,6 +171,8 @@ h3    = figure(num=3,figsize=[12.,9.])
 ax3   = gca()
 cm2   = get_cmap("tab20c")
 plno  = -1
+verbose = false
+
 
 # Second Order Asymptotic terms
 #-------------------------------------------------- 
@@ -181,6 +183,7 @@ SysMat_O2   = BuildAsympSystem(Ord,m,Khat)
 
 # Reduced Matrix terms
 G_O2        = zeros(ComplexF64,m,Nt)
+println("Solving for Ord=$(Ord)")
 for i in 1:Nt
 
   global plno
@@ -192,7 +195,9 @@ for i in 1:Nt
     ω       = ω + Khat[ii,ii] 
   end 
 
-  println("Solving for $(ind .+ 1), ω=$(ω)")
+  if (verbose)
+    println("Solving for $(ind .+ 1), ω=$(ω)")
+  end  
 
   h_asymp   = zeros(ComplexF64,N)
   if p>0
@@ -291,6 +296,7 @@ SysMat_O3   = BuildAsympSystem(Ord,m,Khat)
 
 # Reduced Matrix terms
 G_O3        = zeros(ComplexF64,m,Nt)
+println("Solving for Ord=$(Ord)")
 for i in 1:Nt
 
   global plno
@@ -302,7 +308,9 @@ for i in 1:Nt
     ω       = ω + Khat[ii,ii] 
   end 
 
-  println("Solving for $(ind .+ 1), ω=$(ω)")
+  if (verbose)
+    println("Solving for $(ind .+ 1), ω=$(ω)")
+  end  
 
   h_asymp   = zeros(ComplexF64,N)
   if p>0

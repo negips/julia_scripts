@@ -44,8 +44,8 @@ f5    = [zro;ψ]
 Lθ    = [f2 f3]
 #λh    = zeros(ComplexF64,h)
 #λh    = [0.0im; im; -im; 2.3im; -2.3im]
-λh    = [im; -im;]
-#λh    = [2.3im; -2.3im;]
+#λh    = [im; -im;]
+λh    = [1.3im; -1.3im;]
 
 ΓH    = zeros(ComplexF64,n,h)
 for i in 1:h
