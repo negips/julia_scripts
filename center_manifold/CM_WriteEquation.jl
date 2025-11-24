@@ -131,7 +131,7 @@ function CM_DisplayTerms(ind::Int,var::String,Khat::Matrix{T},G2::Matrix{T},G3::
       @printf("%s\n",str1)
     end  
   end
-  @printf("----------\n")
+  @printf("------------------------------\n")
 
   ord       = 2
   nt        = CenterManifold.NInteractionTerms(ord,nv)
@@ -147,7 +147,7 @@ function CM_DisplayTerms(ind::Int,var::String,Khat::Matrix{T},G2::Matrix{T},G3::
       @printf("%s\n",str2)
     end  
   end
-  @printf("----------\n")
+  @printf("------------------------------\n")
 
   ord       = 3
   nt        = CenterManifold.NInteractionTerms(ord,nv)
@@ -164,7 +164,7 @@ function CM_DisplayTerms(ind::Int,var::String,Khat::Matrix{T},G2::Matrix{T},G3::
       @printf("%s\n",str3)
     end  
   end
-  @printf("----------\n")
+  @printf("------------------------------\n")
 
   return nothing
 end
