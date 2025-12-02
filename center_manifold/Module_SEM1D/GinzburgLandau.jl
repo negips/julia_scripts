@@ -349,6 +349,18 @@ function SEM_SetBC!(v::AbstractVector{T},lbc::Bool,rbc::Bool) where {T<:Number}
   return nothing
 end
 #---------------------------------------------------------------------- 
+function SEM_SetBC!(v::AbstractVector{T},bcl::T,bcr::T,lbc::Bool,rbc::Bool) where {T<:Number}
+
+  if lbc
+    v[1]   = bcl
+  end
+  if rbc
+    v[end] = bcr
+  end
+
+  return nothing
+end
+#---------------------------------------------------------------------- 
 function GLAnalyticalSpectra(δ::Vector{T}) where {T<:Number}
 
   # Analytical Eigenvalues on a semi-infinite domain

@@ -34,12 +34,13 @@ ax2.plot(xg,imag.(ψ) ,linewidth=2,linestyle="--",color=cm(2),label=L"\mathfrak{
 
 ψn    = sqrt(ψ'*(Bg.*ψ))
 ψ    .= ψ./ψn
+vzro  = 0.0*ψ
 Lθ    = zeros(ComplexF64,N,h)
 f1    = 1.0/(sqrt(2.0))*[ψ;ψ]
-f2    = [ψ;  zro]
-f3    = [zro;ψ]
-f4    = [ψ;  zro]
-f5    = [zro;ψ]
+f2    = [ψ;  vzro]
+f3    = [vzro;ψ]
+f4    = [ψ;  vzro]
+f5    = [vzro;ψ]
 # Lθ    = [f1 f2 f3 f4 f5]
 Lθ    = [f2 f3]
 #λh    = zeros(ComplexF64,h)

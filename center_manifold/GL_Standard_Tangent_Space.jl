@@ -1,6 +1,6 @@
 # Testing the module
 
-include("Module_SEM1D/SEM1D.jl")
+#include("Module_SEM1D/SEM1D.jl")
 #using .SEM1D
 
 include("Module_StepperArnoldi/StepperArnoldi.jl")
@@ -9,10 +9,10 @@ include("Module_StepperArnoldi/StepperArnoldi.jl")
 include("Module_CenterManifold/CenterManifold.jl")
 #using .CenterManifold
 
-using LinearAlgebra
-using SparseArrays
-using Printf
-using PolynomialBases
+#using LinearAlgebra
+#using SparseArrays
+#using Printf
+#using PolynomialBases
 using IterativeSolvers
 
 using PyPlot
@@ -46,58 +46,6 @@ function renormalize_evecs!(v::AbstractVector{T},w::AbstractVector{T},B::Abstrac
   return nothing
 end  
 #---------------------------------------------------------------------- 
-
-Np    = 12
-Npd   = 19
-nel   = 61
-xs    = 0.0
-xe    = 40.0
-lbc   = true
-rbc   = false
-
-# Input parameters
-Inp   = SEM1D.SEMInput(Np,Npd,nel,xs,xe,lbc,rbc)
-# Nodal Bases
-B0    = LobattoLegendre(Inp.N)
-Bd    = LobattoLegendre(Inp.Nd)
-# Geometric Matrices
-GeoM  = SEM1D.SEMGeoMat(B0,Bd,Inp)
-
-δ     = ones(ComplexF64,5)    #  Parameters
-δ[1]  = -1.0                  # -U
-δ[2]  =  0.741 + 1.025im      #  μ0
-δ[3]  = -0.125                #  μx
-δ[4]  = (1.0 - im)/sqrt(2.0)  #  γ
-δ[5]  = (-0.1 + 0.1im)        #  Nonlinear Coefficient 
-δc    = conj.(δ)
-
-# GinzburgLandau Linear Operators
-L,  B, OP,  Conv,  Src,  Lap  = SEM1D.GinzburgLandauSparse(δ, Inp,GeoM,B0)
-LC, B, OPC, ConvC, SrcC, LapC = SEM1D.GinzburgLandauSparse(δc,Inp,GeoM,B0)
-AL, B, AOP, AConv, ASrc, ALap = SEM1D.AdjointGinzburgLandauSparse(δ,Inp,GeoM,B0)
-
-ifperiodic  = false
-ndof, glnum = SEM1D.SEM_Global_Num(GeoM.xm1,ifperiodic)
-Q,QT        = SEM1D.SEM_QQT(glnum)
-vmult       = Q*QT*ones(Float64,length(GeoM.xm1[:]))
-vimult      = 1.0./vmult
-
-SEM1D.GLSetBC!(L ,Inp.lbc,Inp.rbc,ifperiodic)
-SEM1D.GLSetBC!(LC,Inp.lbc,Inp.rbc,ifperiodic)
-SEM1D.GLSetBC!(AL,Inp.lbc,Inp.rbc,ifperiodic)
-
-Lg    = QT*L*Q
-LCg   = QT*LC*Q
-
-ALg   = QT*AL*Q
-Bg    = QT*B
-Bgi   = 1.0./Bg
-OPg   = Bgi.*Lg
-OPCg  = Bgi.*LCg
-AOPg  = Bgi.*ALg
-
-Lapg  = Bgi.*(QT*(1.0/δ[4])*Lap*Q)
-LapCg = Bgi.*(QT*(1.0/δ[4]')*LapC*Q)
 
 
 # Stepper-Arnoldi
@@ -142,14 +90,14 @@ ArnDir      = StepperArnoldi.StepArn( OPg,Bg,StpInp,ArnInp,Inp.lbc,Inp.rbc)
 ArnAdj      = StepperArnoldi.StepArn(AOPg,Bg,StpInp,ArnInp,Inp.lbc,Inp.rbc)
 
 pl3   = ax1.plot(imag.(ArnDir.evals),real.(ArnDir.evals),linestyle="none",marker="s",markersize=4)
-
 cm    = get_cmap("tab10")
-xg    = QT*(vimult.*GeoM.xm1[:])
 
 # Build Center-Manifold matrices
 v1    = copy(ArnDir.evecs[:,1])
 w1    = copy(ArnAdj.evecs[:,1])
-j0    = argmin(abs.(xg .- 6.0))
+
+fx0   = 6.0
+j0    = argmin(abs.(xg .- fx0))
 renormalize_evec!(v1,j0)
 renormalize_evecs!(v1,w1,Bg)
 v2    = conj.(v1)
@@ -157,7 +105,7 @@ w2    = conj.(w1)
 λc    = [im; -im;]
 
 # Forcing
-ψ     = exp.(-(xg .- 6.0).^2) 
+ψ     = exp.(-(xg .- fx0).^2) 
 ψn    = sqrt(ψ'*(Bg.*ψ))
 ψ    .= ψ./ψn
 
@@ -170,12 +118,12 @@ ax2.plot(xg,imag.(w1),linewidth=2,linestyle="--",color=cm(1),label=L"\mathfrak{I
 #ax2.plot(xg,real.(ψ) ,linewidth=2,linestyle="-", color=cm(2),label=L"\mathfrak{R}(ψ)")
 #ax2.plot(xg,imag.(ψ) ,linewidth=2,linestyle="--",color=cm(2),label=L"\mathfrak{Im}(ψ)")
 
-zro   = 0.0*v1
+vzro  = 0.0*v1
 
-V     = [v1       zro;
-         zro      v2]
-W     = [w1       zro;
-         zro      w2]
+V     = [v1       vzro;
+         vzro     v2]
+W     = [w1       vzro;
+         vzro     w2]
 
 println("Standard Tangent Space Done.")
 
