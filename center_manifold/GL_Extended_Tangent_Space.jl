@@ -1,6 +1,29 @@
 # Testing the module
 
 # Extending the tangent space
+#---------------------------------------------------------------------- 
+function ForcingShape(B::AbstractVector{T},xg::AbstractVector{Float64},x0::Float64,σ::Float64) where {T <: Number}
+
+  # Forcing Shape
+  ψ     = exp.(-((xg .- x0)/σ).^2)
+  ψn    = sqrt(ψ'*(Bg.*ψ))
+  ψ    .= ψ./ψn
+
+  return ψ
+end
+#---------------------------------------------------------------------- 
+function SetForcingShape!(ψ::AbstractVector{T},B::AbstractVector{S},xg::AbstractVector{Float64},x0::Float64,σ::Float64) where {T,S <: Number}
+
+  # Forcing Shape
+  for i in LinearIndices(ψ)
+    ψ[i] = exp(-((xg[i] - x0)/σ)^2)
+  end  
+  ψn    = sqrt(ψ'*(Bg.*ψ))
+  ψ    .= ψ./ψn
+
+  return nothing
+end
+#---------------------------------------------------------------------- 
 
 Nby2  = ArnInp.vlen
 N     = Nby2*2
@@ -27,13 +50,13 @@ end
 
 # Forcing Shape
 x0    = 5.0
-ψ     = exp.(-(xg .- x0).^2)
+# ψ     = ForcingShape(Bg,xg,x0,1.0)
+ψ     = zeros(ComplexF64,Nby2)
+SetForcingShape!(ψ,Bg,xg,x0,1.0)
+
 ax2.plot(xg,real.(ψ) ,linewidth=2,linestyle="-", color=cm(2),label=L"\mathfrak{R}(ψ)")
 ax2.plot(xg,imag.(ψ) ,linewidth=2,linestyle="--",color=cm(2),label=L"\mathfrak{Im}(ψ)")
 
-
-ψn    = sqrt(ψ'*(Bg.*ψ))
-ψ    .= ψ./ψn
 vzro  = 0.0*ψ
 Lθ    = zeros(ComplexF64,N,h)
 f1    = 1.0/(sqrt(2.0))*[ψ;ψ]
@@ -45,8 +68,8 @@ f5    = [vzro;ψ]
 Lθ    = [f2 f3]
 #λh    = zeros(ComplexF64,h)
 #λh    = [0.0im; im; -im; 2.3im; -2.3im]
-λh    = [im; -im;]
-#λh    = [1.3im; -1.3im;]
+#λh    = [im; -im;]
+λh    = [1.3im; -1.3im;]
 
 ΓH    = zeros(ComplexF64,n,h)
 for i in 1:h
@@ -132,7 +155,7 @@ for i in 1:h
   ω               = λh[i]
   Res1            = DQ*(ω*I - OPg)*DQ
   vh1             = copy(r[ind1])
-  gmres!(vh1,Res1,r[ind1])
+  @views gmres!(vh1,Res1,r[ind1])
   Vh[ind1,i]      = copy(vh1)
 
   Res2            = CQ*(ω*I - OPCg)*CQ
