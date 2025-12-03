@@ -27,7 +27,7 @@ function OP_RK4(OP,v::T,dt::Float64) where T <: Union{ComplexF64,Float64}
   return v    
 end
 #----------------------------------------------------------------------
-function OP2_RK4(OP,v::AbstractVector{T},θ::AbstractVector{T},dt::Float64) where T <: Union{ComplexF64,Float64}
+function OP2_RK4!(OP,v::AbstractVector{T},θ::AbstractVector{T},dt::Float64) where T <: Union{ComplexF64,Float64}
 
   two       = T(2)
   six       = T(6)
@@ -45,8 +45,8 @@ function OP2_RK4(OP,v::AbstractVector{T},θ::AbstractVector{T},dt::Float64) wher
   θ3        = θ + dt*dθ2
 
   dv3,dθ3   = OP(v3,θ3)
-  v         = v + dt/six*(dv + two*dv1 + two*dv2 + dv3)
-  θ         = θ + dt/six*(dθ + two*dθ1 + two*dθ2 + dθ3)
+  v        .= v .+ dt/six*(dv + two*dv1 + two*dv2 + dv3)
+  θ        .= θ .+ dt/six*(dθ + two*dθ1 + two*dθ2 + dθ3)
 
   return v,θ 
 end

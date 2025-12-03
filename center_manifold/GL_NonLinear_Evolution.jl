@@ -21,28 +21,26 @@ include("OP_RK4.jl")
 lafs        = 16
 lgfs        = 12
 
-#include("GL_Setup.jl")
+include("GL_Setup.jl")
 #-------------------------------------------------- 
 
 close("all")
 
 ifplot      = true 
 verbose     = true
-nsteps      = 500000
+nsteps      = 2000000
 ifsave      = false
 plotstep    = 20000
 verbosestep = 20000
 histstep    = 1000
 nhist       = Int(nsteps/histstep)
+hist_x      = 10.0                        # Location of history point
+hist_i      = argmin(abs.(xg .- hist_x))  # Index of history point
 
 rng   = MersenneTwister(1235)
 vt    = Complex{Inp.Dtype}
 zro   = vt(0)
 
-#v     = randn(vt,ndof)*1.0;
-v     = zeros(vt,ndof)
-v    .= v .+ 0.01*exp.(-(xg.-5.75).^2)
-v    .= v .+ conj.(v)
 
 Hist  = zeros(vt,nhist)
 Time  = zeros(Float64,nhist)
@@ -65,17 +63,25 @@ NGL(x)= NLGinzburgLandau(OPg,ones(vt,ndof),x,δ[5],zro,zro,Inp.lbc,Inp.rbc)
 
 # Forcing Shape
 x0    = 5.0
-ψ     = zeros(ComplexF64,Nby2)
+ψ     = zeros(ComplexF64,ndof)
 h     = 1
 SetForcingShape!(ψ,Bg,xg,x0,1.0)
-F     = zeros(ComplexF64,Nby2,h)
+F     = zeros(ComplexF64,ndof,h)
 copyto!(F,ψ)
 Ω     = [1.3im]
-FNGL(x,y) = ForcedNLGinzburgLandau(OPg,ones(vt,ndof),x,F,y,δ[5],zro,zro,Inp.lbc,Inp.rbc)
+FNGL(x,y) = ForcedNLGinzburgLandau(OPg,ones(vt,ndof),x,F,y,δ[5],Ω,zro,zro,Inp.lbc,Inp.rbc)
 
 
 t     = Inp.Dtype(0)    # Time
 i     = 0               # Istep
+
+#v     = randn(vt,ndof)*1.0;
+v     = zeros(vt,ndof)
+v    .= v .+ 0.01*exp.(-(xg.-5.75).^2)
+v    .= v .+ conj.(v)
+θ     = zeros(vt,h)
+θ[1]  = (0.0 + 0.0im)*10^-2
+
 
 ifconv = false
 println("Press x to stop. Any other key to continue...")
@@ -90,7 +96,7 @@ end
 println("Starting Iterations")
 
 while (~ifconv)
-  global v
+  global v,θ
   global t, i
   global plr,pli
   global OPg
@@ -108,6 +114,9 @@ while (~ifconv)
   # Non-linear Evolution
   v  = OP_RK4!(NGL,v,dt)
 
+  # Forced Non-linear Evolution
+  # v,θ  = OP2_RK4!(FNGL,v,θ,dt)
+
   # No Arnoldi iteration      
   if verbose && mod(i,verbosestep)==0
     println("Istep=$i, Time=$t")
@@ -115,7 +124,7 @@ while (~ifconv)
 
   if (mod(i,histstep) == 0)
     j = Int(i/histstep)
-    Hist[j] = v[50]
+    Hist[j] = v[hist_i]
     Time[j] = t
   end  
 
