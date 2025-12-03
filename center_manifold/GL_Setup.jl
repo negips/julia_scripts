@@ -16,22 +16,9 @@ using PolynomialBases
 using IterativeSolvers
 
 using PyPlot
-#---------------------------------------------------------------------- 
-function Get_SEM1D_Input()
 
-  Np    = 12
-  Npd   = 19
-  nel   = 61
-  xs    = 0.0
-  xe    = 40.0
-  lbc   = true
-  rbc   = false
-  
-  # Input parameters
-  Inp   = SEM1D.SEMInput(Np,Npd,nel,xs,xe,lbc,rbc)
+include("GL_Functions.jl")
 
-  return Inp
-end  
 #---------------------------------------------------------------------- 
 
 # Input parameters

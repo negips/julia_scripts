@@ -6,45 +6,16 @@
 include("Module_StepperArnoldi/StepperArnoldi.jl")
 #using .StepperArnoldi
 
-include("Module_CenterManifold/CenterManifold.jl")
+#include("Module_CenterManifold/CenterManifold.jl")
 #using .CenterManifold
 
 #using LinearAlgebra
 #using SparseArrays
 #using Printf
 #using PolynomialBases
-using IterativeSolvers
+#using IterativeSolvers
+#using PyPlot
 
-using PyPlot
-
-
-function renormalize_evec!(v::AbstractVector{T},j0::Int) where {T}
-
-  vj        = v[j0]
-  absv      = abs(vj)
-  th        = atan(imag(vj)/absv,real(vj)/absv)
-  ph        = π/4.0 - th
-  for i in eachindex(v)
-    v[i]    = v[i]*exp(ph*im)
-  end  
-
-  return nothing
-end  
-#----------------------------------------------------------------------
-function renormalize_evecs!(v::AbstractVector{T},w::AbstractVector{T},B::AbstractVector{S}) where {T<:Number,S<:Number}
-
-  β   = sqrt(v'*(B.*v))
-  for i in eachindex(v)
-    v[i] = v[i]/β
-  end
-
-  β   = w'*(B.*v)
-  for i in eachindex(w)
-    w[i] = w[i]/(β')
-  end
-
-  return nothing
-end  
 #---------------------------------------------------------------------- 
 
 

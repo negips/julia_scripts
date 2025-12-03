@@ -2,28 +2,6 @@
 
 # Extending the tangent space
 #---------------------------------------------------------------------- 
-function ForcingShape(B::AbstractVector{T},xg::AbstractVector{Float64},x0::Float64,σ::Float64) where {T <: Number}
-
-  # Forcing Shape
-  ψ     = exp.(-((xg .- x0)/σ).^2)
-  ψn    = sqrt(ψ'*(Bg.*ψ))
-  ψ    .= ψ./ψn
-
-  return ψ
-end
-#---------------------------------------------------------------------- 
-function SetForcingShape!(ψ::AbstractVector{T},B::AbstractVector{S},xg::AbstractVector{Float64},x0::Float64,σ::Float64) where {T,S <: Number}
-
-  # Forcing Shape
-  for i in LinearIndices(ψ)
-    ψ[i] = exp(-((xg[i] - x0)/σ)^2)
-  end  
-  ψn    = sqrt(ψ'*(Bg.*ψ))
-  ψ    .= ψ./ψn
-
-  return nothing
-end
-#---------------------------------------------------------------------- 
 
 Nby2  = ArnInp.vlen
 N     = Nby2*2
@@ -32,7 +10,7 @@ p     = 2
 h     = 2
 m     = n+p+h
 
-Bg2   = [Bg;Bg]
+Bg2   = [Bg; Bg]
 
 # Parameter modes
 Lν    = zeros(ComplexF64,N,p)
@@ -121,12 +99,6 @@ for i in 1:p
   Vp[ind2,i]      = copy(vp2)
 
   vnorm = sqrt(abs(Vp[:,i]'*(Bg2.*Vp[:,i])))
-  # if vnorm>1.0e-12
-  #   leg = L"\mathfrak{R}(vp"*"$i"*L")"
-  #   ax2.plot(xg,real.(vp1),linewidth=2,linestyle="-", color=cm(n+i),label=leg)
-  #   leg = L"\mathfrak{R}(vp"*"$i"*L")"
-  #   ax2.plot(xg,real.(vp2),linewidth=2,linestyle="--",color=cm(n+i),label=leg)
-  # end  
 end  
 
 
@@ -164,19 +136,13 @@ for i in 1:h
   Vh[ind2,i]      = copy(vh2)
 
   vnorm = sqrt(abs(Vh[:,i]'*(Bg2.*Vh[:,i])))
-  # if vnorm>1.0e-12
-  #   leg = L"\mathfrak{R}(vh"*"$i"*L")"
-  #   ax2.plot(xg,real.(vh1),linewidth=1,linestyle="-", color=cm(n+p+i),label=leg)
-  #   leg = L"\mathfrak{R}(vh"*"$i"*L")"
-  #   ax2.plot(xg,real.(vh2),linewidth=3,linestyle="--",color=cm(n+p+i),label=leg)
-  # end  
 end  
 
-Vext  = [V  Vp    Vh]
+Vext  = [V  Vp  Vh]
 ax2.legend(ncols=3)
 
 
-println("Tangent Space Done.")
+println("Extended Tangent Space Done.")
 
 
 

@@ -6,7 +6,7 @@
 # include("Module_StepperArnoldi/StepperArnoldi.jl")
 # #using .StepperArnoldi
 # 
-# include("Module_CenterManifold/CenterManifold.jl")
+include("Module_CenterManifold/CenterManifold.jl")
 # #using .CenterManifold
 
 #---------------------------------------------------------------------- 

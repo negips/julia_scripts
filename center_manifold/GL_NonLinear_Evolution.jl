@@ -61,7 +61,18 @@ rgba2 = cm(2)
 
 dt    = 0.0001
 
-NGL(x)= NLGinzburgLandau(OPg,ones(vt,ndof),x,δ[5],vt(0),vt(0),Inp.lbc,Inp.rbc)  
+NGL(x)= NLGinzburgLandau(OPg,ones(vt,ndof),x,δ[5],zro,zro,Inp.lbc,Inp.rbc)  
+
+# Forcing Shape
+x0    = 5.0
+ψ     = zeros(ComplexF64,Nby2)
+h     = 1
+SetForcingShape!(ψ,Bg,xg,x0,1.0)
+F     = zeros(ComplexF64,Nby2,h)
+copyto!(F,ψ)
+Ω     = [1.3im]
+FNGL(x,y) = ForcedNLGinzburgLandau(OPg,ones(vt,ndof),x,F,y,δ[5],zro,zro,Inp.lbc,Inp.rbc)
+
 
 t     = Inp.Dtype(0)    # Time
 i     = 0               # Istep
