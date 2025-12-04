@@ -741,6 +741,64 @@ function GetInteractionIndex(vars::AbstractVector{Int},nv::Int)
 
   return ind
 end
+#---------------------------------------------------------------------- 
+@doc """
+      AllInteractionIndices(Ord::Int,nv::Int)
+
+      Get array of all interaction indices.
+
+"""
+function AllInteractionIndices(Ord::Int,nv::Int)
+
+  nt    = NInteractionTerms(Ord,nv)
+  Ind   = fill(-99,nt,Ord)
+
+  for i in 1:nt
+    if (i>1)
+      Ind[i,:] = copy(Ind[i-1,:])
+    end  
+    vars = view(Ind,i,:)
+    UpdatePolynomialIndex!(vars,Ord,nv)
+  end  
+
+  return Ind
+end
+#---------------------------------------------------------------------- 
+@doc """
+      EvaluateNonLinear(x::AbstractVector{T},Ord::Int) where T <: Number
+
+      Get array of all interaction indices.
+
+"""
+function EvaluateNonLinear(x::AbstractVector{T},Ord::Int) where {T <: Number}
+
+  nv        = length(x)
+  Ind       = AllInteractionIndices(Ord,nv) .+ 1
+  NLx       = EvalNonLinear(x,Ind)
+
+  return NLx
+end
+#---------------------------------------------------------------------- 
+@doc """
+      EvalNonLinear(x::AbstractVector{T},Ind::AbstractMatrix{S}) where {T,S <: Number}
+
+"""
+function EvalNonLinear(x::AbstractVector{T},Ind::AbstractMatrix{S}) where {T,S <: Number}
+
+  nv        = length(x)
+  nt,Ord    = size(Ind)
+  
+  NLx       = ones(T,nt)
+  for i in 1:Ord
+    NLx = NLx.*x[Ind[:,i]]
+  end  
+
+  return NLx
+end
+#---------------------------------------------------------------------- 
+
+
+
 
 
 

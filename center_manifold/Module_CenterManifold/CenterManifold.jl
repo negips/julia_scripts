@@ -39,7 +39,10 @@ module CenterManifold
          newindex,
          oldindex,
          GetInteractionTerms,
-         GetInteractionIndex
+         GetInteractionIndex,
+         AllInteractionIndices,
+         EvaluateNonLinear,
+         EvalNonLinear
 
   # Dynamical Evolution related functions 
   export DynamicalSystem1,
