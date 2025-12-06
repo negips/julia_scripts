@@ -44,6 +44,13 @@ function renormalize_evecs!(v::AbstractVector{T},w::AbstractVector{T},B::Abstrac
   return nothing
 end  
 #---------------------------------------------------------------------- 
+function ForcingLocation()
+
+  x0 = 5.0
+
+  return x0
+end  
+#---------------------------------------------------------------------- 
 function ForcingShape(B::AbstractVector{T},xg::AbstractVector{Float64},x0::Float64,σ::Float64) where {T <: Number}
 
   # Forcing Shape
@@ -66,4 +73,28 @@ function SetForcingShape!(ψ::AbstractVector{T},B::AbstractVector{S},xg::Abstrac
   return nothing
 end
 #---------------------------------------------------------------------- 
+function Get_AsymptoticFieldx(ind::Int,z::AbstractVector{T},Y1::AbstractMatrix{T},Y2::AbstractMatrix{T},Y3::AbstractMatrix{T}) where {T <: Number}
+
+  val = T(0)
+
+  z1  = z
+  val = val + transpose(Y1[ind,:])*z1 
+
+  Ord = 2
+  z2  = CenterManifold.EvaluateNonLinear(z,Ord)
+  val = val + transpose(Y2[ind,:])*z2
+
+  Ord = 3
+  z3  = CenterManifold.EvaluateNonLinear(z,Ord)
+  val = val + transpose(Y3[ind,:])*z3
+
+  return val
+end
+#---------------------------------------------------------------------- 
+
+
+
+
+
+
 

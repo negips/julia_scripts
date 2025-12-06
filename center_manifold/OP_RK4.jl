@@ -14,6 +14,28 @@ function OP_RK4!(OP,v,dt)
   return nothing 
 end
 #---------------------------------------------------------------------- 
+function OP_RK4!(OP,v::AbstractVector{T},dt,wk::AbstractMatrix{T}) where {T <: Number}
+
+  two       = T(2)
+  six       = T(6)
+  dv1       = view(wk,:,1)
+  dv2       = view(wk,:,2)
+  dv3       = view(wk,:,3)
+  dv4       = view(wk,:,4)
+  vn        = view(wk,:,5)
+
+  dv1       = OP(v)
+  vn       .= v .+ dt/two*dv1
+  dv2       = OP(vn)
+  vn       .= v .+ dt/two*dv2
+  dv3       = OP(vn)
+  vn       .= v .+ dt*dv3
+  dv4       = OP(vn)
+  v        .= v .+ dt/six*(dv1 .+ two*dv2 .+ two*dv3 .+ dv4)
+
+  return nothing 
+end
+#---------------------------------------------------------------------- 
 function OP_RK4(OP,v::T,dt::Float64) where T <: Union{ComplexF64,Float64}
 
   two = T(2)

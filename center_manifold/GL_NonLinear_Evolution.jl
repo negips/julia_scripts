@@ -28,7 +28,7 @@ close("all")
 
 ifplot      = true 
 verbose     = true
-nsteps      = 2000000
+nsteps      = 5000000
 ifsave      = false
 plotstep    = 20000
 verbosestep = 20000
@@ -67,12 +67,12 @@ dt    = 0.0001
 NGL(x)= NLGinzburgLandau(OPg,ones(vt,ndof),x,δ[5],zro,zro,Inp.lbc,Inp.rbc)  
 
 # Forcing Shape
-x0    = 5.0
+x0    = ForcingLocation()
 ψ     = zeros(ComplexF64,ndof)
 SetForcingShape!(ψ,Bg,xg,x0,1.0)
 F     = zeros(ComplexF64,ndof,h)
 copyto!(F,ψ)
-Ω     = [1.3im]
+Ω     = [1.0im]
 FNGL(x,y) = ForcedNLGinzburgLandau(OPg,ones(vt,ndof),x,F,y,δ[5],Ω,zro,zro,Inp.lbc,Inp.rbc)
 
 
@@ -80,10 +80,10 @@ t     = Inp.Dtype(0)    # Time
 i     = 0               # Istep
 
 v     = zeros(vt,ndof)
-v    .= v .+ 0.01*exp.(-(xg.-5.75).^2)
+v    .= v .+ 0.4*exp.(-(xg.-5.75).^2)
 v    .= v .+ conj.(v)
 θ     = zeros(vt,h)
-θ[1]  = (0.0 + 0.0im)*10^-2
+θ[1]  = (1.0 + 0.0im)*10^-2
 
 
 ifconv = false

@@ -52,27 +52,23 @@ function ForcedNLGinzburgLandau(L::AbstractMatrix{T},B,v::AbstractVector{T},F::A
 end  
 #---------------------------------------------------------------------- 
 @doc """
-StuartLandau3(G1::AbstractMatrix{T},G2::AbstractMatrix{T},G3::AbstractMatrix{T},v::AbstractVector{T}) where {T <: Number}
+      StuartLandau3(G1::AbstractMatrix{T},G2::AbstractMatrix{T},G3::AbstractMatrix{T},v::AbstractVector{T}) where {T <: Number}
 
       Calculate the time derivative of the (third-order) Stuart-Landau equations.
 
 """
 function StuartLandau3(G1::AbstractMatrix{T},G2::AbstractMatrix{T},G3::AbstractMatrix{T},v::AbstractVector{T}) where {T <: Number}
 
-   nv,nt1 = size(G1)
-   ord1   = 1
-   dv     = G1*v
+   ord1     = 1
+   dv       = G1*v
 
-   nv,nt2 = size(G2)
-   ord1   = 1
+   Ord      = 2
+   NLv2     = CenterManifold.EvaluateNonLinear(v,Ord)
+   dv      .= dv .+ G2*NLv2
 
-   v2     = zeros(T,nt2)
-   for i in 1:nt2
-
-
-
-   end        
-
+   Ord      = 3
+   NLv3     = CenterManifold.EvaluateNonLinear(v,Ord)
+   dv      .= dv .+ G3*NLv3
 
    return dv
 end  

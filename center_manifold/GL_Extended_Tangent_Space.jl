@@ -27,7 +27,7 @@ end
 # Forcing Modes
 
 # Forcing Shape
-x0    = 5.0
+x0    = ForcingLocation()
 # ψ     = ForcingShape(Bg,xg,x0,1.0)
 ψ     = zeros(ComplexF64,Nby2)
 SetForcingShape!(ψ,Bg,xg,x0,1.0)
@@ -48,6 +48,7 @@ Lθ    = [f2 f3]
 #λh    = [0.0im; im; -im; 2.3im; -2.3im]
 #λh    = [im; -im;]
 λh    = [1.3im; -1.3im;]
+#λh    = [0.7im; -0.7im;]
 
 ΓH    = zeros(ComplexF64,n,h)
 for i in 1:h
