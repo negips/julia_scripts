@@ -25,7 +25,7 @@ rgba2       = cm(2)
 ifplot      = false
 histplot    = true
 verbose     = true
-nsteps      = 5000000
+nsteps      = 3000000
 ifsave      = false
 plotstep    = 20000
 verbosestep = 10000
@@ -35,11 +35,12 @@ xhist       = true
 vt          = Complex{Inp.Dtype}
 zro         = vt(0)
 
-dt          = 0.0025
-θA          = [0.01; 0.1; 1.0]
+dt          = 0.001
+#θA          = [0.01; 0.1; 1.0]
+θA          = [0.1]
 nθ          = length(θA)
 
-Hist        = zeros(vt,nhist,m,nθ)
+Hist_Mode   = zeros(vt,nhist,m,nθ)
 Time        = zeros(Float64,nhist)
 Mode_Ind    = [1]                         # Which mode to plot 
 
@@ -80,7 +81,7 @@ for ik in 1:nθ
   z           = zeros(vt,m)
   rng         = Xoshiro(1235)
   # Mode initial values
-  z[1]        = 1.0e-3*rand(rng,vt)
+  z[1]        = 1.0e-1*vt(1) #*rand(rng,vt)
   z[2]        = z[1]'
   # Parameter Perturbations
   z[n+1:n+p]  = zeros(vt,p)
@@ -97,10 +98,6 @@ for ik in 1:nθ
   
   for i in 1:nsteps
   
-    local β
-  
-    β = one(vt)
-  
     t = t + dt;
   
     # Stuart Landau Evolution
@@ -116,8 +113,8 @@ for ik in 1:nθ
   
     if (mod(i,histstep) == 0)
       j = Int(i/histstep)
-      Hist[j,:,ik]  = copy(z)
-      Time[j]       = t
+      Hist_Mode[j,:,ik] = copy(z)
+      Time[j]           = t
   
       # Get field value at point x = hist_x,
       # corresponding to array index hist_i
@@ -129,7 +126,7 @@ for ik in 1:nθ
   end       # i in 1:nsteps 
 
   if histplot && nsteps>0
-    ax3.plot(Time,real.(Hist[:,Mode_Ind,ik]))
+    ax3.plot(Time,real.(Hist_Mode[:,Mode_Ind,ik]))
     ax3.set_xlabel(L"t",fontsize=lafs)
     ax3.set_ylabel(L"A",fontsize=lafs)
   
@@ -141,8 +138,8 @@ for ik in 1:nθ
 
 end         # ik in 1:nθ
 
-ax4.set_xlim([2950.0,3000.0])
-ax4.set_ylim([-0.4,0.4])
+ax4.set_xlim([2900.0,3000.0])
+#ax4.set_ylim([-0.4,0.4])
 ax4.legend(fontsize=lgfs,ncols=nθ)
 
 println("Done.")

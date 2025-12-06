@@ -91,6 +91,26 @@ function Get_AsymptoticFieldx(ind::Int,z::AbstractVector{T},Y1::AbstractMatrix{T
   return val
 end
 #---------------------------------------------------------------------- 
+function Get_AsymptoticField(z::AbstractVector{T},Y1::AbstractMatrix{T},Y2::AbstractMatrix{T},Y3::AbstractMatrix{T}) where {T <: Number}
+
+  ndof,nv = size(Y1)
+
+  fld = zeros(T,ndof)
+
+  z1   = z
+  fld .= fld .+ Y1*z1 
+
+  Ord = 2
+  z2  = CenterManifold.EvaluateNonLinear(z,Ord)
+  fld .= fld .+ Y2*z2
+
+  Ord = 3
+  z3  = CenterManifold.EvaluateNonLinear(z,Ord)
+  fld .= fld .+ Y3*z3
+
+  return fld
+end
+#---------------------------------------------------------------------- 
 
 
 
