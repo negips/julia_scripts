@@ -38,8 +38,8 @@ elseif screen == 2
   # workstation
   lafs      = 20        # Label font size
   lgfs      = 16        # Legend font size
-  figsz1    = [24.0, 20.0]
-  figsz2    = [34.0, 20.0]
+  figsz1    = [16.0, 12.0]
+  figsz2    = [24.0, 12.0]
 end  
 
 close("all")
@@ -47,7 +47,7 @@ close("all")
 ifplot      = true
 histplot    = true
 verbose     = true
-nsteps      = 30000000
+nsteps      = 50000000
 ifsave      = false
 plotstep    = 20000
 verbosestep = 20000
@@ -58,7 +58,7 @@ hist_i      = argmin(abs.(xg .- hist_x))  # Index of history point
 nfreq       = 1                           # No. of external frequencies
 dt          = 0.0001
 
-θA          = [0.1] #; 0.1; 0.25; 0.5; 1.0]
+θA          = [0.1; 0.25; 0.5; 1.0]
 nθ          = length(θA)
 
 
@@ -71,7 +71,7 @@ rgba2       = cm(2)
 vt          = Complex{Inp.Dtype}
 zro         = vt(0)
 
-TLast       = 2500.0
+TLast       = 4500.0
 Hist        = zeros(vt,nhist,nθ)
 Time        = zeros(Float64,nhist)
 Peak_Amp    = zeros(Float64,nθ)
@@ -140,8 +140,8 @@ for ik in 1:nθ
   θ[1]  = θAmp*(1.0 + 0.0im)
 
   # Testing temporary forcing amplitude change
-  θtmp  = 1.0
-  λtmp  = -0.01
+  θtmp  = 1.00
+  λtmp  = -0.05
 
   for i in 1:nsteps
   
@@ -153,18 +153,19 @@ for ik in 1:nθ
     # OP_RK4!(NGL,v,dt)
 
     # Testing temporary forcing amplitude change
-    θ = θ .+ θtmp*exp(λtmp*t)  
+    #dθ = θtmp*exp(λtmp*t)
+    #θ  = θ .+ dθ 
 
     # Forced Non-linear Evolution
     # OP2_RK4!(FNGL,v,θ,dt)
     OP2_RK4!(FNGL,v,θ,dt,vwork,θwork)
 
     # Testing temporary forcing amplitude change
-    θ = θ .- θtmp*exp(λtmp*t)  
+    #θ = θ .- dθ
    
     # Print something  
     if verbose && mod(i,verbosestep)==0
-      println("Istep=$i, Time=$t")
+      println("Istep=$i, Time=$t, θ=$(abs.(θ))")
     end
   
     if (mod(i,histstep) == 0)
@@ -206,12 +207,18 @@ for ik in 1:nθ
   end       # i in 1:nsteps
 
   if nsteps>0 && histplot
+
+    # Remove previous plots
+    for lo in ax3.get_lines()
+      lo.remove()
+    end  
+  
+    # Plot entire history
     ax3.plot(Time,real.(Hist[:,ik]))
     ax3.set_xlabel(L"t",fontsize=lafs)
     ax3.set_ylabel(L"A",fontsize=lafs)
  
     # ax3.set_xlim([2900.0,3000.0])
-
     linds           = Time .> TLast
     time2           = Time[linds]
     hist2           = Hist[linds,:]
@@ -228,7 +235,7 @@ for ik in 1:nθ
 
 end         # ik in 1:nθ
 
-ax3.set_xlim([2900.0,3000.0])
+# ax3.set_xlim([2900.0,3000.0])
 
 
 # Plot Peaks
@@ -247,16 +254,17 @@ if nsteps>0 && histplot
     delta_times     = diff(peak_times)
     afreq           = 2.0*π./delta_times
     ω_nonlinear[ik] = mean(afreq)
+
+    @printf("|θ|: %.2f ; Amax: %.5f ; Ω: %.4e\n", θA[ik],Peak_Amp[ik], ω_nonlinear[ik])
   end
   ax4.plot(θA,Peak_Amp,linestyle="none",marker="o",markersize=mksz)
 end  
 
 
-
 if (ifsave)
-  # fname = "GL_BaseState5.jld2"
-  # save(fname,"xg",xg,"basestate",v,"U",U,"γ",γ,"μx",μx,"μ0",μ0,"δ5",δ5,"δγ",δγ,"δμx",δμx);
-  # println(fname*" saved.")
+  fname = "GL_Parametric.jld2"
+  save(fname,"xg",xg,"Vext",Vext,"Y_O2",Y_O2,"Y_O3",Y_O3,"Khat",Khat,"G_O2",G_O2,"G_O3",G_O3,"δ",δ,"Time",Time,"θA",θA,"Peak_Amp",Peak_Amp,"Hist",Hist,"ω_nonlinear",ω_nonlinear);
+  println(fname*" saved.")
 end 
 
 println("Done.")
