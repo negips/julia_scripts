@@ -81,7 +81,7 @@ for ik in 1:nθ
   z           = zeros(vt,m)
   rng         = Xoshiro(1235)
   # Mode initial values
-  z[1]        = 1.0e-1*vt(1) #*rand(rng,vt)
+  z[1]        = 1.0e-2*vt(1) #*rand(rng,vt)
   z[2]        = z[1]'
   # Parameter Perturbations
   z[n+1:n+p]  = zeros(vt,p)
@@ -90,7 +90,7 @@ for ik in 1:nθ
   z[n+p+2]    = z[n+p+1]'
   
   # Work Arrays
-  zwork = zeros(vt,m,5)
+  zwork       = zeros(vt,m,5)
   
   # Start iterations
   t           = Inp.Dtype(0)    # Time

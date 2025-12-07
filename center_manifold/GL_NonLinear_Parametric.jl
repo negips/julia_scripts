@@ -12,6 +12,7 @@ println("Non-Linear evolution for Ginzburg Landau equations")
 using Peaks
 using Statistics
 using Random
+using JLD2
 
 include("$JULIACOMMON/RK4.jl")
 include("NLGinzburgLandau.jl")
@@ -20,6 +21,7 @@ include("OP_RK4.jl")
 
 lafs        = 16
 lgfs        = 12
+mksz        = 6
 
 include("GL_Setup.jl")
 #-------------------------------------------------- 
@@ -29,7 +31,7 @@ close("all")
 ifplot      = true
 histplot    = true
 verbose     = true
-nsteps      = 30000000
+nsteps      = 10000000
 ifsave      = false
 plotstep    = 20000
 verbosestep = 20000
@@ -40,7 +42,7 @@ hist_i      = argmin(abs.(xg .- hist_x))  # Index of history point
 nfreq       = 1                           # No. of external frequencies
 dt          = 0.0001
 
-θA          = [0.1]
+θA          = [0.05] #; 0.1; 0.25; 0.5; 1.0]
 nθ          = length(θA)
 
 figsz       = [17.0, 6.0]
@@ -51,13 +53,15 @@ rgba1       = cm(1)
 rgba2       = cm(2) 
 
 
-rng         = Xoshiro(1235)
 vt          = Complex{Inp.Dtype}
 zro         = vt(0)
 
 
 Hist        = zeros(vt,nhist,nθ)
 Time        = zeros(Float64,nhist)
+Peak_Amp    = zeros(Float64,nθ)
+ω_nonlinear = zeros(Float64,nθ)
+
 
 # Work Arrays
 vwork       = zeros(vt,ndof,5)
@@ -102,17 +106,19 @@ for ik in 1:nθ
   θAmp  = θA[ik]
   t     = Inp.Dtype(0)    # Time
   
-  v     = zeros(vt,ndof)
+  rng   = Xoshiro(1235)
   rnd   = rand(rng,vt,ndof)
-  # z     = zeros(vt,6)
-  # z[1]  = 0.1*vt(1)
-  # z[2]  = z[1]'
-  # z[5]  = θAmp*vt(1)
-  # z[6]  = z[5]'
-  #fld   = Get_AsymptoticField(z,Vext,Y_O2,Y_O3)
-  #v     = fld[1:ndof]
+  z     = zeros(vt,6)
+  z[1]  = 1.0e-5*vt(1)
+  z[2]  = z[1]'
+  z[5]  = θAmp*vt(1)
+  z[6]  = z[5]'
+  fld   = Get_AsymptoticField(z,Vext,Y_O2,Y_O3)
 
-  v    .= v .+ 0.1*rnd
+  v     = zeros(vt,ndof)
+  v     = fld[1:ndof]
+
+  #v    .= v .+ 1.0e-5*rnd
   #v    .= v .+ 0.1*exp.(-(xg.-5.75).^2)
   #v    .= v .+ conj.(v)
   θ     = zeros(vt,nfreq)
@@ -161,17 +167,54 @@ for ik in 1:nθ
       # ax2.set_ylim((-dv,dv))
       hv.show()    
     end 
-    
   end       # i in 1:nsteps
 
   if nsteps>0 && histplot
     ax3.plot(Time,real.(Hist[:,ik]))
     ax3.set_xlabel(L"t",fontsize=lafs)
     ax3.set_ylabel(L"A",fontsize=lafs)
-  end
+ 
+    # ax3.set_xlim([2900.0,3000.0])
+
+    linds           = Time .> 500.0
+    time2           = Time[linds]
+    hist2           = Hist[linds,:]
+    pkind           = argmaxima(real.(hist2[:,ik]))
+    pktimes         = time2[pkind]
+    mamp            = real.(hist2[pkind,ik])
+    Peak_Amp[ik]    = mean(mamp) 
+    delta_times     = diff(pktimes)
+    afreq           = 2.0*π./delta_times
+    ω_nonlinear[ik] = mean(afreq)
+
+    @printf("|θ|: %.2f ; Amax: %.5f ; Ω: %.4e\n", θAmp,Peak_Amp[ik], ω_nonlinear[ik])
+  end       # if nsteps>0 && histplot
+
 end         # ik in 1:nθ
 
 ax3.set_xlim([2900.0,3000.0])
+
+
+# Plot Peaks
+if nsteps>0 && histplot
+  h4          = figure(num=4,figsize=[8.,6.]);
+  ax4         = gca()
+  last_inds   = Time .> 500.0
+  Time2       = Time[last_inds]
+  Hist2       = Hist[last_inds,:]
+  Peak_Amp    = zeros(Float64,nθ)
+  for ik in 1:nθ
+    peak_ind        = argmaxima(real.(Hist2[:,ik]))
+    peak_times      = Time2[peak_ind]
+    maxamp          = real.(Hist2[peak_ind,ik])
+    Peak_Amp[ik]    = mean(maxamp) 
+    delta_times     = diff(peak_times)
+    afreq           = 2.0*π./delta_times
+    ω_nonlinear[ik] = mean(afreq)
+  end
+  ax4.plot(θA,Peak_Amp,linestyle="none",marker="o",markersize=mksz)
+end  
+
 
 
 if (ifsave)
