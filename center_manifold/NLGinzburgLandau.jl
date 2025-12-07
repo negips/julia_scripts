@@ -52,6 +52,20 @@ function ForcedNLGinzburgLandau(L::AbstractMatrix{T},B,v::AbstractVector{T},F::A
 end  
 #---------------------------------------------------------------------- 
 @doc """
+      StuartLandau1(G1::AbstractMatrix{T},v::AbstractVector{T}) where {T <: Number}
+
+      Calculate the time derivative of the (first-order) Stuart-Landau equations.
+
+"""
+function StuartLandau1(G1::AbstractMatrix{T},v::AbstractVector{T}) where {T <: Number}
+
+   ord1     = 1
+   dv       = G1*v
+
+   return dv
+end  
+#---------------------------------------------------------------------- 
+@doc """
       StuartLandau3(G1::AbstractMatrix{T},G2::AbstractMatrix{T},G3::AbstractMatrix{T},v::AbstractVector{T}) where {T <: Number}
 
       Calculate the time derivative of the (third-order) Stuart-Landau equations.

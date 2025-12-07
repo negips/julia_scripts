@@ -48,7 +48,7 @@ ifplot      = true
 histplot    = true
 verbose     = true
 nsteps      = 50000000
-ifsave      = false
+ifsave      = true
 plotstep    = 20000
 verbosestep = 20000
 histstep    = 1000
@@ -105,6 +105,11 @@ copyto!(F,ψ)
 Ω     = [1.3im]
 FNGL(x,y) = ForcedNLGinzburgLandau(OPg,ones(vt,ndof),x,F,y,δ[5],Ω,zro,zro,Inp.lbc,Inp.rbc)
 
+# For θ evolution
+ΩM        = zeros(vt,1,1)
+ΩM[1,1]   = Ω[1]
+FΩ(x)     = StuartLandau1(ΩM,x)
+
 println("Press x to stop. Any other key to continue...")
 xin = readline()
 if xin == "x"
@@ -140,8 +145,8 @@ for ik in 1:nθ
   θ[1]  = θAmp*(1.0 + 0.0im)
 
   # Testing temporary forcing amplitude change
-  θtmp  = 1.00
-  λtmp  = -0.05
+  θtmp  = vt(1.00)
+  λtmp  = -0.01
 
   for i in 1:nsteps
   
@@ -153,16 +158,22 @@ for ik in 1:nθ
     # OP_RK4!(NGL,v,dt)
 
     # Testing temporary forcing amplitude change
-    #dθ = θtmp*exp(λtmp*t)
+    #dθ = [θtmp*exp(λtmp*t)]
     #θ  = θ .+ dθ 
+
+    fac  = (1.0 - exp(λtmp*t))
+    θ    = θ*fac
 
     # Forced Non-linear Evolution
     # OP2_RK4!(FNGL,v,θ,dt)
     OP2_RK4!(FNGL,v,θ,dt,vwork,θwork)
 
     # Testing temporary forcing amplitude change
+    #OP_RK4!(FΩ,dθ,dt)
     #θ = θ .- dθ
-   
+  
+    θ    = θ/fac
+
     # Print something  
     if verbose && mod(i,verbosestep)==0
       println("Istep=$i, Time=$t, θ=$(abs.(θ))")
