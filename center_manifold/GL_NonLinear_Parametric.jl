@@ -116,7 +116,7 @@ for ik in 1:nθ
   fld   = Get_AsymptoticField(z,Vext,Y_O2,Y_O3)
 
   v     = zeros(vt,ndof)
-  v     = fld[1:ndof]
+  # v     = fld[1:ndof]
 
   #v    .= v .+ 1.0e-5*rnd
   #v    .= v .+ 0.1*exp.(-(xg.-5.75).^2)
@@ -167,6 +167,17 @@ for ik in 1:nθ
       # ax2.set_ylim((-dv,dv))
       hv.show()    
     end 
+
+    # History plot
+    if histplot && mod(i,plotstep)==0
+      if (i>plotstep) 
+        for lo in ax3.get_lines()
+          lo.remove()
+        end  
+      end  
+      ax3.plot(Time[1:j],real.(Hist[1:j,ik]),color=cm(ik-1))
+    end
+
   end       # i in 1:nsteps
 
   if nsteps>0 && histplot
