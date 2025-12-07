@@ -26,6 +26,22 @@ mksz        = 6
 include("GL_Setup.jl")
 #-------------------------------------------------- 
 
+screen            = 2
+
+if screen == 1
+  # hp spectre
+  lafs      = 16        # Label font size
+  lgfs      = 12        # Legend font size
+  figsz1    = [8.0, 6.0]
+  figsz2    = [17.0, 6.0]
+elseif screen == 2
+  # workstation
+  lafs      = 20        # Label font size
+  lgfs      = 16        # Legend font size
+  figsz1    = [24.0, 20.0]
+  figsz2    = [34.0, 20.0]
+end  
+
 close("all")
 
 ifplot      = true
@@ -45,7 +61,6 @@ dt          = 0.0001
 θA          = [0.1] #; 0.1; 0.25; 0.5; 1.0]
 nθ          = length(θA)
 
-figsz       = [17.0, 6.0]
 
 cm          = get_cmap("tab10");
 rgba0       = cm(0) 
@@ -68,14 +83,14 @@ vwork       = zeros(vt,ndof,5)
 θwork       = zeros(vt,nfreq,5)
 
 if (ifplot)
-  hv  = figure(num=2,figsize=[8.,6.]);
+  hv  = figure(num=2,figsize=figsz1);
   ax2 = gca()
   ax2.set_xlabel(L"x",fontsize=lafs)
   ax2.set_ylabel(L"A",fontsize=lafs)
 end
 
 if (histplot)
-  h3  = figure(num=3,figsize=figsz);
+  h3  = figure(num=3,figsize=figsz2);
   ax3 = gca()
 end  
 
@@ -138,14 +153,14 @@ for ik in 1:nθ
     # OP_RK4!(NGL,v,dt)
 
     # Testing temporary forcing amplitude change
-    θ = θ + θtmp*exp(λtmp*t)  
+    θ = θ .+ θtmp*exp(λtmp*t)  
 
     # Forced Non-linear Evolution
     # OP2_RK4!(FNGL,v,θ,dt)
     OP2_RK4!(FNGL,v,θ,dt,vwork,θwork)
 
     # Testing temporary forcing amplitude change
-    θ = θ - θtmp*exp(λtmp*t)  
+    θ = θ .- θtmp*exp(λtmp*t)  
    
     # Print something  
     if verbose && mod(i,verbosestep)==0
