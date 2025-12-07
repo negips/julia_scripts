@@ -123,7 +123,11 @@ for ik in 1:nθ
   #v    .= v .+ conj.(v)
   θ     = zeros(vt,nfreq)
   θ[1]  = θAmp*(1.0 + 0.0im)
-  
+
+  # Testing temporary forcing amplitude change
+  θtmp  = 1.0
+  λtmp  = -0.01
+
   for i in 1:nsteps
   
     t = t + dt;
@@ -132,11 +136,17 @@ for ik in 1:nθ
     SEM1D.SEM_SetBC!(v,Inp.lbc,Inp.rbc)
     # Non-linear Evolution
     # OP_RK4!(NGL,v,dt)
-  
+
+    # Testing temporary forcing amplitude change
+    θ = θ + θtmp*exp(λtmp*t)  
+
     # Forced Non-linear Evolution
     # OP2_RK4!(FNGL,v,θ,dt)
     OP2_RK4!(FNGL,v,θ,dt,vwork,θwork)
-  
+
+    # Testing temporary forcing amplitude change
+    θ = θ - θtmp*exp(λtmp*t)  
+   
     # Print something  
     if verbose && mod(i,verbosestep)==0
       println("Istep=$i, Time=$t")
