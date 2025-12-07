@@ -31,7 +31,7 @@ close("all")
 ifplot      = true
 histplot    = true
 verbose     = true
-nsteps      = 10000000
+nsteps      = 30000000
 ifsave      = false
 plotstep    = 20000
 verbosestep = 20000
@@ -42,7 +42,7 @@ hist_i      = argmin(abs.(xg .- hist_x))  # Index of history point
 nfreq       = 1                           # No. of external frequencies
 dt          = 0.0001
 
-θA          = [0.05] #; 0.1; 0.25; 0.5; 1.0]
+θA          = [0.1] #; 0.1; 0.25; 0.5; 1.0]
 nθ          = length(θA)
 
 figsz       = [17.0, 6.0]
@@ -56,7 +56,7 @@ rgba2       = cm(2)
 vt          = Complex{Inp.Dtype}
 zro         = vt(0)
 
-
+TLast       = 2500.0
 Hist        = zeros(vt,nhist,nθ)
 Time        = zeros(Float64,nhist)
 Peak_Amp    = zeros(Float64,nθ)
@@ -176,7 +176,7 @@ for ik in 1:nθ
  
     # ax3.set_xlim([2900.0,3000.0])
 
-    linds           = Time .> 500.0
+    linds           = Time .> TLast
     time2           = Time[linds]
     hist2           = Hist[linds,:]
     pkind           = argmaxima(real.(hist2[:,ik]))
@@ -199,7 +199,7 @@ ax3.set_xlim([2900.0,3000.0])
 if nsteps>0 && histplot
   h4          = figure(num=4,figsize=[8.,6.]);
   ax4         = gca()
-  last_inds   = Time .> 500.0
+  last_inds   = Time .> TLast
   Time2       = Time[last_inds]
   Hist2       = Hist[last_inds,:]
   Peak_Amp    = zeros(Float64,nθ)
