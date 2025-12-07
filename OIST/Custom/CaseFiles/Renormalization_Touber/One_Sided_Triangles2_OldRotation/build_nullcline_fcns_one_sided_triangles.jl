@@ -191,14 +191,14 @@ gt(z)     = GetDynamicNullCline(gg,yin,z)
 
 # Build Nullcline for the dynamic switching
 #---------------------------------------- 
-δ                 = 0.030 #0.005/λnorm2
-λdot0(x,y)        = (1.0/δ)*FXY(x,y,parsS.fc0,parsS.fcx,parsS.fcy)
+ν                 = 0.030 #0.005/λnorm2
+λdot0(x,y)        = (1.0/ν)*FXY(x,y,parsS.fc0,parsS.fcx,parsS.fcy)
 if λdot0(0.0,100.0)>0
   parsS.fc0        = -parsS.fc0
   parsS.fcx        = -parsS.fcx
   parsS.fcy        = -parsS.fcy
 end  
-λdot1(x,y)        = (1.0/δ)*FXY(x,y,parsS.fc0,parsS.fcx,parsS.fcy)
+λdot1(x,y)        = (1.0/ν)*FXY(x,y,parsS.fc0,parsS.fcx,parsS.fcy)
 
 xi                =  10.0
 yr0               =  0.0
@@ -235,7 +235,6 @@ xin = readline()
 #xin = "x"
 #xin = "y"
 if xin !="x"
-
   # close(h4)
   include("time_stepper_multiple_one_sided_triangles.jl")
 end
@@ -245,7 +244,7 @@ print_params(F,G,λdot1,pars,parsS)
 ndec = 5
 @printf "ϵ   = %.*f\n" ndec ϵ
 @printf "η   = %.*f\n" ndec η
-@printf "ν   = %.*f\n" ndec δ
+@printf "ν   = %.*f\n" ndec ν
 
 prec = Float64
 include("custom_params.jl")

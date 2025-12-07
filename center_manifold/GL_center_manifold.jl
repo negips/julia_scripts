@@ -1,726 +1,495 @@
-println("Main interface for Time Stepper")
-println("Using Implicitly Restarted Arnoldi")
+# Testing the module
 
-using PyPlot,PyCall
+include("Module_SEM1D/SEM1D.jl")
+#using .SEM1D
+
+include("Module_StepperArnoldi/StepperArnoldi.jl")
+#using .StepperArnoldi
+
+include("Module_CenterManifold/CenterManifold.jl")
+#using .CenterManifold
+
 using LinearAlgebra
-using IterativeSolvers
-using SpecialFunctions
-using Roots
-using Random
-# using GenericLinearAlgebra          # For eigvals for BigFloat
-# using DoubleFloats
+using SparseArrays
 using Printf
-using JLD2
+using PolynomialBases
 using IterativeSolvers
-using Peaks
-using Statistics
+
+using PyPlot
 
 
-include("ArnUpd.jl")
-include("ArnIRst.jl")
-include("ExplicitShiftedQR.jl")
-include("BulgeChase.jl")
-include("IRAM.jl")
-#include("RK4.jl")
-include("$JULIACOMMON/RK4.jl")
-include("OP_RK4.jl")
+function renormalize_evec!(v::AbstractVector{T},j0::Int) where {T}
+
+  vj        = v[j0]
+  absv      = abs(vj)
+  th        = atan(imag(vj)/absv,real(vj)/absv)
+  ph        = π/4.0 - th
+  for i in eachindex(v)
+    v[i]    = v[i]*exp(ph*im)
+  end  
+
+  return nothing
+end  
+#----------------------------------------------------------------------
+function renormalize_evecs!(v::AbstractVector{T},w::AbstractVector{T},B::AbstractVector{S}) where {T<:Number,S<:Number}
+
+  β   = sqrt(v'*(B.*v))
+  for i in eachindex(v)
+    v[i] = v[i]/β
+  end
+
+  β   = w'*(B.*v)
+  for i in eachindex(w)
+    w[i] = w[i]/(β')
+  end
+
+  return nothing
+end  
+#---------------------------------------------------------------------- 
+function GLStdAsympNLTerm(n0::Int,Ord0::Int,nc::Int,MV1::AbstractMatrix{T},MV2::AbstractMatrix{T},MV3::AbstractMatrix{T},Ord1::Int,Ord2::Int,Ord3::Int) where {T}
+
+  ind0 = CenterManifold.GetPolynomialIndices(n0,Ord0,nc) .+ 1
+
+  Nt1  = CenterManifold.NInteractionTerms(Ord1,nc)
+  Nt2  = CenterManifold.NInteractionTerms(Ord2,nc)
+  Nt3  = CenterManifold.NInteractionTerms(Ord3,nc)
+
+  N,c  = size(MV1)
+  Nby2 = Int(N/2)
+
+  h    = zeros(T,N)
+
+  topi = 1:Nby2
+  boti = Nby2+1:N
+
+  if (Ord1 + Ord2 + Ord3 == Ord0) && Ord0>=3
+
+    # The standard nonlinearity δ5*|A*A|A and δ5'|A*A|A* only starts at third-order.
+    for i in 1:Nt1
+      ind1 = CenterManifold.GetPolynomialIndices(i,Ord1,nc) .+ 1
+      for j in 1:Nt2
+        ind2 = CenterManifold.GetPolynomialIndices(j,Ord2,nc) .+ 1
+        for k in 1:Nt3
+          ind3 = CenterManifold.GetPolynomialIndices(k,Ord3,nc) .+ 1
+
+          ind_total = [ind1[:];ind2[:];ind3[:]]
+
+          sort!(ind_total)
+
+          if (ind_total == ind0)    # Matching polynomials
+            # println("Index Match: $ind1, $ind2, $ind3: $ind0")
+            h[topi] .= h[topi] .+ MV1[boti,i].*MV2[topi,j].*MV3[topi,k]
+            h[boti] .= h[boti] .+ MV1[topi,i].*MV2[boti,j].*MV3[boti,k]
+          end            
+        end       # k
+      end         # j
+    end           # i
+  end             # if (Ord1 + Ord2 + Ord3 == Ord0) && Ord0>=3
+
+  return h
+end
+#---------------------------------------------------------------------- 
+function GLLapNLTerm(n0::Int,Ord0::Int,nc::Int,MV1::AbstractMatrix{T},Ord1::Int,mode::Int,modeC::Int,Lap::AbstractMatrix{S},LapC::AbstractMatrix{S}) where {T,S}
+
+  # mode    - Mode No of δ4
+  # modeC   - Mode No of δ4' (conjugate)
+
+  ind0 = CenterManifold.GetPolynomialIndices(n0,Ord0,nc) .+ 1
+
+  Nt1  = CenterManifold.NInteractionTerms(Ord1,nc)
+
+  N,c  = size(MV1)
+  Nby2 = Int(N/2)
+
+  h    = zeros(T,N)
+
+  topi = 1:Nby2
+  boti = Nby2+1:N
+
+  if (Ord1 + 1 == Ord0) && Ord0>=2
+
+    # The Laplacian nonlinearity {δ4(∇A); δ4'∇(A*)}
+    for i in 1:Nt1
+      ind1 = CenterManifold.GetPolynomialIndices(i,Ord1,nc) .+ 1
+
+      ind_total = [ind1[:]; mode]
+      sort!(ind_total)
+      if (ind_total == ind0)    # Matching polynomials
+        # println("Index Match: $ind1, $mode: $ind0")
+        h[topi] .= h[topi] .+ Lap*MV1[topi,i]
+      end
+
+      ind_total = [ind1[:]; modeC]
+      sort!(ind_total)
+      if (ind_total == ind0)    # Matching polynomials
+        # println("Index Match: $ind1, $modeC: $ind0")
+        h[boti] .= h[boti] .+ LapC*MV1[boti,i]
+      end            
+    end           # i
+  end             # if (Ord1 + 1 == Ord0) && Ord0>=2
+
+  return h
+end
+#---------------------------------------------------------------------- 
+function BuildAsympSystem(Ord::Int,Nc::Int,Khat::AbstractMatrix{T}) where {T<:Number}
+
+  Nt  = CenterManifold.NInteractionTerms(Ord,Nc)
+
+  SysM      = zeros(T,Nt,Nt)
+
+  for α in 1:Nc         # Derivative Variable
+    for ii in 1:Ord     # Polynomial order
+      for i in 1:Nt     # Go through all terms that undergo derivation
+
+        ind = CenterManifold.GetPolynomialIndices(i,Ord,Nc)
+
+        # If ∂/∂x_α is non-zero. 
+        if (ind[ii] == (α-1))
+          ind2 = [ind[1:ii-1]; ind[ii+1:end]]
+
+          # Multiplication by K_α,j
+          for j in 1:Nc
+            ind3 = [ind2[:]; (j-1)]
+            
+            k    = CenterManifold.GetIndexNumber(ind3,Nc)
+
+            println("Ind: $ind, k:$k")
+
+            SysM[k,i] = SysM[k,i] + Khat[α,j]
+          end     # j
+        end       # if ...
+      end         # i
+    end           # ii
+  end             # α
+
+  return SysM
+end  
+#----------------------------------------------------------------------
+
+
+Np    = 12
+Npd   = 19
+nel   = 61
+xs    = 0.0
+xe    = 40.0
+lbc   = true
+rbc   = false
+
+# Input parameters
+Inp   = SEM1D.SEMInput(Np,Npd,nel,xs,xe,lbc,rbc)
+# Nodal Bases
+B0    = LobattoLegendre(Inp.N)
+Bd    = LobattoLegendre(Inp.Nd)
+# Geometric Matrices
+GeoM  = SEM1D.SEMGeoMat(B0,Bd,Inp)
+
+δ     = ones(ComplexF64,5)    #  Parameters
+δ[1]  = -1.0                  # -U
+δ[2]  =  0.741 + 1.025im      #  μ0
+δ[3]  = -0.125                #  μx
+δ[4]  = (1.0 - im)/sqrt(2.0)  #  γ
+δ[5]  = (-0.1 + 0.1im)        #  Nonlinear Coefficient 
+δc    = conj.(δ)
+
+# GinzburgLandau Linear Operators
+L,  B, OP,  Conv,  Src,  Lap  = SEM1D.GinzburgLandauSparse(δ, Inp,GeoM,B0)
+LC, B, OPC, ConvC, SrcC, LapC = SEM1D.GinzburgLandauSparse(δc,Inp,GeoM,B0)
+AL, B, AOP, AConv, ASrc, ALap = SEM1D.AdjointGinzburgLandauSparse(δ,Inp,GeoM,B0)
+
+ifperiodic  = false
+ndof, glnum = SEM1D.SEM_Global_Num(GeoM.xm1,ifperiodic)
+Q,QT        = SEM1D.SEM_QQT(glnum)
+vmult       = Q*QT*ones(Float64,length(GeoM.xm1[:]))
+vimult      = 1.0./vmult
+
+SEM1D.GLSetBC!(L ,Inp.lbc,Inp.rbc,ifperiodic)
+SEM1D.GLSetBC!(LC,Inp.lbc,Inp.rbc,ifperiodic)
+SEM1D.GLSetBC!(AL,Inp.lbc,Inp.rbc,ifperiodic)
+
+Lg    = QT*L*Q
+LCg   = QT*LC*Q
+
+ALg   = QT*AL*Q
+Bg    = QT*B
+Bgi   = 1.0./Bg
+OPg   = Bgi.*Lg
+OPCg  = Bgi.*LCg
+AOPg  = Bgi.*ALg
+
+Lapg  = Bgi.*(QT*(1.0/δ[4])*Lap*Q)
+LapCg = Bgi.*(QT*(1.0/δ[4]')*LapC*Q)
+
+
+# Stepper-Arnoldi
+#-------------------------------------------------- 
+ifadjoint         = false
+ifoptimal         = false
+ifverbose         = false
+verbosestep       = 500
+nsteps            = 500
+dt                = 1.0e-4
+StpInp            = StepperArnoldi.StepperInput(ifadjoint,ifoptimal,ifverbose,verbosestep,nsteps,dt)
+
+ifarnoldi         = true 
+ifverbose         = false
+vlen              = ndof
+nev               = 1
+ekryl             = 15  
+lkryl             = nev + ekryl 
+ngs               = 2
+bsize             = 1
+outer_iterations  = 100
+tol               = 1.0e-12
+ArnInp            = StepperArnoldi.ArnoldiInput(ifarnoldi,ifverbose,vlen,nev,ekryl,lkryl,ngs,bsize,outer_iterations,tol)
+
+Ω     = SEM1D.GLAnalyticalSpectra(δ)
+if (StpInp.ifadjoint)
+  Ω   = conj.(Ω)
+end  
 
 close("all")
-
-lgfs = 14
-lafs = 18
-
-# Ifglobal
-ifglobal = true
-
-rcParams = PyPlot.PyDict(PyPlot.matplotlib."rcParams")
-
-# Analytical Eigenvalues
-ω1    = find_zero(airyai,(-3.0,-0.0))
-ω2    = find_zero(airyai,(-5.0,-3.0))
-ω3    = find_zero(airyai,(-6.0,-5.0))
-ω4    = find_zero(airyai,(-7.0,-6.0))
-ω5    = find_zero(airyai,(-8.0,-7.0))
-ω6    = find_zero(airyai,(-9.5,-8.0))
-ω7    = find_zero(airyai,(-10.5,-9.5))
-ω8    = find_zero(airyai,(-11.8,-10.5))
-ω9    = find_zero(airyai,(-12.0,-11.8))
-ω10   = find_zero(airyai,(-12.9,-12.0))
-ω11   = find_zero(airyai,(-13.8,-12.9))
-ω12   = find_zero(airyai,(-14.8,-13.8))
-ω13   = find_zero(airyai,(-15.8,-14.8))
-ω14   = find_zero(airyai,(-16.8,-15.8))
-ω15   = find_zero(airyai,(-17.5,-16.8))
-
-ω     = [ω1, ω2, ω3, ω4, ω5, ω6, ω7, ω8, ω9, ω10, ω11, ω12, ω13, ω14, ω15]
-#Ω  = im*(U*U/8.0 .- U*U/(4.0*γ) .+ γ^(1.0/3.0)*(U^(4.0/3.0))/(160.0^(2.0/3.0))*ω)
-
-Ω0    = im*1.0
-U     = 1.0
-ϕ     = -π/4.0
-R     = 1.0
-γ     = R*exp(im*ϕ)
-μx    = U/8.0 
-μ0    = Ω0 + (U^2)/(4.0*γ) - ((γ*μx*μx)^(1.0/3.0))*ω1 
-δ5    = (-1.0 + 1.0im)*0.1
-
-ifconj = false
-if (ifconj)
-  U    = conj(U)
-  γ    = conj(γ)
-  μ0   = conj(μ0)
-  μx   = conj(μx)
+h1    = figure(num=1,figsize=[8.,6.]);
+ax1   = gca()
+pl1   = ax1.plot(imag.(Ω),real.(Ω),linestyle="none",marker="o",markersize=8)
+ax1.set_ylim([-2.75,0.5])
+if (StpInp.ifadjoint)
+  ax1.set_xlim([-1.80,0.0])
+else  
+  ax1.set_xlim([0.0,1.80])
 end  
 
-#cd = imag(γ)
-#μ0 = U*U/8.0
-#dμ = -(U*U/8.0)*(1.0/cx0)
-#Ω  = im*(μ0 .- U*U/(4.0*γ) .+ (γ*dμ*dμ)^(1.0/3.0)*ω)
-Ω  = (μ0 .- U*U/(4.0*γ) .+ (γ*μx*μx)^(1.0/3.0)*ω)
+ArnDir      = StepperArnoldi.StepArn( OPg,Bg,StpInp,ArnInp,Inp.lbc,Inp.rbc)
+ArnAdj      = StepperArnoldi.StepArn(AOPg,Bg,StpInp,ArnInp,Inp.lbc,Inp.rbc)
 
-# Include the function files
-include("sem_main.jl")
+pl3   = ax1.plot(imag.(ArnDir.evals),real.(ArnDir.evals),linestyle="none",marker="s",markersize=4)
 
-rng = MersenneTwister(1235)
+cm    = get_cmap("tab10")
+xg    = QT*(vimult.*GeoM.xm1[:])
 
+# Build Center-Manifold matrices
+v1    = copy(ArnDir.evecs[:,1])
+w1    = copy(ArnAdj.evecs[:,1])
+j0    = argmin(abs.(xg .- 6.0))
+renormalize_evec!(v1,j0)
+renormalize_evecs!(v1,w1,Bg)
+v2    = conj.(v1)
+w2    = conj.(w1)
+λc    = [im; -im;]
 
-xg          = QT*(vimult.*Geom.xm1[:])
-Nev         = 5                           # Number of eigenvalues to calculate
-EKryl       = Int64(floor(4*Nev))         # Additional size of Krylov space
-LKryl       = Nev + EKryl                 # Total Size of Krylov space    
-ngs         = 2                           # Number of Gram-Schmidt
-tol         = prec(1.0e-10)
+# Forcing
+ψ     = exp.(-(xg .- 6.0).^2) 
+ψn    = sqrt(ψ'*(Bg.*ψ))
+ψ    .= ψ./ψn
 
-vt          = VT # Complex{prec}
-#vt         = Float64
+h2    = figure(num=2,figsize=[12.,9.])
+ax2   = gca()
+ax2.plot(xg,real.(v1),linewidth=2,linestyle="-", color=cm(0),label=L"\mathfrak{R}(ϕ)")
+ax2.plot(xg,imag.(v1),linewidth=2,linestyle="--",color=cm(0),label=L"\mathfrak{Im}(ϕ)")
+ax2.plot(xg,real.(w1),linewidth=2,linestyle="-", color=cm(1),label=L"\mathfrak{R}(χ)")
+ax2.plot(xg,imag.(w1),linewidth=2,linestyle="--",color=cm(1),label=L"\mathfrak{Im}(χ)")
+ax2.plot(xg,real.(ψ) ,linewidth=2,linestyle="-", color=cm(2),label=L"\mathfrak{R}(ψ)")
+ax2.plot(xg,imag.(ψ) ,linewidth=2,linestyle="--",color=cm(2),label=L"\mathfrak{Im}(ψ)")
 
-ndofE       = ndof + 1
-V           = zeros(vt,ndofE,LKryl+1)
-Vold        = zeros(vt,ndofE,LKryl+1)
+zro   = 0.0*v1
 
-H           = zeros(vt,LKryl+1,LKryl)
-Hold        = zeros(vt,LKryl+1,LKryl)
+V     = [v1       zro;
+         zro      v2]
+W     = [w1       zro;
+         zro      w2]
 
+Nby2  = ArnInp.vlen
+N     = Nby2*2
+n     = 2
+p     = 2
+h     = 5
+m     = n+p+h
 
-#r           = (one+one*im)sin.(5*pi*xg[:])
-#r[1]        = prec(0)
+Bg2   = [Bg;Bg]
 
-ifarnoldi   = true
-ifoptimal   = false     # Calculate optimal responses
-ifadjoint   = false     # Superceded by ifoptimal
-ifplot      = false 
-verbose     = true
-eigupd      = true
-reortho     = 500
-if (ifoptimal)
-  arnstep   = reortho*2
-else
-  arnstep   = reortho
-end  
-verbosestep = arnstep #500
-nsteps      = 50000000
-ifsave      = true
+# Parameter modes
+Lν    = zeros(ComplexF64,N,p)
+ΓP    = zeros(ComplexF64,n,p)
+λp    = [0.0im; 0.0im]
+for i in 1:p
+  for j in 1:n
+    if abs(λc[j] - λp[i]) < 1.0e-12
+      ΓH[j,i]   = W[:,j]'*(Bg2.*Lν[:,i])
+    end
+  end
+end
 
-if (ifadjoint)
-  Ω = conj.(Ω)
-end  
+# Forcing Modes
+ΓH    = zeros(ComplexF64,n,h)
+λh    = [0.0im; im; -im; 2.3im; -2.3im]
+f1    = 1.0/(sqrt(2.0))*[ψ;ψ]
+f2    = [ψ;  zro]
+f3    = [zro;ψ]
+f4    = [ψ;  zro]
+f5    = [zro;ψ]
+F     = [f1 f2 f3 f4 f5]
 
+for i in 1:h
+  for j in 1:n
+    if abs(λc[j] - λh[i]) < 1.0e-12
+      ΓH[j,i]   = W[:,j]'*(Bg2.*F[:,i])
+    end
+  end
+end
 
-## Plots
-##-------------------------------------------------- 
-#rcParams["markers.fillstyle"] = "none"
-#hλ = figure(num=1,figsize=[8.,6.]);
-#ax1 = gca()
-#pΛ = ax1.plot(imag.(Ω),real.(Ω),linestyle="none",marker="o",markersize=8)
-#Ωi_max = maximum(abs.(imag.(Ω)))
-#Ωr_min = minimum(real.(Ω))
-#Ωr_max = maximum(real.(Ω))
-#
-#ax1.set_xlim((-2*Ωi_max,2*Ωi_max))
-#ax1.set_ylim((1.1*Ωr_min,1.0))
-#rcParams["markers.fillstyle"] = "full"
-#if (ifplot)
-#  hv  = figure(num=2,figsize=[8.,6.]);
-#  ax2 = gca()
-#end
-##-------------------------------------------------- 
+# Reduced Matrix
+Khat  = [diagm(λc)                  ΓP                      ΓH;
+         zeros(ComplexF64,p,n)      diagm(λp)               zeros(ComplexF64,p,h);
+         zeros(ComplexF64,h,n)      zeros(ComplexF64,h,p)   diagm(λh)]
 
-
-Dir         = load("direct_GL_nev5.jld2")
-Dir_conj    = load("direct_conj_GL_nev5.jld2")
-
-Adj         = load("adjoint_GL_nev5.jld2")
-Adj_conj    = load("adjoint_conj_GL_nev5.jld2")
-
-Y15         = load("direct_resolvent_GL_y15_nev5.jld2")
-Y25         = load("direct_resolvent_GL_y25_nev5.jld2")
-
-
-λ           = Dir["evs"]
-i1          = argmax(real.(λ))
-v1          = Dir["evec"][:,i1]
-λ1          = λ[i1]
-
-λ           = Dir_conj["evs"]
-i2          = argmax(real.(λ))
-v2          = Dir_conj["evec"][:,i2]
-λ2          = λ[i2]
-
-λa          = Adj["evs"]
-ia1         = argmax(real.(λa))
-w1          = Adj["evec"][:,ia1]
-λa1         = λa[ia1]
-
-λa          = Adj_conj["evs"]
-ia2         = argmax(real.(λa))
-w2          = Adj_conj["evec"][:,ia2]
-λa2         = λa[ia2]
-
-λ           = Y15["evs"]
-i1          = argmax(real.(λ))
-y15E        = Y15["evec"][:,i1]
-y15         = y15E[1:ndof]/y15E[ndofE]
-
-λ           = Y25["evs"]
-i1          = argmax(real.(λ))
-y25E        = Y25["evec"][:,i1]
-y25         = y25E[1:ndof]/y25E[ndofE]
-
-#---------------------------------------------------------------------- 
-xg          = QT*(vimult.*Geom.xm1[:])
-
-# Normalize vectors
-α1    = v1'*(Bg.*v1)
-v1    = v1./α1
-α1    = (w1'*(Bg.*v1))'
-w1    = w1./α1
-
-# α2    = v2'*(Bg.*v2)
-# v2    = v2./α2
-# α2    = (w2'*(Bg.*v2))'
-# w2    = w2./α2
-
-
-# Plotting
-#---------------------------------------------------------------------- 
-close("all")
-hev         = figure(num=3,figsize=[8.,6.]);
-ax3         = gca()
-c_map       = get_cmap("tab10")
-pv1         = ax3.plot(xg,real.(v1),linestyle="-",color=c_map(0),label=L"\mathfrak{R}(ϕ_{c})")
-#pv2         = ax3.plot(xg,imag.(v1),linestyle="-.",color=c_map(0),label=L"\mathfrak{Im}(v)") #
-pv2         = ax3.plot(xg,imag.(v1),linestyle="--",color=c_map(0)) #
-
-#pv3         = ax3.plot(xg,real.(v2),linestyle="--",color=c_map(1),label="V2(x)")
-#pv4         = ax3.plot(xg,imag.(v2),linestyle="-.",color=c_map(1)) # ,label="ϕ$(j)(x)")
-
-pw1         = ax3.plot(xg,real.(w1),linestyle="-",color=c_map(1),label=L"\mathfrak{R}(χ_{c})")
-#pw2         = ax3.plot(xg,imag.(w1),linestyle="-.",color=c_map(1),label=L"\mathfrak{Im}(w)") #
-pw2         = ax3.plot(xg,imag.(w1),linestyle="--",color=c_map(1)) #
+# Extended Eigenspace
+# Parameter modes
+Vp    = zeros(ComplexF64,N,p)
+Rp    = zeros(ComplexF64,N,p)
+ind1  = 1:Nby2
+ind2  = Nby2+1:N
+for i in 1:p
+  r  = copy(Lν[:,i])
+  DQ = Matrix{ComplexF64}(I,Nby2,Nby2)
+  AQ = Matrix{ComplexF64}(I,Nby2,Nby2)
+  for j in 1:n
+    if abs(λc[j] - λp[i]) < 1.0e-12
+      println("Resonant λp: $i, $j")
+      r  .= r .- V[:,j]*ΓP[j,i]
+      DQ .= DQ - V[ind1,j]*(W[ind1,j].*Bg)'
+      AQ .= AQ - V[ind2,j]*(W[ind2,j].*Bg)'
+    end
+  end  
+  Rp[:,i]         = copy(r)
+  
+  @views SEM1D.SEM_SetBC!(r[ind1],Inp.lbc,Inp.rbc)
+  @views SEM1D.SEM_SetBC!(r[ind2],Inp.lbc,Inp.rbc)
  
-# pw3         = ax3.plot(xg,real.(w2),linestyle="--",color=c_map(3),label="W2(x)")
-# pw4         = ax3.plot(xg,imag.(w2),linestyle="-.",color=c_map(3)) # ,label="ϕ$(j)(x)")
+  ω               = λp[i]
+  Res1            = DQ*(ω*I - OPg)*DQ
+  vp1             = copy(r[ind1])
+  gmres!(vp1,Res1,r[ind1])
+  Vp[ind1,i]      = copy(vp1)
 
-py15_1      = ax3.plot(xg,real.(y15),linestyle="-",color=c_map(2),label=L"\mathfrak{R}(y^{1}_{15})")
-#py15_2      = ax3.plot(xg,imag.(y15),linestyle="-.",color=c_map(2),label=L"\mathfrak{Im}(y_{15})") #
-py15_2      = ax3.plot(xg,imag.(y15),linestyle="--",color=c_map(2)) #
-
-py25_1      = ax3.plot(xg,real.(y25),linestyle="-",color=c_map(3),label=L"\mathfrak{R}(y^{1}_{25})")
-#py25_2      = ax3.plot(xg,imag.(y25),linestyle="-.",color=c_map(3),label=L"\mathfrak{Im}(y_{25})") #
-py25_2      = ax3.plot(xg,imag.(y25),linestyle="--",color=c_map(3)) #
-
-ax3.set_xlabel(L"x",fontsize=lafs)
-ax3.set_ylabel(L"A",fontsize=lafs)
-
-legend(fontsize=lgfs)
-hev.savefig("GL_fields.eps")
-#---------------------------------------------------------------------- 
-
-vl          = Q*v1
-wl          = Q*w1
-y15l        = Q*y15
-y25l        = Q*y25
-xl          = Q*xg
-
-z15         = (wl)'*(B.*(xl.*vl))
-z115        = (wl)'*(B.*(xl.*y15l))
-z125        = (wl)'*(B.*(xl.*y25l))
-
-z25         = (wl)'*(B.*(SLap*(vl)))
-z215        = (wl)'*(B.*(SLap*(y15l)))
-z225        = (wl)'*(B.*(SLap*(y25l)))
-
-z555        = (wl)'*(B.*((conj.(vl).*vl).*vl))
-
-@printf("z_{15}  : %5.3f %5.3fi\n",real(z15) , imag(z15))
-@printf("z_{115} : %5.3f %5.3fi\n",real(z115), imag(z115))
-@printf("z_{125} : %5.3f %5.3fi\n",real(z125), imag(z125))
-
-@printf("z_{25}  : %5.3f %5.3fi\n",real(z25) , imag(z25))
-@printf("z_{215} : %5.3f %5.3fi\n",real(z215), imag(z215))
-@printf("z_{225} : %5.3f %5.3fi\n",real(z225), imag(z225))
-
-@printf("z_{555} : %5.3f %5.3fi\n",real(z555), imag(z555))
-
-# Spectra Plot
-
-# Plots
-#-------------------------------------------------- 
-rcParams["markers.fillstyle"] = "none"
-hλ          = figure(num=1,figsize=[8.0,6.0]);
-ax1         = gca()
-nω          = 10
-pΛ1         = ax1.plot(imag.(Ω[1:nω]),real.(Ω[1:nω]),linestyle="none",marker="o",markersize=8,label="Analytical - [0,∞)")
-Ωi_max      = maximum(abs.(imag.(Ω[1:nω])))
-Ωr_min      = minimum(real.(Ω[1:nω]))
-Ωr_max      = maximum(real.(Ω[1:nω]))
-
-ax1.set_xlim((0.0,1.1*Ωi_max))
-ax1.set_ylim((1.1*Ωr_min,0.5))
-rcParams["markers.fillstyle"] = "full"
-
-# Arnoldi Eigenvalues
-λ           = Dir["evs"]
-pΛ2         = ax1.plot(imag.(λ),real.(λ),linestyle="none",marker="o",markersize=4,label="Numerical - [0,40]")
-ax1.set_xlabel(L"\mathfrak{Im}(ω)",fontsize=lafs)
-ax1.set_ylabel(L"\mathfrak{R}(ω)",fontsize=lafs)
-pleg = legend(loc="center left",fontsize=lgfs)
-hλ.savefig("GL_spectra.eps")
-
-
-#---------------------------------------------------------------------- 
-function StuartLandau(Z::T,ω,μ1,μ2,δ5,z1,z11,z12,z2,z22,z21,zzz) where {T <: Number}
-
-  DZ = T(0)
-  DZ = ω*Z + μ1*z1*Z + (μ1^2)*z11*Z + μ1*μ2*(z12 + z21)*Z + μ2*z2*Z + (μ2^2)*z22*Z + δ5*zzz*conj.(Z).*Z.*Z
-
-  return DZ
-end
-#---------------------------------------------------------------------- 
-
-ωc           = Ω[1]
-SLμ(x,μ1,μ2) = StuartLandau(x,ωc,μ1,μ2,δ5,z15,z115,z125,z25,z225,z215,z555) 
-
-
-# Saved values (Ginzburg-Landau)
-#-------------------------------------------------- 
-
-# δγ = 0; δμx - variable
-#-------------------------------------------------- 
-
-  δμx_v     = zeros(Float64,8)
-  Ω_v1      = zeros(Float64,8)
   
-  δμx_v[1]  = -0.0000
-  Ω_v1[1]   =  1.0000
-  
-  δμx_v[2]  = -0.00313
-  Ω_v1[2]   =  1.0139
-  
-  δμx_v[3]  = -0.00625
-  Ω_v1[3]   =  1.0272
-  
-  δμx_v[4]  = -0.0125
-  Ω_v1[4]   =  1.0519
-  
-  δμx_v[5]  = -0.01875
-  Ω_v1[5]   =  1.0753
-  
-  δμx_v[6]  = -0.025
-  Ω_v1[6]   =  1.0977
-  
-  δμx_v[7]  = -0.03125
-  Ω_v1[7]   =  1.1194
-  
-  δμx_v[8]  = -0.0375
-  Ω_v1[8]   =  1.1403
+  Res2            = AQ*(ω*I - OPCg)*AQ
+  vp2             = copy(r[ind2])
+  gmres!(vp2,Res2,r[ind2])
+  Vp[ind2,i]      = copy(vp2)
+
+  vnorm = sqrt(abs(Vp[:,i]'*(Bg2.*Vp[:,i])))
+  # if vnorm>1.0e-12
+  #   leg = L"\mathfrak{R}(vp"*"$i"*L")"
+  #   ax2.plot(xg,real.(vp1),linewidth=2,linestyle="-", color=cm(n+i),label=leg)
+  #   leg = L"\mathfrak{R}(vp"*"$i"*L")"
+  #   ax2.plot(xg,real.(vp2),linewidth=2,linestyle="--",color=cm(n+i),label=leg)
+  # end  
+end  
 
 
-# δγ = 0.1*|γ| ; δμx - variable
-#-------------------------------------------------- 
+# Forcing Modes
+Vh    = zeros(ComplexF64,N,h)
+Rh    = zeros(ComplexF64,N,h)
+ind1  = 1:Nby2
+ind2  = Nby2+1:N
+for i in 1:h
+  r  = copy(F[:,i])
+  DQ = Matrix{ComplexF64}(I,Nby2,Nby2)
+  AQ = Matrix{ComplexF64}(I,Nby2,Nby2)
+  for j in 1:n
+    if abs(λc[j] - λh[i]) < 1.0e-12
+      println("Resonant λh: $i, $j")
+      r  .= r .- V[:,j]*ΓH[j,i]
+      DQ .= DQ - V[ind1,j]*(W[ind1,j].*Bg)'
+      AQ .= AQ - V[ind2,j]*(W[ind2,j].*Bg)'
+    end
+  end  
+  Rh[:,i]         = copy(r)
  
-  δμx_v2    = zeros(Float64,8)
-  Ω_v12     = zeros(Float64,8)
+  @views SEM1D.SEM_SetBC!(r[ind1],Inp.lbc,Inp.rbc)
+  @views SEM1D.SEM_SetBC!(r[ind2],Inp.lbc,Inp.rbc)
+ 
+  ω               = λh[i]
+  Res1            = DQ*(ω*I - OPg)*DQ
+  vh1             = copy(r[ind1])
+  gmres!(vh1,Res1,r[ind1])
+  Vh[ind1,i]      = copy(vh1)
 
-  δμx_v2[1] = -0.0000
-  Ω_v12[1]  =  1.0174
+  Res2            = AQ*(ω*I - OPCg)*AQ
+  vh2             = copy(r[ind2])
+  gmres!(vh2,Res2,r[ind2])
+  Vh[ind2,i]      = copy(vh2)
 
-  δμx_v2[2] = -0.00313
-  Ω_v12[2]  =  1.0295
+  vnorm = sqrt(abs(Vh[:,i]'*(Bg2.*Vh[:,i])))
+  # if vnorm>1.0e-12
+  #   leg = L"\mathfrak{R}(vh"*"$i"*L")"
+  #   ax2.plot(xg,real.(vh1),linewidth=1,linestyle="-", color=cm(n+p+i),label=leg)
+  #   leg = L"\mathfrak{R}(vh"*"$i"*L")"
+  #   ax2.plot(xg,real.(vh2),linewidth=3,linestyle="--",color=cm(n+p+i),label=leg)
+  # end  
+end  
 
-  δμx_v2[3] = -0.00625
-  Ω_v12[3]  =  1.0415
+Vext  = [V  Vp    Vh]
 
-  δμx_v2[4] = -0.0125
-  Ω_v12[4]  =  1.0642
+# Second Order Asymptotic terms
+Ord   = 2
+Nt    = CenterManifold.NInteractionTerms(Ord,m)
+H2    = zeros(ComplexF64,N,Nt)
 
-  δμx_v2[5] = -0.01875
-  Ω_v12[5]  =  1.0861
+for i in 1:Nt
+  ind = CenterManifold.GetPolynomialIndices(i,Ord,m)
+  local i1  = ind[1]+1
+  local i2  = ind[2]+1
 
-  δμx_v2[6] = -0.025
-  Ω_v12[6]  =  1.1072
+  # println("($i1,$i2)")
 
-  δμx_v2[7] = -0.03125
-  Ω_v12[7]  =  1.1276
+  local lap_mode  = n+1
+  local lap_cmode = n+2
+  Ord1 = 1
+  h_asymp   = GLLapNLTerm(i,Ord,m,Vext,Ord1,lap_mode,lap_cmode,Lapg,LapCg)
+  # @views SEM1D.SEM_SetBC!(h_asymp[ind1],Inp.lbc,Inp.rbc)
+  # @views SEM1D.SEM_SetBC!(h_asymp[ind2],Inp.lbc,Inp.rbc)
 
-  δμx_v2[8] = -0.0375
-  Ω_v12[8]  =  1.1478
-
-# δγ - variable; δμx = 0.0 
-#-------------------------------------------------- 
-  δγ_v      = zeros(Float64,11)
-  Ω_v2      = zeros(Float64,11)
-
-  δγ_v[1]   = -0.0000
-  Ω_v2[1]   =  1.0000
-  
-  δγ_v[2]   = -0.0250
-  Ω_v2[2]   =  1.0037
-  
-  δγ_v[3]   = -0.0500
-  Ω_v2[3]   =  1.0081
-  
-  δγ_v[4]   = -0.1000
-  Ω_v2[4]   =  1.0174
-  
-  δγ_v[5]   = -0.1500
-  Ω_v2[5]   =  1.0278
-  
-  δγ_v[6]   = -0.2000
-  Ω_v2[6]   =  1.0401
-  
-  δγ_v[7]   = -0.2500
-  Ω_v2[7]   =  1.0542
-  
-  δγ_v[8]   = -0.3000
-  Ω_v2[8]   =  1.0708
-  
-  δγ_v[9]   = -0.3500
-  Ω_v2[9]   =  1.0899
-  
-  δγ_v[10]  = -0.4000
-  Ω_v2[10]  =  1.1117
-  
-  δγ_v[11]  = -0.4500
-  Ω_v2[11]  =  1.1368
-
-
-# δγ - variable; δμx = 0.1*|μx| 
-#-------------------------------------------------- 
-  δγ_v2     = zeros(Float64,11)
-  Ω_v22     = zeros(Float64,11)
-
-  δγ_v2[1]  = -0.0000
-  Ω_v22[1]  =  1.0519
-
-  δγ_v2[2]  = -0.0250
-  Ω_v22[2]  =  1.0546
-
-  δγ_v2[3]  = -0.0500
-  Ω_v22[3]  =  1.0576
-
-  δγ_v2[4]  = -0.1000
-  Ω_v22[4]  =  1.0642
-
-  δγ_v2[5]  = -0.1500
-  Ω_v22[5]  =  1.0726
-
-  δγ_v2[6]  = -0.2000
-  Ω_v22[6]  =  1.0824
-
-  δγ_v2[7]  = -0.2500
-  Ω_v22[7]  =  1.0944
-
-  δγ_v2[8]  = -0.3000
-  Ω_v22[8]  =  1.1087
-
-  δγ_v2[9]  = -0.3500
-  Ω_v22[9]  =  1.1256
-
-  δγ_v2[10] = -0.4000
-  Ω_v22[10] =  1.1455
-
-  δγ_v2[11] = -0.4500
-  Ω_v22[11] =  1.1685
-#-------------------------------------------------- 
-
-#-------------------------------------------------- 
-
-# μ' variation
-#---------------------------------------------------------------------- 
-@printf("\n μ' variation: δ'_{3} \n")
-
-dt          = 0.001
-nsteps      = 1000000
-histstep    = 10
-nhist       = Int(nsteps/histstep)
-
-zhist       = zeros(vt,nhist)
-Time        = zeros(Float64,nhist)
-
-t = 0.0
-z = vt(0.01)
-
-SL_Ω_v1     = 0.0*Ω_v1
-SL_Ω_v1[1]  = 1.0
-
-for jj in 2:length(δμx_v)
-
-  global z,t
-  
-  δμ1         = -δμx_v[jj]
-  δμ2         =  0.0
-  SL(x)       =  SLμ(x,δμ1,δμ2)
-  
-  t = 0.0
-  z = vt(0.01)
-  for i in 1:nsteps
-  
-    t = t + dt
-    z = OP_RK4(SL,z,dt)
-  
-    if (mod(i,histstep) == 0)
-      j = Int(i/histstep)
-      zhist[j] = z
-      Time[j] = t
-    end  
-  
-  end
-
-  # Frequency
-  peak_ind    = argmaxima(real.(zhist))
-  peak_times  = Time[peak_ind]
-  delta_times = diff(peak_times)
-  afreq       = 2.0*π./delta_times
-  npeaks      = length(afreq)
-  if npeaks > 9
-    ωend      = afreq[npeaks-9:npeaks]
-  else
-    ωend      = afreq
-    println("Not enough cycles: $npeaks")
-  end
-
-  ωmean       = mean(ωend)
-  @printf("δμx : %.5f ; Ω: %.4e; ΩGL: %.4e \n", δμ1, ωmean, Ω_v1[jj])
-  SL_Ω_v1[jj] = ωmean
+  H2[:,i]   = copy(h_asymp)
+  hnorm     = h_asymp'*(Bg2.*h_asymp)
+  # println("Index: $ind, Norm: $hnorm")
+  # if abs(hnorm)>1.0e-12
+  #   leg = L"\mathfrak{R}(lapl"*"$i"*L")"
+  #   ax2.plot(xg,real.(H2[ind1,i]),linewidth=1,linestyle="-", color=cm(m+i),label=leg)
+  #   leg = L"\mathfrak{R}(lapl"*"$i"*L")"
+  #   ax2.plot(xg,real.(H2[ind2,i]),linewidth=3,linestyle="--",color=cm(m+i),label=leg)
+  # end  
 end
 
-h4  = figure(num=4,figsize=[8.0,6.0])
-ax4 = gca() 
-ax4.plot(-δμx_v/abs(μx),Ω_v1,linestyle="none",marker="o",markersize=8,label="Ginzburg-Landau")
-rcParams["markers.fillstyle"] = "none"
-ax4.plot(-δμx_v/abs(μx),SL_Ω_v1,linestyle="none",marker="s",markersize=8,label="Center-Manifold")
-rcParams["markers.fillstyle"] = "full"
+SysMat = BuildAsympSystem(Ord,m,Khat)
 
-ax4.set_ylabel(L"Ω",fontsize=lafs)
-ax4.set_xlabel(L"δ'_{3}/|δ^{0}_{3}|",fontsize=lafs)
-pleg4 = legend(loc="upper left",fontsize=lgfs)
-h4.savefig("center_manifold_omega1.eps")
-#---------------------------------------------------------------------- 
+# # Third Order Asymptotic terms
+# Ord   = 3
+# Nt    = CenterManifold.NInteractionTerms(Ord,m)
+# H3    = zeros(ComplexF64,N,Nt)
+# 
+# for i in 1:Nt
+#   ind = CenterManifold.GetPolynomialIndices(i,Ord,m)
+#   local i1  = ind[1]+1
+#   local i2  = ind[2]+1
+#   local i3  = ind[3]+1
+# 
+#   # println("($i1,$i2,$i3)")
+# 
+#   Ord1 = 1
+#   Ord2 = 1
+#   Ord3 = 1
+#   h_asymp   = GLStdAsympNLTerm(i,Ord,m,Vext,Vext,Vext,Ord1,Ord2,Ord3)
+#   H3[:,i]   = copy(h_asymp)
+#   hnorm     = h_asymp'*(Bg2.*h_asymp)
+#   # println("Index: $ind, Norm: $hnorm")
+# end
 
-# μ' variation - 2
-#---------------------------------------------------------------------- 
-@printf("\n μ' variation: δ'_{3} \n")
-
-dt          = 0.001
-nsteps      = 1000000
-histstep    = 10
-nhist       = Int(nsteps/histstep)
-
-zhist       = zeros(vt,nhist)
-Time        = zeros(Float64,nhist)
-
-t = 0.0
-z = vt(0.01)
-
-SL_Ω_v12    = 0.0*Ω_v12
-
-for jj in 1:length(δμx_v2)
-
-  global z,t
-  
-  δμ1         = -δμx_v2[jj]
-  δμ2         =  δγ_v[4]
-  SL(x)       = SLμ(x,δμ1,δμ2)
-  
-  t = 0.0
-  z = vt(0.01)
-  for i in 1:nsteps
-  
-    t = t + dt
-    z = OP_RK4(SL,z,dt)
-  
-    if (mod(i,histstep) == 0)
-      j = Int(i/histstep)
-      zhist[j] = z
-      Time[j] = t
-    end  
-  
-  end
-
-  # Frequency
-  peak_ind    = argmaxima(real.(zhist))
-  peak_times  = Time[peak_ind]
-  delta_times = diff(peak_times)
-  afreq       = 2.0*π./delta_times
-  npeaks      = length(afreq)
-  if npeaks > 9
-    ωend      = afreq[npeaks-9:npeaks]
-  else
-    ωend      = afreq
-    println("Not enough cycles: $npeaks")
-  end
-
-  ωmean       = mean(ωend)
-  @printf("δμx : %.5f ; Ω: %.4e; ΩGL: %.4e \n", δμ1, ωmean, Ω_v1[jj])
-  SL_Ω_v12[jj] = ωmean
-end
-
-h5  = figure(num=5,figsize=[8.0,6.0])
-ax5 = gca() 
-ax5.plot(-δμx_v2/abs(μx),Ω_v12,linestyle="none",marker="o",markersize=8,label="Ginzburg-Landau - 2")
-rcParams["markers.fillstyle"] = "none"
-ax5.plot(-δμx_v2/abs(μx),SL_Ω_v12,linestyle="none",marker="s",markersize=8,label="Center-Manifold - 2")
-rcParams["markers.fillstyle"] = "full"
-
-ax5.set_ylabel(L"Ω",fontsize=lafs)
-ax5.set_xlabel(L"δ'_{3}/|δ^{0}_{3}|",fontsize=lafs)
-pleg5 = legend(loc="upper left",fontsize=lgfs)
-# h5.savefig("center_manifold_omega1.eps")
-#---------------------------------------------------------------------- 
-
-
-# Viscosity variation
-#---------------------------------------------------------------------- 
-@printf("\n γ (viscosity) variation: δ'_{4} \n")
-nsteps      = 2000000
-nhist       = Int(nsteps/histstep)
-
-zhist       = zeros(vt,nhist)
-Time        = zeros(Float64,nhist)
-
-SL_Ω_v2     = 0.0*Ω_v2
-SL_Ω_v2[1]  = 1.0
-
-for jj in 2:length(δγ_v)
-
-  global z,t
-  
-  δμ1         = 0.0
-  δμ2         = δγ_v[jj]
-  SL(x)       = SLμ(x,δμ1,δμ2)
-  
-  t = 0.0
-  z = vt(0.01)
-  for i in 1:nsteps
-  
-    t = t + dt
-    z = OP_RK4(SL,z,dt)
-  
-    if (mod(i,histstep) == 0)
-      j = Int(i/histstep)
-      zhist[j] = z
-      Time[j] = t
-    end  
-  
-  end
-
-  # Frequency
-  peak_ind    = argmaxima(real.(zhist))
-  peak_times  = Time[peak_ind]
-  delta_times = diff(peak_times)
-  afreq       = 2.0*π./delta_times
-  npeaks      = length(afreq)
-  if npeaks > 9
-    ωend      = afreq[npeaks-9:npeaks]
-  else
-    ωend      = afreq
-    println("Not enough cycles: $npeaks")
-  end
-
-  ωmean       = mean(ωend)
-  @printf("δγ : %.5f ; Ω: %.4e; ΩGL: %.4e \n", -δμ2, ωmean, Ω_v2[jj])
-  SL_Ω_v2[jj] = ωmean
-end
-
-h6  = figure(num=6,figsize=[8.0,6.0])
-ax6 = gca() 
-ax6.plot(-δγ_v/abs(γ),Ω_v2,linestyle="none",marker="o",markersize=8,label="Ginzburg-Landau")
-rcParams["markers.fillstyle"] = "none"
-ax6.plot(-δγ_v/abs(γ),SL_Ω_v2,linestyle="none",marker="s",markersize=8,label="Center-Manifold")
-rcParams["markers.fillstyle"] = "full"
-ax6.set_ylabel(L"Ω",fontsize=lafs)
-ax6.set_xlabel(L"-δ'_{4}/|δ^{0}_{4}|",fontsize=lafs)
-pleg6 = legend(loc="upper left",fontsize=lgfs)
-h6.savefig("center_manifold_omega2.eps")
-
-# Viscosity variation - 2
-#---------------------------------------------------------------------- 
-@printf("\n γ (viscosity) variation: δ'_{4} \n")
-nsteps      = 2000000
-nhist       = Int(nsteps/histstep)
-
-zhist       = zeros(vt,nhist)
-Time        = zeros(Float64,nhist)
-
-SL_Ω_v22    = 0.0*Ω_v22
-
-for jj in 1:length(δγ_v2)
-
-  global z,t
-  
-  δμ1         = -δμx_v[4]
-  δμ2         =  δγ_v[jj]
-  SL(x)       =  SLμ(x,δμ1,δμ2)
-  
-  t = 0.0
-  z = vt(0.01)
-  for i in 1:nsteps
-  
-    t = t + dt
-    z = OP_RK4(SL,z,dt)
-  
-    if (mod(i,histstep) == 0)
-      j = Int(i/histstep)
-      zhist[j] = z
-      Time[j] = t
-    end  
-  
-  end
-
-  # Frequency
-  peak_ind    = argmaxima(real.(zhist))
-  peak_times  = Time[peak_ind]
-  delta_times = diff(peak_times)
-  afreq       = 2.0*π./delta_times
-  npeaks      = length(afreq)
-  if npeaks > 9
-    ωend      = afreq[npeaks-9:npeaks]
-  else
-    ωend      = afreq
-    println("Not enough cycles: $npeaks")
-  end
-
-  ωmean       = mean(ωend)
-  @printf("δγ : %.5f ; Ω: %.4e; ΩGL: %.4e \n", -δμ2, ωmean, Ω_v22[jj])
-  SL_Ω_v22[jj] = ωmean
-end
-
-h7  = figure(num=7,figsize=[8.0,6.0])
-ax7 = gca() 
-ax7.plot(-δγ_v2/abs(γ),Ω_v22,linestyle="none",marker="o",markersize=8,label="Ginzburg-Landau")
-rcParams["markers.fillstyle"] = "none"
-ax7.plot(-δγ_v2/abs(γ),SL_Ω_v22,linestyle="none",marker="s",markersize=8,label="Center-Manifold")
-rcParams["markers.fillstyle"] = "full"
-ax7.set_ylabel(L"Ω",fontsize=lafs)
-ax7.set_xlabel(L"-δ'_{4}/|δ^{0}_{4}|",fontsize=lafs)
-pleg7 = legend(loc="upper left",fontsize=lgfs)
-ymin,ymax = ax7.get_ylim()
-
-# h6.savefig("center_manifold_omega2.eps")
-
-
+ax2.legend()
 println("Done.")
+
+
+
+
 
 
 

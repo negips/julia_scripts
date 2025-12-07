@@ -66,8 +66,9 @@ ifdynplot         = false     # Plot dynamic phase (ζ)
 initplot          = true      # Plot initial conditions
 ifdynnull         = false     # Plot null-clines dynamically
 ifsaveframe       = true      # Save each frame for video
-ifsavext          = true     # Spacetime plot save
+ifsavext          = true      # Spacetime plot save
 ifannotate        = true      # Add Annotations
+ifhdf5            = true      # Save HDF5 file
 
 ifplot            = iffldplot || ifphplot || ifdynplot 
 plotfldi          = fill(true,nflds)

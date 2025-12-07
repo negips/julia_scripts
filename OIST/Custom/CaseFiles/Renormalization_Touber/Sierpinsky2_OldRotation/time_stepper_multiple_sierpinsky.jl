@@ -230,6 +230,13 @@ if (ifsavext)
   println("Saved Figure "*fname4)
 end  
 
+if (ifhdf5)
+  ifλ       = true
+  fnameh5   = "sierpinski.h5"
+  β3        = 0.0
+  include("../create_hdf5.jl")
+end  
+
 #figure(num=4)
 #plot(abar_hist,γ_hist)
 

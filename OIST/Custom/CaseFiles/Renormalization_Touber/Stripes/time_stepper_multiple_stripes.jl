@@ -27,7 +27,8 @@ ifplot            = iffldplot || ifphplot
 
 Vol   = sum(Bg)
 A_sen = Asen*Vol
-γ     = 2.0/λnorm
+γ     = 0.0
+γhist = zeros(VT,nsurf_save)
 
 for i in 1:nsteps
   global fld,fldlag,Rhs,Rhslag,dotfld
@@ -188,6 +189,12 @@ if (ifsavext)
   fname3 = @sprintf "./plots/spacetime"
   h3.savefig(fname3)
   println("Saved Figure "*fname3)
+end  
+
+if (ifhdf5)
+  ifλ       = false
+  fnameh5   = "stripes2.h5"
+  include("../create_hdf5.jl")
 end  
 
 #surf(t2d,x2d,fldhist[:,:,2],cmap=cm2,edgecolor="none")
