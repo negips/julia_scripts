@@ -22,9 +22,7 @@ Generate the request token
 function gen_request_token(key::String)
 
    url = "https://kite.trade/connect/login?api_key="*key
-   # println(url)
    @printf("Login at: %s\n",url)
-   
    @printf("Enter request_token:\n")
    request_token = readline()
    @printf("Request Token: %s\n",request_token)
@@ -39,15 +37,15 @@ Generate the access token by passing in yout request token
 """
 function gen_access_token(key::String,secret::String,request_token::String)
   
-  checksum  = bytes2hex(sha256(key * request_token * secret))
-  url       = "$API_ENDPOINT/session/token"
-  header    = [ "X-Kite-Version" => X_KITE_VER,
-                "Content-Type"   => "application/x-www-form-urlencoded" ]
-  body      = "api_key=$(key)&request_token=$(request_token)&checksum=$(checksum)"
+  checksum        = bytes2hex(sha256(key * request_token * secret))
+  url             = "$API_ENDPOINT/session/token"
+  header          = [ "X-Kite-Version" => X_KITE_VER,
+                      "Content-Type"   => "application/x-www-form-urlencoded" ]
+  body            = "api_key=$(key)&request_token=$(request_token)&checksum=$(checksum)"
 
-  res       = HTTP.post(url, header, body)
-  jres      = JSON.parse(String(res.body))
-  access_token = jres["data"]["access_token"]
+  res             = HTTP.post(url, header, body)
+  jres            = JSON.parse(String(res.body))
+  access_token    = jres["data"]["access_token"]
 
   return access_token
 end
@@ -61,10 +59,9 @@ function kite_std_header(conn)
 
   key       = conn.api_key
   atoken    = conn.access_token
-  header  = [ "X-Kite-Version" => X_KITE_VER,
-              "Content-Type"   => "application/x-www-form-urlencoded",
-              "Authorization"  => "token $(key):$(atoken)"
-            ]
+  header    = [ "X-Kite-Version" => X_KITE_VER,
+                "Content-Type"   => "application/x-www-form-urlencoded",
+                "Authorization"  => "token $(key):$(atoken)" ]
 
   return header
 end

@@ -6,16 +6,11 @@ Holdings contain the user's portfolio of long term equity delivery stocks. An in
 """
 function get_holdings(conn::KiteConnection)
 
-  url_fragment = "/portfolio/holdings"
-  url = API_ENDPOINT*url_fragment 
-  # header  = [ "X-Kite-Version" => "3",
-  #             "Content-Type"   => "application/x-www-form-urlencoded",
-  #             "Authorization"  => "token $(API_KEY):$(ACCESS_TOKEN)"
-  #           ]
-  header    = kite_std_header(conn)
-
-  resp      = HTTP.get(url,header)
-  jresp     = JSON.parse(String(resp.body))
+  url_fragment    = "/portfolio/holdings"
+  url             = API_ENDPOINT*url_fragment 
+  header          = kite_std_header(conn)
+  resp            = HTTP.get(url,header)
+  jresp           = JSON.parse(String(resp.body))
 
   return jresp
 end
@@ -28,16 +23,11 @@ This API returns a list of auctions that are currently being held, along with de
 """
 function get_auctions(conn::KiteConnection)
 
-  url_fragment = "/portfolio/holdings/auctions"
-  url = API_ENDPOINT*url_fragment 
-  # header  = [ "X-Kite-Version" => "3",
-  #             "Content-Type"   => "application/x-www-form-urlencoded",
-  #             "Authorization"  => "token $(API_KEY):$(ACCESS_TOKEN)"
-  #           ]
-  header    = kite_std_header(conn)
-
-  resp      = HTTP.get(url,header)
-  jresp     = JSON.parse(String(resp.body))
+  url_fragment    = "/portfolio/holdings/auctions"
+  url             = API_ENDPOINT*url_fragment 
+  header          = kite_std_header(conn)
+  resp            = HTTP.get(url,header)
+  jresp           = JSON.parse(String(resp.body))
 
   return jresp
 end
@@ -52,16 +42,11 @@ The positions API returns two sets of positions, net and day. net is the actual,
 """
 function get_positions(conn::KiteConnection)
 
-  url_fragment = "/portfolio/positions"
-  url = API_ENDPOINT*url_fragment 
-  # header  = [ "X-Kite-Version" => "3",
-  #             "Content-Type"   => "application/x-www-form-urlencoded",
-  #             "Authorization"  => "token $(API_KEY):$(ACCESS_TOKEN)"
-  #           ]
-  header    = kite_std_header(conn)
-
-  resp      = HTTP.get(url,header)
-  jresp     = JSON.parse(String(resp.body))
+  url_fragment    = "/portfolio/positions"
+  url             = API_ENDPOINT*url_fragment 
+  header          = kite_std_header(conn)
+  resp            = HTTP.get(url,header)
+  jresp           = JSON.parse(String(resp.body))
 
   return jresp
 end
