@@ -49,7 +49,7 @@ Lθ    = [f2 f3]
 #λh    = zeros(ComplexF64,h)
 #λh    = [0.0im; im; -im; 2.3im; -2.3im]
 if ifresonant
-  λh    = [im; -im;]
+  λh    = [1.0im; -1.0im;]
 else
   λh    = [1.3im; -1.3im;]
 #  λh    = [0.7im; -0.7im;]

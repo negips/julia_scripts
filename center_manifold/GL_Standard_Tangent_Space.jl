@@ -75,7 +75,7 @@ renormalize_evec!(v1,j0)
 renormalize_evecs!(v1,w1,Bg)
 v2    = conj.(v1)
 w2    = conj.(w1)
-λc    = [im; -im;]
+λc    = [1.0im; -1.0im;]
 
 # Plot (normalized) Eigenvectors
 h2    = figure(num=2,figsize=[12.,9.])
