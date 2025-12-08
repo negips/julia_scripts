@@ -183,9 +183,9 @@ for ik in 1:nθ
         end
         fld12 = CenterManifold.GetAsymptoticField3(z,Vext,Y_O2,Y_O3)
         fld1  = fld12[1:ndof]
-        ax5.plot(xg,real.(fld1),color=cm(0),linestyle="-")
-        ax5.plot(xg,imag.(fld1),color=cm(0),linestyle="--")
-        ax5.plot(xg,abs.(fld1),color=cm(0),linestyle="-",linewidth=2)
+        ax5.plot(xg,real.(fld1),color=cm(0),linestyle="-",linewidth=1)
+        ax5.plot(xg,imag.(fld1),color=cm(0),linestyle="--",linewidth=1)
+        ax5.plot(xg,abs.(fld1),color=cm(0),linestyle="-",linewidth=3)
       end  
 
     end      

@@ -24,9 +24,9 @@ include("Module_StepperArnoldi/StepperArnoldi.jl")
 ifadjoint         = false
 ifoptimal         = false
 ifverbose         = false
-verbosestep       = 2000
-nsteps            = 2000
-dt                = 2.5e-5
+verbosestep       = 500
+nsteps            = 500
+dt                = 1.0e-4
 StpInp            = StepperArnoldi.StepperInput(ifadjoint,ifoptimal,ifverbose,verbosestep,nsteps,dt)
 #StpInp      = Set_StepperParams()
 

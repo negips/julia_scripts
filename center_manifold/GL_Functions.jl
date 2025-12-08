@@ -17,18 +17,22 @@ function Get_SEM1D_Input()
 end  
 #---------------------------------------------------------------------- 
 function Set_GL_Params()
+  # δ1  = -1.0 + 0.0im            # -U
+  # δ2  =  0.741 + 1.025im        #  μ0
+  # δ3  = -0.125 + 0.0im          #  μx
+  # δ4  = (1.0 - 1.0im)/sqrt(2.0) #  γ
+  # δ5  = (-0.1 + 0.1im)          #  Nonlinear Coefficient 
 
   # δ     = ones(ComplexF64,5)    #  Parameters
   δ1  = -1.0 + 0.0im            # -U
   # δ2  =  0.741 + 1.025im      #  μ0
   δ3  = -0.125 + 0.0im          #  μx
-  δ4  = (2.0 - 2.0im)/sqrt(2.0)    #  γ
+  δ4  = (1.0 - 1.0im)/sqrt(2.0)    #  γ
   δ5  = (-0.1 + 0.1im)          #  Nonlinear Coefficient 
 
-  ω1    =  0.0 + 1.0im
-
-  #δ     = SEM1D.SetGLParams(ω1,δ5)
-  δ     = SEM1D.SetGLParams(ω1,δ1,δ3,δ4,δ5)
+  ω1  =  0.0 + 1.0im
+  #δ   = SEM1D.SetGLParams(ω1,δ5)
+  δ   = SEM1D.SetGLParams(ω1,δ1,δ3,δ4,δ5)
 
   return δ
 end  

@@ -3,7 +3,7 @@
 # Extending the tangent space
 #---------------------------------------------------------------------- 
 
-ifresonant = false
+ifresonant = true
 
 Nby2  = ArnInp.vlen
 N     = Nby2*2
@@ -51,7 +51,7 @@ Lθ    = [f2 f3]
 if ifresonant
   λh    = [im; -im;]
 else
-  λh    = [1.7im; -1.7im;]
+  λh    = [1.3im; -1.3im;]
 #  λh    = [0.7im; -0.7im;]
 end
 
