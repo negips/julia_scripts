@@ -26,7 +26,7 @@ mksz        = 6
 include("GL_Setup.jl")
 #-------------------------------------------------- 
 
-screen            = 1
+screen            = 2
 
 if screen == 1
   # hp spectre
@@ -58,7 +58,8 @@ hist_i      = argmin(abs.(xg .- hist_x))  # Index of history point
 nfreq       = 1                           # No. of external frequencies
 dt          = 0.0001
 
-θA          = [0.1; 0.25; 0.5; 0.75; 1.0]
+#θA          = [0.1; 0.25; 0.5; 0.75; 1.0]
+θA          = [0.1; 0.2; 0.3; 0.4; 0.5]
 nθ          = length(θA)
 
 cm          = get_cmap("tab10");
@@ -101,12 +102,12 @@ x0    = ForcingLocation()
 SetForcingShape!(ψ,Bg,xg,x0,1.0)
 F     = zeros(ComplexF64,ndof,nfreq)
 copyto!(F,ψ)
-Ω     = [1.3im]
-FNGL(x,y) = ForcedNLGinzburgLandau(OPg,ones(vt,ndof),x,F,y,δ[5],Ω,zro,zro,Inp.lbc,Inp.rbc)
+Ωf    = [1.3im]
+FNGL(x,y) = ForcedNLGinzburgLandau(OPg,ones(vt,ndof),x,F,y,δ[5],Ωf,zro,zro,Inp.lbc,Inp.rbc)
 
 # For θ evolution
 ΩM        = zeros(vt,1,1)
-ΩM[1,1]   = Ω[1]
+ΩM[1,1]   = Ωf[1]
 FΩ(x)     = StuartLandau1(ΩM,x)
 
 println("Press x to stop. Any other key to continue...")
@@ -271,7 +272,7 @@ end
 
 
 if (ifsave)
-  fname = "GL_nonresonant_Parametric.jld2"
+  fname = "GL_nonresonant_Parametric2.jld2"
   save(fname,"xg",xg,"Vext",Vext,"Y_O2",Y_O2,"Y_O3",Y_O3,"Khat",Khat,"G_O2",G_O2,"G_O3",G_O3,"δ",δ,"Time",Time,"θA",θA,"Peak_Amp",Peak_Amp,"Hist",Hist,"ω_nonlinear",ω_nonlinear);
   println(fname*" saved.")
 end 
