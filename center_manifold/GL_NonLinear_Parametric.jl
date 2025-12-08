@@ -61,7 +61,7 @@ Tend        = dt*nsteps
 
 #θA          = [0.1; 0.25; 0.5; 0.75; 1.0]
 #θA          = [0.1; 0.2; 0.3; 0.4; 0.5]
-θA          = [0.5]
+θA          = [0.1]
 nθ          = length(θA)
 
 cm          = get_cmap("tab10");
@@ -144,15 +144,15 @@ for ik in 1:nθ
   v     = zeros(vt,ndof)
   # v     = fld[1:ndof]
 
-  v    .= v .+ 1.0e-1*rnd
+  #v    .= v .+ 1.0e-5*rnd
   #v    .= v .+ 0.1*exp.(-(xg.-5.75).^2)
-  v    .= v .+ conj.(v)
+  #v    .= v .+ conj.(v)
   θ     = zeros(vt,nfreq)
   θ[1]  = θAmp*(1.0 + 0.0im)
 
   # Testing temporary forcing amplitude change
   θtmp  = vt(1.00)
-  λtmp  = -0.01
+  λtmp  = -0.025
 
   for i in 1:nsteps
   
@@ -164,7 +164,7 @@ for ik in 1:nθ
     # OP_RK4!(NGL,v,dt)
 
     # Testing temporary forcing amplitude change
-    fac  = 1.0 #(1.0 - exp(λtmp*t))
+    fac  = (1.0 - exp(λtmp*t))
     θ    = θ*fac
 
     # Forced Non-linear Evolution
