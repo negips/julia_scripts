@@ -72,8 +72,8 @@ x0    = ForcingLocation()
 SetForcingShape!(ψ,Bg,xg,x0,1.0)
 F     = zeros(ComplexF64,ndof,h)
 copyto!(F,ψ)
-Ω     = [1.0im]
-FNGL(x,y) = ForcedNLGinzburgLandau(OPg,ones(vt,ndof),x,F,y,δ[5],Ω,zro,zro,Inp.lbc,Inp.rbc)
+Ωf    = [1.0im]
+FNGL(x,y) = ForcedNLGinzburgLandau(OPg,ones(vt,ndof),x,F,y,δ[5],Ωf,zro,zro,Inp.lbc,Inp.rbc)
 
 
 t     = Inp.Dtype(0)    # Time

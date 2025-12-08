@@ -26,14 +26,14 @@ mksz        = 6
 include("GL_Setup.jl")
 #-------------------------------------------------- 
 
-screen            = 2
+screen            = 1
 
 if screen == 1
   # hp spectre
   lafs      = 16        # Label font size
   lgfs      = 12        # Legend font size
-  figsz1    = [8.0, 6.0]
-  figsz2    = [17.0, 6.0]
+  figsz1    = [6.0, 5.0]
+  figsz2    = [12.0, 5.0]
 elseif screen == 2
   # workstation
   lafs      = 20        # Label font size
@@ -48,18 +48,19 @@ ifplot      = true
 histplot    = true
 verbose     = true
 nsteps      = 50000000
-ifsave      = true
-plotstep    = 20000
-verbosestep = 20000
+ifsave      = false
+plotstep    = 100000
+verbosestep = 100000
 histstep    = 1000
 nhist       = Int(nsteps/histstep)
 hist_x      = 10.0                        # Location of history point
 hist_i      = argmin(abs.(xg .- hist_x))  # Index of history point
 nfreq       = 1                           # No. of external frequencies
-dt          = 0.0001
+dt          = 0.00002
 
 #θA          = [0.1; 0.25; 0.5; 0.75; 1.0]
-θA          = [0.1; 0.2; 0.3; 0.4; 0.5]
+#θA          = [0.1; 0.2; 0.3; 0.4; 0.5]
+θA          = [0.5]
 nθ          = length(θA)
 
 cm          = get_cmap("tab10");
@@ -102,7 +103,11 @@ x0    = ForcingLocation()
 SetForcingShape!(ψ,Bg,xg,x0,1.0)
 F     = zeros(ComplexF64,ndof,nfreq)
 copyto!(F,ψ)
-Ωf    = [1.3im]
+if (ifresonant)
+  Ωf    = [1.0im]
+else
+  Ωf    = [1.3im]
+end  
 FNGL(x,y) = ForcedNLGinzburgLandau(OPg,ones(vt,ndof),x,F,y,δ[5],Ωf,zro,zro,Inp.lbc,Inp.rbc)
 
 # For θ evolution
@@ -138,9 +143,9 @@ for ik in 1:nθ
   v     = zeros(vt,ndof)
   # v     = fld[1:ndof]
 
-  #v    .= v .+ 1.0e-5*rnd
+  v    .= v .+ 1.0e-1*rnd
   #v    .= v .+ 0.1*exp.(-(xg.-5.75).^2)
-  #v    .= v .+ conj.(v)
+  v    .= v .+ conj.(v)
   θ     = zeros(vt,nfreq)
   θ[1]  = θAmp*(1.0 + 0.0im)
 
@@ -158,10 +163,7 @@ for ik in 1:nθ
     # OP_RK4!(NGL,v,dt)
 
     # Testing temporary forcing amplitude change
-    #dθ = [θtmp*exp(λtmp*t)]
-    #θ  = θ .+ dθ 
-
-    fac  = (1.0 - exp(λtmp*t))
+    fac  = 1.0 #(1.0 - exp(λtmp*t))
     θ    = θ*fac
 
     # Forced Non-linear Evolution
@@ -272,7 +274,11 @@ end
 
 
 if (ifsave)
-  fname = "GL_nonresonant_Parametric2.jld2"
+  if ifresonant
+    fname = "GL_resonant_Parametric2.jld2"
+  else
+    fname = "GL_nonresonant_Parametric2.jld2"
+  end  
   save(fname,"xg",xg,"Vext",Vext,"Y_O2",Y_O2,"Y_O3",Y_O3,"Khat",Khat,"G_O2",G_O2,"G_O3",G_O3,"δ",δ,"Time",Time,"θA",θA,"Peak_Amp",Peak_Amp,"Hist",Hist,"ω_nonlinear",ω_nonlinear);
   println(fname*" saved.")
 end 

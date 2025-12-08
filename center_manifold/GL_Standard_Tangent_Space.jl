@@ -24,9 +24,9 @@ include("Module_StepperArnoldi/StepperArnoldi.jl")
 ifadjoint         = false
 ifoptimal         = false
 ifverbose         = false
-verbosestep       = 500
-nsteps            = 500
-dt                = 1.0e-4
+verbosestep       = 2000
+nsteps            = 2000
+dt                = 2.5e-5
 StpInp            = StepperArnoldi.StepperInput(ifadjoint,ifoptimal,ifverbose,verbosestep,nsteps,dt)
 
 ifarnoldi         = true 
@@ -76,16 +76,29 @@ w2    = conj.(w1)
 λc    = [im; -im;]
 
 # Forcing
-ψ     = exp.(-(xg .- fx0).^2) 
-ψn    = sqrt(ψ'*(Bg.*ψ))
-ψ    .= ψ./ψn
+# ψ     = exp.(-(xg .- fx0).^2) 
+# ψn    = sqrt(ψ'*(Bg.*ψ))
+# ψ    .= ψ./ψn
 
 h2    = figure(num=2,figsize=[12.,9.])
 ax2   = gca()
-ax2.plot(xg,real.(v1),linewidth=2,linestyle="-", color=cm(0),label=L"\mathfrak{R}(ϕ)")
-ax2.plot(xg,imag.(v1),linewidth=2,linestyle="--",color=cm(0),label=L"\mathfrak{Im}(ϕ)")
-ax2.plot(xg,real.(w1),linewidth=2,linestyle="-", color=cm(1),label=L"\mathfrak{R}(χ)")
-ax2.plot(xg,imag.(w1),linewidth=2,linestyle="--",color=cm(1),label=L"\mathfrak{Im}(χ)")
+for i in 1:ArnInp.nev
+  vtmp = ArnDir.evecs[:,i]
+  wtmp = ArnAdj.evecs[:,i]
+  renormalize_evec!(vtmp,j0)
+  renormalize_evecs!(vtmp,wtmp,Bg)
+
+  ax2.plot(xg,real.(vtmp),linewidth=2,linestyle="-", color=cm(i-1),label=L"\mathfrak{R}(ϕ_{%$i})")
+  ax2.plot(xg,imag.(vtmp),linewidth=2,linestyle="--",color=cm(i-1),label=L"\mathfrak{Im}(ϕ_{%$i})")
+
+  ax2.plot(xg,real.(wtmp),linewidth=1,linestyle="-", color=cm(i+nev-1),label=L"\mathfrak{R}(χ_{%$i})")
+  ax2.plot(xg,imag.(wtmp),linewidth=1,linestyle="--",color=cm(i+nev-1),label=L"\mathfrak{Im}(χ_{%$i})")
+end
+
+# ax2.plot(xg,real.(v1),linewidth=2,linestyle="-", color=cm(0),label=L"\mathfrak{R}(ϕ)")
+# ax2.plot(xg,imag.(v1),linewidth=2,linestyle="--",color=cm(0),label=L"\mathfrak{Im}(ϕ)")
+# ax2.plot(xg,real.(w1),linewidth=2,linestyle="-", color=cm(1),label=L"\mathfrak{R}(χ)")
+# ax2.plot(xg,imag.(w1),linewidth=2,linestyle="--",color=cm(1),label=L"\mathfrak{Im}(χ)")
 #ax2.plot(xg,real.(ψ) ,linewidth=2,linestyle="-", color=cm(2),label=L"\mathfrak{R}(ψ)")
 #ax2.plot(xg,imag.(ψ) ,linewidth=2,linestyle="--",color=cm(2),label=L"\mathfrak{Im}(ψ)")
 

@@ -3,6 +3,8 @@
 # Extending the tangent space
 #---------------------------------------------------------------------- 
 
+ifresonant = true
+
 Nby2  = ArnInp.vlen
 N     = Nby2*2
 n     = 2
@@ -46,9 +48,12 @@ f5    = [vzro;ψ]
 Lθ    = [f2 f3]
 #λh    = zeros(ComplexF64,h)
 #λh    = [0.0im; im; -im; 2.3im; -2.3im]
-#λh    = [im; -im;]
-λh    = [1.3im; -1.3im;]
-#λh    = [0.7im; -0.7im;]
+if ifresonant
+  λh    = [im; -im;]
+else
+  λh    = [1.3im; -1.3im;]
+#  λh    = [0.7im; -0.7im;]
+end
 
 ΓH    = zeros(ComplexF64,n,h)
 for i in 1:h

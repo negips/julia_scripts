@@ -26,9 +26,14 @@ rgba2       = cm(2)
 
 ifplot      = true
 histplot    = true
+moveaxis    = true
 verbose     = true
-nsteps      = 5000000
-ifsave      = true
+if ifresonant
+  nsteps    = 3000000
+else
+  nsteps    = 5000000
+end
+ifsave      = false
 plotstep    = 20000
 verbosestep = 10000
 histstep    = 50
@@ -38,8 +43,9 @@ vt          = Complex{Inp.Dtype}
 zro         = vt(0)
 
 dt          = 0.001
-θA          = [0.1; 0.25; 0.5; 0.75; 1.0]
-#θA          = [0.1]
+#θA          = [0.1; 0.25; 0.5; 0.75; 1.0]
+#θA          = [0.1; 0.2; 0.3; 0.4; 0.5]
+θA          = [0.5]
 nθ          = length(θA)
 
 Hist_Mode   = zeros(vt,nhist,m,nθ)
@@ -49,12 +55,17 @@ Peak_Amp    = zeros(Float64,nθ)
 
 Mode_Ind    = [1]                         # Which mode to plot 
 
-figsz        = [17.0, 6.0]
+figsz        = [12.0, 5.0]
 
 h3          = figure(num=3,figsize=figsz);
 ax3         = gca()
 
-TLast       = 4500.0
+if ifresonant
+  TLast     = 2500.0
+else
+  TLast     = 4500.0
+end
+
 if xhist
   hist_x    = 10.0                        # Location of history point
   hist_i    = argmin(abs.(xg .- hist_x))  # Index of history point
@@ -79,6 +90,8 @@ if xin == "x"
 end  
 
 
+println("Starting Iterations")
+
 for ik in 1:nθ
 
   # Initialize z
@@ -87,7 +100,7 @@ for ik in 1:nθ
   z           = zeros(vt,m)
   rng         = Xoshiro(1235)
   # Mode initial values
-  z[1]        = 1.0e-4*vt(1) #*rand(rng,vt)
+  z[1]        = 1.0e-0*rand(rng,vt)
   z[2]        = z[1]'
   # Parameter Perturbations
   z[n+1:n+p]  = zeros(vt,p)
@@ -100,17 +113,28 @@ for ik in 1:nθ
   
   # Start iterations
   t           = Inp.Dtype(0)    # Time
-  println("Starting Iterations")
-  
+ 
+  # Testing temporary forcing amplitude change
+  θtmp  = vt(1.00)
+  λtmp  = -0.01
+ 
   for i in 1:nsteps
   
     t = t + dt;
-  
+ 
+    # Testing temporary forcing amplitude change
+    # fac  = 1.0 # (1.0 - exp(λtmp*t))
+    # z[n+p+1]    = z[n+p+1]*fac
+    # z[n+p+2]    = z[n+p+2]*fac
+
     # Stuart Landau Evolution
     OP_RK4!(SL,z,dt,zwork)
-  
+
+    # z[n+p+1]    = z[n+p+1]/fac
+    # z[n+p+2]    = z[n+p+2]/fac
+
     # Set conjugation correctly
-    # z[2] = z[1]'
+    z[2] = z[1]'
   
     # Print something  
     if verbose && mod(i,verbosestep)==0
@@ -130,6 +154,7 @@ for ik in 1:nθ
     end
 
     if ifplot && mod(i,plotstep)==0
+
       # Remove previous plots
       for lo in ax3.get_lines()
         lo.remove()
@@ -141,6 +166,13 @@ for ik in 1:nθ
         lo.remove()
       end
       ax4.plot(Time[1:j],real.(Histx[1:j,ik]),color=cm(ik-1))
+
+      if (moveaxis)
+        tmax = Time[j]
+        tmin = max(0.0,tmax-500.0)
+        ax3.set_xlim([tmin,tmax])
+        ax4.set_xlim([tmin,tmax])
+      end  
     end      
   
   end       # i in 1:nsteps 
@@ -160,7 +192,7 @@ for ik in 1:nθ
     for lo in ax4.get_lines()
       lo.remove()
     end  
-    ax4.plot(Time,Histx[:,ik],color=cm(ik-1))
+    ax4.plot(Time,real.(Histx[:,ik]),color=cm(ik-1))
 
     linds           = Time .> TLast
     time2           = Time[linds]
@@ -178,7 +210,7 @@ for ik in 1:nθ
 
 end         # ik in 1:nθ
 
-ax4.set_xlim([4500.0,5000.0])
+#ax4.set_xlim([4500.0,5000.0])
 #ax4.set_ylim([-0.4,0.4])
 #ax4.legend(fontsize=lgfs,ncols=nθ)
 
@@ -207,7 +239,11 @@ end
 
 
 if (ifsave && nsteps>0)
-  fname = "SL_nonresonant_Parametric.jld2"
+  if ifresonant
+    fname = "SL_resonant_Parametric.jld2"
+  else
+    fname = "SL_nonresonant_Parametric.jld2"
+  end
   save(fname,"xg",xg,"Vext",Vext,"Y_O2",Y_O2,"Y_O3",Y_O3,"G1",G1,"G2",G2,"G3",G3,"δ",δ,"Time",Time,"θA",θA,"Peak_Amp",Peak_Amp,"Histx",Histx,"ω_nonlinear",ω_nonlinear);
   println(fname*" saved.")
 end 

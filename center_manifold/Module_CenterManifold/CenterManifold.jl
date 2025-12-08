@@ -9,12 +9,15 @@ module CenterManifold
   # We could possibly move the Nek related functions out.
   using CSV         
   using DataFrames
+  using Printf
+  using LaTeXStrings
 
   include("CMStruct.jl")
   include("CMFunctions.jl")
   include("CMSymbolic.jl")
   include("MapSymbols.jl")
   include("CMDynamicalSystem.jl")
+  include("CM_WriteEquation.jl")
 
   # Defined Structures
   export ROPMap
@@ -42,7 +45,11 @@ module CenterManifold
          GetInteractionIndex,
          AllInteractionIndices,
          EvaluateNonLinear,
-         EvalNonLinear
+         EvalNonLinear,
+         GetAsymptoticField3,
+         DisplayEquation3,
+         DisplayTerms3
+
 
   # Dynamical Evolution related functions 
   export DynamicalSystem1,
