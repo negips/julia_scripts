@@ -47,16 +47,16 @@ close("all")
 ifplot      = true
 histplot    = true
 verbose     = true
-nsteps      = 6000000
+nsteps      = 5000000
 ifsave      = false
-plotstep    = 100000
-verbosestep = 100000
+plotstep    = 20000
+verbosestep = 20000
 histstep    = 1000
 nhist       = Int(nsteps/histstep)
 hist_x      = 10.0                        # Location of history point
 hist_i      = argmin(abs.(xg .- hist_x))  # Index of history point
 nfreq       = 1                           # No. of external frequencies
-dt          = 0.00005
+dt          = 0.0001
 Tend        = dt*nsteps
 
 #θA          = [0.1; 0.25; 0.5; 0.75; 1.0]
