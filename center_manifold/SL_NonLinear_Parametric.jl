@@ -26,7 +26,7 @@ rgba2       = cm(2)
 
 ifplot      = true
 histplot    = true
-moveaxis    = true
+moveaxis    = false
 verbose     = true
 if ifresonant
   nsteps    = 3000000
@@ -97,7 +97,7 @@ for ik in 1:nθ
   z           = zeros(vt,m)
   rng         = Xoshiro(1235)
   # Mode initial values
-  z[1]        = 1.0e-0*rand(rng,vt)
+  z[1]        = 1.0e-5*rand(rng,vt)
   z[2]        = z[1]'
   # Parameter Perturbations
   z[n+1:n+p]  = zeros(vt,p)
