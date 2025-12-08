@@ -43,6 +43,7 @@ vt          = Complex{Inp.Dtype}
 zro         = vt(0)
 
 dt          = 0.001
+Tend        = dt*nsteps
 #θA          = [0.1; 0.25; 0.5; 0.75; 1.0]
 #θA          = [0.1; 0.2; 0.3; 0.4; 0.5]
 θA          = [0.5]
@@ -60,11 +61,7 @@ figsz        = [12.0, 5.0]
 h3          = figure(num=3,figsize=figsz);
 ax3         = gca()
 
-if ifresonant
-  TLast     = 2500.0
-else
-  TLast     = 4500.0
-end
+TLast       = Tend - 500.0
 
 if xhist
   hist_x    = 10.0                        # Location of history point

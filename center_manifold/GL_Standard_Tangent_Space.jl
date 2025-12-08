@@ -21,27 +21,27 @@ include("Module_StepperArnoldi/StepperArnoldi.jl")
 
 # Stepper-Arnoldi
 #-------------------------------------------------- 
-# ifadjoint         = false
-# ifoptimal         = false
-# ifverbose         = false
-# verbosestep       = 2000
-# nsteps            = 2000
-# dt                = 2.5e-5
-# StpInp            = StepperArnoldi.StepperInput(ifadjoint,ifoptimal,ifverbose,verbosestep,nsteps,dt)
-StpInp      = Set_StepperParams()
+ifadjoint         = false
+ifoptimal         = false
+ifverbose         = false
+verbosestep       = 2000
+nsteps            = 2000
+dt                = 2.5e-5
+StpInp            = StepperArnoldi.StepperInput(ifadjoint,ifoptimal,ifverbose,verbosestep,nsteps,dt)
+#StpInp      = Set_StepperParams()
 
-# ifarnoldi         = true 
-# ifverbose         = false
-# vlen              = ndof
-# nev               = 1
-# ekryl             = 15  
-# lkryl             = nev + ekryl 
-# ngs               = 2
-# bsize             = 1
-# outer_iterations  = 100
-# tol               = 1.0e-12
-# ArnInp            = StepperArnoldi.ArnoldiInput(ifarnoldi,ifverbose,vlen,nev,ekryl,lkryl,ngs,bsize,outer_iterations,tol)
-ArnInp      = Set_ArnoldiParams()
+ifarnoldi         = true 
+ifverbose         = false
+vlen              = ndof
+nev               = 1
+ekryl             = 15  
+lkryl             = nev + ekryl 
+ngs               = 2
+bsize             = 1
+outer_iterations  = 100
+tol               = 1.0e-12
+ArnInp            = StepperArnoldi.ArnoldiInput(ifarnoldi,ifverbose,vlen,nev,ekryl,lkryl,ngs,bsize,outer_iterations,tol)
+#ArnInp      = Set_ArnoldiParams()
 
 Ω     = SEM1D.GLAnalyticalSpectra(δ)
 if (StpInp.ifadjoint)
@@ -89,8 +89,8 @@ for i in 1:ArnInp.nev
   ax2.plot(xg,real.(vtmp),linewidth=2,linestyle="-", color=cm(i-1),label=L"\mathfrak{R}(ϕ_{%$i})")
   ax2.plot(xg,imag.(vtmp),linewidth=2,linestyle="--",color=cm(i-1),label=L"\mathfrak{Im}(ϕ_{%$i})")
 
-  ax2.plot(xg,real.(wtmp),linewidth=1,linestyle="-", color=cm(i+nev-1),label=L"\mathfrak{R}(χ_{%$i})")
-  ax2.plot(xg,imag.(wtmp),linewidth=1,linestyle="--",color=cm(i+nev-1),label=L"\mathfrak{Im}(χ_{%$i})")
+  ax2.plot(xg,real.(wtmp),linewidth=1,linestyle="-", color=cm(i+ArnInp.nev-1),label=L"\mathfrak{R}(χ_{%$i})")
+  ax2.plot(xg,imag.(wtmp),linewidth=1,linestyle="--",color=cm(i+ArnInp.nev-1),label=L"\mathfrak{Im}(χ_{%$i})")
 end
 
 # ax2.plot(xg,real.(v1),linewidth=2,linestyle="-", color=cm(0),label=L"\mathfrak{R}(ϕ)")

@@ -57,6 +57,7 @@ hist_x      = 10.0                        # Location of history point
 hist_i      = argmin(abs.(xg .- hist_x))  # Index of history point
 nfreq       = 1                           # No. of external frequencies
 dt          = 0.00002
+Tend        = dt*nsteps
 
 #θA          = [0.1; 0.25; 0.5; 0.75; 1.0]
 #θA          = [0.1; 0.2; 0.3; 0.4; 0.5]
@@ -72,7 +73,7 @@ rgba2       = cm(2)
 vt          = Complex{Inp.Dtype}
 zro         = vt(0)
 
-TLast       = 4500.0
+TLast       = Tend - 500.0
 Hist        = zeros(vt,nhist,nθ)
 Time        = zeros(Float64,nhist)
 Peak_Amp    = zeros(Float64,nθ)
