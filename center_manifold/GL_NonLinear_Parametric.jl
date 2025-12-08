@@ -26,7 +26,7 @@ mksz        = 6
 include("GL_Setup.jl")
 #-------------------------------------------------- 
 
-screen            = 1
+screen            = 2
 
 if screen == 1
   # hp spectre
@@ -61,7 +61,7 @@ Tend        = dt*nsteps
 
 #θA          = [0.1; 0.25; 0.5; 0.75; 1.0]
 #θA          = [0.1; 0.2; 0.3; 0.4; 0.5]
-θA          = [0.1]
+θA          = [0.5]
 nθ          = length(θA)
 
 cm          = get_cmap("tab10");
@@ -164,7 +164,7 @@ for ik in 1:nθ
     # OP_RK4!(NGL,v,dt)
 
     # Testing temporary forcing amplitude change
-    fac  = (1.0 - exp(λtmp*t))
+    fac  = 1.0 #(1.0 - exp(λtmp*t))
     θ    = θ*fac
 
     # Forced Non-linear Evolution
