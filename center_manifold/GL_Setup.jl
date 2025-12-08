@@ -18,8 +18,7 @@ using IterativeSolvers
 using PyPlot
 
 include("GL_Functions.jl")
-
-#---------------------------------------------------------------------- 
+#-------------------------------------------------- 
 
 # Input parameters
 Inp   = Get_SEM1D_Input()
@@ -29,12 +28,8 @@ Bd    = LobattoLegendre(Inp.Nd)
 # Geometric Matrices
 GeoM  = SEM1D.SEMGeoMat(B0,Bd,Inp)
 
-δ     = ones(ComplexF64,5)    #  Parameters
-δ[1]  = -1.0                  # -U
-δ[2]  =  0.741 + 1.025im      #  μ0
-δ[3]  = -0.125                #  μx
-δ[4]  = (1.0 - im)/sqrt(2.0)  #  γ
-δ[5]  = (-0.1 + 0.1im)        #  Nonlinear Coefficient 
+# GL Parameters
+δ     = Set_GL_Params()
 δc    = conj.(δ)
 
 # GinzburgLandau Linear Operators

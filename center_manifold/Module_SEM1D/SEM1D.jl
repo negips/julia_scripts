@@ -44,7 +44,9 @@
              AdjointGinzburgLandauSparse,
              GLSetBC!,
              SEM_SetBC!,
+             GetAiryZeros,
              GLAnalyticalSpectra,
+             SetGLParams,
              SEM_QQT,
              SEM_Global_Num
 

@@ -16,6 +16,23 @@ function Get_SEM1D_Input()
   return Inp
 end  
 #---------------------------------------------------------------------- 
+function Set_GL_Params()
+
+# δ     = ones(ComplexF64,5)    #  Parameters
+# δ[1]  = -1.0                  # -U
+# δ[2]  =  0.741 + 1.025im      #  μ0
+# δ[3]  = -0.125                #  μx
+# δ[4]  = (1.0 - im)/sqrt(2.0)  #  γ
+# δ[5]  = (-0.1 + 0.1im)        #  Nonlinear Coefficient 
+
+  δ5    = -0.1 + 0.1im
+  ω1    =  0.0 + 1.0im
+
+  δ     = SEM1D.SetGLParams(ω1,δ5)
+
+  return δ
+end  
+#---------------------------------------------------------------------- 
 function renormalize_evec!(v::AbstractVector{T},j0::Int) where {T}
 
   vj        = v[j0]

@@ -361,36 +361,86 @@ function SEM_SetBC!(v::AbstractVector{T},bcl::T,bcr::T,lbc::Bool,rbc::Bool) wher
   return nothing
 end
 #---------------------------------------------------------------------- 
+function GetAiryZeros()
+
+  # Analytical Eigenvalues on a semi-infinite domain
+  
+  # Zeros of the Airy function
+  ζ         = zeros(Float64,15)
+  ζ[1]      = find_zero(airyai,(-3.0,-0.0))
+  ζ[2]      = find_zero(airyai,(-5.0,-3.0))
+  ζ[3]      = find_zero(airyai,(-6.0,-5.0))
+  ζ[4]      = find_zero(airyai,(-7.0,-6.0))
+  ζ[5]      = find_zero(airyai,(-8.0,-7.0))
+  ζ[6]      = find_zero(airyai,(-9.5,-8.0))
+  ζ[7]      = find_zero(airyai,(-10.5,-9.5))
+  ζ[8]      = find_zero(airyai,(-11.8,-10.5))
+  ζ[9]      = find_zero(airyai,(-12.0,-11.8))
+  ζ[10]     = find_zero(airyai,(-12.9,-12.0))
+  ζ[11]     = find_zero(airyai,(-13.8,-12.9))
+  ζ[12]     = find_zero(airyai,(-14.8,-13.8))
+  ζ[13]     = find_zero(airyai,(-15.8,-14.8))
+  ζ[14]     = find_zero(airyai,(-16.8,-15.8))
+  ζ[15]     = find_zero(airyai,(-17.5,-16.8))
+
+  return ζ
+end
+#---------------------------------------------------------------------- 
+
 function GLAnalyticalSpectra(δ::Vector{T}) where {T<:Number}
 
   # Analytical Eigenvalues on a semi-infinite domain
   
   # Zeros of the Airy function
-  ω1        = find_zero(airyai,(-3.0,-0.0))
-  ω2        = find_zero(airyai,(-5.0,-3.0))
-  ω3        = find_zero(airyai,(-6.0,-5.0))
-  ω4        = find_zero(airyai,(-7.0,-6.0))
-  ω5        = find_zero(airyai,(-8.0,-7.0))
-  ω6        = find_zero(airyai,(-9.5,-8.0))
-  ω7        = find_zero(airyai,(-10.5,-9.5))
-  ω8        = find_zero(airyai,(-11.8,-10.5))
-  ω9        = find_zero(airyai,(-12.0,-11.8))
-  ω10       = find_zero(airyai,(-12.9,-12.0))
-  ω11       = find_zero(airyai,(-13.8,-12.9))
-  ω12       = find_zero(airyai,(-14.8,-13.8))
-  ω13       = find_zero(airyai,(-15.8,-14.8))
-  ω14       = find_zero(airyai,(-16.8,-15.8))
-  ω15       = find_zero(airyai,(-17.5,-16.8))
-  ω         = [ω1, ω2, ω3, ω4, ω5, ω6, ω7, ω8, ω9, ω10, ω11, ω12, ω13, ω14, ω15]
+  ζ   = GetAiryZeros()
+  U   = -δ[1]
+  μ0  =  δ[2]
+  μx  =  δ[3]
+  γ   =  δ[4]
 
-  U         = -δ[1]
-  μ0        =  δ[2]
-  μx        =  δ[3]
-  γ         =  δ[4]
-
-  Ω         = (μ0 .- U*U/(4.0*γ) .+ (γ*μx*μx)^(1.0/3.0)*ω)
+  Ω   = (μ0 .- U*U/(4.0*γ) .+ (γ*μx*μx)^(1.0/3.0)*ζ)
 
   return Ω
 end
+#---------------------------------------------------------------------- 
+function SetGLParams(ω1::ComplexF64,δ5::ComplexF64)
+
+  δ     = ones(ComplexF64,5)    #  Parameters
+  δ[1]  = -1.0                  # -U
+  # δ[2]  =  0.741 + 1.025im      #  μ0
+  δ[3]  = -0.125                #  μx
+  δ[4]  = (1.0 - im)/sqrt(2.0)  #  γ
+  δ[5]  = δ5 #(-0.1 + 0.1im)        #  Nonlinear Coefficient 
+
+  ζ     = GetAiryZeros()
+  ζ1    = ζ[1]
+
+  δ[2]  = ω1 + δ[1]*δ[1]/4.0/δ[4] - ((δ[4]*δ[3]*δ[3])^(1.0/3.0))*ζ1
+
+  return δ
+end
+#----------------------------------------------------------------------
+function SetGLParams(ω1::T,δ1::T,δ3::T,δ4::T,δ5::T) where {T<:ComplexF64}
+
+  δ     = ones(T,5)     #  Parameters
+  δ[1]  = δ1            # -U
+  δ[3]  = δ3            #  μx
+  δ[4]  = δ4            #  γ
+  δ[5]  = δ5            #  Nonlinear Coefficient 
+
+  ζ     = GetAiryZeros()
+  ζ1    = ζ[1]
+
+  δ[2]  = ω1 + δ[1]*δ[1]/4.0/δ[4] - ((δ[4]*δ[3]*δ[3])^(1.0/3.0))*ζ1
+
+  return δ
+end
+#----------------------------------------------------------------------
+
+
+
+
+
+
 
 

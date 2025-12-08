@@ -3,6 +3,7 @@ println("Non-Linear evolution for the Stuart Landau equations")
 using Peaks
 using Statistics
 using Random
+using JLD2
 
 include("$JULIACOMMON/RK4.jl")
 include("NLGinzburgLandau.jl")
@@ -11,6 +12,7 @@ include("OP_RK4.jl")
 
 lafs        = 16
 lgfs        = 12
+mksz        = 6
 
 # include("GL_Setup.jl")
 #-------------------------------------------------- 
@@ -22,11 +24,11 @@ rgba0       = cm(0)
 rgba1       = cm(1) 
 rgba2       = cm(2) 
 
-ifplot      = false
+ifplot      = true
 histplot    = true
 verbose     = true
-nsteps      = 3000000
-ifsave      = false
+nsteps      = 5000000
+ifsave      = true
 plotstep    = 20000
 verbosestep = 10000
 histstep    = 50
@@ -36,12 +38,15 @@ vt          = Complex{Inp.Dtype}
 zro         = vt(0)
 
 dt          = 0.001
-#θA          = [0.01; 0.1; 1.0]
-θA          = [0.1]
+θA          = [0.1; 0.25; 0.5; 0.75; 1.0]
+#θA          = [0.1]
 nθ          = length(θA)
 
 Hist_Mode   = zeros(vt,nhist,m,nθ)
 Time        = zeros(Float64,nhist)
+Peak_Amp    = zeros(Float64,nθ)
+ω_nonlinear = zeros(Float64,nθ)
+
 Mode_Ind    = [1]                         # Which mode to plot 
 
 figsz        = [17.0, 6.0]
@@ -49,6 +54,7 @@ figsz        = [17.0, 6.0]
 h3          = figure(num=3,figsize=figsz);
 ax3         = gca()
 
+TLast       = 4500.0
 if xhist
   hist_x    = 10.0                        # Location of history point
   hist_i    = argmin(abs.(xg .- hist_x))  # Index of history point
@@ -81,7 +87,7 @@ for ik in 1:nθ
   z           = zeros(vt,m)
   rng         = Xoshiro(1235)
   # Mode initial values
-  z[1]        = 1.0e-2*vt(1) #*rand(rng,vt)
+  z[1]        = 1.0e-4*vt(1) #*rand(rng,vt)
   z[2]        = z[1]'
   # Parameter Perturbations
   z[n+1:n+p]  = zeros(vt,p)
@@ -121,26 +127,91 @@ for ik in 1:nθ
       if (xhist)
         Histx[j,ik] = Get_AsymptoticFieldx(hist_i,z,Vext,Y_O2,Y_O3)
       end  
-    end  
+    end
+
+    if ifplot && mod(i,plotstep)==0
+      # Remove previous plots
+      for lo in ax3.get_lines()
+        lo.remove()
+      end  
+      ax3.plot(Time[1:j],real.(Hist_Mode[1:j,Mode_Ind,ik]),color=cm(ik-1))
+
+      # Remove previous plots
+      for lo in ax4.get_lines()
+        lo.remove()
+      end
+      ax4.plot(Time[1:j],real.(Histx[1:j,ik]),color=cm(ik-1))
+    end      
   
   end       # i in 1:nsteps 
 
   if histplot && nsteps>0
+
+    # Remove previous plots
+    for lo in ax3.get_lines()
+      lo.remove()
+    end  
     ax3.plot(Time,real.(Hist_Mode[:,Mode_Ind,ik]))
     ax3.set_xlabel(L"t",fontsize=lafs)
     ax3.set_ylabel(L"A",fontsize=lafs)
-  
-    if (xhist)
-      leg = "|θ| = $(θAmp)"
-      ax4.plot(Time,real.(Histx[:,ik]),label=leg)
+
+
+    # Remove previous plots
+    for lo in ax4.get_lines()
+      lo.remove()
     end  
-  end
+    ax4.plot(Time,Histx[:,ik],color=cm(ik-1))
+
+    linds           = Time .> TLast
+    time2           = Time[linds]
+    hist2           = Histx[linds,ik]
+    pkind           = argmaxima(real.(hist2))
+    pktimes         = time2[pkind]
+    mamp            = real.(hist2[pkind])
+    Peak_Amp[ik]    = mean(mamp) 
+    delta_times     = diff(pktimes)
+    afreq           = 2.0*π./delta_times
+    ω_nonlinear[ik] = mean(afreq)
+
+    @printf("|θ|: %.2f ; Amax: %.5f ; Ω: %.4e\n", θAmp,Peak_Amp[ik], ω_nonlinear[ik])
+  end       # if nsteps>0 && histplot
 
 end         # ik in 1:nθ
 
-ax4.set_xlim([2900.0,3000.0])
+ax4.set_xlim([4500.0,5000.0])
 #ax4.set_ylim([-0.4,0.4])
-ax4.legend(fontsize=lgfs,ncols=nθ)
+#ax4.legend(fontsize=lgfs,ncols=nθ)
+
+
+# Plot Peaks
+if nsteps>0 && histplot
+  h5          = figure(num=5,figsize=[8.,6.]);
+  ax5         = gca()
+  last_inds   = Time .> TLast
+  Time2       = Time[last_inds]
+  Hist2       = Histx[last_inds,:]
+  Peak_Amp    = zeros(Float64,nθ)
+  for ik in 1:nθ
+    peak_ind        = argmaxima(real.(Hist2[:,ik]))
+    peak_times      = Time2[peak_ind]
+    maxamp          = real.(Hist2[peak_ind,ik])
+    Peak_Amp[ik]    = mean(maxamp) 
+    delta_times     = diff(peak_times)
+    afreq           = 2.0*π./delta_times
+    ω_nonlinear[ik] = mean(afreq)
+
+    @printf("|θ|: %.2f ; Amax: %.5f ; Ω: %.4e\n", θA[ik],Peak_Amp[ik], ω_nonlinear[ik])
+  end
+  ax5.plot(θA,Peak_Amp,linestyle="none",marker="o",markersize=mksz)
+end  
+
+
+if (ifsave && nsteps>0)
+  fname = "SL_nonresonant_Parametric.jld2"
+  save(fname,"xg",xg,"Vext",Vext,"Y_O2",Y_O2,"Y_O3",Y_O3,"G1",G1,"G2",G2,"G3",G3,"δ",δ,"Time",Time,"θA",θA,"Peak_Amp",Peak_Amp,"Hist",Hist,"ω_nonlinear",ω_nonlinear);
+  println(fname*" saved.")
+end 
+
 
 println("Done.")
 

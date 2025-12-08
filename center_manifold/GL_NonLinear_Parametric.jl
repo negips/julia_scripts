@@ -26,7 +26,7 @@ mksz        = 6
 include("GL_Setup.jl")
 #-------------------------------------------------- 
 
-screen            = 2
+screen            = 1
 
 if screen == 1
   # hp spectre
@@ -58,9 +58,8 @@ hist_i      = argmin(abs.(xg .- hist_x))  # Index of history point
 nfreq       = 1                           # No. of external frequencies
 dt          = 0.0001
 
-θA          = [0.1; 0.25; 0.5; 1.0]
+θA          = [0.1; 0.25; 0.5; 0.75; 1.0]
 nθ          = length(θA)
-
 
 cm          = get_cmap("tab10");
 rgba0       = cm(0) 
@@ -171,7 +170,6 @@ for ik in 1:nθ
     # Testing temporary forcing amplitude change
     #OP_RK4!(FΩ,dθ,dt)
     #θ = θ .- dθ
-  
     θ    = θ/fac
 
     # Print something  
@@ -232,10 +230,10 @@ for ik in 1:nθ
     # ax3.set_xlim([2900.0,3000.0])
     linds           = Time .> TLast
     time2           = Time[linds]
-    hist2           = Hist[linds,:]
-    pkind           = argmaxima(real.(hist2[:,ik]))
+    hist2           = Hist[linds,ik]
+    pkind           = argmaxima(real.(hist2))
     pktimes         = time2[pkind]
-    mamp            = real.(hist2[pkind,ik])
+    mamp            = real.(hist2[pkind])
     Peak_Amp[ik]    = mean(mamp) 
     delta_times     = diff(pktimes)
     afreq           = 2.0*π./delta_times
@@ -273,7 +271,7 @@ end
 
 
 if (ifsave)
-  fname = "GL_Parametric.jld2"
+  fname = "GL_nonresonant_Parametric.jld2"
   save(fname,"xg",xg,"Vext",Vext,"Y_O2",Y_O2,"Y_O3",Y_O3,"Khat",Khat,"G_O2",G_O2,"G_O3",G_O3,"δ",δ,"Time",Time,"θA",θA,"Peak_Amp",Peak_Amp,"Hist",Hist,"ω_nonlinear",ω_nonlinear);
   println(fname*" saved.")
 end 
