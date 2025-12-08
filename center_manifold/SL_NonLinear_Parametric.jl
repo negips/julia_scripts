@@ -46,8 +46,8 @@ zro         = vt(0)
 dt          = 0.001
 Tend        = dt*nsteps
 #θA          = [0.1; 0.25; 0.5; 0.75; 1.0]
-#θA          = [0.1; 0.2; 0.3; 0.4; 0.5]
-θA          = [0.5]
+θA          = [0.1; 0.2; 0.3; 0.4; 0.5]
+#θA          = [0.5]
 nθ          = length(θA)
 
 Hist_Mode   = zeros(vt,nhist,m,nθ)
@@ -65,7 +65,7 @@ ax3         = gca()
 TLast       = Tend - 500.0
 
 if xhist
-  hist_x    = 10.0                        # Location of history point
+  hist_x    = ForcingLocation()           # Location of history point
   hist_i    = argmin(abs.(xg .- hist_x))  # Index of history point
 
   Histx     = zeros(vt,nhist,nθ)

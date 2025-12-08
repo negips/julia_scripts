@@ -26,7 +26,7 @@ mksz        = 6
 include("GL_Setup.jl")
 #-------------------------------------------------- 
 
-screen            = 2
+screen            = 1
 
 if screen == 1
   # hp spectre
@@ -47,21 +47,26 @@ close("all")
 ifplot      = true
 histplot    = true
 verbose     = true
-nsteps      = 5000000
-ifsave      = false
+if ifresonant
+  nsteps    = 30000000
+else
+  nsteps    = 50000000
+end  
+
+ifsave      = true
 plotstep    = 20000
 verbosestep = 20000
 histstep    = 1000
 nhist       = Int(nsteps/histstep)
-hist_x      = 10.0                        # Location of history point
+hist_x      = ForcingLocation()           # Location of history point
 hist_i      = argmin(abs.(xg .- hist_x))  # Index of history point
 nfreq       = 1                           # No. of external frequencies
 dt          = 0.0001
 Tend        = dt*nsteps
 
 #θA          = [0.1; 0.25; 0.5; 0.75; 1.0]
-#θA          = [0.1; 0.2; 0.3; 0.4; 0.5]
-θA          = [0.5]
+θA          = [0.1; 0.2; 0.3; 0.4; 0.5]
+#θA          = [0.5]
 nθ          = length(θA)
 
 cm          = get_cmap("tab10");
@@ -160,7 +165,7 @@ for ik in 1:nθ
     # OP_RK4!(NGL,v,dt)
 
     # Testing temporary forcing amplitude change
-    fac  = 1.0 #(1.0 - exp(λtmp*t))
+    fac  = (1.0 - exp(λtmp*t))
     θ    = θ*fac
 
     # Forced Non-linear Evolution
