@@ -46,7 +46,7 @@ dt          = 0.001
 Tend        = dt*nsteps
 #θA          = [0.1; 0.25; 0.5; 0.75; 1.0]
 #θA          = [0.1; 0.2; 0.3; 0.4; 0.5]
-θA          = [0.5]
+θA          = [0.1]
 nθ          = length(θA)
 
 Hist_Mode   = zeros(vt,nhist,m,nθ)
