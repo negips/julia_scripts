@@ -21,25 +21,27 @@ include("Module_StepperArnoldi/StepperArnoldi.jl")
 
 # Stepper-Arnoldi
 #-------------------------------------------------- 
-ifadjoint         = false
-ifoptimal         = false
-ifverbose         = false
-verbosestep       = 2000
-nsteps            = 2000
-dt                = 2.5e-5
-StpInp            = StepperArnoldi.StepperInput(ifadjoint,ifoptimal,ifverbose,verbosestep,nsteps,dt)
+# ifadjoint         = false
+# ifoptimal         = false
+# ifverbose         = false
+# verbosestep       = 2000
+# nsteps            = 2000
+# dt                = 2.5e-5
+# StpInp            = StepperArnoldi.StepperInput(ifadjoint,ifoptimal,ifverbose,verbosestep,nsteps,dt)
+StpInp      = Set_StepperParams()
 
-ifarnoldi         = true 
-ifverbose         = false
-vlen              = ndof
-nev               = 1
-ekryl             = 15  
-lkryl             = nev + ekryl 
-ngs               = 2
-bsize             = 1
-outer_iterations  = 100
-tol               = 1.0e-12
-ArnInp            = StepperArnoldi.ArnoldiInput(ifarnoldi,ifverbose,vlen,nev,ekryl,lkryl,ngs,bsize,outer_iterations,tol)
+# ifarnoldi         = true 
+# ifverbose         = false
+# vlen              = ndof
+# nev               = 1
+# ekryl             = 15  
+# lkryl             = nev + ekryl 
+# ngs               = 2
+# bsize             = 1
+# outer_iterations  = 100
+# tol               = 1.0e-12
+# ArnInp            = StepperArnoldi.ArnoldiInput(ifarnoldi,ifverbose,vlen,nev,ekryl,lkryl,ngs,bsize,outer_iterations,tol)
+ArnInp      = Set_ArnoldiParams()
 
 Ω     = SEM1D.GLAnalyticalSpectra(δ)
 if (StpInp.ifadjoint)
@@ -75,11 +77,7 @@ v2    = conj.(v1)
 w2    = conj.(w1)
 λc    = [im; -im;]
 
-# Forcing
-# ψ     = exp.(-(xg .- fx0).^2) 
-# ψn    = sqrt(ψ'*(Bg.*ψ))
-# ψ    .= ψ./ψn
-
+# Plot (normalized) Eigenvectors
 h2    = figure(num=2,figsize=[12.,9.])
 ax2   = gca()
 for i in 1:ArnInp.nev

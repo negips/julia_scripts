@@ -18,31 +18,49 @@ end
 #---------------------------------------------------------------------- 
 function Set_GL_Params()
 
-# δ     = ones(ComplexF64,5)    #  Parameters
-# δ[1]  = -1.0                  # -U
-# δ[2]  =  0.741 + 1.025im      #  μ0
-# δ[3]  = -0.125                #  μx
-# δ[4]  = (1.0 - im)/sqrt(2.0)  #  γ
-# δ[5]  = (-0.1 + 0.1im)        #  Nonlinear Coefficient 
-
+  # δ     = ones(ComplexF64,5)    #  Parameters
   δ1  = -1.0 + 0.0im            # -U
   # δ2  =  0.741 + 1.025im      #  μ0
   δ3  = -0.125 + 0.0im          #  μx
   δ4  = (2.0 - 2.0im)/sqrt(1.0)    #  γ
   δ5  = (-0.1 + 0.1im)          #  Nonlinear Coefficient 
 
-  # δ5    = -0.1 + 0.1im
   ω1    =  0.0 + 1.0im
 
-  # δ     = SEM1D.SetGLParams(ω1,δ5)
   #δ     = SEM1D.SetGLParams(ω1,δ5)
   δ     = SEM1D.SetGLParams(ω1,δ1,δ3,δ4,δ5)
 
-  # testing
-  # δ[2]  =  0.741 + 1.025im      #  μ0
-  # println("δ2 Set arbitrarily.")
-
   return δ
+end  
+#---------------------------------------------------------------------- 
+function Set_StepperParams()
+
+  ifadjoint         = false
+  ifoptimal         = false
+  ifverbose         = false
+  verbosestep       = 2000
+  nsteps            = 2000
+  dt                = 2.5e-5
+  StpInp            = StepperArnoldi.StepperInput(ifadjoint,ifoptimal,ifverbose,verbosestep,nsteps,dt)
+
+  return StpInp
+end  
+#---------------------------------------------------------------------- 
+function Set_ArnoldiParams()
+
+  ifarnoldi         = true 
+  ifverbose         = false
+  vlen              = ndof
+  nev               = 1
+  ekryl             = 15  
+  lkryl             = nev + ekryl 
+  ngs               = 2
+  bsize             = 1
+  outer_iterations  = 100
+  tol               = 1.0e-12
+  ArnInp            = StepperArnoldi.ArnoldiInput(ifarnoldi,ifverbose,vlen,nev,ekryl,lkryl,ngs,bsize,outer_iterations,tol)
+
+  return ArnInp
 end  
 #---------------------------------------------------------------------- 
 function renormalize_evec!(v::AbstractVector{T},j0::Int) where {T}
