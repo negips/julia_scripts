@@ -26,7 +26,7 @@ rgba2       = cm(2)
 
 ifplot      = true
 histplot    = true
-moveaxis    = true
+moveaxis    = false
 verbose     = true
 if ifresonant
   nsteps    = 3000000
@@ -46,7 +46,7 @@ dt          = 0.001
 Tend        = dt*nsteps
 #θA          = [0.1; 0.25; 0.5; 0.75; 1.0]
 #θA          = [0.1; 0.2; 0.3; 0.4; 0.5]
-θA          = [0.5]
+θA          = [0.1]
 nθ          = length(θA)
 
 Hist_Mode   = zeros(vt,nhist,m,nθ)
@@ -97,7 +97,7 @@ for ik in 1:nθ
   z           = zeros(vt,m)
   rng         = Xoshiro(1235)
   # Mode initial values
-  z[1]        = 1.0e-0*rand(rng,vt)
+  z[1]        = 1.0e-5*rand(rng,vt)
   z[2]        = z[1]'
   # Parameter Perturbations
   z[n+1:n+p]  = zeros(vt,p)
