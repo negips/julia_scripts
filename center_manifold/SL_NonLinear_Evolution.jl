@@ -43,7 +43,7 @@ Hist        = zeros(vt,nhist,m)
 Time        = zeros(Float64,nhist)
 Mode_Ind    = [1]                         # Which mode to plot 
 if xhist
-  hist_x    = 10.0                        # Location of history point
+  hist_x    = ForcingLocation()           # Location of history point
   hist_i    = argmin(abs.(xg .- hist_x))  # Index of history point
 
   Histx     = zeros(vt,nhist)

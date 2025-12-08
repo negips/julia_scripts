@@ -104,11 +104,7 @@ x0    = ForcingLocation()
 SetForcingShape!(ψ,Bg,xg,x0,1.0)
 F     = zeros(ComplexF64,ndof,nfreq)
 copyto!(F,ψ)
-if (ifresonant)
-  Ωf    = [1.0im]
-else
-  Ωf    = [1.3im]
-end  
+Ωf    = [λh[1]]
 FNGL(x,y) = ForcedNLGinzburgLandau(OPg,ones(vt,ndof),x,F,y,δ[5],Ωf,zro,zro,Inp.lbc,Inp.rbc)
 
 # For θ evolution

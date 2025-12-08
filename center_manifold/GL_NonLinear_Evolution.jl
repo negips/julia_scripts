@@ -34,7 +34,7 @@ plotstep    = 20000
 verbosestep = 20000
 histstep    = 1000
 nhist       = Int(nsteps/histstep)
-hist_x      = 10.0                        # Location of history point
+hist_x      = ForcingLocation()           # Location of history point
 hist_i      = argmin(abs.(xg .- hist_x))  # Index of history point
 h           = 1                           # No. of external frequencies
 
