@@ -27,6 +27,7 @@ rgba2       = cm(2)
 ifplot      = true
 histplot    = true
 moveaxis    = false
+plotfield   = true
 verbose     = true
 if ifresonant
   nsteps    = 3000000
@@ -46,7 +47,7 @@ dt          = 0.001
 Tend        = dt*nsteps
 #θA          = [0.1; 0.25; 0.5; 0.75; 1.0]
 #θA          = [0.1; 0.2; 0.3; 0.4; 0.5]
-θA          = [0.1]
+θA          = [0.5]
 nθ          = length(θA)
 
 Hist_Mode   = zeros(vt,nhist,m,nθ)
@@ -73,6 +74,10 @@ if xhist
   ax4       = gca()
 end  
 
+if plotfield
+  h5        = figure(num=5,figsize=figsz);
+  ax5       = gca()
+end
 
 # Stuart Landau
 G1          = Khat
@@ -170,6 +175,19 @@ for ik in 1:nθ
         ax3.set_xlim([tmin,tmax])
         ax4.set_xlim([tmin,tmax])
       end  
+
+      if (plotfield)
+        # Remove previous plots
+        for lo in ax5.get_lines()
+          lo.remove()
+        end
+        fld12 = CenterManifold.GetAsymptoticField3(z,Vext,Y_O2,Y_O3)
+        fld1  = fld12[1:ndof]
+        ax5.plot(xg,real.(fld1),color=cm(0),linestyle="-")
+        ax5.plot(xg,imag.(fld1),color=cm(0),linestyle="--")
+        ax5.plot(xg,abs.(fld1),color=cm(0),linestyle="-",linewidth=2)
+      end  
+
     end      
   
   end       # i in 1:nsteps 
@@ -214,8 +232,8 @@ end         # ik in 1:nθ
 
 # Plot Peaks
 if nsteps>0 && histplot
-  h5          = figure(num=5,figsize=[8.,6.]);
-  ax5         = gca()
+  h6          = figure(num=6,figsize=[8.,6.]);
+  ax6         = gca()
   last_inds   = Time .> TLast
   Time2       = Time[last_inds]
   Hist2       = Histx[last_inds,:]
@@ -231,7 +249,7 @@ if nsteps>0 && histplot
 
     @printf("|θ|: %.2f ; Amax: %.5f ; Ω: %.4e\n", θA[ik],Peak_Amp[ik], ω_nonlinear[ik])
   end
-  ax5.plot(θA,Peak_Amp,linestyle="none",marker="o",markersize=mksz)
+  ax6.plot(θA,Peak_Amp,linestyle="none",marker="o",markersize=mksz)
 end  
 
 
