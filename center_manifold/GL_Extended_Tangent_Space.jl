@@ -3,7 +3,7 @@
 # Extending the tangent space
 #---------------------------------------------------------------------- 
 
-ifresonant = false
+ifresonant = true
 
 Nby2  = ArnInp.vlen
 N     = Nby2*2
