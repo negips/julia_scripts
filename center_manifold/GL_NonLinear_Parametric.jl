@@ -83,6 +83,7 @@ Hist        = zeros(vt,nhist,nθ)
 Time        = zeros(Float64,nhist)
 Peak_Amp    = zeros(Float64,nθ)
 ω_nonlinear = zeros(Float64,nθ)
+vlast       = zeros(vt,ndof,nθ)
 
 
 # Work Arrays
@@ -129,6 +130,7 @@ for ik in 1:nθ
   global vwork,θwork
   global hv, ax2
   global h3, ax3
+  global vlast
 
   θAmp  = θA[ik]
   t     = Inp.Dtype(0)    # Time
@@ -220,6 +222,8 @@ for ik in 1:nθ
 
   end       # i in 1:nsteps
 
+  vlast[:,ik] = copy(v)
+
   if nsteps>0 && histplot
 
     # Remove previous plots
@@ -275,13 +279,13 @@ if nsteps>0 && histplot
 end  
 
 
-if (ifsave)
+if (ifsave && nsteps>0)
   if ifresonant
     fname = "GL_resonant_Parametric2.jld2"
   else
     fname = "GL_nonresonant_Parametric2.jld2"
   end  
-  save(fname,"xg",xg,"Vext",Vext,"Y_O2",Y_O2,"Y_O3",Y_O3,"Khat",Khat,"G_O2",G_O2,"G_O3",G_O3,"δ",δ,"Time",Time,"θA",θA,"Peak_Amp",Peak_Amp,"Hist",Hist,"ω_nonlinear",ω_nonlinear);
+  save(fname,"xg",xg,"vlast",vlast,"Vext",Vext,"Y_O2",Y_O2,"Y_O3",Y_O3,"Khat",Khat,"G_O2",G_O2,"G_O3",G_O3,"δ",δ,"Time",Time,"θA",θA,"Peak_Amp",Peak_Amp,"Hist",Hist,"ω_nonlinear",ω_nonlinear);
   println(fname*" saved.")
 end 
 
