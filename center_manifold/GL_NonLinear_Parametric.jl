@@ -70,7 +70,7 @@ Tend        = dt*nsteps
 #θA          = [0.5]
 nθ          = length(θA)
 ncycles     = ones(Int64,nθ)
-if !resonant
+if !ifresonant
   ncycles[1]  = 3
   ncycles[2]  = 2
 end
@@ -178,7 +178,11 @@ for ik in 1:nθ
       # OP_RK4!(NGL,v,dt)
 
       # Testing temporary forcing amplitude change
-      fac  = (1.0 - exp(λtmp*t))
+      if ic==1
+        fac  = (1.0 - exp(λtmp*t))
+      else
+        fac  = 1.0
+      end
       θ    = θ*fac
 
       # Forced Non-linear Evolution
@@ -192,7 +196,7 @@ for ik in 1:nθ
 
       # Print something  
       if verbose && mod(i,verbosestep)==0
-        println("Istep=$i, Time=$t, θ=$(abs.(θ))")
+        println("ik=$ik, ic=$ic, Istep=$i, Time=$t, θ=$(abs.(θ))")
       end
    
       # Save History
@@ -204,11 +208,11 @@ for ik in 1:nθ
     
       # Plot the field  
       if (ifplot && mod(i,plotstep)==0)
-        if (i>plotstep) 
+        #if (i>plotstep) 
           for lo in ax2.get_lines()
             lo.remove()
           end  
-        end  
+        #end  
        
         pv1 = ax2.plot(xg,real.(v),linestyle="-",color=rgba0)
         pv2 = ax2.plot(xg,imag.(v),linestyle="--",color=rgba0)
@@ -223,11 +227,11 @@ for ik in 1:nθ
 
         # History plot
         if histplot
-          if (i>plotstep) 
+          #if (i>plotstep) 
             for lo in ax3.get_lines()
               lo.remove()
             end  
-          end  
+          #end  
           ax3.plot(Time[1:j],real.(Hist[1:j,ik]),color=cm(ik-1))
         end
 
