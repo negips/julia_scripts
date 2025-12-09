@@ -70,8 +70,10 @@ Tend        = dt*nsteps
 #θA          = [0.5]
 nθ          = length(θA)
 ncycles     = ones(Int64,nθ)
-ncycles[1]  = 3
-ncycles[2]  = 2
+if !resonant
+  ncycles[1]  = 3
+  ncycles[2]  = 2
+end
 
 cm          = get_cmap("tab10");
 rgba0       = cm(0) 
