@@ -26,7 +26,7 @@ mksz        = 6
 include("GL_Setup.jl")
 #-------------------------------------------------- 
 
-screen            = 1
+screen      = 2
 
 if screen == 1
   # hp spectre
@@ -46,11 +46,12 @@ close("all")
 
 ifplot      = true
 histplot    = true
+moveaxis    = true
 verbose     = true
 if ifresonant
   nsteps    = 30000000
 else
-  nsteps    = 50000000
+  nsteps    = 30000000
 end  
 
 ifsave      = true
@@ -68,6 +69,9 @@ Tend        = dt*nsteps
 θA          = [0.1; 0.2; 0.3; 0.4; 0.5]
 #θA          = [0.5]
 nθ          = length(θA)
+ncycles     = ones(Int64,nθ)
+ncycles[1]  = 3
+ncycles[2]  = 2
 
 cm          = get_cmap("tab10");
 rgba0       = cm(0) 
@@ -133,7 +137,6 @@ for ik in 1:nθ
   global vlast
 
   θAmp  = θA[ik]
-  t     = Inp.Dtype(0)    # Time
   
   rng   = Xoshiro(1235)
   rnd   = rand(rng,vt,ndof)
@@ -157,73 +160,85 @@ for ik in 1:nθ
   θtmp  = vt(1.00)
   λtmp  = -0.025
 
-  for i in 1:nsteps
-  
-    t = t + dt;
-  
-    # Apply BC
-    SEM1D.SEM_SetBC!(v,Inp.lbc,Inp.rbc)
-    # Non-linear Evolution
-    # OP_RK4!(NGL,v,dt)
+  cycles = ncycles[ik]
+  println("$cycles cycles for ik=$ik")
+  for ic = 1:cycles
 
-    # Testing temporary forcing amplitude change
-    fac  = (1.0 - exp(λtmp*t))
-    θ    = θ*fac
+    t     = Inp.Dtype(0)    # Time
 
-    # Forced Non-linear Evolution
-    # OP2_RK4!(FNGL,v,θ,dt)
-    OP2_RK4!(FNGL,v,θ,dt,vwork,θwork)
+    for i in 1:nsteps
+    
+      t = t + dt;
+    
+      # Apply BC
+      SEM1D.SEM_SetBC!(v,Inp.lbc,Inp.rbc)
+      # Non-linear Evolution
+      # OP_RK4!(NGL,v,dt)
 
-    # Testing temporary forcing amplitude change
-    #OP_RK4!(FΩ,dθ,dt)
-    #θ = θ .- dθ
-    θ    = θ/fac
+      # Testing temporary forcing amplitude change
+      fac  = (1.0 - exp(λtmp*t))
+      θ    = θ*fac
 
-    # Print something  
-    if verbose && mod(i,verbosestep)==0
-      println("Istep=$i, Time=$t, θ=$(abs.(θ))")
-    end
-  
-    if (mod(i,histstep) == 0)
-      j = Int(i/histstep)
-      Hist[j,ik]  = v[hist_i]
-      Time[j]     = t
-    end  
-  
-    # Plot the field  
-    if (ifplot && mod(i,plotstep)==0)
-      if (i>plotstep) 
-        for lo in ax2.get_lines()
-          lo.remove()
-        end  
+      # Forced Non-linear Evolution
+      # OP2_RK4!(FNGL,v,θ,dt)
+      OP2_RK4!(FNGL,v,θ,dt,vwork,θwork)
+
+      # Testing temporary forcing amplitude change
+      #OP_RK4!(FΩ,dθ,dt)
+      #θ = θ .- dθ
+      θ    = θ/fac
+
+      # Print something  
+      if verbose && mod(i,verbosestep)==0
+        println("Istep=$i, Time=$t, θ=$(abs.(θ))")
+      end
+   
+      # Save History
+      if (mod(i,histstep) == 0)
+        j = Int(i/histstep)
+        Hist[j,ik]  = v[hist_i]
+        Time[j]     = t
       end  
-     
-      pv1 = ax2.plot(xg,real.(v),linestyle="-",color=rgba0)
-      pv2 = ax2.plot(xg,imag.(v),linestyle="--",color=rgba0)
-      pv2 = ax2.plot(xg,abs.(v) ,linestyle="-",color=rgba1,linewidth=2)
-  
-      vmax = 1.2*maximum(abs.(v))
-      vmin = -vmax
-      dv   = abs(vmax-vmin)
-      ax2.set_ylim((vmin,vmax))
-      # ax2.set_ylim((-dv,dv))
-      hv.show()    
-    end 
-
-    # History plot
-    if histplot && mod(i,plotstep)==0
-      if (i>plotstep) 
-        for lo in ax3.get_lines()
-          lo.remove()
+    
+      # Plot the field  
+      if (ifplot && mod(i,plotstep)==0)
+        if (i>plotstep) 
+          for lo in ax2.get_lines()
+            lo.remove()
+          end  
         end  
-      end  
-      ax3.plot(Time[1:j],real.(Hist[1:j,ik]),color=cm(ik-1))
-    end
+       
+        pv1 = ax2.plot(xg,real.(v),linestyle="-",color=rgba0)
+        pv2 = ax2.plot(xg,imag.(v),linestyle="--",color=rgba0)
+        pv2 = ax2.plot(xg,abs.(v) ,linestyle="-",color=rgba1,linewidth=2)
+    
+        vmax = 1.2*maximum(abs.(v))
+        vmin = -vmax
+        dv   = abs(vmax-vmin)
+        ax2.set_ylim((vmin,vmax))
+        # ax2.set_ylim((-dv,dv))
+        hv.show()    
 
-  end       # i in 1:nsteps
+        # History plot
+        if histplot
+          if (i>plotstep) 
+            for lo in ax3.get_lines()
+              lo.remove()
+            end  
+          end  
+          ax3.plot(Time[1:j],real.(Hist[1:j,ik]),color=cm(ik-1))
+        end
+
+        if (moveaxis)
+          tmax = Time[j]
+          tmin = max(0.0,tmax-300.0)
+          ax3.set_xlim([tmin,tmax])
+        end  
+      end   # ifplot 
+    end     # i in 1:nsteps
+  end       # ic in 1:cycles    
 
   vlast[:,ik] = copy(v)
-
   if nsteps>0 && histplot
 
     # Remove previous plots
@@ -250,7 +265,6 @@ for ik in 1:nθ
 
     @printf("|θ|: %.2f ; Amax: %.5f ; Ω: %.4e\n", θAmp,Peak_Amp[ik], ω_nonlinear[ik])
   end       # if nsteps>0 && histplot
-
 end         # ik in 1:nθ
 
 # ax3.set_xlim([2900.0,3000.0])
