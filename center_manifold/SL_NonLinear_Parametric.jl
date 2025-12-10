@@ -71,7 +71,7 @@ ax3.set_ylabel(L"Z_{i}",fontsize=Grh.lafs)
 TLast       = Tend - 500.0
 
 if xhist
-  hist_x    = ForcingLocation()           # Location of history point
+  hist_x,tmp= ForcingParams()             # Location of history point
   hist_i    = argmin(abs.(xg .- hist_x))  # Index of history point
 
   Histx     = zeros(vt,nhist,nθ)
