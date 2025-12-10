@@ -117,6 +117,9 @@ function DisplayTerms3(ind::Int,var::String,G1::Matrix{T},G2::Matrix{T},G3::Matr
   str0      = "d"*var*"/dt"
   space     = " "
 
+  @printf("Reduced System:\n")
+  @printf("------------------------------\n")
+
   ord = 1
   nt  = NInteractionTerms(ord,nv)
   for i in 1:nt
