@@ -90,9 +90,11 @@ if plotfield
 end
 
 # Stuart Landau
-G1          = Khat
-G2          = G_O2
-G3          = G_O3
+G1          = copy(Khat) 
+G2          = copy(G_O2)
+G3          = copy(G_O3)
+# G1[1,1]     = G1[1,1] -1.0
+# G1[2,2]     = G1[2,2] -1.0
 SL(x)       = StuartLandau3(G1,G2,G3,x)  
 
 println("Press x to stop. Any other key to continue...")
@@ -112,7 +114,7 @@ for ik in 1:nθ
   z           = zeros(vt,m)
   rng         = Xoshiro(1235)
   # Mode initial values
-  z[1]        = 1.0e-4*rand(rng,vt)
+  z[1]        = 1.0e-1*rand(rng,vt)
   z[2]        = z[1]'
   # Parameter Perturbations
   z[n+1:n+p]  = zeros(vt,p)

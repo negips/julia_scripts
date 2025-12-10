@@ -17,14 +17,8 @@ include("Module_StepperArnoldi/StepperArnoldi.jl")
 #using PyPlot
 
 #---------------------------------------------------------------------- 
-screen = 2
+screen = 1
 Grh    = setgraphics(screen)
-# lafs   = Grh.lafs
-# lgfs   = Grh.lgfs
-# mksz   = Grh.mksz
-# figsz1 = Grh.figsz1
-# figsz2 = Grh.figsz2
-# figsz3 = Grh.figsz3
 
 # Stepper-Arnoldi
 #-------------------------------------------------- 
