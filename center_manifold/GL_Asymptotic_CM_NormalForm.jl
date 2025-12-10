@@ -169,9 +169,7 @@ end
 #----------------------------------------------------------------------
 #---------------------------------------------------------------------- 
 
-figz1   = [10.,7.]
-
-h3      = figure(num=3,figsize=figz1)
+h3      = figure(num=3,figsize=Grh.figsz2)
 ax3     = gca()
 cm2     = get_cmap("tab10")
 plno    = -1
@@ -303,12 +301,12 @@ for i in 1:Nt
   end  
 
 end
-ax3.legend(ncol=3,loc="upper right")
+ax3.legend(ncol=3,loc="upper right",fontsize=Grh.lgfs)
 
 #-------------------------------------------------- 
 
 
-h4    = figure(num=4,figsize=figz1)
+h4    = figure(num=4,figsize=Grh.figsz2)
 ax4   = gca()
 plno  = -1
 
@@ -429,7 +427,7 @@ for i in 1:Nt
 
 end
 
-ax4.legend(ncol=3,loc="upper right")
+ax4.legend(ncol=3,loc="upper right",fontsize=Grh.lgfs)
 
 println("Asymptotic System Done.")
 

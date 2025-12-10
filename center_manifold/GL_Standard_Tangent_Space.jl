@@ -17,7 +17,14 @@ include("Module_StepperArnoldi/StepperArnoldi.jl")
 #using PyPlot
 
 #---------------------------------------------------------------------- 
-
+screen = 2
+Grh    = setgraphics(screen)
+# lafs   = Grh.lafs
+# lgfs   = Grh.lgfs
+# mksz   = Grh.mksz
+# figsz1 = Grh.figsz1
+# figsz2 = Grh.figsz2
+# figsz3 = Grh.figsz3
 
 # Stepper-Arnoldi
 #-------------------------------------------------- 
@@ -48,12 +55,12 @@ if (StpInp.ifadjoint)
   Ω   = conj.(Ω)
 end  
 
-figz1   = [10.,7.]
+#figz1   = [10.,7.]
 
 close("all")
-h1    = figure(num=1,figsize=[8.,6.]);
+h1    = figure(num=1,figsize=Grh.figsz1);
 ax1   = gca()
-pl1   = ax1.plot(imag.(Ω),real.(Ω),linestyle="none",marker="o",markersize=8)
+pl1   = ax1.plot(imag.(Ω),real.(Ω),linestyle="none",marker="o",markersize=1.5*Grh.mksz,markerfacecolor="none",markeredgewidth=3)
 ax1.set_ylim([-2.75,0.5])
 if (StpInp.ifadjoint)
   ax1.set_xlim([-1.80,0.0])
@@ -64,7 +71,7 @@ end
 ArnDir      = StepperArnoldi.StepArn( OPg,Bg,StpInp,ArnInp,Inp.lbc,Inp.rbc)
 ArnAdj      = StepperArnoldi.StepArn(AOPg,Bg,StpInp,ArnInp,Inp.lbc,Inp.rbc)
 
-pl3   = ax1.plot(imag.(ArnDir.evals),real.(ArnDir.evals),linestyle="none",marker="s",markersize=4)
+pl3   = ax1.plot(imag.(ArnDir.evals),real.(ArnDir.evals),linestyle="none",marker="o",markersize=Grh.mksz)
 cm    = get_cmap("tab10")
 
 # Build Center-Manifold matrices
@@ -80,7 +87,7 @@ w2    = conj.(w1)
 λc    = [1.0im; -1.0im;]
 
 # Plot (normalized) Eigenvectors
-h2    = figure(num=2,figsize=figz1)
+h2    = figure(num=2,figsize=Grh.figsz2)
 ax2   = gca()
 for i in 1:ArnInp.nev
   vtmp = ArnDir.evecs[:,i]
@@ -94,6 +101,9 @@ for i in 1:ArnInp.nev
   ax2.plot(xg,real.(wtmp),linewidth=1,linestyle="-", color=cm(i+ArnInp.nev-1),label=L"\mathfrak{R}(χ_{%$i})")
   ax2.plot(xg,imag.(wtmp),linewidth=1,linestyle="--",color=cm(i+ArnInp.nev-1),label=L"\mathfrak{Im}(χ_{%$i})")
 end
+ax2.set_xlabel(L"x",fontsize=Grh.lafs)
+ax2.set_ylabel(L"A",fontsize=Grh.lafs)
+
 
 # ax2.plot(xg,real.(v1),linewidth=2,linestyle="-", color=cm(0),label=L"\mathfrak{R}(ϕ)")
 # ax2.plot(xg,imag.(v1),linewidth=2,linestyle="--",color=cm(0),label=L"\mathfrak{Im}(ϕ)")

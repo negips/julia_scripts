@@ -27,10 +27,10 @@ function Set_GL_Params()
   δ1  = -1.0 + 0.0im            # -U
   # δ2  =  0.741 + 1.025im      #  μ0
   δ3  = -0.125 + 0.0im          #  μx
-  δ4  = (1.0 - 0.20im)/sqrt(2.0)    #  γ
+  δ4  = (1.0 - 1.00im)/sqrt(2.0)    #  γ
   δ5  = (-0.1 + 0.1im)          #  Nonlinear Coefficient 
 
-  ω1  =  0.0 + 1.0im
+  ω1  =  -1.0 + 1.0im
   #δ   = SEM1D.SetGLParams(ω1,δ5)
   δ   = SEM1D.SetGLParams(ω1,δ1,δ3,δ4,δ5)
 
@@ -95,11 +95,12 @@ function renormalize_evecs!(v::AbstractVector{T},w::AbstractVector{T},B::Abstrac
   return nothing
 end  
 #---------------------------------------------------------------------- 
-function ForcingLocation()
+function ForcingParams()
 
   x0 = 5.0
+  κ  = 0.0
 
-  return x0
+  return x0,κ
 end  
 #---------------------------------------------------------------------- 
 function ForcingShape(B::AbstractVector{T},xg::AbstractVector{Float64},x0::Float64,σ::Float64) where {T <: Number}
@@ -163,10 +164,42 @@ function Get_AsymptoticField(z::AbstractVector{T},Y1::AbstractMatrix{T},Y2::Abst
   return fld
 end
 #---------------------------------------------------------------------- 
+struct Graphics
 
+  lafs::Int       # Label Font Size
+  lgfs::Int       # Legend Font Size
+  mksz::Int       # Marker Size
+  figsz1::Vector{Float64}
+  figsz2::Vector{Float64}
+  figsz3::Vector{Float64}
 
+end  
+#---------------------------------------------------------------------- 
+function setgraphics(screen)
 
+  if screen == 1
+    # hp spectre
+    lafs      = 16        # Label font size
+    lgfs      = 12        # Legend font size
+    mksz      = 6
+    figsz1    = [ 8.0, 6.0]
+    figsz2    = [10.0, 7.0]
+    figsz3    = [12.0, 5.0]
+  elseif screen == 2
+    # workstation
+    lafs      = 24        # Label font size
+    lgfs      = 20        # Legend font size
+    mksz      = 12
+    figsz1    = [16.0, 14.0]
+    figsz2    = [20.0, 16.0]
+    figsz3    = [24.0, 12.0]
+  end  
 
+  grh = Graphics(lafs,lgfs,mksz,figsz1,figsz2,figsz3)
+
+  return grh 
+end
+#---------------------------------------------------------------------- 
 
 
 

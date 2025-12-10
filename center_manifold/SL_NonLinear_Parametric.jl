@@ -10,9 +10,9 @@ include("NLGinzburgLandau.jl")
 include("OP_RK4.jl")
 
 
-lafs        = 16
-lgfs        = 12
-mksz        = 6
+# lafs        = 16
+# lgfs        = 12
+# mksz        = 6
 
 # include("GL_Setup.jl")
 #-------------------------------------------------- 
@@ -61,12 +61,12 @@ Peak_Amp    = zeros(Float64,nθ)
 ω_nonlinear = zeros(Float64,nθ)
 Mode_Ind    = [1]                         # Which mode to plot 
 
-figsz       = [12.0, 5.0]
+# figsz       = [12.0, 5.0]
 
-h3          = figure(num=3,figsize=figsz);
+h3          = figure(num=3,figsize=Grh.figsz3);
 ax3         = gca()
-ax3.set_xlabel(L"time",fontsize=lafs)
-ax3.set_ylabel(L"Z_{i}",fontsize=lafs)
+ax3.set_xlabel(L"time",fontsize=Grh.lafs)
+ax3.set_ylabel(L"Z_{i}",fontsize=Grh.lafs)
 
 TLast       = Tend - 500.0
 
@@ -76,17 +76,17 @@ if xhist
 
   Histx     = zeros(vt,nhist,nθ)
 
-  h4        = figure(num=4,figsize=figsz);
+  h4        = figure(num=4,figsize=Grh.figsz3);
   ax4       = gca()
-  ax4.set_xlabel(L"time",fontsize=lafs)
-  ax4.set_ylabel(L"A_{x}",fontsize=lafs)
+  ax4.set_xlabel(L"time",fontsize=Grh.lafs)
+  ax4.set_ylabel(L"A_{x}",fontsize=Grh.lafs)
 end  
 
 if plotfield
-  h5        = figure(num=5,figsize=figsz);
+  h5        = figure(num=5,figsize=Grh.figsz3);
   ax5       = gca()
-  ax5.set_xlabel(L"x",fontsize=lafs)
-  ax5.set_ylabel(L"A",fontsize=lafs)
+  ax5.set_xlabel(L"x",fontsize=Grh.lafs)
+  ax5.set_ylabel(L"A",fontsize=Grh.lafs)
 end
 
 # Stuart Landau
@@ -247,7 +247,7 @@ end         # ik in 1:nθ
 
 # Plot Peaks
 if nsteps>0 && histplot
-  h6          = figure(num=6,figsize=[8.,6.]);
+  h6          = figure(num=6,figsize=Grh.figsz1);
   ax6         = gca()
   last_inds   = Time .> TLast
   Time2       = Time[last_inds]
@@ -264,9 +264,9 @@ if nsteps>0 && histplot
 
     @printf("|θ|: %.2f ; Amax: %.5f ; Ω: %.4e\n", θA[ik],Peak_Amp[ik], ω_nonlinear[ik])
   end
-  ax6.plot(θA,Peak_Amp,linestyle="none",marker="o",markersize=mksz)
-  ax6.set_xlabel(L"|θ|",fontsize=lafs)
-  ax6.set_ylabel(L"A_{x}^{max}",fontsize=lafs)
+  ax6.plot(θA,Peak_Amp,linestyle="none",marker="o",markersize=Grh.mksz)
+  ax6.set_xlabel(L"|θ|",fontsize=Grh.lafs)
+  ax6.set_ylabel(L"A_{x}^{max}",fontsize=Grh.lafs)
 end  
 
 

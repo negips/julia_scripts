@@ -4,7 +4,7 @@
 #---------------------------------------------------------------------- 
 
 ifresonant = false
-modeplot   = true
+emodeplot  = true
 
 Nby2  = ArnInp.vlen
 N     = Nby2*2
@@ -30,11 +30,9 @@ end
 # Forcing Modes
 
 # Forcing Shape
-x0    = ForcingLocation()
-# ψ     = ForcingShape(Bg,xg,x0,1.0)
+x0,κ  = ForcingParams()
 ψ     = zeros(ComplexF64,Nby2)
-wavenumber = 0.0
-SetForcingShape!(ψ,Bg,xg,x0,1.0,wavenumber)
+SetForcingShape!(ψ,Bg,xg,x0,1.0,κ)
 
 ax2.plot(xg,real.(ψ) ,linewidth=2,linestyle="-", color=cm(2),label=L"\mathfrak{R}(ψ)")
 ax2.plot(xg,imag.(ψ) ,linewidth=2,linestyle="--",color=cm(2),label=L"\mathfrak{Im}(ψ)")
@@ -112,7 +110,7 @@ for i in 1:p
   vnorm = sqrt(abs(Vp[:,i]'*(Bg2.*Vp[:,i])))
 
   # Plot Mode
-  if (modeplot) && vnorm > 0.0
+  if (emodeplot) && vnorm > 0.0
     j = n+i
     ax2.plot(xg,real.(vp1),linewidth=2,linestyle="-", color=cm(j-1),label=L"\mathfrak{R}(ϕ_{%$j})")
     ax2.plot(xg,imag.(vp1),linewidth=2,linestyle="--",color=cm(j-1),label=L"\mathfrak{Im}(ϕ_{%$j})")
@@ -151,13 +149,13 @@ for i in 1:h
 
   Res2            = CQ*(ω*I - OPCg)*CQ
   vh2             = copy(r[ind2])
-  gmres!(vh2,Res2,r[ind2])
+  @views gmres!(vh2,Res2,r[ind2])
   Vh[ind2,i]      = copy(vh2)
 
   vnorm = sqrt(abs(Vh[:,i]'*(Bg2.*Vh[:,i])))
 
   # Plot Mode
-  if (modeplot) && imag.(λh[i]) >= 0.0
+  if (emodeplot) && imag.(λh[i]) >= 0.0
     j = n+p+i
     ax2.plot(xg,real.(vh1),linewidth=2,linestyle="-", color=cm(j-1),label=L"\mathfrak{R}(ϕ_{%$j})")
     ax2.plot(xg,imag.(vh1),linewidth=2,linestyle="--",color=cm(j-1),label=L"\mathfrak{Im}(ϕ_{%$j})")
@@ -165,10 +163,10 @@ for i in 1:h
 end  
 
 Vext  = [V  Vp  Vh]
-if (modeplot)
-  ax2.legend(ncols=4)
+if (emodeplot)
+  ax2.legend(ncols=4,fontsize=Grh.lgfs)
 else  
-  ax2.legend(ncols=3)
+  ax2.legend(ncols=3,fontsize=Grh.lgfs)
 end  
 
 

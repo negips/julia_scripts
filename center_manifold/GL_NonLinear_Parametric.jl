@@ -19,28 +19,8 @@ include("NLGinzburgLandau.jl")
 include("OP_RK4.jl")
 
 
-lafs        = 16
-lgfs        = 12
-mksz        = 6
-
 include("GL_Setup.jl")
 #-------------------------------------------------- 
-
-screen      = 1
-
-if screen == 1
-  # hp spectre
-  lafs      = 16        # Label font size
-  lgfs      = 12        # Legend font size
-  figsz1    = [8.0, 5.0]
-  figsz2    = [12.0, 5.0]
-elseif screen == 2
-  # workstation
-  lafs      = 20        # Label font size
-  lgfs      = 16        # Legend font size
-  figsz1    = [16.0, 12.0]
-  figsz2    = [24.0, 12.0]
-end  
 
 close("all")
 
@@ -97,23 +77,23 @@ vwork       = zeros(vt,ndof,5)
 θwork       = zeros(vt,nfreq,5)
 
 if (ifplot)
-  hv  = figure(num=2,figsize=figsz1);
+  hv  = figure(num=2,figsize=Grh.figsz1);
   ax2 = gca()
-  ax2.set_xlabel(L"x",fontsize=lafs)
-  ax2.set_ylabel(L"A",fontsize=lafs)
+  ax2.set_xlabel(L"x",fontsize=Grh.lafs)
+  ax2.set_ylabel(L"A",fontsize=Grh.lafs)
 end
 
 if (histplot)
-  h3  = figure(num=3,figsize=figsz2);
+  h3  = figure(num=3,figsize=Grh.figsz2);
   ax3 = gca()
 end  
 
 NGL(x)= NLGinzburgLandau(OPg,ones(vt,ndof),x,δ[5],zro,zro,Inp.lbc,Inp.rbc)  
 
 # Forcing Shape
-x0    = ForcingLocation()
+x0,κ  = ForcingParams()
 ψ     = zeros(ComplexF64,ndof)
-SetForcingShape!(ψ,Bg,xg,x0,1.0)
+SetForcingShape!(ψ,Bg,xg,x0,1.0,κ)
 F     = zeros(ComplexF64,ndof,nfreq)
 copyto!(F,ψ)
 Ωf    = [λh[1]]
@@ -268,8 +248,8 @@ for ik in 1:nθ
   
     # Plot entire history
     ax3.plot(Time,real.(Hist[:,ik]))
-    ax3.set_xlabel(L"t",fontsize=lafs)
-    ax3.set_ylabel(L"A",fontsize=lafs)
+    ax3.set_xlabel(L"t",fontsize=Grh.lafs)
+    ax3.set_ylabel(L"A",fontsize=Grh.lafs)
  
     # ax3.set_xlim([2900.0,3000.0])
     linds           = Time .> TLast
@@ -292,7 +272,7 @@ end         # ik in 1:nθ
 
 # Plot Peaks
 if nsteps>0 && histplot
-  h4          = figure(num=4,figsize=[8.,6.]);
+  h4          = figure(num=4,figsize=Grh.figsz1);
   ax4         = gca()
   last_inds   = Time .> TLast
   Time2       = Time[last_inds]
@@ -309,7 +289,7 @@ if nsteps>0 && histplot
 
     @printf("|θ|: %.2f ; Amax: %.5f ; Ω: %.4e\n", θA[ik],Peak_Amp[ik], ω_nonlinear[ik])
   end
-  ax4.plot(θA,Peak_Amp,linestyle="none",marker="o",markersize=mksz)
+  ax4.plot(θA,Peak_Amp,linestyle="none",marker="o",markersize=Grh.mksz)
 end  
 
 
