@@ -218,7 +218,7 @@ for j in 1:h
       println("Resonant λh*: $i, $j")
       Zh[j,i] = 0.0
     else
-      Zh[j,i] = Zh[j,i]/(λc[i]' - λh[j]')
+      # Zh[j,i] = Zh[j,i]/(λc[i]' - λh[j]')
     end
   end
   Ih[j,j] = ComplexF64(1)
