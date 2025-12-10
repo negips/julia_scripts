@@ -102,7 +102,7 @@ Vdamp     = zeros(vt,ndof,1)
 Vdamp[:,1]= V[ind1,1]
 Wdamp     = zeros(vt,ndof,1)
 Wdamp[:,1]= W[ind1,1]
-χdamp     = [vt(0.00/dt)]
+χdamp     = [vt(0.01/dt)]
 DFGL(x,y) = DampedFGL(FNGL,Bg,x,y,Vdamp,Wdamp,χdamp)
 
 # For θ evolution
@@ -165,7 +165,7 @@ for ik in 1:nθ
 
       # Testing temporary forcing amplitude change
       if ic==1
-        fac  = 1.0 # (1.0 - exp(λtmp*t))
+        fac  = (1.0 - exp(λtmp*t))
       else
         fac  = 1.0
       end
