@@ -75,6 +75,7 @@ Khat  = [diagm(λc)                  ΓP                      ΓH;
 # Extended Eigenspace
 # Parameter modes
 Vp    = zeros(ComplexF64,N,p)
+Ih    = zeros(ComplexF64,h,h)
 Rp    = zeros(ComplexF64,N,p)
 ind1  = 1:Nby2
 ind2  = Nby2+1:N
@@ -109,21 +110,24 @@ for i in 1:p
 
   vnorm = sqrt(abs(Vp[:,i]'*(Bg2.*Vp[:,i])))
 
+  Ip[i,i] = ComplexF64(1)
+ 
   # Plot Mode
   if (emodeplot) && vnorm > 0.0
     j = n+i
     ax2.plot(xg,real.(vp1),linewidth=2,linestyle="-", color=cm(j-1),label=L"\mathfrak{R}(ϕ_{%$j})")
     ax2.plot(xg,imag.(vp1),linewidth=2,linestyle="--",color=cm(j-1),label=L"\mathfrak{Im}(ϕ_{%$j})")
-  end    
- 
+  end
+
 end  
 
 
 # Forcing Modes
 Vh    = zeros(ComplexF64,N,h)
 Rh    = zeros(ComplexF64,N,h)
-ind1  = 1:Nby2
-ind2  = Nby2+1:N
+Ih    = zeros(ComplexF64,h,h)
+# ind1  = 1:Nby2
+# ind2  = Nby2+1:N
 for i in 1:h
   r  = copy(Lθ[:,i])
   DQ = Matrix{ComplexF64}(I,Nby2,Nby2)
@@ -154,21 +158,77 @@ for i in 1:h
 
   vnorm = sqrt(abs(Vh[:,i]'*(Bg2.*Vh[:,i])))
 
+  Ih[i,i] = ComplexF64(1)
+
   # Plot Mode
   if (emodeplot) && imag.(λh[i]) >= 0.0
     j = n+p+i
     ax2.plot(xg,real.(vh1),linewidth=2,linestyle="-", color=cm(j-1),label=L"\mathfrak{R}(ϕ_{%$j})")
     ax2.plot(xg,imag.(vh1),linewidth=2,linestyle="--",color=cm(j-1),label=L"\mathfrak{Im}(ϕ_{%$j})")
-  end    
+  end
 end  
 
 Vext  = [V  Vp  Vh]
+
+
+ZeroPN = zeros(ComplexF64,p,n)
+ZeroHN = zeros(ComplexF64,h,n)
+ZeroPP = zeros(ComplexF64,p,p)
+ZeroHH = zeros(ComplexF64,h,h)
+ZeroPH = zeros(ComplexF64,p,h)
+ZeroHP = zeros(ComplexF64,h,p)
+
+Vhat  = [V       Vp     Vh;
+         ZeroPN  Ip     ZeroPH;
+         ZeroHN  ZeroHP Ih]
+
 if (emodeplot)
   ax2.legend(ncols=4,fontsize=Grh.lgfs)
 else  
   ax2.legend(ncols=3,fontsize=Grh.lgfs)
 end  
 
+
+# Extended Adjoint Tangent Space
+#-------------------------------------------------- 
+
+# Adjoint Parameter modes
+Wp    = zeros(ComplexF64,N,p)
+Ip    = zeros(ComplexF64,p,p)
+Zp    = (Lν')*W
+for j in 1:p
+  for i in 1:n
+    if abs(λc[i]' - λp[j]') < 1.0e-12
+      println("Resonant λp*: $i, $j")
+      Zp[j,i] = 0.0
+    else
+      Zp[j,i] = Zp[j,i]/(λc[i]' - λp[j]')
+    end
+  end
+  Ip[j,j] = ComplexF64(1)
+end  
+
+# Adjoint Forcing modes
+Wh    = zeros(ComplexF64,N,h)
+Ih    = zeros(ComplexF64,h,h)
+Zh    = (Lθ')*W
+for j in 1:h
+  for i in 1:n
+    if abs(λc[i]' - λh[j]') < 1.0e-12
+      println("Resonant λh*: $i, $j")
+      Zh[j,i] = 0.0
+    else
+      Zh[j,i] = Zh[j,i]/(λc[i]' - λh[j]')
+    end
+  end
+  Ih[j,j] = ComplexF64(1)
+end  
+
+Wext  = [W  Wp  Wh]
+
+What  = [W   Wp     Wh;
+         Zp  Ip     ZeroPH;
+         Zh  ZeroHP Ih]
 
 println("Extended Tangent Space Done.")
 
