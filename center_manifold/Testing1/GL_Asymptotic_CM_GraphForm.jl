@@ -229,15 +229,12 @@ for i in 1:Nt
   DQ  = Matrix{ComplexF64}(I,Nby2,Nby2)
   CQ  = Matrix{ComplexF64}(I,Nby2,Nby2)
   for j in 1:n
-    if abs(Khat[j,j] - ω) < 1.0e-12
-      # println("Resonant ω: $(ω)")
-      β           = W[:,j]'*(Bg2.*h_asymp)
-      G_O2[j,i]   = β
-      
-      h_asymp    .= h_asymp .- β*V[:,j]
-      DQ         .= DQ - V[ind1,j]*(W[ind1,j].*Bg)'
-      CQ         .= CQ - V[ind2,j]*(W[ind2,j].*Bg)'
-    end
+    β           = W[:,j]'*(Bg2.*h_asymp)
+    G_O2[j,i]   = β
+    
+    h_asymp    .= h_asymp .- β*V[:,j]
+    DQ         .= DQ - V[ind1,j]*(W[ind1,j].*Bg)'
+    CQ         .= CQ - V[ind2,j]*(W[ind2,j].*Bg)'
   end  
   @views SEM1D.SEM_SetBC!(h_asymp[ind1],Inp.lbc,Inp.rbc)
   @views SEM1D.SEM_SetBC!(h_asymp[ind2],Inp.lbc,Inp.rbc)
@@ -366,15 +363,12 @@ for i in 1:Nt
   DQ  = Matrix{ComplexF64}(I,Nby2,Nby2)
   CQ  = Matrix{ComplexF64}(I,Nby2,Nby2)
   for j in 1:n
-    if abs(Khat[j,j] - ω) < 1.0e-12
-      # println("Resonant ω: $(ω)")
-      β           = W[:,j]'*(Bg2.*h_asymp)
-      G_O3[j,i]   = β
-      
-      h_asymp    .= h_asymp .- β*V[:,j]
-      DQ         .= DQ - V[ind1,j]*(W[ind1,j].*Bg)'
-      CQ         .= CQ - V[ind2,j]*(W[ind2,j].*Bg)'
-    end
+    β           = W[:,j]'*(Bg2.*h_asymp)
+    G_O3[j,i]   = β
+    
+    h_asymp    .= h_asymp .- β*V[:,j]
+    DQ         .= DQ - V[ind1,j]*(W[ind1,j].*Bg)'
+    CQ         .= CQ - V[ind2,j]*(W[ind2,j].*Bg)'
   end  
   @views SEM1D.SEM_SetBC!(h_asymp[ind1],Inp.lbc,Inp.rbc)
   @views SEM1D.SEM_SetBC!(h_asymp[ind2],Inp.lbc,Inp.rbc)
@@ -429,7 +423,7 @@ end
 
 ax4.legend(ncol=3,loc="upper right",fontsize=Grh.lgfs)
 
-println("Asymptotic System (Normal Form) Done.")
+println("Asymptotic System (Graph Method) Done.")
 
 
 
