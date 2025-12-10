@@ -3,7 +3,8 @@
 # Extending the tangent space
 #---------------------------------------------------------------------- 
 
-ifresonant = true
+ifresonant = false
+modeplot   = true
 
 Nby2  = ArnInp.vlen
 N     = Nby2*2
@@ -32,7 +33,8 @@ end
 x0    = ForcingLocation()
 # ψ     = ForcingShape(Bg,xg,x0,1.0)
 ψ     = zeros(ComplexF64,Nby2)
-SetForcingShape!(ψ,Bg,xg,x0,1.0)
+wavenumber = 0.0
+SetForcingShape!(ψ,Bg,xg,x0,1.0,wavenumber)
 
 ax2.plot(xg,real.(ψ) ,linewidth=2,linestyle="-", color=cm(2),label=L"\mathfrak{R}(ψ)")
 ax2.plot(xg,imag.(ψ) ,linewidth=2,linestyle="--",color=cm(2),label=L"\mathfrak{Im}(ψ)")
@@ -44,14 +46,17 @@ f2    = [ψ;  vzro]
 f3    = [vzro;ψ]
 f4    = [ψ;  vzro]
 f5    = [vzro;ψ]
+f6    = [ψ; conj.(ψ)]
+f7    = [conj.(ψ); ψ]
 # Lθ    = [f1 f2 f3 f4 f5]
 Lθ    = [f2 f3]
+#Lθ    = [f6 f7]
 #λh    = zeros(ComplexF64,h)
 #λh    = [0.0im; im; -im; 2.3im; -2.3im]
 if ifresonant
   λh    = [1.0im; -1.0im;]
 else
-  λh    = [1.3im; -1.3im;]
+  λh    = [2.3im; -2.3im;]
 #  λh    = [0.7im; -0.7im;]
 end
 
@@ -105,6 +110,14 @@ for i in 1:p
   Vp[ind2,i]      = copy(vp2)
 
   vnorm = sqrt(abs(Vp[:,i]'*(Bg2.*Vp[:,i])))
+
+  # Plot Mode
+  if (modeplot) && vnorm > 0.0
+    j = n+i
+    ax2.plot(xg,real.(vp1),linewidth=2,linestyle="-", color=cm(j-1),label=L"\mathfrak{R}(ϕ_{%$j})")
+    ax2.plot(xg,imag.(vp1),linewidth=2,linestyle="--",color=cm(j-1),label=L"\mathfrak{Im}(ϕ_{%$j})")
+  end    
+ 
 end  
 
 
@@ -142,10 +155,21 @@ for i in 1:h
   Vh[ind2,i]      = copy(vh2)
 
   vnorm = sqrt(abs(Vh[:,i]'*(Bg2.*Vh[:,i])))
+
+  # Plot Mode
+  if (modeplot) && imag.(λh[i]) >= 0.0
+    j = n+p+i
+    ax2.plot(xg,real.(vh1),linewidth=2,linestyle="-", color=cm(j-1),label=L"\mathfrak{R}(ϕ_{%$j})")
+    ax2.plot(xg,imag.(vh1),linewidth=2,linestyle="--",color=cm(j-1),label=L"\mathfrak{Im}(ϕ_{%$j})")
+  end    
 end  
 
 Vext  = [V  Vp  Vh]
-ax2.legend(ncols=3)
+if (modeplot)
+  ax2.legend(ncols=4)
+else  
+  ax2.legend(ncols=3)
+end  
 
 
 println("Extended Tangent Space Done.")

@@ -27,7 +27,7 @@ function Set_GL_Params()
   δ1  = -1.0 + 0.0im            # -U
   # δ2  =  0.741 + 1.025im      #  μ0
   δ3  = -0.125 + 0.0im          #  μx
-  δ4  = (1.0 - 1.0im)/sqrt(2.0)    #  γ
+  δ4  = (1.0 - 0.20im)/sqrt(2.0)    #  γ
   δ5  = (-0.1 + 0.1im)          #  Nonlinear Coefficient 
 
   ω1  =  0.0 + 1.0im
@@ -112,11 +112,12 @@ function ForcingShape(B::AbstractVector{T},xg::AbstractVector{Float64},x0::Float
   return ψ
 end
 #---------------------------------------------------------------------- 
-function SetForcingShape!(ψ::AbstractVector{T},B::AbstractVector{S},xg::AbstractVector{Float64},x0::Float64,σ::Float64) where {T,S <: Number}
+function SetForcingShape!(ψ::AbstractVector{T},B::AbstractVector{S},xg::AbstractVector{Float64},x0::Float64,σ::Float64,κ::Float64) where {T,S <: Number}
 
   # Forcing Shape
   for i in LinearIndices(ψ)
-    ψ[i] = exp(-((xg[i] - x0)/σ)^2)
+    xi   = xg[i]
+    ψ[i] = exp(-((xi - x0)/σ)^2)*(exp(im*κ*(xi - x0)))
   end  
   ψn    = sqrt(ψ'*(Bg.*ψ))
   ψ    .= ψ./ψn

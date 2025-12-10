@@ -52,6 +52,24 @@ function ForcedNLGinzburgLandau(L::AbstractMatrix{T},B,v::AbstractVector{T},F::A
 end  
 #---------------------------------------------------------------------- 
 @doc """
+      DampedFGL(OPg,B,v::AbstractVector{T},V::AbstractMatrix{T},W::AbstractMatrix{T},χ::AbstractVector{T})
+
+      Calculate Damped, Fully Non-linear, harmonically forced time derivative operator (with mass matrix).
+
+"""
+function DampedFGL(FGL,B::AbstractVector{S},v::AbstractVector{T},θ::AbstractVector{T},V::AbstractMatrix{T},W::AbstractMatrix{T},χ::AbstractVector{T}) where {T,S <: Number}
+
+   dv,dθ = FGL(v,θ)
+
+   # Projections
+   α     = W'*(B.*v)
+   dv   .= dv .- V*(α.*χ)
+
+   return dv, dθ
+end  
+#---------------------------------------------------------------------- 
+
+@doc """
       StuartLandau1(G1::AbstractMatrix{T},v::AbstractVector{T}) where {T <: Number}
 
       Calculate the time derivative of the (first-order) Stuart-Landau equations.

@@ -34,7 +34,7 @@ if ifresonant
 else
   nsteps    = 3000000
 end
-ifsave      = true
+ifsave      = false
 plotstep    = 20000
 verbosestep = 10000
 histstep    = 100
@@ -61,7 +61,7 @@ Peak_Amp    = zeros(Float64,nθ)
 ω_nonlinear = zeros(Float64,nθ)
 Mode_Ind    = [1]                         # Which mode to plot 
 
-figsz        = [12.0, 5.0]
+figsz       = [12.0, 5.0]
 
 h3          = figure(num=3,figsize=figsz);
 ax3         = gca()
@@ -112,7 +112,7 @@ for ik in 1:nθ
   z           = zeros(vt,m)
   rng         = Xoshiro(1235)
   # Mode initial values
-  z[1]        = 1.0e-5*rand(rng,vt)
+  z[1]        = 1.0e-4*rand(rng,vt)
   z[2]        = z[1]'
   # Parameter Perturbations
   z[n+1:n+p]  = zeros(vt,p)

@@ -26,13 +26,13 @@ mksz        = 6
 include("GL_Setup.jl")
 #-------------------------------------------------- 
 
-screen      = 2
+screen      = 1
 
 if screen == 1
   # hp spectre
   lafs      = 16        # Label font size
   lgfs      = 12        # Legend font size
-  figsz1    = [6.0, 5.0]
+  figsz1    = [8.0, 5.0]
   figsz2    = [12.0, 5.0]
 elseif screen == 2
   # workstation
@@ -55,8 +55,8 @@ else
 end  
 
 ifsave      = true
-plotstep    = 20000
-verbosestep = 20000
+plotstep    = 10000
+verbosestep = 10000
 histstep    = 1000
 nhist       = Int(nsteps/histstep)
 hist_x      = ForcingLocation()           # Location of history point
@@ -118,6 +118,12 @@ F     = zeros(ComplexF64,ndof,nfreq)
 copyto!(F,ψ)
 Ωf    = [λh[1]]
 FNGL(x,y) = ForcedNLGinzburgLandau(OPg,ones(vt,ndof),x,F,y,δ[5],Ωf,zro,zro,Inp.lbc,Inp.rbc)
+Vdamp     = zeros(vt,ndof,1)
+Vdamp[:,1]= V[ind1,1]
+Wdamp     = zeros(vt,ndof,1)
+Wdamp[:,1]= W[ind1,1]
+χdamp     = [vt(0.00/dt)]
+DFGL(x,y) = DampedFGL(FNGL,Bg,x,y,Vdamp,Wdamp,χdamp)
 
 # For θ evolution
 ΩM        = zeros(vt,1,1)
@@ -143,19 +149,19 @@ for ik in 1:nθ
   rng   = Xoshiro(1235)
   rnd   = rand(rng,vt,ndof)
   z     = zeros(vt,6)
-  z[1]  = 1.0e-5*vt(1)
+  z[1]  = 0.0e-1*vt(1)
   z[2]  = z[1]'
   z[5]  = θAmp*vt(1)
   z[6]  = z[5]'
   fld   = Get_AsymptoticField(z,Vext,Y_O2,Y_O3)
 
   v     = zeros(vt,ndof)
-  # v     = fld[1:ndof]
+  #v     = fld[1:ndof]
 
   #v    .= v .+ 1.0e-5*rnd
   #v    .= v .+ 0.1*exp.(-(xg.-5.75).^2)
   #v    .= v .+ conj.(v)
-  θ     = zeros(vt,nfreq)
+  global θ     = zeros(vt,nfreq)
   θ[1]  = θAmp*(1.0 + 0.0im)
 
   # Testing temporary forcing amplitude change
@@ -187,16 +193,24 @@ for ik in 1:nθ
 
       # Forced Non-linear Evolution
       # OP2_RK4!(FNGL,v,θ,dt)
-      OP2_RK4!(FNGL,v,θ,dt,vwork,θwork)
+      # OP2_RK4!(FNGL,v,θ,dt,vwork,θwork)
+      if (ik<2 && ic==1)
+        OP2_RK4!(DFGL,v,θ,dt,vwork,θwork)
+      else
+        OP2_RK4!(FNGL,v,θ,dt,vwork,θwork)
+      end  
+
 
       # Testing temporary forcing amplitude change
       #OP_RK4!(FΩ,dθ,dt)
       #θ = θ .- dθ
       θ    = θ/fac
 
+      χd   = abs.(Wdamp'*(Bg.*v))[1]
+
       # Print something  
       if verbose && mod(i,verbosestep)==0
-        println("ik=$ik, ic=$ic, Istep=$i, Time=$t, θ=$(abs.(θ))")
+        println("ik=$ik/$nθ, ic=$ic/$cycles, Istep=$i, Time=$t, θ=$(abs.(θ)[1]), χd=$(χd)")
       end
    
       # Save History
@@ -301,9 +315,9 @@ end
 
 if (ifsave && nsteps>0)
   if ifresonant
-    fname = "GL_resonant_Parametric2.jld2"
+    fname = "GL_resonant_Parametric3.jld2"
   else
-    fname = "GL_nonresonant_Parametric2.jld2"
+    fname = "GL_nonresonant_Parametric3.jld2"
   end  
   save(fname,"xg",xg,"vlast",vlast,"Vext",Vext,"Y_O2",Y_O2,"Y_O3",Y_O3,"Khat",Khat,"G_O2",G_O2,"G_O3",G_O3,"δ",δ,"Time",Time,"θA",θA,"Peak_Amp",Peak_Amp,"Hist",Hist,"ω_nonlinear",ω_nonlinear);
   println(fname*" saved.")

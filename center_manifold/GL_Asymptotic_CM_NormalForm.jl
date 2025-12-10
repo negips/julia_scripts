@@ -50,6 +50,9 @@ function GLStdAsympNLTerm(n0::Int,Ord0::Int,Nc::Int,MV1::AbstractMatrix{T},MV2::
     end           # i
   end             # if (Ord1 + Ord2 + Ord3 == Ord0) && Ord0>=3
 
+  # println(ind0)
+  # println(norm(h))
+
   return h
 end
 #---------------------------------------------------------------------- 
@@ -166,12 +169,14 @@ end
 #----------------------------------------------------------------------
 #---------------------------------------------------------------------- 
 
+figz1   = [10.,7.]
 
-h3    = figure(num=3,figsize=[12.,9.])
-ax3   = gca()
-cm2   = get_cmap("tab20c")
-plno  = -1
+h3      = figure(num=3,figsize=figz1)
+ax3     = gca()
+cm2     = get_cmap("tab10")
+plno    = -1
 verbose = false
+plforc  = true
 
 
 # Second Order Asymptotic terms
@@ -255,10 +260,24 @@ for i in 1:Nt
       ijk = ijk*",$(ind[k]+1)"
     end
     ijk = ijk*"}"
-    leg = L"\mathfrak{R}(y%$ijk)"
-    ax3.plot(xg,real.(y_asymp),linewidth=2,linestyle="-", color=cm2(plno),label=leg)
-    leg = L"\mathfrak{Im}(y%$ijk)"
-    ax3.plot(xg,imag.(y_asymp),linewidth=2,linestyle="--",color=cm2(plno),label=leg)
+    # leg = L"\mathfrak{R}(y%$ijk)"
+    # ax3.plot(xg,real.(y_asymp),linewidth=2,linestyle="-", color=cm2(plno),label=leg)
+    # leg = L"\mathfrak{Im}(y%$ijk)"
+    # ax3.plot(xg,imag.(y_asymp),linewidth=2,linestyle="--",color=cm2(plno),label=leg)
+
+    leg = L"|y%$ijk|"
+    ax3.plot(xg,abs.(y_asymp),linewidth=2,linestyle="-", color=cm2(plno),label=leg)
+
+    # leg = L"|h%$ijk|"
+    # ax3.plot(xg,abs.(h_asymp[ind1]),linewidth=1,linestyle="--", color=cm2(plno),label=leg)
+
+    # leg = L"|hNL%$ijk|"
+    # ax3.plot(xg,abs.(h_NL[ind1]),linewidth=1,linestyle="-.", color=cm2(plno),label=leg)
+    # println("|NL1|: $(norm(h_NL[ind1]))")
+
+    # leg = L"|hLap%$ijk|"
+    # ax3.plot(xg,abs.(h_lapl[ind1]),linewidth=1,linestyle="-.", color=cm2(plno),label=leg)
+  
   end  
 
   Res2            = CQ*(ω*I - OPCg)*CQ
@@ -274,18 +293,24 @@ for i in 1:Nt
       ijk = ijk*",$(ind[k]+1)"
     end
     ijk = ijk*"}"
-    leg = L"\mathfrak{R}(y%$ijk*)"
-    ax3.plot(xg,real.(y_asymp),linewidth=2,linestyle="-", color=cm2(plno),label=leg)
-    leg = L"\mathfrak{Im}(y%$ijk*)"
-    ax3.plot(xg,imag.(y_asymp),linewidth=2,linestyle="--",color=cm2(plno),label=leg)
+    # leg = L"\mathfrak{R}(y%$ijk*)"
+    # ax3.plot(xg,real.(y_asymp),linewidth=2,linestyle="-", color=cm2(plno),label=leg)
+    # leg = L"\mathfrak{Im}(y%$ijk*)"
+    # ax3.plot(xg,imag.(y_asymp),linewidth=2,linestyle="--",color=cm2(plno),label=leg)
+
+    # leg = L"|y%$ijk*|"
+    # ax3.plot(xg,abs.(y_asymp),linewidth=2,linestyle="--",color=cm2(plno),label=leg)
   end  
 
 end
+ax3.legend(ncol=3,loc="upper right")
+
+#-------------------------------------------------- 
 
 
-
-
-
+h4    = figure(num=4,figsize=figz1)
+ax4   = gca()
+plno  = -1
 
 # Third Order Asymptotic terms
 #-------------------------------------------------- 
@@ -371,10 +396,13 @@ for i in 1:Nt
       ijk = ijk*",$(ind[k]+1)"
     end
     ijk = ijk*"}"
-    leg = L"\mathfrak{R}(y%$ijk)"
-    ax3.plot(xg,real.(y_asymp),linewidth=2,linestyle="-", color=cm2(plno),label=leg)
-    leg = L"\mathfrak{Im}(y%$ijk)"
-    ax3.plot(xg,imag.(y_asymp),linewidth=2,linestyle="--",color=cm2(plno),label=leg)
+    # leg = L"\mathfrak{R}(y%$ijk)"
+    # ax4.plot(xg,real.(y_asymp),linewidth=2,linestyle="-", color=cm2(plno),label=leg)
+    # leg = L"\mathfrak{Im}(y%$ijk)"
+    # ax4.plot(xg,imag.(y_asymp),linewidth=2,linestyle="--",color=cm2(plno),label=leg)
+    
+    leg = L"|y%$ijk|"
+    ax4.plot(xg,abs.(y_asymp),linewidth=2,linestyle="-", color=cm2(plno),label=leg)
   end  
 
   Res2            = CQ*(ω*I - OPCg)*CQ
@@ -390,15 +418,18 @@ for i in 1:Nt
       ijk = ijk*",$(ind[k]+1)"
     end
     ijk = ijk*"}"
-    leg = L"\mathfrak{R}(y%$ijk*)"
-    ax3.plot(xg,real.(y_asymp),linewidth=2,linestyle="-", color=cm2(plno),label=leg)
-    leg = L"\mathfrak{Im}(y%$ijk*)"
-    ax3.plot(xg,imag.(y_asymp),linewidth=2,linestyle="--",color=cm2(plno),label=leg)
+    # leg = L"\mathfrak{R}(y%$ijk*)"
+    # ax4.plot(xg,real.(y_asymp),linewidth=2,linestyle="-", color=cm2(plno),label=leg)
+    # leg = L"\mathfrak{Im}(y%$ijk*)"
+    # ax4.plot(xg,imag.(y_asymp),linewidth=2,linestyle="--",color=cm2(plno),label=leg)
+
+    # leg = L"|y%$ijk*|"
+    # ax4.plot(xg,abs.(y_asymp),linewidth=2,linestyle="--",color=cm2(plno),label=leg)
   end  
 
 end
 
-ax3.legend(ncol=3,loc="upper right")
+ax4.legend(ncol=3,loc="upper right")
 
 println("Asymptotic System Done.")
 

@@ -48,6 +48,8 @@ if (StpInp.ifadjoint)
   Ω   = conj.(Ω)
 end  
 
+figz1   = [10.,7.]
+
 close("all")
 h1    = figure(num=1,figsize=[8.,6.]);
 ax1   = gca()
@@ -78,7 +80,7 @@ w2    = conj.(w1)
 λc    = [1.0im; -1.0im;]
 
 # Plot (normalized) Eigenvectors
-h2    = figure(num=2,figsize=[12.,9.])
+h2    = figure(num=2,figsize=figz1)
 ax2   = gca()
 for i in 1:ArnInp.nev
   vtmp = ArnDir.evecs[:,i]
