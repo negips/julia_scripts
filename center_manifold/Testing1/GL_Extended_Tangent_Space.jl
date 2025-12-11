@@ -19,6 +19,7 @@ Bg2   = [Bg; Bg]
 Lν    = zeros(ComplexF64,N,p)
 ΓP    = zeros(ComplexF64,n,p)
 λp    = zeros(ComplexF64,p)
+Λp    = diagm(λp)
 for i in 1:p
   for j in 1:n
     if abs(λc[j] - λp[i]) < 1.0e-12
@@ -51,12 +52,15 @@ Lθ    = [f2 f3]
 #Lθ    = [f6 f7]
 #λh    = zeros(ComplexF64,h)
 #λh    = [0.0im; im; -im; 2.3im; -2.3im]
+#Lθ[:,1] = copy(f2)
 if ifresonant
   λh    = [1.0im; -1.0im;]
 else
   λh    = [2.3im; -2.3im;]
 #  λh    = [0.7im; -0.7im;]
+#  λh    = [2.3im]
 end
+Λh    = diagm(λh)
 
 ΓH    = zeros(ComplexF64,n,h)
 for i in 1:h
@@ -75,7 +79,7 @@ Khat  = [diagm(λc)                  ΓP                      ΓH;
 # Extended Eigenspace
 # Parameter modes
 Vp    = zeros(ComplexF64,N,p)
-Ih    = zeros(ComplexF64,h,h)
+Ip    = zeros(ComplexF64,p,p)
 Rp    = zeros(ComplexF64,N,p)
 ind1  = 1:Nby2
 ind2  = Nby2+1:N
@@ -132,9 +136,11 @@ for i in 1:h
   r  = copy(Lθ[:,i])
   DQ = Matrix{ComplexF64}(I,Nby2,Nby2)
   CQ = Matrix{ComplexF64}(I,Nby2,Nby2)
+  resonance = false
   for j in 1:n
     if abs(λc[j] - λh[i]) < 1.0e-12
       println("Resonant λh: $i, $j")
+      resonance = true
       r  .= r .- V[:,j]*ΓH[j,i]
       DQ .= DQ - V[ind1,j]*(W[ind1,j].*Bg)'
       CQ .= CQ - V[ind2,j]*(W[ind2,j].*Bg)'
@@ -146,12 +152,21 @@ for i in 1:h
   @views SEM1D.SEM_SetBC!(r[ind2],Inp.lbc,Inp.rbc)
  
   ω               = λh[i]
-  Res1            = DQ*(ω*I - OPg)*DQ
+  if (resonance)
+    Res1          = DQ*(ω*I - OPg)*DQ
+  else
+    Res1          = (ω*I - OPg)
+  end  
   vh1             = copy(r[ind1])
   @views gmres!(vh1,Res1,r[ind1])
   Vh[ind1,i]      = copy(vh1)
 
-  Res2            = CQ*(ω*I - OPCg)*CQ
+  if (resonance)
+    Res2          = CQ*(ω*I - OPCg)*CQ
+  else
+    Res2          = (ω*I - OPCg)
+  end  
+  # Res2            = CQ*(ω*I - OPCg)*CQ
   vh2             = copy(r[ind2])
   @views gmres!(vh2,Res2,r[ind2])
   Vh[ind2,i]      = copy(vh2)
@@ -195,7 +210,7 @@ end
 # Adjoint Parameter modes
 Wp    = zeros(ComplexF64,N,p)
 Ip    = zeros(ComplexF64,p,p)
-Zp    = (Lν')*W
+Zp    = Lν'*W
 for j in 1:p
   for i in 1:n
     if abs(λc[i]' - λp[j]') < 1.0e-12
@@ -211,14 +226,14 @@ end
 # Adjoint Forcing modes
 Wh    = zeros(ComplexF64,N,h)
 Ih    = zeros(ComplexF64,h,h)
-Zh    = (Lθ')*W
+Zh    = Lθ'W
 for j in 1:h
   for i in 1:n
     if abs(λc[i]' - λh[j]') < 1.0e-12
       println("Resonant λh*: $i, $j")
       Zh[j,i] = 0.0
     else
-      # Zh[j,i] = Zh[j,i]/(λc[i]' - λh[j]')
+      Zh[j,i] = Zh[j,i]/(λc[i]' - λh[j]')
     end
   end
   Ih[j,j] = ComplexF64(1)
@@ -229,6 +244,22 @@ Wext  = [W  Wp  Wh]
 What  = [W   Wp     Wh;
          Zp  Ip     ZeroPH;
          Zh  ZeroHP Ih]
+
+ZeroPN      = zeros(ComplexF64,p,ndof*2)
+ZeroHN      = zeros(ComplexF64,h,ndof*2)
+ZeroNN      = zeros(ComplexF64,ndof,ndof)
+
+OPg2        = [OPg      ZeroNN;
+               ZeroNN   OPCg]
+
+Lhat        = [OPg2     Lν          Lθ;
+               ZeroPN   Λp          ZeroPH;
+               ZeroHN   ZeroHP      Λh]
+
+
+Bghat = [Bg2; ones(ComplexF64,p); ones(ComplexF64,h)]
+
+BiOrtho = What'*(diagm(Bghat)*Vhat)
 
 println("Extended Tangent Space Done.")
 
