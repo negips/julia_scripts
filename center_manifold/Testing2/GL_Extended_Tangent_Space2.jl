@@ -88,7 +88,7 @@ Rp    = zeros(ComplexF64,N,p)
 ind1  = 1:Nby2
 ind2  = Nby2+1:N
 for i in 1:p
-  r  = Bg2M*copy(Lν[:,i])
+  r  = copy(Lν[:,i])
   DQ = Matrix{ComplexF64}(I,Nby2,Nby2)
   CQ = Matrix{ComplexF64}(I,Nby2,Nby2)
   for j in 1:n
@@ -100,6 +100,7 @@ for i in 1:p
     end
   end  
   Rp[:,i]         = copy(r)
+  r               = Bg2.*r
   
   @views SEM1D.SEM_SetBC!(r[ind1],Inp.lbc,Inp.rbc)
   @views SEM1D.SEM_SetBC!(r[ind2],Inp.lbc,Inp.rbc)
@@ -137,7 +138,7 @@ Ih    = zeros(ComplexF64,h,h)
 # ind1  = 1:Nby2
 # ind2  = Nby2+1:N
 for i in 1:h
-  r  = Bg2M*copy(Lθ[:,i])
+  r  = copy(Lθ[:,i])
   DQ = Matrix{ComplexF64}(I,Nby2,Nby2)
   CQ = Matrix{ComplexF64}(I,Nby2,Nby2)
   resonance = false
@@ -151,6 +152,7 @@ for i in 1:h
     end
   end  
   Rh[:,i]         = copy(r)
+  r               = Bg2.*r
  
   @views SEM1D.SEM_SetBC!(r[ind1],Inp.lbc,Inp.rbc)
   @views SEM1D.SEM_SetBC!(r[ind2],Inp.lbc,Inp.rbc)
@@ -280,15 +282,17 @@ EStpInp           = StepperArnoldi.StepperInput(ifadjoint,ifoptimal,ifverbose,ve
 
 ifarnoldi         = true 
 ifverbose         = false
+ifeigshift        = false
 vlen              = ndof+1
 nev               = 2
 ekryl             = 15  
 lkryl             = nev + ekryl 
+eigshift          = λh[1]
 ngs               = 2
 bsize             = 1
 outer_iterations  = 100
 tol               = 1.0e-12
-EArnInp           = StepperArnoldi.ArnoldiInput(ifarnoldi,ifverbose,vlen,nev,ekryl,lkryl,ngs,bsize,outer_iterations,tol)
+EArnInp           = StepperArnoldi.ArnoldiInput(ifarnoldi,ifverbose,ifeigshift,vlen,nev,ekryl,lkryl,eigshift,ngs,bsize,outer_iterations,tol)
 
 # Direct
 EOPg                 = spzeros(ComplexF64,EArnInp.vlen,EArnInp.vlen)
@@ -303,6 +307,7 @@ EAOPg                = spzeros(ComplexF64,EArnInp.vlen,EArnInp.vlen)
 EAOPg[1:ndof,1:ndof] = AOPg
 EAOPg[ndof+1,1:ndof] = (Bg.*ψ)'
 EAOPg[ndof+1,ndof+1] = λh[1]'
+EArnInp.eigshift     = λh[1]'
 EArnAdj              = StepperArnoldi.StepArn( EAOPg,EBg,EStpInp,EArnInp,Inp.lbc,Inp.rbc)
 
 ind7        = argmin(abs.(EArnDir.evals .- λh[1]))

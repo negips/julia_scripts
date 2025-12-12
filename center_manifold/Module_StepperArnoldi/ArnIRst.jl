@@ -1,5 +1,5 @@
 # Arnoldi Implicit restart
-function ArnIRst(V::Matrix,Hes::Matrix,b::Int,B::Union{Vector,Matrix},k::Int,kmax::Int,Nev::Int,ngs::Int)
+function ArnIRst(V::Matrix,Hes::Matrix,b::Int,B::Union{Vector,Matrix},k::Int,kmax::Int,Nev::Int,Ω::T,ngs::Int) where {T<:Number}
 
 #   V         - Krylov Vector
 #   H         - Upper Hessenberg
@@ -10,6 +10,7 @@ function ArnIRst(V::Matrix,Hes::Matrix,b::Int,B::Union{Vector,Matrix},k::Int,kma
 #   kmax      - Maximum Krylov size
 #   r         - Old/New residual vector for Arnoldi iteration
 #   Nev       - Eigenvalues to retain
+#   Ω         - Eigenvalue Shifts
 #   ngs       - No of Gram-Schmidt
 
     revFrancis = false 
@@ -43,8 +44,9 @@ function ArnIRst(V::Matrix,Hes::Matrix,b::Int,B::Union{Vector,Matrix},k::Int,kma
           @printf "Banded Implicit QR not implemented yet."
         end  
 
-#        μ,nμ  = ArnGetCustomShifts(H,Nev)
-        μ,nμ  = ArnGetUpperShifts(H,Nev)
+        # μ,nμ  = ArnGetCustomShifts(H,Nev)
+        # μ,nμ  = ArnGetUpperShifts(H,Nev)
+        μ,nμ  = ArnGetUpperShifts2(H,Nev,Ω)
 
         Hs,Q  = RevFrancisSeq(H,μ,nμ)     
         v     = V[:,1:kk]*Q[:,Nev+1]        # Part of new residual vector
@@ -60,16 +62,17 @@ function ArnIRst(V::Matrix,Hes::Matrix,b::Int,B::Union{Vector,Matrix},k::Int,kma
 
         r     = βk*v .+ σ*r1                # new residual vector
         if ndims(B)>1
-          β     = abs(sqrt(r'*(B*r)))
+          β   = abs(sqrt(r'*(B*r)))
         else
-          β     = abs(sqrt(r'*(B.*r)))
+          β   = abs(sqrt(r'*(B.*r)))
         end  
 
         r     = r/β
 
       else
 
-        μ,nμ  = ArnGetLowerShifts(H,EKryl)
+        # μ,nμ  = ArnGetLowerShifts(H,EKryl)
+        μ,nμ  = ArnGetLowerShifts2(H,EKryl,Ω)
 
         Hs,Q  = ExplicitShiftedQR(H,μ,nμ,ngs)
 #        Hs,Q  = FrancisSeq(H,b,μ,nμ)
@@ -245,6 +248,18 @@ function ArnGetUpperShifts(H::Matrix,Nev::Int)
 end
 
 #----------------------------------------------------------------------
+function ArnGetUpperShifts2(H::Matrix,Nev::Int,Ω::T) where {T<:Number}
+
+      r,c         = size(H)
+      f           = eigvals(H)                  # Uses Lapack routine (dgeev/zgeev)
+      f2          = abs.(f .- Ω)
+      sort_i      = sortperm(f2,rev=true)       # Decreasing order
+      μ           = f[sort_i[1:Nev]]
+      nμ          = length(μ)
+
+      return μ,nμ
+end
+#----------------------------------------------------------------------
 function ArnGetLowerShifts(H::Matrix,EKryl::Int)
 
       r,c = size(H)
@@ -260,7 +275,18 @@ function ArnGetLowerShifts(H::Matrix,EKryl::Int)
 
       return μ,nμ
 end
+#----------------------------------------------------------------------
+function ArnGetLowerShifts2(H::Matrix,EKryl::Int,Ω::T) where {T<:Number}
 
+      r,c         = size(H)
+      f           = eigvals(H)                  # Uses Lapack routine (dgeev/zgeev)
+      f2          = abs.(f .- Ω)
+      sort_i      = sortperm(f2,rev=false)      # Increasing order
+      μ           = f[sort_i[1:EKryl]]
+      nμ          = length(μ)
+
+      return μ,nμ
+end
 #----------------------------------------------------------------------
 
 function ArnGetCustomShifts(H::Matrix,Nev::Int)

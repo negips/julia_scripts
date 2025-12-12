@@ -1,7 +1,7 @@
 #     Add Definition of new structures here
 #---------------------------------------------------------------------- 
 """
-      struct StepperInput
+      mutable struct StepperInput
 
       Has fields:
 
@@ -14,7 +14,7 @@
 
 
 """
-struct StepperInput <: AbstractStepperParams
+mutable struct StepperInput <: AbstractStepperParams
 
       ifadjoint::Bool
       ifoptimal::Bool
@@ -26,7 +26,7 @@ struct StepperInput <: AbstractStepperParams
 end
 #----------------------------------------------------------------------       
 """
-      struct ArnoldiInput
+      mutable struct ArnoldiInput
 
       Has fields:
 
@@ -36,6 +36,7 @@ end
       nev               - Number of eigenvalues to calculate
       ekryl             - Additional size of Krylov space
       lkryl             - Total Size of Krylov space    
+      eigshift          - Shift origin of eigenvalues
       ngs               - Number of Gram-Schmidt
       bsize             - Block Size
       outer_iterations  - Maximum no of outer loop iterations
@@ -43,18 +44,20 @@ end
 
 
 """
-struct ArnoldiInput{T} <: AbstractStepperParams
+mutable struct ArnoldiInput <: AbstractStepperParams
 
       ifarnoldi::Bool 
       ifverbose::Bool
+      ifeigshift::Bool
       vlen::Int
       nev::Int         
       ekryl::Int       
-      lkryl::Int       
+      lkryl::Int 
+      eigshift::S where S<:Number
       ngs::Int
       bsize::Int
       outer_iterations::Int
-      tol::T
+      tol::Float64
 
 end
 #----------------------------------------------------------------------       
@@ -67,7 +70,6 @@ end
       evecs             - Eigenvectors
       ifconv            - Convergence flag
       tol               - Convergence Tolerance 
-
 
 """
 struct ArnoldiOutput{T}

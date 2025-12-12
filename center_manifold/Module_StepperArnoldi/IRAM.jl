@@ -1,4 +1,4 @@
-function IRAM!(Vin::Matrix,Hes::Matrix,B::Union{Vector,Matrix},v::Vector,k::Int,kmax::Int,Mi::Int,Nev,ngs::Int)
+function IRAM!(Vin::Matrix,Hes::Matrix,B::Union{Vector,Matrix},v::Vector,k::Int,kmax::Int,Mi::Int,Nev,Ω::T,ngs::Int) where {T<:Number}
 
 #   Vin     - Krylov Matrix
 #   Hes     - Hessenberg Matrix
@@ -33,7 +33,7 @@ function IRAM!(Vin::Matrix,Hes::Matrix,B::Union{Vector,Matrix},v::Vector,k::Int,
 
 #   Perform implicit restart      
     if k == kmax+b
-      U,G,k2,ifconv = ArnIRst(V,H,b,B,k,kmax+b,Nev,ngs)
+      U,G,k2,ifconv = ArnIRst(V,H,b,B,k,kmax+b,Nev,Ω,ngs)
       V = U
       H = G
       
@@ -46,5 +46,7 @@ function IRAM!(Vin::Matrix,Hes::Matrix,B::Union{Vector,Matrix},v::Vector,k::Int,
     end  
 
     return V,H,nkryl,β,mi 
-
-end  
+end 
+#----------------------------------------------------------------------
+#
+#

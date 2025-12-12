@@ -1,6 +1,5 @@
       module StepperArnoldi
 
-
       using LinearAlgebra
       using IterativeSolvers
       using Roots
@@ -10,9 +9,9 @@
       
 #     Basic definitions: 
 #     abstract types, structures, constructors, extensions
-#--------------------------------------------------      
+#--------------------------------------------------
       include("StpArn_Abstract.jl")        # 
-      include("StpArn_Struct.jl")         # 
+      include("StpArn_Struct.jl")          # 
 
       include("RK4.jl")
       include("ArnUpd.jl")

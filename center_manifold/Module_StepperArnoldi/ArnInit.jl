@@ -1,6 +1,6 @@
-function ArnKrylovInit(StpInp::StepperInput,ArnInp::ArnoldiInput{T};Dtype=Float64) where {T}
+function ArnKrylovInit(StpInp::StepperInput,ArnInp::ArnoldiInput;Dtype=Float64)
 
-      Prec        = typeof(ArnInp).parameters[1]
+      # Prec        = typeof(ArnInp).parameters[1]
       ndof        = ArnInp.vlen
       Nev         = ArnInp.nev                  # Number of eigenvalues to calculate
       EKryl       = ArnInp.ekryl                # Additional size of Krylov space

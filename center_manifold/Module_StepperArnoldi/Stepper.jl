@@ -1,19 +1,19 @@
 # Include the function files
-function StepArn(L::AbstractMatrix{T},B::AbstractVector{S},StpInp::StepperInput,ArnInp::ArnoldiInput{P},lbc::Bool,rbc::Bool) where {P,S,T}
+function StepArn(L::AbstractMatrix{T},B::AbstractVector{S},StpInp::StepperInput,ArnInp::ArnoldiInput,lbc::Bool,rbc::Bool) where {S,T<:Number}
 
-  Prec            = P
   dtype           = T
 
   V,H             = ArnKrylovInit(StpInp,ArnInp;Dtype=T)
   v0              = ArnInitVector(ArnInp.vlen,lbc,rbc,Dtype=T) 
 
   nev             = ArnInp.nev
+  eigshift        = ArnInp.eigshift
   tol             = ArnInp.tol
   ngs             = ArnInp.ngs
-  tol             = ArnInp.tol
 
   ifarnoldi       = ArnInp.ifarnoldi
   verbose         = ArnInp.ifverbose
+  ifeigshift      = ArnInp.ifeigshift
   ifadjoint       = StpInp.ifadjoint         
   nsteps          = StpInp.nsteps            # Stepper Phase steps
   dt              = StpInp.timestep          # Time step
@@ -39,6 +39,14 @@ function StepArn(L::AbstractMatrix{T},B::AbstractVector{S},StpInp::StepperInput,
   v3              = zeros(T,ArnInp.vlen)
   Bi              = 1.0./B          # Inverse Mass (Vector)
 
+  # Eigenvalue Shift
+  if ifeigshift
+    Ω = exp(eigshift*nsteps*dt)
+    println("EigShift: $(eigshift), Ω= $Ω, |Ω| = $(abs(Ω))")
+  else
+    Ω = 0.0
+  end
+
   # Start iterations
   ifdirect = true
   println("Starting Stepper/Arnoldi Iterations")
@@ -53,7 +61,7 @@ function StepArn(L::AbstractMatrix{T},B::AbstractVector{S},StpInp::StepperInput,
     end  
   
     # Expand Krylov space
-    V,H,nkryl,β,major_it = IRAM!(V,H,B,v,nkryl,lkryl,major_it,nev,ngs)
+    V,H,nkryl,β,major_it = IRAM!(V,H,B,v,nkryl,lkryl,major_it,nev,Ω,ngs)
     v   = V[:,nkryl]
   
     if (major_it>maxouter_it)
@@ -99,9 +107,8 @@ function ObliqueSubspaceRemoval!(v::AbstractVector{T},V::AbstractMatrix{T},W::Ab
   return nothing
 end  
 #---------------------------------------------------------------------- 
-function RestrictedStepArn(L::AbstractMatrix{T},B::AbstractVector{S},Vr::AbstractMatrix{T},Wr::AbstractMatrix{T},StpInp::StepperInput,ArnInp::ArnoldiInput{P},lbc::Bool,rbc::Bool) where {P,S,T}
+function RestrictedStepArn(L::AbstractMatrix{T},B::AbstractVector{S},Vr::AbstractMatrix{T},Wr::AbstractMatrix{T},StpInp::StepperInput,ArnInp::ArnoldiInput,lbc::Bool,rbc::Bool) where {S,T}
 
-  Prec            = P
   dtype           = T
 
   V,H             = ArnKrylovInit(StpInp,ArnInp;Dtype=T)
@@ -113,11 +120,13 @@ function RestrictedStepArn(L::AbstractMatrix{T},B::AbstractVector{S},Vr::Abstrac
 
   nev             = ArnInp.nev
   tol             = ArnInp.tol
+  eigshift        = ArnInp.eigshift
   ngs             = ArnInp.ngs
   tol             = ArnInp.tol
 
   ifarnoldi       = ArnInp.ifarnoldi
   verbose         = ArnInp.ifverbose
+  ifeigshift      = ArnInp.ifeigshift
   ifadjoint       = StpInp.ifadjoint         
   nsteps          = StpInp.nsteps            # Stepper Phase steps
   dt              = StpInp.timestep          # Time step
@@ -141,7 +150,14 @@ function RestrictedStepArn(L::AbstractMatrix{T},B::AbstractVector{S},Vr::Abstrac
   v1              = zeros(T,ArnInp.vlen) 
   v2              = zeros(T,ArnInp.vlen) 
   v3              = zeros(T,ArnInp.vlen)
-  Bi              = 1.0./B          # Inverse Mass (Vector)
+  Bi              = 1.0./B        # Inverse Mass (Vector)
+
+  # Eigenvalue Shift
+  if ifeigshift
+    Ω = exp(eigshift*nsteps*dt)
+  else
+    Ω = 0.0
+  end
 
   # Start iterations
   ifdirect = true
@@ -156,7 +172,7 @@ function RestrictedStepArn(L::AbstractMatrix{T},B::AbstractVector{S},Vr::Abstrac
     end  
   
     # Expand Krylov space
-    V,H,nkryl,β,major_it = IRAM!(V,H,B,v,nkryl,lkryl,major_it,nev,ngs)
+    V,H,nkryl,β,major_it = IRAM!(V,H,B,v,nkryl,lkryl,major_it,nev,Ω,ngs)
     v   = V[:,nkryl]
   
     if (major_it>maxouter_it)
