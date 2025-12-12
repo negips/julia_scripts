@@ -94,7 +94,6 @@ NGL(x)= NLGinzburgLandau(OPg,ones(vt,ndof),x,δ[5],zro,zro,Inp.lbc,Inp.rbc)
 x0,κ  = ForcingParams()
 ψ     = zeros(ComplexF64,ndof)
 SetForcingShape!(ψ,Bg,xg,x0,1.0,κ)
-SEM1D.SEM_SetBC!(ψ,Inp.lbc,Inp.rbc)
 F     = zeros(ComplexF64,ndof,nfreq)
 copyto!(F,ψ)
 Ωf    = [λh[1]]
@@ -116,8 +115,16 @@ xin = readline()
 if xin == "x"
   nsteps = 0
 end  
+
+if (ifnormal)
+  println("Reconstruction only possible for Graph Method.")
+  nsteps = 0
+end
+
 # Start iterations
 println("Starting Iterations")
+
+
 
 for ik in 1:nθ
   global vwork,θwork

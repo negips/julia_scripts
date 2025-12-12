@@ -36,7 +36,6 @@
 
 #     Structures (and Constructors) 
 #--------------------------------------------------      
-
       export StepperInput,
              ArnoldiInput,
              ArnoldiOutput
@@ -44,8 +43,9 @@
 
 #     Functions
 #--------------------------------------------------      
-
       export RK4!,
+             BiRK4!,
+             RestrictedBRK4!,
              ArnUpd,
              ArnIRst,
              ArnBIRst,
@@ -77,9 +77,13 @@
       export ArnKrylovInit,
              StpArn_SetBC!,
              ArnInitVector,
-             StepArn
-
+             StepArn,
+             ObliqueSubspaceRemoval!,
+             RestrictedStepArn
 
 
       end         # Module StepperArnoldi
-#----------------------------------------------------------------------       
+#----------------------------------------------------------------------
+
+
+

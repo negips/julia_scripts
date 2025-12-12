@@ -48,19 +48,32 @@ vimult      = 1.0./vmult
 SEM1D.GLSetBC!(L ,Inp.lbc,Inp.rbc,ifperiodic)
 SEM1D.GLSetBC!(LC,Inp.lbc,Inp.rbc,ifperiodic)
 SEM1D.GLSetBC!(AL,Inp.lbc,Inp.rbc,ifperiodic)
+SEM1D.GLSetBC!(ALC,Inp.lbc,Inp.rbc,ifperiodic)
 
 Lg    = QT*L*Q          # Linear Matrix
 LCg   = QT*LC*Q         # Conjugated Linear Matrix
 
 ALg   = QT*AL*Q         # Adjoint Linear Matrix
+ALCg  = QT*ALC*Q        # Conjugated Adjoint Linear Matrix
+
 Bg    = QT*B            # Mass Matrix
 Bgi   = 1.0./Bg         # Inverse Mass Matrix
-OPg   = Bgi.*Lg         # Final Direct Operator
-OPCg  = Bgi.*LCg        # Final Conjugated Direct Operator
-AOPg  = Bgi.*ALg        # Final Adjoint Operator
+BgM   = diagm(Bg)
+# OPg   = Bgi.*Lg         # Final Direct Operator
+# OPCg  = Bgi.*LCg        # Final Conjugated Direct Operator
+# AOPg  = Bgi.*ALg        # Final Adjoint Operator
+# 
+# Lapg  = Bgi.*(QT*(1.0/δ[4])*Lap*Q)        # Laplacian Operator
+# LapCg = Bgi.*(QT*(1.0/δ[4]')*LapC*Q)      # Conjugated Laplacian Operator
 
-Lapg  = Bgi.*(QT*(1.0/δ[4])*Lap*Q)        # Laplacian Operator
-LapCg = Bgi.*(QT*(1.0/δ[4]')*LapC*Q)      # Conjugated Laplacian Operator
+OPg   = Lg         # Final Direct Operator
+OPCg  = LCg        # Final Conjugated Direct Operator
+AOPg  = ALg        # Final Adjoint Operator
+AOPCg = ALCg       # Final Conjugated Adjoint Operator
+
+Lapg  = (QT*(1.0/δ[4])*Lap*Q)        # Laplacian Operator
+LapCg = (QT*(1.0/δ[4]')*LapC*Q)      # Conjugated Laplacian Operator
+
 
 xg    = QT*(vimult.*GeoM.xm1[:])
 

@@ -14,6 +14,7 @@ h     = 2
 m     = n+p+h
 
 Bg2   = [Bg; Bg]
+Bg2M  = diagm(Bg2)
 
 # Parameter modes
 Lν    = zeros(ComplexF64,N,p)
@@ -87,7 +88,7 @@ Rp    = zeros(ComplexF64,N,p)
 ind1  = 1:Nby2
 ind2  = Nby2+1:N
 for i in 1:p
-  r  = copy(Lν[:,i])
+  r  = Bg2M*copy(Lν[:,i])
   DQ = Matrix{ComplexF64}(I,Nby2,Nby2)
   CQ = Matrix{ComplexF64}(I,Nby2,Nby2)
   for j in 1:n
@@ -122,8 +123,8 @@ for i in 1:p
   # Plot Mode
   if (emodeplot) && vnorm > 0.0
     j = n+i
-    ax2.plot(xg,real.(vp1),linewidth=2,linestyle="-", color=cm(j-1),label=L"\mathfrak{R}(ϕ_{%$j})")
-    ax2.plot(xg,imag.(vp1),linewidth=2,linestyle="--",color=cm(j-1),label=L"\mathfrak{Im}(ϕ_{%$j})")
+    # ax2.plot(xg,real.(vp1),linewidth=2,linestyle="-", color=cm(j-1),label=L"\mathfrak{R}(ϕ_{%$j})")
+    # ax2.plot(xg,imag.(vp1),linewidth=2,linestyle="--",color=cm(j-1),label=L"\mathfrak{Im}(ϕ_{%$j})")
   end
 
 end  
@@ -136,7 +137,7 @@ Ih    = zeros(ComplexF64,h,h)
 # ind1  = 1:Nby2
 # ind2  = Nby2+1:N
 for i in 1:h
-  r  = copy(Lθ[:,i])
+  r  = Bg2M*copy(Lθ[:,i])
   DQ = Matrix{ComplexF64}(I,Nby2,Nby2)
   CQ = Matrix{ComplexF64}(I,Nby2,Nby2)
   resonance = false
@@ -156,18 +157,18 @@ for i in 1:h
  
   ω               = λh[i]
   if (resonance)
-    Res1          = DQ*(ω*I - OPg)*DQ
+    Res1          = DQ*(ω*BgM - OPg)*DQ
   else
-    Res1          = (ω*I - OPg)
+    Res1          = (ω*BgM - OPg)
   end  
   vh1             = copy(r[ind1])
   @views gmres!(vh1,Res1,r[ind1])
   Vh[ind1,i]      = copy(vh1)
 
   if (resonance)
-    Res2          = CQ*(ω*I - OPCg)*CQ
+    Res2          = CQ*(ω*BgM - OPCg)*CQ
   else
-    Res2          = (ω*I - OPCg)
+    Res2          = (ω*BgM - OPCg)
   end  
   # Res2            = CQ*(ω*I - OPCg)*CQ
   vh2             = copy(r[ind2])
@@ -229,7 +230,7 @@ end
 # Adjoint Forcing modes
 Wh    = zeros(ComplexF64,N,h)
 Ih    = zeros(ComplexF64,h,h)
-Zh    = Lθ'W
+Zh    = Lθ'*(Bg2M*W)
 for j in 1:h
   for i in 1:n
     if abs(λc[i]' - λh[j]') < 1.0e-12
@@ -266,7 +267,85 @@ BiOrtho = What'*(diagm(Bghat)*Vhat)
 
 println("Extended Tangent Space Done.")
 
+println("Extended Tangent Space using Arnoldi.")
+# Stepper-Arnoldi
+#-------------------------------------------------- 
+ifadjoint         = false
+ifoptimal         = false
+ifverbose         = false
+verbosestep       = 500
+nsteps            = 500
+dt                = 1.0e-4
+EStpInp           = StepperArnoldi.StepperInput(ifadjoint,ifoptimal,ifverbose,verbosestep,nsteps,dt)
 
+ifarnoldi         = true 
+ifverbose         = false
+vlen              = ndof+1
+nev               = 2
+ekryl             = 15  
+lkryl             = nev + ekryl 
+ngs               = 2
+bsize             = 1
+outer_iterations  = 100
+tol               = 1.0e-12
+EArnInp           = StepperArnoldi.ArnoldiInput(ifarnoldi,ifverbose,vlen,nev,ekryl,lkryl,ngs,bsize,outer_iterations,tol)
+
+# Direct
+EOPg                 = spzeros(ComplexF64,EArnInp.vlen,EArnInp.vlen)
+EOPg[1:ndof,1:ndof]  = OPg
+EOPg[1:ndof,ndof+1]  = Bg.*ψ
+EOPg[ndof+1,ndof+1]  = λh[1]
+EBg                  = [Bg[:]; 1.0]
+EArnDir              = StepperArnoldi.StepArn( EOPg,EBg,EStpInp,EArnInp,Inp.lbc,Inp.rbc)
+
+# Adjoint
+EAOPg                = spzeros(ComplexF64,EArnInp.vlen,EArnInp.vlen)
+EAOPg[1:ndof,1:ndof] = AOPg
+EAOPg[ndof+1,1:ndof] = (Bg.*ψ)'
+EAOPg[ndof+1,ndof+1] = λh[1]'
+EArnAdj              = StepperArnoldi.StepArn( EAOPg,EBg,EStpInp,EArnInp,Inp.lbc,Inp.rbc)
+
+ind7        = argmin(abs.(EArnDir.evals .- λh[1]))
+θt          = EArnDir.evecs[ndof+1,ind7]
+v7          = EArnDir.evecs[:,ind7]./θt 
+ax2.plot(xg,real.(v7[ind1]),linewidth=2,linestyle="-", color=cm(7-1),label=L"\mathfrak{R}(ϕ_{7})")
+ax2.plot(xg,imag.(v7[ind1]),linewidth=2,linestyle="--",color=cm(7-1),label=L"\mathfrak{Im}(ϕ_{7})")
+
+ind8        = argmin(abs.(EArnAdj.evals .- λc[1]'))
+θt          = EArnAdj.evecs[ndof+1,ind8]
+θt2         = θt/Zh[1,1]         
+v8          = EArnAdj.evecs[:,ind8]# ./θt2
+#@views renormalize_evecs!(V[ind1,1],v8[ind1],Bg)
+#ax2.plot(xg,real.(v8[ind1]),linewidth=1,linestyle="-", color=cm(8-1),label=L"\mathfrak{R}(χ_{7})")
+#ax2.plot(xg,imag.(v8[ind1]),linewidth=1,linestyle="--",color=cm(8-1),label=L"\mathfrak{Im}(χ_{7})")
+
+vtmp        = zeros(ComplexF64,ndof+1)
+vtmp[ind1]  = copy(V[ind1])
+wtmp        = zeros(ComplexF64,ndof+1)
+wtmp        = copy(v8)
+Bg3         = zeros(Float64,ndof+1)
+Bg3[ind1]   = copy(Bg)
+Bg3[ndof+1] = 1.0
+@views renormalize_evecs!(vtmp,wtmp,Bg3)
+ax2.plot(xg,real.(wtmp[ind1]),linewidth=1,linestyle="-", color=cm(8-1),label=L"\mathfrak{R}(χ_{7})")
+ax2.plot(xg,imag.(wtmp[ind1]),linewidth=1,linestyle="--",color=cm(8-1),label=L"\mathfrak{Im}(χ_{7})")
+
+Lθ1         = Lθ[ind1,1]
+zzz1        = Lθ1'*wtmp[ind1]/(λc[1]' - λh[1]')
+zzz2        = Lθ1'*(BgM*wtmp[ind1])/(λc[1]' - λh[1]')
+
+
+if (emodeplot)
+  ax2.legend(ncols=4,fontsize=Grh.lgfs)
+else  
+  ax2.legend(ncols=3,fontsize=Grh.lgfs)
+end  
+
+Vhat[ind1,5] = v7[ind1]
+
+BiOrtho2 = What'*(diagm(Bghat)*Vhat)
+
+println("Extended Tangent Space (Arnoldi) Done.")
 
 
 
