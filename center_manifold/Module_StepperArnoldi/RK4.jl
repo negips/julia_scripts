@@ -48,9 +48,9 @@ function RestrictedBRK4!(v::AbstractVector{T},M::AbstractMatrix{T},B::AbstractVe
   six = T(6)
   ngs = 2
 
-  Bi  = 1.0/B
+  Bi  = 1.0./B
 
-  v1 .= v .+ dt/two*Bi.*(M*v)
+  v1 .= v .+ dt/two*(Bi.*(M*v))
   ObliqueSubspaceRemoval!(v1,Vr,Wr,B,ngs) 
   StpArn_SetBC!(v1,lbc,rbc)
 

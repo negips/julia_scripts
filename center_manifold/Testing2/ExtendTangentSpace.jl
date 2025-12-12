@@ -56,7 +56,113 @@ EOPCg[ndof+1,ndof+1]  = 0.0
 EBCg                  = [Bg[:]; 1.0]
 #-------------------------------------------------- 
 
+function ExtendTangentSpace(λc::AbstractVector{T1},L::AbstractMatrix{T2},B::AbstractVector{T3},V::AbstractMatrix{T2},W::AbstractMatrix{T2},f::AbstractVector{T4},λe::T5,ArnInp,StpInp,Inp) where {T1,T2,T3,T4,T5<:Number}
 
+  ngs = 2
+  N   = size(L,2)
+  n   = length(λc)
+
+  Γ   = zeros(T2,n)
+
+  # Off-Diagonal Components of Khat
+  ftmp = copy(f)
+  for ig in 1:ngs
+    α = zeros(T2,n)
+    for j in 1:n
+      if abs(λc[j] - λe) < 1.0e-12
+        α[j]  = W[:,j]'*(B.*f)
+        Γ[j]  = Γ[j] + W[:,j]'*(B.*f)
+      end
+    end
+    ftmp .= ftmp .- V*α
+  end
+
+  # Build Extended Matrices
+  Ne  = N+1
+  Ve  = zeros(T2,Ne,n)
+  We  = zeros(T2,Ne,n)
+  fe  = zeros(T2,Ne)
+
+  resonance = false
+  nr        = 0
+  for j in 1:n
+    if abs(λc[j] - λe) < ArnInp.tol
+      println("Resonant λ: $j")
+      resonance = true
+      nr  = nr + 1
+ 
+      di = (nr-1)*Ne + 1    # destination index
+      si = (j-1)*N + 1      # source index
+      copyto!(Ve,di,V,si,N)
+      copyto!(We,di,W,si,N)
+    end
+  end  
+  @views SEM1D.SEM_SetBC!(ftmp,Inp.lbc,Inp.rbc)
+  copyto!(fe,1,ftmp,N)
+
+  if norm(fe) > EArnInp.tol
+    # Extended Mass
+    Be   = ones(T3,Ne)
+    copyto!(Be,1,B,1,N)
+
+    if typeof(L) <: SparseMatrixCSC
+      Le = spzeros(T2,Ne,Ne)
+    else
+      Le = zeros(T2,Ne,Ne)
+    end
+    Le[1:N,1:N]   = L
+    Le[1:N,N+1]   = B.*ftmp
+    Le[N+1,N+1]   = λe
+
+    if (resonance)
+      Ve_view     = view(Ve,:,1:nr)
+      We_view     = view(We,:,1:nr)
+      EArnDir1    = StepperArnoldi.RestrictedStepArn(Le,Be,Ve_view,We_view,EStpInp,EArnInp,Inp.lbc,Inp.rbc) 
+    else
+      EArnDir1    = StepperArnoldi.StepArn(Le,Be,EStpInp,EArnInp,Inp.lbc,Inp.rbc) 
+    end
+    ii            = argmin(abs.(EArnDir1.evals .- ω))
+    θt            = EArnDir1.evecs[ndof+1,ii]
+    vh1           = EArnDir1.evecs[1:ndof,ii]./θt     # ensure extended variable == 1.0 
+    Vh[ind1,i]    = copy(vh1)
+  else
+    Vh[ind1,i]    = zeros(ComplexF64,ndof)
+  end
+
+  # Conjugated
+  if norm(r[ind2]) > EArnInp.tol
+    EOPCg[1:ndof,ndof+1]  = Bg.*r[ind2]
+    EOPCg[ndof+1,ndof+1]  = ω
+    if (resonance)
+      Vr2_view    = view(Vr2,:,1:nr)
+      Wr2_view    = view(Wr2,:,1:nr)
+      EArnDir2    = StepperArnoldi.RestrictedStepArn( EOPCg,EBCg,Vr2_view,Wr2_view,EStpInp,EArnInp,Inp.lbc,Inp.rbc) 
+    else
+      EArnDir2    = StepperArnoldi.StepArn( EOPCg,EBCg,EStpInp,EArnInp,Inp.lbc,Inp.rbc) 
+    end
+    ii            = argmin(abs.(EArnDir2.evals .- ω))
+    θt            = EArnDir2.evecs[ndof+1,ii]
+    vh2           = EArnDir2.evecs[1:ndof,ii]./θt     # ensure extended variable == 1.0 
+    Vh[ind2,i]    = copy(vh2)
+  else
+    Vh[ind2,i]    = zeros(ComplexF64,ndof)
+  end
+
+  vnorm = sqrt(abs(Vh[:,i]'*(Bg2.*Vh[:,i])))
+
+  Ih[i,i] = ComplexF64(1)
+
+  # Plot Mode
+  if (emodeplot) && imag.(λh[i]) >= 0.0
+    j = n+p+i
+    ax2.plot(xg,real.(vh1),linewidth=2,linestyle="-", color=cm(j-1),label=L"\mathfrak{R}(ϕ_{%$j})")
+    ax2.plot(xg,imag.(vh1),linewidth=2,linestyle="--",color=cm(j-1),label=L"\mathfrak{Im}(ϕ_{%$j})")
+  end
+end  
+
+
+
+end  
 
 # Parameter modes
 Lν    = zeros(ComplexF64,N,p)
@@ -133,11 +239,12 @@ ind1  = 1:Nby2
 ind2  = Nby2+1:N
 for i in 1:p
 
-  Vr1   = zeros(ComplexF64,Nby2+1,n)
-  Vr2   = zeros(ComplexF64,Nby2+1,n)
+  Ne    = Nby2+1
+  Vr1   = zeros(ComplexF64,Ne,n)
+  Vr2   = zeros(ComplexF64,Ne,n)
 
-  Wr1   = zeros(ComplexF64,Nby2+1,n)
-  Wr2   = zeros(ComplexF64,Nby2+1,n)
+  Wr1   = zeros(ComplexF64,Ne,n)
+  Wr2   = zeros(ComplexF64,Ne,n)
 
   EOPg[1:ndof,1:ndof]  = OPg
 
@@ -151,12 +258,12 @@ for i in 1:p
       nr = nr + 1
       r  .= r .- V[:,j]*ΓP[j,i]
 
-      di = (nr-1)*Nby2+1 + 1    # destination index
+      di = (nr-1)*Nby2 + 1    # destination index
       si = (j-1)*N + 1        # source index
       copyto!(Vr1,di,V,si,Nby2)
       copyto!(Wr1,di,W,si,Nby2)
 
-      di = (nr-1)*Nby2+1 + 1    # destination index
+      di = (nr-1)*Nby2 + 1    # destination index
       si = (j-1)*N + Nby2 + 1 # source index
       copyto!(Vr2,di,V,si,Nby2)
       copyto!(Wr2,di,W,si,Nby2)
@@ -244,12 +351,12 @@ for i in 1:h
       nr  = nr + 1
       r  .= r .- V[:,j]*ΓH[j,i]
  
-      di = (nr-1)*Nby2+1 + 1    # destination index
+      di = (nr-1)*Nby2 + 1    # destination index
       si = (j-1)*N + 1        # source index
       copyto!(Vr1,di,V,si,Nby2)
       copyto!(Wr1,di,W,si,Nby2)
 
-      di = (nr-1)*Nby2+1 + 1    # destination index
+      di = (nr-1)*Nby2 + 1    # destination index
       si = (j-1)*N + Nby2 + 1 # source index
       copyto!(Vr2,di,V,si,Nby2)
       copyto!(Wr2,di,W,si,Nby2)
@@ -358,10 +465,9 @@ for j in 1:h
   for i in 1:n
     if abs(λc[i]' - λh[j]') < 1.0e-12
       println("Resonant λh*: $i, $j")
-      Zh[j,i] = -Vh[:,j]'*(Bg2.*W[:,i])
+      Zh[j,i] = 0.0
     else
-      # Zh[j,i] = Zh[j,i]/(λc[i]' - λh[j]')
-      Zh[j,i] = -Vh[:,j]'*(Bg2.*W[:,i])
+      Zh[j,i] = Zh[j,i]/(λc[i]' - λh[j]')
     end
   end
   Ih[j,j] = ComplexF64(1)

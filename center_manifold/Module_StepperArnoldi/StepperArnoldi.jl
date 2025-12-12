@@ -1,5 +1,9 @@
       module StepperArnoldi
 
+      import Base.copy
+      # import Base.copy!
+      # import Base.copyto!
+
       using LinearAlgebra
       using IterativeSolvers
       using Roots
@@ -13,6 +17,7 @@
       include("StpArn_Abstract.jl")        # 
       include("StpArn_Struct.jl")          # 
 
+      include("StpArnFunctions.jl")
       include("RK4.jl")
       include("ArnUpd.jl")
       include("ArnIRst.jl")

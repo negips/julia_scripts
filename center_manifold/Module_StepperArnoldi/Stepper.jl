@@ -97,16 +97,6 @@ function StepArn(L::AbstractMatrix{T},B::AbstractVector{S},StpInp::StepperInput,
   return arnout
 end
 #---------------------------------------------------------------------- 
-function ObliqueSubspaceRemoval!(v::AbstractVector{T},V::AbstractMatrix{T},W::AbstractMatrix{T},B::AbstractVector{S},ngs::Int) where {T,S<:Number}
-
-  for i in 1:ngs
-    α   = W'*(B.*v)
-    v  .= v .- V*α
-  end  
-
-  return nothing
-end  
-#---------------------------------------------------------------------- 
 function RestrictedStepArn(L::AbstractMatrix{T},B::AbstractVector{S},Vr::AbstractMatrix{T},Wr::AbstractMatrix{T},StpInp::StepperInput,ArnInp::ArnoldiInput,lbc::Bool,rbc::Bool) where {S,T}
 
   dtype           = T
