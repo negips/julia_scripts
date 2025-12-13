@@ -68,6 +68,7 @@ end
 
       evals             - Eigenvalues
       evecs             - Eigenvectors
+      ritz              - ritz values
       ifconv            - Convergence flag
       tol               - Convergence Tolerance 
 
@@ -76,8 +77,55 @@ struct ArnoldiOutput{T}
 
       evals::Vector{T} 
       evecs::Matrix{T}
+      ritz::Vector{T}
       ifconv::Bool  
       tol::Float64
+
+end
+#----------------------------------------------------------------------       
+"""
+      struct ExtendedMode
+
+      Has fields:
+
+      λe::T                   - Frequency of extended Mode.
+      ve::AbstractVector{T}   - Direct Extended Mode.
+      we::AbstractVector{T}   - Adjoint Extended Mode.
+      z::AbstractMatrix{T}    - Original Adjoint Mode' extensions.
+      Γ::AbstractVector{T}    - Jordan Form Couplings for resonant extensions.
+
+"""
+mutable struct ExtendedMode{T}
+
+      λe::T
+      Γ::AbstractVector{T}
+      ve::AbstractVector{T}
+      we::AbstractVector{T}
+      z::AbstractMatrix{T}
+
+end
+#----------------------------------------------------------------------       
+"""
+      struct ExtendedModes
+
+      (Plural)
+
+      Has fields:
+
+      λe::AbstractVector{T}   - Frequencies of Extended Modes.
+      Γ::AbstractMatrix{T}    - Jordan Form Couplings for resonant extensions.
+      Ve::AbstractMatrix{T}   - Direct Extended Modes.
+      We::AbstractMatrix{T}   - Adjoint Extended Modes.
+      Z::AbstractMatrix{T}    - Original Adjoint Modes' extensions.
+
+"""
+mutable struct ExtendedModes{T}
+
+      λe::AbstractVector{T}
+      Γ::AbstractMatrix{T}
+      Ve::AbstractMatrix{T}
+      We::AbstractMatrix{T}
+      Z::AbstractMatrix{T}
 
 end
 #----------------------------------------------------------------------       

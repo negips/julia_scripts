@@ -1,0 +1,31 @@
+function ExtendedModes(EM::Vector{ExtendedMode})
+
+  T  = typeof(EM[1].λe)       # Type
+  ne = length(EM)             # No of Extended Modes
+  N  = length(EM[1].ve)       # Original system Mode length
+  nc = size(EM[1].z,2)        # Critical space
+
+  Γ  = zeros(T,nc,ne)
+  Ve = zeros(T,N,ne)
+  We = zeros(T,N,ne)
+  Z  = zeros(T,ne,nc)
+  λe = zeros(T,ne)
+
+  for i in 1:ne
+    λe[i] = EM[i].λe
+    for j in 1:nc
+      Γ[j,i] = EM[i].Γ[j]
+      Z[i,j] = EM[i].Z[j]
+    end
+    di = (i-1)*N+1
+    si = 1
+    copyto!(Ve,di,EM[i].ve,N)
+    copyto!(We,di,EM[i].we,N)
+  end  
+
+  ExModes = ExtendedModes(λe,Γ,Ve,We,Z)
+
+  return ExModes
+end
+#----------------------------------------------------------------------       
+

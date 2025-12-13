@@ -17,7 +17,7 @@ include("../Module_StepperArnoldi/StepperArnoldi.jl")
 #using PyPlot
 
 #---------------------------------------------------------------------- 
-screen = 1
+screen = 2
 Grh    = setgraphics(screen)
 
 # Stepper-Arnoldi
@@ -33,12 +33,12 @@ StpInp            = StepperArnoldi.StepperInput(ifadjoint,ifoptimal,ifverbose,ve
 
 ifarnoldi         = true 
 ifverbose         = false
-ifeigshift        = false
+ifeigshift        = true
 vlen              = ndof
 nev               = 1
 ekryl             = 15  
 lkryl             = nev + ekryl 
-eigshift          = 0.0 + 0.0im
+eigshift          = 0.0 + 1.0im
 ngs               = 2
 bsize             = 1
 outer_iterations  = 100

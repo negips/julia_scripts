@@ -83,16 +83,19 @@ function StepArn(L::AbstractMatrix{T},B::AbstractVector{S},StpInp::StepperInput,
   F   = eigen(Hr)
   evs = F.values
   DT  = dt*nsteps
+ 
+
+  ritz = evs
   
-  λr = log.(abs.(evs))/DT
-  λi = atan.(imag(evs),real.(evs))/DT
+  λr   = log.(abs.(evs))/DT
+  λi   = atan.(imag(evs),real.(evs))/DT
   
   λ  = λr .+ im*λi
   # Eigenvectors  
   eigvec = V[:,1:nev]*F.vectors
 
   # Structured output
-  arnout = ArnoldiOutput(λ,eigvec,ifconv,tol) 
+  arnout = ArnoldiOutput(λ,eigvec,ritz,ifconv,tol) 
   
   return arnout
 end
@@ -145,6 +148,7 @@ function RestrictedStepArn(L::AbstractMatrix{T},B::AbstractVector{S},Vr::Abstrac
   # Eigenvalue Shift
   if ifeigshift
     Ω = exp(eigshift*nsteps*dt)
+    println("EigShift: $(eigshift), Ω= $Ω, |Ω| = $(abs(Ω))")
   else
     Ω = 0.0
   end
@@ -184,16 +188,17 @@ function RestrictedStepArn(L::AbstractMatrix{T},B::AbstractVector{S},Vr::Abstrac
   F   = eigen(Hr)
   evs = F.values
   DT  = dt*nsteps
-  
-  λr = log.(abs.(evs))/DT
-  λi = atan.(imag(evs),real.(evs))/DT
+
+  ritz = evs
+  λr   = log.(abs.(evs))/DT
+  λi   = atan.(imag(evs),real.(evs))/DT
   
   λ  = λr .+ im*λi
   # Eigenvectors  
   eigvec = V[:,1:nev]*F.vectors
 
   # Structured output
-  arnout = ArnoldiOutput(λ,eigvec,ifconv,tol) 
+  arnout = ArnoldiOutput(λ,eigvec,ritz,ifconv,tol) 
   
   return arnout
 end

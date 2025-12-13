@@ -16,6 +16,7 @@
 #--------------------------------------------------
       include("StpArn_Abstract.jl")        # 
       include("StpArn_Struct.jl")          # 
+      include("StpArn_Constructors.jl")    # 
 
       include("StpArnFunctions.jl")
       include("RK4.jl")
@@ -42,7 +43,9 @@
 #--------------------------------------------------      
       export StepperInput,
              ArnoldiInput,
-             ArnoldiOutput
+             ArnoldiOutput,
+             ExtendedMode,
+             ExtendedModes
 
 
 #     Functions

@@ -4,7 +4,7 @@
 #---------------------------------------------------------------------- 
 println("Extended Tangent Space using Arnoldi.")
 
-ifresonant = false
+ifresonant = true
 emodeplot  = true
 
 Nby2  = ArnInp.vlen
@@ -29,9 +29,9 @@ EStpInp           = StepperArnoldi.StepperInput(ifadjoint,ifoptimal,ifverbose,ve
 
 ifarnoldi         = true 
 ifverbose         = false
-ifeigshift        = true
+ifeigshift        = false
 vlen              = ndof+1
-nev               = 1
+nev               = 2
 ekryl             = 15  
 lkryl             = nev + ekryl 
 eigshift          = 0.0 + 0.0im
@@ -168,7 +168,6 @@ for i in 1:p
   Rp[:,i]               = copy(r)
 
   ω                     = λp[i]
-  EArnInp.eigshift      = ω
   if norm(r[ind1]) > EArnInp.tol
     EOPg[1:ndof,ndof+1]   = Bg.*r[ind1]
     EOPg[ndof+1,ndof+1]   = ω
@@ -261,7 +260,6 @@ for i in 1:h
   Rh[:,i]               = copy(r)
 
   ω                     = λh[i]
-  EArnInp.eigshift      = ω
   if norm(r[ind1]) > EArnInp.tol
     EOPg[1:ndof,ndof+1]   = Bg.*r[ind1]
     EOPg[ndof+1,ndof+1]   = ω

@@ -253,7 +253,7 @@ function ArnGetUpperShifts2(H::Matrix,Nev::Int,Ω::T) where {T<:Number}
       r,c         = size(H)
       f           = eigvals(H)                  # Uses Lapack routine (dgeev/zgeev)
       f2          = abs.(f .- Ω)
-      sort_i      = sortperm(f2,rev=true)       # Decreasing order
+      sort_i      = sortperm(f2,rev=false)      # Decreasing order
       μ           = f[sort_i[1:Nev]]
       nμ          = length(μ)
 
@@ -272,7 +272,7 @@ function ArnGetLowerShifts(H::Matrix,EKryl::Int)
       nμ        = length(μ0)
 #      μ         = μ0[nμ:-1:1]
       μ         = μ0      
-
+     
       return μ,nμ
 end
 #----------------------------------------------------------------------
@@ -281,7 +281,7 @@ function ArnGetLowerShifts2(H::Matrix,EKryl::Int,Ω::T) where {T<:Number}
       r,c         = size(H)
       f           = eigvals(H)                  # Uses Lapack routine (dgeev/zgeev)
       f2          = abs.(f .- Ω)
-      sort_i      = sortperm(f2,rev=false)      # Increasing order
+      sort_i      = sortperm(f2,rev=true)      # Increasing order
       μ           = f[sort_i[1:EKryl]]
       nμ          = length(μ)
 
