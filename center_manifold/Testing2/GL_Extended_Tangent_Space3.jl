@@ -4,7 +4,7 @@
 #---------------------------------------------------------------------- 
 println("Extended Tangent Space using Arnoldi.")
 
-ifresonant = false
+ifresonant = true
 emodeplot  = true
 
 Nby2  = ArnInp.vlen
@@ -116,6 +116,22 @@ for i in 1:h
     end
   end
 end
+
+# for i in 1:h
+#   f = copy(Lθ[:,i])
+#   for ig in 1:ngs
+#     α = zeros(T2,n)
+#     for j in 1:n
+#       if abs(λc[j] - λe) < 1.0e-12
+#         α[j]  = W[:,j]'*(B.*f)
+#         ΓH[j,i]  = ΓH[j,i] + W[:,j]'*(B.*f)
+#       end
+#     end
+#     f .= f .- V*α
+#   end
+# end
+
+
 
 # Reduced Matrix
 Khat  = [diagm(λc)                  ΓP                      ΓH;
@@ -355,7 +371,8 @@ end
 # Adjoint Forcing modes
 Wh    = zeros(ComplexF64,N,h)
 Ih    = zeros(ComplexF64,h,h)
-Zh    = Lθ'*(Bg2M*W)
+#Zh    = Lθ'*(Bg2M*W)
+Zh    = -Vh'*(Bg2M*W)
 for j in 1:h
   for i in 1:n
     if abs(λc[i]' - λh[j]') < 1.0e-12
@@ -389,6 +406,12 @@ Lhat        = [OPg2     Bg2M*Lν   Bg2M*Lθ;
 Bghat       = [Bg2; ones(ComplexF64,p); ones(ComplexF64,h)]
 
 BiOrtho     = What'*(diagm(Bghat)*Vhat)
+
+include("ExtendTangentSpace.jl")
+Emodes1     = ExtendedTangentSpaces(λc,OPg,Bg,V[ind1,:],W[ind1,:],Lθ[ind1,:],λh,EArnInp,EStpInp,Inp);
+Emodes2     = ExtendedTangentSpaces(λc,OPCg,Bg,V[ind2,:],W[ind2,:],Lθ[ind2,:],λh,EArnInp,EStpInp,Inp);
+ax2.plot(xg,real.(Emodes1.Ve[:,1]),linewidth=2,linestyle="-", color="black",label=L"\mathfrak{R}(ϕ_{10})")
+ax2.plot(xg,real.(Emodes2.Ve[:,2]),linewidth=2,linestyle="-", color="brown",label=L"\mathfrak{R}(ϕ_{12})")
 
 println("Extended Tangent Space Done.")
 

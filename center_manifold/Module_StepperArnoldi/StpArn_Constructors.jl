@@ -15,12 +15,12 @@ function ExtendedModes(EM::Vector{ExtendedMode})
     λe[i] = EM[i].λe
     for j in 1:nc
       Γ[j,i] = EM[i].Γ[j]
-      Z[i,j] = EM[i].Z[j]
+      Z[i,j] = EM[i].z[j]
     end
     di = (i-1)*N+1
     si = 1
-    copyto!(Ve,di,EM[i].ve,N)
-    copyto!(We,di,EM[i].we,N)
+    copyto!(Ve,di,EM[i].ve,si,N)
+    copyto!(We,di,EM[i].we,si,N)
   end  
 
   ExModes = ExtendedModes(λe,Γ,Ve,We,Z)

@@ -1,6 +1,6 @@
 # Extending the tangent space
 #---------------------------------------------------------------------- 
-function ExtendTangentSpace(λc::AbstractVector{T1},L::AbstractMatrix{T2},B::AbstractVector{T3},V::AbstractMatrix{T2},W::AbstractMatrix{T2},F::AbstractMatrix{T4},λe::AbstractVector{T1},ArnInp,StpInp,Inp) where {T1,T2,T3,T4<:Number}
+function ExtendedTangentSpaces(λc::AbstractVector{T1},L::AbstractMatrix{T2},B::AbstractVector{T3},V::AbstractMatrix{T2},W::AbstractMatrix{T2},F::AbstractMatrix{T4},λe::AbstractVector{T1},ArnInp,StpInp,Inp) where {T1,T2,T3,T4<:Number}
 
   ne = length(λe)
 
@@ -8,10 +8,12 @@ function ExtendTangentSpace(λc::AbstractVector{T1},L::AbstractMatrix{T2},B::Abs
 
   for i in 1:ne
     f     = view(F,:,i)
+    ArnInp.ifeigshift = true
+    ArnInp.eigshift   = λe[i]
     EM[i] = ExtendTangentSpace(λc,L,B,V,W,f,λe[i],ArnInp,StpInp,Inp)
   end  
 
-  EModes = ExtendedModes(EM)
+  EModes = StepperArnoldi.ExtendedModes(EM)
 
   return EModes
 end
@@ -31,8 +33,8 @@ function ExtendTangentSpace(λc::AbstractVector{T1},L::AbstractMatrix{T2},B::Abs
     α = zeros(T2,n)
     for j in 1:n
       if abs(λc[j] - λe) < 1.0e-12
-        α[j]  = W[:,j]'*(B.*f)
-        Γ[j]  = Γ[j] + W[:,j]'*(B.*f)
+        α[j]  = W[:,j]'*(B.*ftmp)
+        Γ[j]  = Γ[j] + α[j]
       end
     end
     ftmp .= ftmp .- V*α
@@ -60,7 +62,7 @@ function ExtendTangentSpace(λc::AbstractVector{T1},L::AbstractMatrix{T2},B::Abs
   end  
   # @views SEM1D.SEM_SetBC!(ftmp,Inp.lbc,Inp.rbc)
 
-  if norm(ftmp) > EArnInp.tol
+  if norm(ftmp) > ArnInp.tol
     # Extended Mass
     Be   = ones(T3,Ne)
     copyto!(Be,1,B,1,N)
@@ -78,14 +80,22 @@ function ExtendTangentSpace(λc::AbstractVector{T1},L::AbstractMatrix{T2},B::Abs
     if (resonance)
       Ve_view     = view(Ve,:,1:nr)
       We_view     = view(We,:,1:nr)
-      EArnDir     = StepperArnoldi.RestrictedStepArn(Le,Be,Ve_view,We_view,EStpInp,EArnInp,Inp.lbc,Inp.rbc) 
+      DArnOut     = StepperArnoldi.RestrictedStepArn(Le,Be,Ve_view,We_view,StpInp,ArnInp,Inp.lbc,Inp.rbc) 
     else
-      EArnDir     = StepperArnoldi.StepArn(Le,Be,EStpInp,EArnInp,Inp.lbc,Inp.rbc) 
+      DArnOut     = StepperArnoldi.StepArn(Le,Be,StpInp,ArnInp,Inp.lbc,Inp.rbc) 
     end
-    ii            = argmin(abs.(EArnDir.evals .- λe))
-    θt            = EArnDir.evecs[ndof+1,ii]
-    vh           .= EArnDir.evecs[1:ndof,ii]./θt     # ensure extended variable == 1.0
+    ii            = argmin(abs.(DArnOut.evals .- λe))
+    θt            = DArnOut.evecs[Ne,ii]
+
+    for i in LinearIndices(vh)
+      vh[i]  = DArnOut.evecs[i,ii]./θt     # ensure extended variable == 1.0
+    end  
+
+    # println(norm(DArnOut.evecs[1:N,ii]))
+    # println(norm(vh))
   end
+
+  # println(norm(vh))
 
   # Adjoint Forcing modes
   wh    = zeros(T2,N)

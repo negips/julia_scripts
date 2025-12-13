@@ -71,8 +71,11 @@ function ArnIRst(V::Matrix,Hes::Matrix,b::Int,B::Union{Vector,Matrix},k::Int,kma
 
       else
 
-        # μ,nμ  = ArnGetLowerShifts(H,EKryl)
-        μ,nμ  = ArnGetLowerShifts2(H,EKryl,Ω)
+        if (abs(Ω)>1.0e-12)
+          μ,nμ  = ArnGetLowerShifts2(H,EKryl,Ω)
+        else 
+          μ,nμ  = ArnGetLowerShifts(H,EKryl)
+        end  
 
         Hs,Q  = ExplicitShiftedQR(H,μ,nμ,ngs)
 #        Hs,Q  = FrancisSeq(H,b,μ,nμ)
@@ -262,17 +265,24 @@ end
 #----------------------------------------------------------------------
 function ArnGetLowerShifts(H::Matrix,EKryl::Int)
 
-      r,c = size(H)
-      f  = eigvals(H)          # Uses Lapack routine (dgeev/zgeev)
-      fr = real.(f)
-      fi = imag.(f)
-      fr_sort_i = sortperm(fr,rev=false)   # Increasing order
-#      fr_sort_i = sortperm(fi,rev=false)   # Increasing order
-      μ0        = f[fr_sort_i[1:EKryl]]
-      nμ        = length(μ0)
-#      μ         = μ0[nμ:-1:1]
-      μ         = μ0      
-     
+#      r,c = size(H)
+#      f  = eigvals(H)          # Uses Lapack routine (dgeev/zgeev)
+#      fr = real.(f)
+#      fi = imag.(f)
+#      fr_sort_i = sortperm(fr,rev=false)   # Increasing order
+##      fr_sort_i = sortperm(fi,rev=false)   # Increasing order
+#      μ0        = f[fr_sort_i[1:EKryl]]
+#      nμ        = length(μ0)
+##      μ         = μ0[nμ:-1:1]
+#      μ         = μ0      
+
+      r,c         = size(H)
+      f           = eigvals(H)                  # Uses Lapack routine (dgeev/zgeev)
+      f2          = abs.(f)
+      sort_i      = sortperm(f2,rev=false)      # Decreasing order
+      μ           = f[sort_i[1:EKryl]]
+      nμ          = length(μ)
+
       return μ,nμ
 end
 #----------------------------------------------------------------------
@@ -281,7 +291,7 @@ function ArnGetLowerShifts2(H::Matrix,EKryl::Int,Ω::T) where {T<:Number}
       r,c         = size(H)
       f           = eigvals(H)                  # Uses Lapack routine (dgeev/zgeev)
       f2          = abs.(f .- Ω)
-      sort_i      = sortperm(f2,rev=true)      # Increasing order
+      sort_i      = sortperm(f2,rev=true)      # Decreasing order
       μ           = f[sort_i[1:EKryl]]
       nμ          = length(μ)
 
