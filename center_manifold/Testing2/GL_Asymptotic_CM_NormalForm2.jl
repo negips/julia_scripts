@@ -350,37 +350,66 @@ function GL2AsymptoticCM_Ord3(L::AbstractMatrix{T2},LC::AbstractMatrix{T2},B::Ab
   return SysMat,G,Y
 end  
 #---------------------------------------------------------------------- 
+resmodeplot = true
 
 SM2,G2,Y2 = GL2AsymptoticCM_Ord2(OPg,OPCg,Bg,δ,Khat,Vext,Wext,n,p,h,Inp.lbc,Inp.rbc,BiLapg,BiLapCg);
+if (resmodeplot)
+  h4    = figure(num=4,figsize=Grh.figsz2)
+  ax4   = gca()
+  plno  = -1 
+end
 
-h4    = figure(num=4,figsize=Grh.figsz2)
-ax4   = gca()
-plno  = -1 
 for i in 1:CenterManifold.NInteractionTerms(2,m)
   vnorm = norm(Y2[ind1,i])
   # Plot Mode
-  if (emodeplot) && vnorm > 0.0
+  if (resmodeplot) && vnorm > 0.0
     j = i
-    plno = plno + 1 
-    ax4.plot(xg,real.(Y2[ind1,i]),linewidth=2,linestyle="-", color=cm(plno),label=L"\mathfrak{R}(y_{%$j})")
-    ax4.plot(xg,imag.(Y2[ind1,i]),linewidth=2,linestyle="--",color=cm(plno),label=L"\mathfrak{Im}(y_{%$j})")
+    global plno = plno + 1
+
+    ind = CenterManifold.GetPolynomialIndices(i,2,m) .+ 1
+    ijk = "_{$(ind[1])"
+    for k in 2:2
+      ijk = ijk*",$(ind[k])"
+    end
+    ijk = ijk*"}"
+    # leg = L"\mathfrak{R}(y%$ijk)"
+    ax4.plot(xg,real.(Y2[ind1,i]),linewidth=2,linestyle="-", color=cm(plno),label=L"\mathfrak{R}(y_{%$ijk})")
+    ax4.plot(xg,imag.(Y2[ind1,i]),linewidth=2,linestyle="--",color=cm(plno),label=L"\mathfrak{Im}(y_{%$ijk})")
   end
 end  
+if (resmodeplot)
+  ax4.legend(ncols=4,fontsize=Grh.lgfs)
+end
+
 SM3,G3,Y3 = GL2AsymptoticCM_Ord3(OPg,OPCg,Bg,δ,Khat,Vext,Wext,G2,Y2,n,p,h,Inp.lbc,Inp.rbc,BiLapg,BiLapCg);
 
-h5    = figure(num=5,figsize=Grh.figsz2)
-ax5   = gca()
-plno  = -1 
+if (resmodeplot)
+  h5    = figure(num=5,figsize=Grh.figsz2)
+  ax5   = gca()
+  plno  = -1 
+end
+
 for i in 1:CenterManifold.NInteractionTerms(3,m)
   vnorm = norm(Y3[ind1,i])
   # Plot Mode
-  if (emodeplot) && vnorm > 0.0
+  if (resmodeeplot) && vnorm > 0.0
+ 
+    ind = CenterManifold.GetPolynomialIndices(i,3,m) .+ 1
+    ijk = "_{$(ind[1])"
+    for k in 2:3
+      ijk = ijk*",$(ind[k])"
+    end
+    ijk = ijk*"}"
+   
     j = i
-    plno = plno + 1 
+    global plno = plno + 1 
     ax5.plot(xg,real.(Y3[ind1,i]),linewidth=2,linestyle="-", color=cm(plno),label=L"\mathfrak{R}(y_{%$j})")
     ax5.plot(xg,imag.(Y3[ind1,i]),linewidth=2,linestyle="--",color=cm(plno),label=L"\mathfrak{Im}(y_{%$j})")
   end
 end  
+if (resmodeplot)
+  ax5.legend(ncols=5,fontsize=Grh.lgfs)
+end
 
 # #-------------------------------------------------- 
 # 
