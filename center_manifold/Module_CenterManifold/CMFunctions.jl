@@ -816,6 +816,35 @@ function GetAsymptoticField3(z::AbstractVector{T},Y1::AbstractMatrix{T},Y2::Abst
   return fld
 end
 #---------------------------------------------------------------------- 
+function BuildAsympSystem(Ord::Int,Khat::AbstractMatrix{T}) where {T<:Number}
+
+  Nc        = size(Khat,2)
+  Nt        = CenterManifold.NInteractionTerms(Ord,Nc)
+  SysM      = zeros(T,Nt,Nt)
+  for α in 1:Nc         # Derivative Variable
+    for ii in 1:Ord     # Polynomial order
+      for i in 1:Nt     # Go through all terms that undergo derivation
+
+        ind = CenterManifold.GetPolynomialIndices(i,Ord,Nc)
+
+        # If ∂/∂x_α is non-zero. 
+        if (ind[ii] == (α-1))
+          ind2 = [ind[1:ii-1]; ind[ii+1:end]]
+
+          # Multiplication by K_α,j
+          for j in 1:Nc
+            ind3        = [ind2[:]; (j-1)]
+            k           = CenterManifold.GetIndexNumber(ind3,Nc)
+            SysM[k,i]   = SysM[k,i] + Khat[α,j]
+          end     # j
+        end       # if (ind[ii] == α-1)
+      end         # i
+    end           # ii
+  end             # α
+
+  return SysM
+end  
+#----------------------------------------------------------------------
 
 
 

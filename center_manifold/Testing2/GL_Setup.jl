@@ -74,6 +74,8 @@ AOPCg = ALCg       # Final Conjugated Adjoint Operator
 Lapg  = (QT*(1.0/δ[4])*Lap*Q)        # Laplacian Operator
 LapCg = (QT*(1.0/δ[4]')*LapC*Q)      # Conjugated Laplacian Operator
 
+BiLapg  = diagm(Bgi)*(QT*(1.0/δ[4])*Lap*Q)        # (B^-1)*Laplacian Operator
+BiLapCg = diagm(Bgi)*(QT*(1.0/δ[4]')*LapC*Q)      # (B^-1)*Conjugated Laplacian Operator
 
 xg    = QT*(vimult.*GeoM.xm1[:])
 

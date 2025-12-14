@@ -40,10 +40,10 @@ function GLExtendTangentSpace2(L::AbstractMatrix{T1},LC::AbstractMatrix{T1},B::A
   EArnInp           = StepperArnoldi.ArnoldiInput(ifarnoldi,ifverbose,ifeigshift,vlen,nev,ekryl,lkryl,eigshift,ngs,bsize,outer_iterations,tol)
   
 
-  PEmodes1   = StepperArnoldi.ExtendedTangentSpaces(λc,L ,B,V[ind1,:],W[ind1,:],Lp[ind1,:],λp,EArnInp,EStpInp,lbc,rbc);
-  PEmodes2   = StepperArnoldi.ExtendedTangentSpaces(λc,LC,B,V[ind2,:],W[ind2,:],Lp[ind2,:],λp,EArnInp,EStpInp,lbc,rbc);
-  HEmodes1   = StepperArnoldi.ExtendedTangentSpaces(λc,L ,B,V[ind1,:],W[ind1,:],Lh[ind1,:],λh,EArnInp,EStpInp,lbc,rbc);
-  HEmodes2   = StepperArnoldi.ExtendedTangentSpaces(λc,LC,B,V[ind2,:],W[ind2,:],Lh[ind2,:],λh,EArnInp,EStpInp,lbc,rbc);
+  PEmodes1   = StepperArnoldi.ExtendedTangentSpaces(L ,B,λc,V[ind1,:],W[ind1,:],Lp[ind1,:],λp,EArnInp,EStpInp,lbc,rbc);
+  PEmodes2   = StepperArnoldi.ExtendedTangentSpaces(LC,B,λc,V[ind2,:],W[ind2,:],Lp[ind2,:],λp,EArnInp,EStpInp,lbc,rbc);
+  HEmodes1   = StepperArnoldi.ExtendedTangentSpaces(L ,B,λc,V[ind1,:],W[ind1,:],Lh[ind1,:],λh,EArnInp,EStpInp,lbc,rbc);
+  HEmodes2   = StepperArnoldi.ExtendedTangentSpaces(LC,B,λc,V[ind2,:],W[ind2,:],Lh[ind2,:],λh,EArnInp,EStpInp,lbc,rbc);
 
   Zp         = PEmodes1.Z .+ PEmodes2.Z
   Zh         = HEmodes1.Z .+ HEmodes2.Z
@@ -108,8 +108,8 @@ function GLExtendTangentSpace2(L::AbstractMatrix{T1},LC::AbstractMatrix{T1},B::A
   EArnInp           = StepperArnoldi.ArnoldiInput(ifarnoldi,ifverbose,ifeigshift,vlen,nev,ekryl,lkryl,eigshift,ngs,bsize,outer_iterations,tol)
   
 
-  Emodes1    = StepperArnoldi.ExtendedTangentSpaces(λc,L ,B,V[ind1,:],W[ind1,:],Le[ind1,:],λe,EArnInp,EStpInp,lbc,rbc);
-  Emodes2    = StepperArnoldi.ExtendedTangentSpaces(λc,LC,B,V[ind2,:],W[ind2,:],Le[ind2,:],λe,EArnInp,EStpInp,lbc,rbc);
+  Emodes1    = StepperArnoldi.ExtendedTangentSpaces(L ,B,λc,V[ind1,:],W[ind1,:],Le[ind1,:],λe,EArnInp,EStpInp,lbc,rbc);
+  Emodes2    = StepperArnoldi.ExtendedTangentSpaces(LC,B,λc,V[ind2,:],W[ind2,:],Le[ind2,:],λe,EArnInp,EStpInp,lbc,rbc);
 
   Z          = Emodes1.Z .+ Emodes2.Z
   Γ          = Emodes1.Γ .+ Emodes2.Γ

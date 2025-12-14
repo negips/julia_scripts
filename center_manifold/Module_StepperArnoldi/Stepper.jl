@@ -155,7 +155,7 @@ function RestrictedStepArn(L::AbstractMatrix{T},B::AbstractVector{S},Vr::Abstrac
 
   # Start iterations
   ifdirect = true
-  println("Starting Stepper/Arnoldi Iterations")
+  println("Starting Restricted Stepper/Arnoldi Iterations")
   while (~ifconv)
 
     for i in 1:nsteps

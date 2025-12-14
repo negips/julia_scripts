@@ -1,6 +1,6 @@
 # Extending the tangent space
 #---------------------------------------------------------------------- 
-function ExtendedTangentSpaces(λc::AbstractVector{T1},L::AbstractMatrix{T2},B::AbstractVector{T3},V::AbstractMatrix{T2},W::AbstractMatrix{T2},F::AbstractMatrix{T2},λe::AbstractVector{T1},AInp::ArnoldiInput,SInp::StepperInput,lbc::Bool,rbc::Bool) where {T1,T2,T3<:Number}
+function ExtendedTangentSpaces(L::AbstractMatrix{T2},B::AbstractVector{T3},λc::AbstractVector{T1},V::AbstractMatrix{T2},W::AbstractMatrix{T2},F::AbstractMatrix{T2},λe::AbstractVector{T1},AInp::ArnoldiInput,SInp::StepperInput,lbc::Bool,rbc::Bool) where {T1,T2,T3<:Number}
 
   ne = length(λe)
 
@@ -10,7 +10,7 @@ function ExtendedTangentSpaces(λc::AbstractVector{T1},L::AbstractMatrix{T2},B::
     f     = view(F,:,i)
     AInp.ifeigshift = true
     AInp.eigshift   = λe[i]
-    EM[i] = ExtendTangentSpace(λc,L,B,V,W,f,λe[i],AInp,SInp,lbc,rbc)
+    EM[i] = ExtendTangentSpace(L,B,λc,V,W,f,λe[i],AInp,SInp,lbc,rbc)
   end  
 
   EModes = ExtendedModes(EM)
@@ -18,7 +18,7 @@ function ExtendedTangentSpaces(λc::AbstractVector{T1},L::AbstractMatrix{T2},B::
   return EModes
 end
 #---------------------------------------------------------------------- 
-function ExtendTangentSpace(λc::AbstractVector{T1},L::AbstractMatrix{T2},B::AbstractVector{T3},V::AbstractMatrix{T2},W::AbstractMatrix{T2},f::AbstractVector{T2},λe::T1,AInp::ArnoldiInput,SInp::StepperInput,lbc::Bool,rbc::Bool) where {T1,T2,T3<:Number}
+function ExtendTangentSpace(L::AbstractMatrix{T2},B::AbstractVector{T3},λc::AbstractVector{T1},V::AbstractMatrix{T2},W::AbstractMatrix{T2},f::AbstractVector{T2},λe::T1,AInp::ArnoldiInput,SInp::StepperInput,lbc::Bool,rbc::Bool) where {T1,T2,T3<:Number}
 
   ngs = 2
   N   = size(L,2)

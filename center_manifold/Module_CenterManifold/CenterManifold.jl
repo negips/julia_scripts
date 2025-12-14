@@ -48,7 +48,8 @@ module CenterManifold
          EvalNonLinear,
          GetAsymptoticField3,
          DisplayEquation3,
-         DisplayTerms3
+         DisplayTerms3,
+         BuildAsympSystem
 
 
   # Dynamical Evolution related functions 
