@@ -128,7 +128,7 @@ function GLExtendTangentSpace2(L::AbstractMatrix{T1},LC::AbstractMatrix{T1},B::A
 end
 #---------------------------------------------------------------------- 
 
-ifresonant = true
+ifresonant = false
 emodeplot  = true
 
 Nby2  = ArnInp.vlen
@@ -159,33 +159,12 @@ Lθ    = [f2 f3]
 if ifresonant
   λh    = [1.0im; -1.0im;]
 else
-  λh    = [2.3im; -2.3im;]
+  λh    = [1.2im; -1.2im;]
 end
 # Forcing Modes
-#ax2.plot(xg,real.(ψ) ,linewidth=2,linestyle="-", color=cm(2),label=L"\mathfrak{R}(ψ)")
-#ax2.plot(xg,imag.(ψ) ,linewidth=2,linestyle="--",color=cm(2),label=L"\mathfrak{Im}(ψ)")
+ax2.plot(xg,real.(ψ) ,linewidth=2,linestyle="-", color=cm(2),label=L"\mathfrak{R}(ψ)")
+ax2.plot(xg,imag.(ψ) ,linewidth=2,linestyle="--",color=cm(2),label=L"\mathfrak{Im}(ψ)")
 
-vzro  = 0.0*ψ
-Lθ    = zeros(ComplexF64,N,h)
-f1    = 1.0/(sqrt(2.0))*[ψ;ψ]
-f2    = [ψ;  vzro]
-f3    = [vzro;ψ]
-f4    = [ψ;  vzro]
-f5    = [vzro;ψ]
-f6    = [ψ; conj.(ψ)]
-f7    = [conj.(ψ); ψ]
-
-
-# Lθ    = [f1 f2 f3 f4 f5]
-Lθ    = [f2 f3]
-#Lθ    = [f6 f7]
-if ifresonant
-  λh    = [1.0im; -1.0im;]
-else
-  λh    = [2.3im; -2.3im;]
-#  λh    = [0.7im; -0.7im;]
-#  λh    = [2.3im]
-end
 Λh    = diagm(λh)
 
 # PE,HE = GLExtendTangentSpace2(OPg,OPCg,Bg,λc,V,W,λν,Lν,λh,Lθ,Inp.lbc,Inp.rbc)
@@ -214,12 +193,6 @@ for i in 1:length(λext)
   end
 end  
 
-if (emodeplot)
-  ax2.legend(ncols=4,fontsize=Grh.lgfs)
-else  
-  ax2.legend(ncols=3,fontsize=Grh.lgfs)
-end  
-
 Vext        = [V EM.Ve]
 Wext        = [W EM.We]
 Γe          = EM.Γ
@@ -231,20 +204,22 @@ Zero_ne_n   = zeros(ComplexF64,p+h,n)
 Khat = [Λc        Γe;
         Zero_ne_n Λe]
 
-#Vext  = [V  EM.Ve]
-#Wext  = [W  zeros(ComplexF64,N,p+h)]
-
 Vhat  = [V              EM.Ve;
          Zero_ne_n      I]
 What  = [Wext;
          Ze      I]
 
+if (emodeplot)
+  ax2.legend(ncols=4,fontsize=Grh.lgfs)
+else  
+  ax2.legend(ncols=3,fontsize=Grh.lgfs)
+end  
+
 
 # Extended Adjoint Tangent Space
 #-------------------------------------------------- 
 
-
-println("Extended Tangent Space Done.")
+# println("Extended Tangent Space Done.")
 
 
 println("Extended Tangent Space (Arnoldi) Done.")
