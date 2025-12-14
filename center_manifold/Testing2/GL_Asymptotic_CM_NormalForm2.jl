@@ -352,7 +352,35 @@ end
 #---------------------------------------------------------------------- 
 
 SM2,G2,Y2 = GL2AsymptoticCM_Ord2(OPg,OPCg,Bg,δ,Khat,Vext,Wext,n,p,h,Inp.lbc,Inp.rbc,BiLapg,BiLapCg);
+
+h4    = figure(num=4,figsize=Grh.figsz2)
+ax4   = gca()
+plno  = -1 
+for i in 1:CenterManifold.NInteractionTerms(2,m)
+  vnorm = norm(Y2[ind1,i])
+  # Plot Mode
+  if (emodeplot) && vnorm > 0.0
+    j = i
+    plno = plno + 1 
+    ax4.plot(xg,real.(Y2[ind1,i]),linewidth=2,linestyle="-", color=cm(plno),label=L"\mathfrak{R}(y_{%$j})")
+    ax4.plot(xg,imag.(Y2[ind1,i]),linewidth=2,linestyle="--",color=cm(plno),label=L"\mathfrak{Im}(y_{%$j})")
+  end
+end  
 SM3,G3,Y3 = GL2AsymptoticCM_Ord3(OPg,OPCg,Bg,δ,Khat,Vext,Wext,G2,Y2,n,p,h,Inp.lbc,Inp.rbc,BiLapg,BiLapCg);
+
+h5    = figure(num=5,figsize=Grh.figsz2)
+ax5   = gca()
+plno  = -1 
+for i in 1:CenterManifold.NInteractionTerms(3,m)
+  vnorm = norm(Y3[ind1,i])
+  # Plot Mode
+  if (emodeplot) && vnorm > 0.0
+    j = i
+    plno = plno + 1 
+    ax5.plot(xg,real.(Y3[ind1,i]),linewidth=2,linestyle="-", color=cm(plno),label=L"\mathfrak{R}(y_{%$j})")
+    ax5.plot(xg,imag.(Y3[ind1,i]),linewidth=2,linestyle="--",color=cm(plno),label=L"\mathfrak{Im}(y_{%$j})")
+  end
+end  
 
 # #-------------------------------------------------- 
 # 

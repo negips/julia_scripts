@@ -103,7 +103,7 @@ Vdamp     = zeros(vt,ndof,1)
 Vdamp[:,1]= V[ind1,1]
 Wdamp     = zeros(vt,ndof,1)
 Wdamp[:,1]= W[ind1,1]
-χdamp     = [vt(0.01/dt)]
+χdamp     = [vt(0.00/dt)]
 DFGL(x,y) = DampedFGL(FNGL,Bg,x,y,Vdamp,Wdamp,χdamp)
 
 # For θ evolution
@@ -134,7 +134,7 @@ for ik in 1:nθ
   z[2]  = z[1]'
   z[5]  = θAmp*vt(1)
   z[6]  = z[5]'
-  fld   = Get_AsymptoticField(z,Vext,Y_O2,Y_O3)
+  fld   = Get_AsymptoticField(z,Vext,Y2,Y3)
 
   v     = zeros(vt,ndof)
   #v     = fld[1:ndof]

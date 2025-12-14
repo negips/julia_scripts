@@ -91,8 +91,8 @@ end
 
 # Stuart Landau
 G1          = Khat
-G2          = G_O2
-G3          = G_O3
+G2          = G2
+G3          = G3
 SL(x)       = StuartLandau3(G1,G2,G3,x)  
 
 println("Press x to stop. Any other key to continue...")
@@ -112,7 +112,7 @@ for ik in 1:nθ
   z           = zeros(vt,m)
   rng         = Xoshiro(1235)
   # Mode initial values
-  z[1]        = -2.0e-2*rand(rng,vt)
+  z[1]        = 1.0e-5*rand(rng,vt)
   z[2]        = z[1]'
   # Parameter Perturbations
   z[n+1:n+p]  = zeros(vt,p)
@@ -170,7 +170,7 @@ for ik in 1:nθ
         # Get field value at point x = hist_x,
         # corresponding to array index hist_i
         if (xhist)
-          Histx[j,ik] = Get_AsymptoticFieldx(hist_i,z,Vext,Y_O2,Y_O3)
+          Histx[j,ik] = Get_AsymptoticFieldx(hist_i,z,Vext,Y2,Y3)
         end  
       end
 
@@ -200,7 +200,7 @@ for ik in 1:nθ
           for lo in ax5.get_lines()
             lo.remove()
           end
-          fld12 = CenterManifold.GetAsymptoticField3(z,Vext,Y_O2,Y_O3)
+          fld12 = CenterManifold.GetAsymptoticField3(z,Vext,Y2,Y3)
           fld1  = fld12[1:ndof]
           ax5.plot(xg,real.(fld1),color=cm(0),linestyle="-",linewidth=1)
           ax5.plot(xg,imag.(fld1),color=cm(0),linestyle="--",linewidth=1)
