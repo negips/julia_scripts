@@ -231,8 +231,8 @@ Zero_ne_n   = zeros(ComplexF64,p+h,n)
 Khat = [Λc        Γe;
         Zero_ne_n Λe]
 
-Vext  = [V  EM.Ve]
-Wext  = [W  zeros(ComplexF64,N,p+h)]
+#Vext  = [V  EM.Ve]
+#Wext  = [W  zeros(ComplexF64,N,p+h)]
 
 Vhat  = [V              EM.Ve;
          Zero_ne_n      I]

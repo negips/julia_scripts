@@ -140,7 +140,7 @@ function BuildLowOrder(n0::Int,Ord::Int,Nc::Int,Y::AbstractMatrix{T},G::Abstract
 end  
 #----------------------------------------------------------------------
 #---------------------------------------------------------------------- 
-function GL2AsymptoticCM_Ord2(L::AbstractMatrix{T2},LC::AbstractMatrix{T2},B::AbstractVector{T3},δ::AbstractVector{T2},Khat::AbstractMatrix{T1},Vext::AbstractMatrix{T2},Wext::AbstractMatrix{T2},n::Int,p::Int,h::Int,AInp,SInp,lbc::Bool,rbc::Bool) where {T1,T2,T3<:Number}
+function GL2AsymptoticCM_Ord2(L::AbstractMatrix{T2},LC::AbstractMatrix{T2},B::AbstractVector{T3},δ::AbstractVector{T2},Khat::AbstractMatrix{T1},Vext::AbstractMatrix{T2},Wext::AbstractMatrix{T2},n::Int,p::Int,h::Int,lbc::Bool,rbc::Bool,Lap::AbstractMatrix{T2},LapC::AbstractMatrix{T2}) where {T1,T2,T3<:Number}
 
   # n         - Original Critical space size (Needed to determine Laplace Modes)
   # p         - Parameter Modes
@@ -228,7 +228,7 @@ function GL2AsymptoticCM_Ord2(L::AbstractMatrix{T2},LC::AbstractMatrix{T2},B::Ab
     λ_khat    = diag(Khat)
     AInp.eigshift = ω
     CM2_EM1   = StepperArnoldi.ExtendTangentSpace(L,B,λ_khat,V1,W1,h_asymp1,ω,AInp,SInp,lbc,rbc)
-    CM2_EM2   = StepperArnoldi.ExtendTangentSpace(L,B,λ_khat,V2,W2,h_asymp2,ω,AInp,SInp,lbc,rbc)
+    CM2_EM2   = StepperArnoldi.ExtendTangentSpace(LC,B,λ_khat,V2,W2,h_asymp2,ω,AInp,SInp,lbc,rbc)
 
     Y[ind1,i] = copy(CM2_EM1.ve)
     Y[ind2,i] = copy(CM2_EM2.ve)
@@ -242,7 +242,7 @@ function GL2AsymptoticCM_Ord2(L::AbstractMatrix{T2},LC::AbstractMatrix{T2},B::Ab
   return SysMat,G,Y
 end  
 #---------------------------------------------------------------------- 
-function GL2AsymptoticCM_Ord3(L::AbstractMatrix{T2},LC::AbstractMatrix{T2},B::AbstractVector{T3},δ::AbstractVector{T2},Khat::AbstractMatrix{T1},Vext::AbstractMatrix{T2},Wext::AbstractMatrix{T2},G2::AbstractMatrix{T1},Y2::AbstractMatrix{T2},n::Int,p::Int,h::Int,AInp,SInp,lbc::Bool,rbc::Bool) where {T1,T2,T3<:Number}
+function GL2AsymptoticCM_Ord3(L::AbstractMatrix{T2},LC::AbstractMatrix{T2},B::AbstractVector{T3},δ::AbstractVector{T2},Khat::AbstractMatrix{T1},Vext::AbstractMatrix{T2},Wext::AbstractMatrix{T2},G2::AbstractMatrix{T1},Y2::AbstractMatrix{T2},n::Int,p::Int,h::Int,lbc::Bool,rbc::Bool,LAP::AbstractMatrix{T2},LAPC::AbstractMatrix{T2}) where {T1,T2,T3<:Number}
 
   # n         - Original Critical space size (Needed to determine Laplace Modes)
   # p         - Parameter Modes
@@ -300,9 +300,9 @@ function GL2AsymptoticCM_Ord3(L::AbstractMatrix{T2},LC::AbstractMatrix{T2},B::Ab
     if p>0
       lap_mode  = n+1
       lap_cmode = n+2
-      OrdY     = 2
-      h_lapl   = GLLapNLTerm(i,Ord,m,Y2,OrdY,lap_mode,lap_cmode,BiLapg,BiLapCg)
-      h_asymp .= h_asymp .+ h_lapl 
+      OrdY      = 2
+      h_lapl    = GLLapNLTerm(i,Ord,m,Y2,OrdY,lap_mode,lap_cmode,LAP,LAPC)
+      h_asymp  .= h_asymp .+ h_lapl 
     end
 
     Ord1        = 1
@@ -336,7 +336,7 @@ function GL2AsymptoticCM_Ord3(L::AbstractMatrix{T2},LC::AbstractMatrix{T2},B::Ab
     λ_khat    = diag(Khat)
     AInp.eigshift = ω
     CM2_EM1   = StepperArnoldi.ExtendTangentSpace(L,B,λ_khat,V1,W1,h_asymp1,ω,AInp,SInp,lbc,rbc)
-    CM2_EM2   = StepperArnoldi.ExtendTangentSpace(L,B,λ_khat,V2,W2,h_asymp2,ω,AInp,SInp,lbc,rbc)
+    CM2_EM2   = StepperArnoldi.ExtendTangentSpace(LC,B,λ_khat,V2,W2,h_asymp2,ω,AInp,SInp,lbc,rbc)
 
     Y[ind1,i] = copy(CM2_EM1.ve)
     Y[ind2,i] = copy(CM2_EM2.ve)
@@ -351,144 +351,9 @@ function GL2AsymptoticCM_Ord3(L::AbstractMatrix{T2},LC::AbstractMatrix{T2},B::Ab
 end  
 #---------------------------------------------------------------------- 
 
-SM2,G2,Y2 = GL2AsymptoticCM_Ord2(OPg,OPCg,Bg,δ,Khat,Vext,Wext,n,p,h,ArnInp,StpInp,Inp.lbc,Inp.rbc);
-SM3,G3,Y3 = GL2AsymptoticCM_Ord3(OPg,OPCg,Bg,δ,Khat,Vext,Wext,G2,Y2,n,p,h,ArnInp,StpInp,Inp.lbc,Inp.rbc);
+SM2,G2,Y2 = GL2AsymptoticCM_Ord2(OPg,OPCg,Bg,δ,Khat,Vext,Wext,n,p,h,Inp.lbc,Inp.rbc,BiLapg,BiLapCg);
+SM3,G3,Y3 = GL2AsymptoticCM_Ord3(OPg,OPCg,Bg,δ,Khat,Vext,Wext,G2,Y2,n,p,h,Inp.lbc,Inp.rbc,BiLapg,BiLapCg);
 
-# h3      = figure(num=3,figsize=Grh.figsz2)
-# ax3     = gca()
-# cm2     = get_cmap("tab10")
-# plno    = -1
-# verbose = false
-# plforc  = true
-# 
-# 
-# # Second Order Asymptotic terms
-# #-------------------------------------------------- 
-# Ord         = 2
-# Nt          = CenterManifold.NInteractionTerms(Ord,m)
-# Y_O2        = zeros(ComplexF64,N,Nt)
-# SysMat_O2   = BuildAsympSystem(Ord,m,Khat)
-# 
-# # Reduced Matrix terms
-# G_O2        = zeros(ComplexF64,m,Nt)
-# println("Solving for Ord=$(Ord)")
-# for i in 1:Nt
-# 
-#   global plno
-# 
-#   ind       = CenterManifold.GetPolynomialIndices(i,Ord,m)
-#   ω         = 0.0im
-#   for j in 1:Ord
-#     ii      = ind[j]+1
-#     ω       = ω + Khat[ii,ii] 
-#   end 
-# 
-#   if (verbose)
-#     println("Solving for $(ind .+ 1), ω=$(ω)")
-#   end  
-# 
-#   h_asymp   = zeros(ComplexF64,N)
-#   if p>0
-#     local lap_mode  = n+1
-#     local lap_cmode = n+2
-#     Ord1 = 1
-#     h_lapl   = GLLapNLTerm(i,Ord,m,Vext,Ord1,lap_mode,lap_cmode,BiLapg,BiLapCg)
-#     h_asymp .= h_asymp .+ h_lapl 
-#   end
-# 
-#   Ord1      = 1
-#   Ord2      = 1
-#   Ord3      = 1
-#   δ5        = δ[5]
-#   h_NL      = GLStdAsympNLTerm(i,Ord,m,Vext,Vext,Vext,Ord1,Ord2,Ord3,δ5)
-#   h_asymp  .= h_asymp .+ h_NL
-# 
-#   h_offd    = zeros(ComplexF64,N)
-#   for j in 1:(i-1)
-#     h_offd .= h_offd .+ SysMat_O2[i,j]*Y_O2[:,j]
-#   end
-#   h_asymp  .= h_asymp .- h_offd
-# 
-#   CM2_EM    = GLExtendTangentSpace2(OPg,OPCg,Bg,λc,V,W,λext,Lext,Inp.lbc,Inp.rbc)
-# 
-# 
-#   DQ  = Matrix{ComplexF64}(I,Nby2,Nby2)
-#   CQ  = Matrix{ComplexF64}(I,Nby2,Nby2)
-#   for j in 1:n
-#     if abs(Khat[j,j] - ω) < 1.0e-12
-#       # println("Resonant ω: $(ω)")
-#       β           = W[:,j]'*(Bg2.*h_asymp)
-#       G_O2[j,i]   = β
-#       
-#       h_asymp    .= h_asymp .- β*V[:,j]
-#       DQ         .= DQ - V[ind1,j]*(W[ind1,j].*Bg)'
-#       CQ         .= CQ - V[ind2,j]*(W[ind2,j].*Bg)'
-#     end
-#   end  
-#   @views SEM1D.SEM_SetBC!(h_asymp[ind1],Inp.lbc,Inp.rbc)
-#   @views SEM1D.SEM_SetBC!(h_asymp[ind2],Inp.lbc,Inp.rbc)
-# 
-#   # println("|r|: $(norm(h_asymp))")
-#   Y_O2[:,i]       = copy(h_asymp)
-# 
-#   Res1            = DQ*(ω*I - OPg)*DQ
-#   y_asymp         = view(Y_O2,ind1,i)
-#   r               = view(h_asymp,ind1)
-#   gmres!(y_asymp,Res1,r)
-#   y1norm = sqrt(abs(y_asymp'*(Bg.*y_asymp))) 
-#   # plotting
-#   if y1norm>1.0e-12
-#     plno    = plno + 1
-#     ijk = "_{$(ind[1]+1)"
-#     for k in 2:Ord
-#       ijk = ijk*",$(ind[k]+1)"
-#     end
-#     ijk = ijk*"}"
-#     # leg = L"\mathfrak{R}(y%$ijk)"
-#     # ax3.plot(xg,real.(y_asymp),linewidth=2,linestyle="-", color=cm2(plno),label=leg)
-#     # leg = L"\mathfrak{Im}(y%$ijk)"
-#     # ax3.plot(xg,imag.(y_asymp),linewidth=2,linestyle="--",color=cm2(plno),label=leg)
-# 
-#     leg = L"|y%$ijk|"
-#     ax3.plot(xg,abs.(y_asymp),linewidth=2,linestyle="-", color=cm2(plno),label=leg)
-# 
-#     # leg = L"|h%$ijk|"
-#     # ax3.plot(xg,abs.(h_asymp[ind1]),linewidth=1,linestyle="--", color=cm2(plno),label=leg)
-# 
-#     # leg = L"|hNL%$ijk|"
-#     # ax3.plot(xg,abs.(h_NL[ind1]),linewidth=1,linestyle="-.", color=cm2(plno),label=leg)
-#     # println("|NL1|: $(norm(h_NL[ind1]))")
-# 
-#     # leg = L"|hLap%$ijk|"
-#     # ax3.plot(xg,abs.(h_lapl[ind1]),linewidth=1,linestyle="-.", color=cm2(plno),label=leg)
-#   
-#   end  
-# 
-#   Res2            = CQ*(ω*I - OPCg)*CQ
-#   y_asymp         = view(Y_O2,ind2,i)
-#   r               = view(h_asymp,ind2)
-#   gmres!(y_asymp,Res2,r)
-#   y2norm = sqrt(abs(y_asymp'*(Bg.*y_asymp))) 
-#   # plotting no
-#   if y2norm>1.0e-12
-#     plno    = plno + 1
-#     ijk = "_{$(ind[1]+1)"
-#     for k in 2:Ord
-#       ijk = ijk*",$(ind[k]+1)"
-#     end
-#     ijk = ijk*"}"
-#     # leg = L"\mathfrak{R}(y%$ijk*)"
-#     # ax3.plot(xg,real.(y_asymp),linewidth=2,linestyle="-", color=cm2(plno),label=leg)
-#     # leg = L"\mathfrak{Im}(y%$ijk*)"
-#     # ax3.plot(xg,imag.(y_asymp),linewidth=2,linestyle="--",color=cm2(plno),label=leg)
-# 
-#     # leg = L"|y%$ijk*|"
-#     # ax3.plot(xg,abs.(y_asymp),linewidth=2,linestyle="--",color=cm2(plno),label=leg)
-#   end  
-# 
-# end
-# ax3.legend(ncol=3,loc="upper right",fontsize=Grh.lgfs)
-# 
 # #-------------------------------------------------- 
 # 
 # 

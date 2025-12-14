@@ -27,7 +27,7 @@ function Set_GL_Params()
   δ1  = -0.1 + 0.0im            # -U
   # δ2  =  0.741 + 1.025im      #  μ0
   δ3  = -0.125 + 0.0im          #  μx
-  δ4  = (1.0 - 0.00im)/sqrt(1.0)    #  γ
+  δ4  = (1.0 - 1.00im)/sqrt(2.0)    #  γ
   δ5  = (-0.1 + 0.1im)          #  Nonlinear Coefficient 
 
   ω1  =  0.0 + 1.0im

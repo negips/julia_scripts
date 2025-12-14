@@ -33,15 +33,17 @@ StpInp            = StepperArnoldi.StepperInput(ifadjoint,ifoptimal,ifverbose,ve
 
 ifarnoldi         = true 
 ifverbose         = false
+ifeigshift        = false
 vlen              = ndof
 nev               = 1
 ekryl             = 15  
-lkryl             = nev + ekryl 
+lkryl             = nev + ekryl
+eigshift          = 0.0 + 0.0im
 ngs               = 2
 bsize             = 1
 outer_iterations  = 100
 tol               = 1.0e-12
-ArnInp            = StepperArnoldi.ArnoldiInput(ifarnoldi,ifverbose,vlen,nev,ekryl,lkryl,ngs,bsize,outer_iterations,tol)
+ArnInp            = StepperArnoldi.ArnoldiInput(ifarnoldi,ifverbose,ifeigshift,vlen,nev,ekryl,lkryl,eigshift,ngs,bsize,outer_iterations,tol)
 #ArnInp      = Set_ArnoldiParams()
 
 Ω     = SEM1D.GLAnalyticalSpectra(δ)
