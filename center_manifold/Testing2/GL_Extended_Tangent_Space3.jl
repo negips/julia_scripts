@@ -66,7 +66,7 @@ Lν    = zeros(ComplexF64,N,p)
 for i in 1:p
   for j in 1:n
     if abs(λc[j] - λp[i]) < 1.0e-12
-      ΓH[j,i]   = W[:,j]'*(Bg2.*Lν[:,i])
+      ΓP[j,i]   = W[:,j]'*(Bg2.*Lν[:,i])
     end
   end
 end
@@ -412,6 +412,13 @@ Emodes1     = ExtendedTangentSpaces(λc,OPg,Bg,V[ind1,:],W[ind1,:],Lθ[ind1,:],�
 Emodes2     = ExtendedTangentSpaces(λc,OPCg,Bg,V[ind2,:],W[ind2,:],Lθ[ind2,:],λh,EArnInp,EStpInp,Inp);
 ax2.plot(xg,real.(Emodes1.Ve[:,1]),linewidth=2,linestyle="-", color="black",label=L"\mathfrak{R}(ϕ_{10})")
 ax2.plot(xg,real.(Emodes2.Ve[:,2]),linewidth=2,linestyle="-", color="brown",label=L"\mathfrak{R}(ϕ_{12})")
+
+
+if (emodeplot)
+  ax2.legend(ncols=4,fontsize=Grh.lgfs)
+else  
+  ax2.legend(ncols=3,fontsize=Grh.lgfs)
+end  
 
 println("Extended Tangent Space Done.")
 

@@ -124,13 +124,12 @@ function GLExtendTangentSpace2(L::AbstractMatrix{T1},LC::AbstractMatrix{T1},B::A
 
   Emodes = StepperArnoldi.ExtendedModes(λe,Γ,Ve,We,Z)
 
-  #return PEmodes1,PEmodes2,HEmodes1,HEmodes2
   return Emodes
 end
 #---------------------------------------------------------------------- 
 
 ifresonant = true
-emodeplot  = false
+emodeplot  = true
 
 Nby2  = ArnInp.vlen
 N     = Nby2*2
@@ -138,6 +137,8 @@ n     = length(λc)
 p     = 2
 h     = 2
 m     = n+p+h
+ind1  = 1:Nby2
+ind2  = Nby2+1:N
 
 Bg2   = [Bg; Bg]
 Bg2M  = diagm(Bg2)
@@ -161,8 +162,8 @@ else
   λh    = [2.3im; -2.3im;]
 end
 # Forcing Modes
-ax2.plot(xg,real.(ψ) ,linewidth=2,linestyle="-", color=cm(2),label=L"\mathfrak{R}(ψ)")
-ax2.plot(xg,imag.(ψ) ,linewidth=2,linestyle="--",color=cm(2),label=L"\mathfrak{Im}(ψ)")
+#ax2.plot(xg,real.(ψ) ,linewidth=2,linestyle="-", color=cm(2),label=L"\mathfrak{R}(ψ)")
+#ax2.plot(xg,imag.(ψ) ,linewidth=2,linestyle="--",color=cm(2),label=L"\mathfrak{Im}(ψ)")
 
 vzro  = 0.0*ψ
 Lθ    = zeros(ComplexF64,N,h)
@@ -187,8 +188,7 @@ else
 end
 Λh    = diagm(λh)
 
-#PE1,PE2,HE1,HE2 = GLExtendTangentSpace2(OPg,OPCg,Bg,λc,V,W,λν,Lν,λh,Lθ,Inp.lbc,Inp.rbc)
-PE,HE = GLExtendTangentSpace2(OPg,OPCg,Bg,λc,V,W,λν,Lν,λh,Lθ,Inp.lbc,Inp.rbc)
+# PE,HE = GLExtendTangentSpace2(OPg,OPCg,Bg,λc,V,W,λν,Lν,λh,Lθ,Inp.lbc,Inp.rbc)
 
 λext = [λν[:]; λh[:]]
 Lext = zeros(ComplexF64,N,p+h)
@@ -204,12 +204,40 @@ for i in 1:h
 end
 EM = GLExtendTangentSpace2(OPg,OPCg,Bg,λc,V,W,λext,Lext,Inp.lbc,Inp.rbc)
 
+for i in 1:length(λext)
+  vnorm = norm(EM.Ve[ind1,i])
+  # Plot Mode
+  if (emodeplot) && vnorm > 0.0
+    j = n+i+20
+    ax2.plot(xg,real.(EM.Ve[ind1,i]),linewidth=2,linestyle="-", color=cm(j-1),label=L"\mathfrak{R}(ϕ_{%$j})")
+    ax2.plot(xg,imag.(EM.Ve[ind1,i]),linewidth=2,linestyle="--",color=cm(j-1),label=L"\mathfrak{Im}(ϕ_{%$j})")
+  end
+end  
 
 if (emodeplot)
   ax2.legend(ncols=4,fontsize=Grh.lgfs)
 else  
   ax2.legend(ncols=3,fontsize=Grh.lgfs)
 end  
+
+Vext        = [V EM.Ve]
+Wext        = [W EM.We]
+Γe          = EM.Γ
+Ze          = EM.Z
+Λe          = diagm(EM.λe)
+Λc          = diagm(λc)
+Zero_ne_n   = zeros(ComplexF64,p+h,n)
+
+Khat = [Λc        Γe;
+        Zero_ne_n Λe]
+
+Vext  = [V  EM.Ve]
+Wext  = [W  zeros(ComplexF64,N,p+h)]
+
+Vhat  = [V              EM.Ve;
+         Zero_ne_n      I]
+What  = [Wext;
+         Ze      I]
 
 
 # Extended Adjoint Tangent Space
