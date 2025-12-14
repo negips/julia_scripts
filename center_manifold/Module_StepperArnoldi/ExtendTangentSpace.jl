@@ -1,6 +1,6 @@
 # Extending the tangent space
 #---------------------------------------------------------------------- 
-function ExtendedTangentSpaces(λc::AbstractVector{T1},L::AbstractMatrix{T2},B::AbstractVector{T3},V::AbstractMatrix{T2},W::AbstractMatrix{T2},F::AbstractMatrix{T4},λe::AbstractVector{T1},AInp,SInp,Inp) where {T1,T2,T3,T4<:Number}
+function ExtendedTangentSpaces(λc::AbstractVector{T1},L::AbstractMatrix{T2},B::AbstractVector{T3},V::AbstractMatrix{T2},W::AbstractMatrix{T2},F::AbstractMatrix{T2},λe::AbstractVector{T1},AInp::ArnoldiInput,SInp::StepperInput,lbc::Bool,rbc::Bool) where {T1,T2,T3<:Number}
 
   ne = length(λe)
 
@@ -10,15 +10,15 @@ function ExtendedTangentSpaces(λc::AbstractVector{T1},L::AbstractMatrix{T2},B::
     f     = view(F,:,i)
     AInp.ifeigshift = true
     AInp.eigshift   = λe[i]
-    EM[i] = ExtendTangentSpace(λc,L,B,V,W,f,λe[i],AInp,SInp,Inp)
+    EM[i] = ExtendTangentSpace(λc,L,B,V,W,f,λe[i],AInp,SInp,lbc,rbc)
   end  
 
-  EModes = StepperArnoldi.ExtendedModes(EM)
+  EModes = ExtendedModes(EM)
 
   return EModes
 end
 #---------------------------------------------------------------------- 
-function ExtendTangentSpace(λc::AbstractVector{T1},L::AbstractMatrix{T2},B::AbstractVector{T3},V::AbstractMatrix{T2},W::AbstractMatrix{T2},f::AbstractVector{T4},λe::T1,AInp,SInp,Inp) where {T1,T2,T3,T4<:Number}
+function ExtendTangentSpace(λc::AbstractVector{T1},L::AbstractMatrix{T2},B::AbstractVector{T3},V::AbstractMatrix{T2},W::AbstractMatrix{T2},f::AbstractVector{T2},λe::T1,AInp::ArnoldiInput,SInp::StepperInput,lbc::Bool,rbc::Bool) where {T1,T2,T3<:Number}
 
   ngs = 2
   N   = size(L,2)
@@ -50,7 +50,7 @@ function ExtendTangentSpace(λc::AbstractVector{T1},L::AbstractMatrix{T2},B::Abs
   nr        = 0
   for j in 1:n
     if abs(λc[j] - λe) < AInp.tol
-      println("Resonant λ: $j")
+      # println("Resonant λ: $j")
       resonance = true
       nr  = nr + 1
  
@@ -77,12 +77,14 @@ function ExtendTangentSpace(λc::AbstractVector{T1},L::AbstractMatrix{T2},B::Abs
     Le[1:N,N+1]   = B.*ftmp
     Le[N+1,N+1]   = λe
 
+    # Set the proper Arnoldi vector length
+    AInp.vlen     = Ne
     if (resonance)
       Ve_view     = view(Ve,:,1:nr)
       We_view     = view(We,:,1:nr)
-      DArnOut     = StepperArnoldi.RestrictedStepArn(Le,Be,Ve_view,We_view,SInp,AInp,Inp.lbc,Inp.rbc) 
+      DArnOut     = RestrictedStepArn(Le,Be,Ve_view,We_view,SInp,AInp,lbc,rbc) 
     else
-      DArnOut     = StepperArnoldi.StepArn(Le,Be,SInp,AInp,Inp.lbc,Inp.rbc) 
+      DArnOut     = StepArn(Le,Be,SInp,AInp,lbc,rbc) 
     end
     ii            = argmin(abs.(DArnOut.evals .- λe))
     θt            = DArnOut.evecs[Ne,ii]
@@ -90,12 +92,7 @@ function ExtendTangentSpace(λc::AbstractVector{T1},L::AbstractMatrix{T2},B::Abs
     for i in LinearIndices(vh)
       vh[i]  = DArnOut.evecs[i,ii]./θt     # ensure extended variable == 1.0
     end  
-
-    # println(norm(DArnOut.evecs[1:N,ii]))
-    # println(norm(vh))
   end
-
-  # println(norm(vh))
 
   # Adjoint Forcing modes
   wh    = zeros(T2,N)
@@ -104,11 +101,11 @@ function ExtendTangentSpace(λc::AbstractVector{T1},L::AbstractMatrix{T2},B::Abs
     z[i] = -vh'*(B.*W[:,i])
   end
 
-  extmode = StepperArnoldi.ExtendedMode(λe,Γ,vh,wh,z)
+  extmode = ExtendedMode(λe,Γ,vh,wh,z)
 
   return extmode
 end  
-
+#---------------------------------------------------------------------- 
 
 
 

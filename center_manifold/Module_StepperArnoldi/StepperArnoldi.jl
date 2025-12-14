@@ -4,6 +4,7 @@
       # import Base.copy!
       # import Base.copyto!
 
+      using SparseArrays
       using LinearAlgebra
       using IterativeSolvers
       using Roots
@@ -14,9 +15,9 @@
 #     Basic definitions: 
 #     abstract types, structures, constructors, extensions
 #--------------------------------------------------
-      include("StpArn_Abstract.jl")        # 
-      include("StpArn_Struct.jl")          # 
-      include("StpArn_Constructors.jl")    # 
+      include("StpArnAbstract.jl")        # 
+      include("StpArnStruct.jl")          # 
+      include("StpArnConstructors.jl")    # 
 
       include("StpArnFunctions.jl")
       include("RK4.jl")
@@ -27,6 +28,7 @@
       include("IRAM.jl")
       include("ArnInit.jl")
       include("Stepper.jl")
+      include("ExtendTangentSpace.jl")
 
 
 #      include("SEM1D_Constructors.jl")    #
@@ -86,7 +88,9 @@
              ArnInitVector,
              StepArn,
              ObliqueSubspaceRemoval!,
-             RestrictedStepArn
+             RestrictedStepArn,
+             ExtendTangentSpace,
+             ExtendedTangentSpaces
 
 
       end         # Module StepperArnoldi
