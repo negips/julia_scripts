@@ -82,6 +82,7 @@ function GinzburgLandauSparse(δ::Vector{T},Inp::SEMInput,GeoM::SEMGeoMat{GT},B:
       A    = spzeros(Prec,dof,dof);
       Conv = spzeros(Prec,dof,dof)
       Src  = spzeros(Prec,dof,dof)
+      WLap = spzeros(Prec,dof,dof)
       Lap  = spzeros(Prec,dof,dof)
 
       OP   = zeros(Prec,lx1,lx1,nel);
@@ -101,7 +102,8 @@ function GinzburgLandauSparse(δ::Vector{T},Inp::SEMInput,GeoM::SEMGeoMat{GT},B:
 
         Conv[j1:j2,j1:j2] = δ[1]*GeoM.Convd[:,:,i]
         Src[j1:j2,j1:j2]  = diagm(GeoM.bm1[:,i].*μ)
-        Lap[j1:j2,j1:j2]  = δ[4]*GeoM.WLap[:,:,i]
+        WLap[j1:j2,j1:j2] = δ[4]*GeoM.WLap[:,:,i]
+        Lap[j1:j2,j1:j2]  = δ[4]*GeoM.Lap[:,:,i]
 
         # Sub matrix 
         subm            = δ[1].*GeoM.Convd[:,:,i] + diagm(GeoM.bm1[:,i].*μ) + δ[4]*GeoM.WLap[:,:,i]
@@ -111,7 +113,7 @@ function GinzburgLandauSparse(δ::Vector{T},Inp::SEMInput,GeoM::SEMGeoMat{GT},B:
       end
 
       println("Direct Sparse Matrices Built")
-      return A, B, OP, Conv, Src, Lap
+      return A, B, OP, Conv, Src, WLap, Lap
 end
 #---------------------------------------------------------------------- 
 function AssembleAdjointGLSparse(U,γ,μ0,μx,whichsrc,gradx,cnv,wlp,xm1,bm1,Basis,lx1,nel,prec)
@@ -280,6 +282,7 @@ function AdjointGinzburgLandauSparse(δ::Vector{T},Inp::SEMInput,GeoM::SEMGeoMat
       A     = spzeros(Prec,dof,dof)
       Conv  = spzeros(Prec,dof,dof)
       Src   = spzeros(Prec,dof,dof)
+      WLap  = spzeros(Prec,dof,dof)
       Lap   = spzeros(Prec,dof,dof)
 
       OP    = zeros(Prec,lx1,lx1,nel)
@@ -297,24 +300,26 @@ function AdjointGinzburgLandauSparse(δ::Vector{T},Inp::SEMInput,GeoM::SEMGeoMat
         # Sign for convection term changes in Adjoint        
         Conv[j1:j2,j1:j2] = -(δ[1]').*GeoM.Convd[:,:,i]
         Src[j1:j2,j1:j2]  =  diagm(GeoM.bm1[:,i].*μ)
-        Lap[j1:j2,j1:j2]  =  (δ[4]').*GeoM.WLap[:,:,i]
+        WLap[j1:j2,j1:j2] =  (δ[4]').*GeoM.WLap[:,:,i]
+        Lap[j1:j2,j1:j2]  =  (δ[4]').*GeoM.Lap[:,:,i]
 
         # Boundary Term (for Adjoint)
         if i==1
-          Lap[j1,j1]      = Lap[j1,j1] + (-δ[1]/δ[4])'
+          WLap[j1,j1]     = WLap[j1,j1] + (-δ[1]/δ[4])'
         elseif i==nel
-          Lap[j2,j2]      = Lap[j2,j2] - (-δ[1]/δ[4])'
+          WLap[j2,j2]     = WLap[j2,j2] - (-δ[1]/δ[4])'
         end 
 
         # Sub matrix 
         subm            = -(δ[1]').*GeoM.Convd[:,:,i] + diagm(GeoM.bm1[:,i].*μ) + (δ[4]').*GeoM.WLap[:,:,i]
+
         OP[:,:,i]       = subm
         A[j1:j2,j1:j2]  = A[j1:j2,j1:j2] + subm;
 
       end
 
       println("Adjoint Sparse Matrices Built")
-      return A, B, OP, Conv, Src, Lap
+      return A, B, OP, Conv, Src, WLap, Lap
 end
 #---------------------------------------------------------------------- 
 function GLSetBC!(A::AbstractMatrix{T},lbc::Bool,rbc::Bool,ifperiodic::Bool) where {T<:Number}

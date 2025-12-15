@@ -140,7 +140,7 @@ function BuildLowOrder(n0::Int,Ord::Int,Nc::Int,Y::AbstractMatrix{T},G::Abstract
 end  
 #----------------------------------------------------------------------
 #---------------------------------------------------------------------- 
-function GL2AsymptoticCM_Ord2(L::AbstractMatrix{T2},LC::AbstractMatrix{T2},B::AbstractVector{T3},δ::AbstractVector{T2},Khat::AbstractMatrix{T1},Vext::AbstractMatrix{T2},Wext::AbstractMatrix{T2},n::Int,p::Int,h::Int,lbc::Bool,rbc::Bool,Lap::AbstractMatrix{T2},LapC::AbstractMatrix{T2}) where {T1,T2,T3<:Number}
+function GL2AsymptoticCM_Ord2(L::AbstractMatrix{T2},LC::AbstractMatrix{T2},B::AbstractVector{T3},δ::AbstractVector{T2},Khat::AbstractMatrix{T1},Vext::AbstractMatrix{T2},Wext::AbstractMatrix{T2},n::Int,p::Int,h::Int,lbc::Bool,rbc::Bool,Lap::AbstractMatrix{T2},LapC::AbstractMatrix{T2},ifnormal::Bool) where {T1,T2,T3<:Number}
 
   # n         - Original Critical space size (Needed to determine Laplace Modes)
   # p         - Parameter Modes
@@ -151,11 +151,14 @@ function GL2AsymptoticCM_Ord2(L::AbstractMatrix{T2},LC::AbstractMatrix{T2},B::Ab
   m           = size(Khat,2)
   ind1        = 1:Nby2
   ind2        = Nby2+1:N
+  restricted  = ~ifnormal
 
   # No of terms at this order.
   Nt          = CenterManifold.NInteractionTerms(Ord,m)
   # Asymptotic CM Vectors.
   Y           = zeros(T2,N,Nt)
+  # Asymptotic Forcing Vectors.
+  F           = zeros(T2,N,Nt)
   # Lower Triangular Linear System Matrix at this order for the asymptotic vectors Y
   SysMat      = CenterManifold.BuildAsympSystem(Ord,Khat)
   # Reduced Matrix terms.
@@ -217,6 +220,9 @@ function GL2AsymptoticCM_Ord2(L::AbstractMatrix{T2},LC::AbstractMatrix{T2},B::Ab
     h_asymp  .= h_asymp .- h_offd
     @views SEM1D.SEM_SetBC!(h_asymp[ind1],lbc,rbc)
     @views SEM1D.SEM_SetBC!(h_asymp[ind2],lbc,rbc)
+    for j in eachindex(h_asymp)
+      F[j,i]  = h_asymp[j]
+    end
 
     V1        = view(Vext,ind1,:)
     V2        = view(Vext,ind2,:)
@@ -227,8 +233,13 @@ function GL2AsymptoticCM_Ord2(L::AbstractMatrix{T2},LC::AbstractMatrix{T2},B::Ab
 
     λ_khat    = diag(Khat)
     AInp.eigshift = ω
-    CM2_EM1   = StepperArnoldi.ExtendTangentSpace(L,B,λ_khat,V1,W1,h_asymp1,ω,AInp,SInp,lbc,rbc)
-    CM2_EM2   = StepperArnoldi.ExtendTangentSpace(LC,B,λ_khat,V2,W2,h_asymp2,ω,AInp,SInp,lbc,rbc)
+    if (restricted)
+      CM2_EM1   = StepperArnoldi.ExtendTangentSpaceRestricted(L,B,λ_khat,V1,W1,h_asymp1,ω,AInp,SInp,lbc,rbc)
+      CM2_EM2   = StepperArnoldi.ExtendTangentSpaceRestricted(LC,B,λ_khat,V2,W2,h_asymp2,ω,AInp,SInp,lbc,rbc)
+    else
+      CM2_EM1   = StepperArnoldi.ExtendTangentSpace(L,B,λ_khat,V1,W1,h_asymp1,ω,AInp,SInp,lbc,rbc)
+      CM2_EM2   = StepperArnoldi.ExtendTangentSpace(LC,B,λ_khat,V2,W2,h_asymp2,ω,AInp,SInp,lbc,rbc)
+    end
 
     Y[ind1,i] = copy(CM2_EM1.ve)
     Y[ind2,i] = copy(CM2_EM2.ve)
@@ -239,10 +250,10 @@ function GL2AsymptoticCM_Ord2(L::AbstractMatrix{T2},LC::AbstractMatrix{T2},B::Ab
 
   end       # i
 
-  return SysMat,G,Y
+  return SysMat,G,Y,F
 end  
 #---------------------------------------------------------------------- 
-function GL2AsymptoticCM_Ord3(L::AbstractMatrix{T2},LC::AbstractMatrix{T2},B::AbstractVector{T3},δ::AbstractVector{T2},Khat::AbstractMatrix{T1},Vext::AbstractMatrix{T2},Wext::AbstractMatrix{T2},G2::AbstractMatrix{T1},Y2::AbstractMatrix{T2},n::Int,p::Int,h::Int,lbc::Bool,rbc::Bool,LAP::AbstractMatrix{T2},LAPC::AbstractMatrix{T2}) where {T1,T2,T3<:Number}
+function GL2AsymptoticCM_Ord3(L::AbstractMatrix{T2},LC::AbstractMatrix{T2},B::AbstractVector{T3},δ::AbstractVector{T2},Khat::AbstractMatrix{T1},Vext::AbstractMatrix{T2},Wext::AbstractMatrix{T2},G2::AbstractMatrix{T1},Y2::AbstractMatrix{T2},n::Int,p::Int,h::Int,lbc::Bool,rbc::Bool,LAP::AbstractMatrix{T2},LAPC::AbstractMatrix{T2},irnormal::Bool) where {T1,T2,T3<:Number}
 
   # n         - Original Critical space size (Needed to determine Laplace Modes)
   # p         - Parameter Modes
@@ -253,11 +264,14 @@ function GL2AsymptoticCM_Ord3(L::AbstractMatrix{T2},LC::AbstractMatrix{T2},B::Ab
   m           = size(Khat,2)
   ind1        = 1:Nby2
   ind2        = Nby2+1:N
+  restricted  = ~ifnormal
 
   # No of terms at this order.
   Nt          = CenterManifold.NInteractionTerms(Ord,m)
   # Asymptotic CM Vectors.
   Y           = zeros(T2,N,Nt)
+  # Asymptotic Forcing Vectors.
+  F           = zeros(T2,N,Nt)
   # Lower Triangular Linear System Matrix at this order for the asymptotic vectors Y
   SysMat      = CenterManifold.BuildAsympSystem(Ord,Khat)
   # Reduced Matrix terms.
@@ -325,6 +339,9 @@ function GL2AsymptoticCM_Ord3(L::AbstractMatrix{T2},LC::AbstractMatrix{T2},B::Ab
 
     @views SEM1D.SEM_SetBC!(h_asymp[ind1],lbc,rbc)
     @views SEM1D.SEM_SetBC!(h_asymp[ind2],lbc,rbc)
+    for j in eachindex(h_asymp)
+      F[j,i]  = h_asymp[j]
+    end
 
     V1        = view(Vext,ind1,:)
     V2        = view(Vext,ind2,:)
@@ -335,8 +352,13 @@ function GL2AsymptoticCM_Ord3(L::AbstractMatrix{T2},LC::AbstractMatrix{T2},B::Ab
 
     λ_khat    = diag(Khat)
     AInp.eigshift = ω
-    CM2_EM1   = StepperArnoldi.ExtendTangentSpace(L,B,λ_khat,V1,W1,h_asymp1,ω,AInp,SInp,lbc,rbc)
-    CM2_EM2   = StepperArnoldi.ExtendTangentSpace(LC,B,λ_khat,V2,W2,h_asymp2,ω,AInp,SInp,lbc,rbc)
+    if (restricted)
+      CM2_EM1   = StepperArnoldi.ExtendTangentSpaceRestricted(L,B,λ_khat,V1,W1,h_asymp1,ω,AInp,SInp,lbc,rbc)
+      CM2_EM2   = StepperArnoldi.ExtendTangentSpaceRestricted(LC,B,λ_khat,V2,W2,h_asymp2,ω,AInp,SInp,lbc,rbc)
+    else
+      CM2_EM1   = StepperArnoldi.ExtendTangentSpace(L,B,λ_khat,V1,W1,h_asymp1,ω,AInp,SInp,lbc,rbc)
+      CM2_EM2   = StepperArnoldi.ExtendTangentSpace(LC,B,λ_khat,V2,W2,h_asymp2,ω,AInp,SInp,lbc,rbc)
+    end
 
     Y[ind1,i] = copy(CM2_EM1.ve)
     Y[ind2,i] = copy(CM2_EM2.ve)
@@ -347,15 +369,16 @@ function GL2AsymptoticCM_Ord3(L::AbstractMatrix{T2},LC::AbstractMatrix{T2},B::Ab
 
   end       # i
 
-  return SysMat,G,Y
+  return SysMat,G,Y,F
 end  
 #---------------------------------------------------------------------- 
 resmodeplot = true
 
-SM2,G2,Y2 = GL2AsymptoticCM_Ord2(OPg,OPCg,Bg,δ,Khat,Vext,Wext,n,p,h,Inp.lbc,Inp.rbc,BiLapg,BiLapCg);
+SM2,G2,Y2,F2 = GL2AsymptoticCM_Ord2(OPg,OPCg,Bg,δ,Khat,Vext,Wext,n,p,h,Inp.lbc,Inp.rbc,BiLapg,BiLapCg,ifnormal);
 if (resmodeplot)
   h4    = figure(num=4,figsize=Grh.figsz2)
   ax4   = gca()
+  ax4.cla()
   plno  = -1 
 end
 
@@ -381,18 +404,19 @@ if (resmodeplot)
   ax4.legend(ncols=4,fontsize=Grh.lgfs)
 end
 
-SM3,G3,Y3 = GL2AsymptoticCM_Ord3(OPg,OPCg,Bg,δ,Khat,Vext,Wext,G2,Y2,n,p,h,Inp.lbc,Inp.rbc,BiLapg,BiLapCg);
+SM3,G3,Y3,F3 = GL2AsymptoticCM_Ord3(OPg,OPCg,Bg,δ,Khat,Vext,Wext,G2,Y2,n,p,h,Inp.lbc,Inp.rbc,BiLapg,BiLapCg,ifnormal);
 
 if (resmodeplot)
   h5    = figure(num=5,figsize=Grh.figsz2)
   ax5   = gca()
+  ax5.cla()
   plno  = -1 
 end
 
 for i in 1:CenterManifold.NInteractionTerms(3,m)
   vnorm = norm(Y3[ind1,i])
   # Plot Mode
-  if (resmodeeplot) && vnorm > 0.0
+  if (resmodeplot) && vnorm > 0.0
  
     ind = CenterManifold.GetPolynomialIndices(i,3,m) .+ 1
     ijk = "_{$(ind[1])"
@@ -403,139 +427,13 @@ for i in 1:CenterManifold.NInteractionTerms(3,m)
    
     j = i
     global plno = plno + 1 
-    ax5.plot(xg,real.(Y3[ind1,i]),linewidth=2,linestyle="-", color=cm(plno),label=L"\mathfrak{R}(y_{%$j})")
-    ax5.plot(xg,imag.(Y3[ind1,i]),linewidth=2,linestyle="--",color=cm(plno),label=L"\mathfrak{Im}(y_{%$j})")
+    ax5.plot(xg,real.(Y3[ind1,i]),linewidth=2,linestyle="-", color=cm(plno),label=L"\mathfrak{R}(y_{%$ijk})")
+    ax5.plot(xg,imag.(Y3[ind1,i]),linewidth=2,linestyle="--",color=cm(plno),label=L"\mathfrak{Im}(y_{%$ijk})")
   end
 end  
 if (resmodeplot)
-  ax5.legend(ncols=5,fontsize=Grh.lgfs)
+  ax5.legend(ncols=4,fontsize=Grh.lgfs,loc="upper right")
 end
-
-# #-------------------------------------------------- 
-# 
-# 
-# h4    = figure(num=4,figsize=Grh.figsz2)
-# ax4   = gca()
-# plno  = -1
-# 
-# # Third Order Asymptotic terms
-# #-------------------------------------------------- 
-# Ord         = 3
-# Nt          = CenterManifold.NInteractionTerms(Ord,m)
-# Y_O3        = zeros(ComplexF64,N,Nt)
-# SysMat_O3   = BuildAsympSystem(Ord,m,Khat)
-# 
-# # Reduced Matrix terms
-# G_O3        = zeros(ComplexF64,m,Nt)
-# println("Solving for Ord=$(Ord)")
-# for i in 1:Nt
-# 
-#   global plno
-# 
-#   ind       = CenterManifold.GetPolynomialIndices(i,Ord,m)
-#   ω         = 0.0im
-#   for j in 1:Ord
-#     ii      = ind[j]+1
-#     ω       = ω + Khat[ii,ii] 
-#   end 
-# 
-#   if (verbose)
-#     println("Solving for $(ind .+ 1), ω=$(ω)")
-#   end  
-# 
-#   h_asymp   = zeros(ComplexF64,N)
-#   if p>0
-#     local lap_mode  = n+1
-#     local lap_cmode = n+2
-#     OrdY     = 2
-#     h_lapl   = GLLapNLTerm(i,Ord,m,Y_O2,OrdY,lap_mode,lap_cmode,Lapg,LapCg)
-#     h_asymp .= h_asymp .+ h_lapl 
-#   end
-# 
-#   Ord1      = 1
-#   Ord2      = 1
-#   Ord3      = 1
-#   δ5        = δ[5]
-#   h_NL      = GLStdAsympNLTerm(i,Ord,m,Vext,Vext,Vext,Ord1,Ord2,Ord3,δ5)
-#   h_asymp  .= h_asymp .+ h_NL
-# 
-#   h_offd    = zeros(ComplexF64,N)
-#   for j in 1:(i-1)
-#     h_offd .= h_offd .+ SysMat_O3[i,j]*Y_O3[:,j]
-#   end
-#   h_asymp  .= h_asymp .- h_offd
-# 
-#   OrdY      = 2
-#   OrdG      = 2
-#   h_low     = BuildLowOrder(i,Ord,m,Y_O2,G_O2,OrdY,OrdG)
-#   h_asymp  .= h_asymp .- h_low
-#   #println("|r_low|: $(norm(h_low))")
-# 
-#   DQ  = Matrix{ComplexF64}(I,Nby2,Nby2)
-#   CQ  = Matrix{ComplexF64}(I,Nby2,Nby2)
-#   for j in 1:n
-#     if abs(Khat[j,j] - ω) < 1.0e-12
-#       # println("Resonant ω: $(ω)")
-#       β           = W[:,j]'*(Bg2.*h_asymp)
-#       G_O3[j,i]   = β
-#       
-#       h_asymp    .= h_asymp .- β*V[:,j]
-#       DQ         .= DQ - V[ind1,j]*(W[ind1,j].*Bg)'
-#       CQ         .= CQ - V[ind2,j]*(W[ind2,j].*Bg)'
-#     end
-#   end  
-#   @views SEM1D.SEM_SetBC!(h_asymp[ind1],Inp.lbc,Inp.rbc)
-#   @views SEM1D.SEM_SetBC!(h_asymp[ind2],Inp.lbc,Inp.rbc)
-# 
-#   Y_O3[:,i]       = copy(h_asymp)
-# 
-#   Res1            = DQ*(ω*I - OPg)*DQ
-#   y_asymp         = view(Y_O3,ind1,i)
-#   r               = view(h_asymp,ind1)
-#   gmres!(y_asymp,Res1,r)
-#   y1norm = sqrt(abs(y_asymp'*(Bg.*y_asymp))) 
-#   # plotting
-#   if y1norm>1.0e-12
-#     plno    = plno + 1
-#     ijk = "_{$(ind[1]+1)"
-#     for k in 2:Ord
-#       ijk = ijk*",$(ind[k]+1)"
-#     end
-#     ijk = ijk*"}"
-#     # leg = L"\mathfrak{R}(y%$ijk)"
-#     # ax4.plot(xg,real.(y_asymp),linewidth=2,linestyle="-", color=cm2(plno),label=leg)
-#     # leg = L"\mathfrak{Im}(y%$ijk)"
-#     # ax4.plot(xg,imag.(y_asymp),linewidth=2,linestyle="--",color=cm2(plno),label=leg)
-#     
-#     leg = L"|y%$ijk|"
-#     ax4.plot(xg,abs.(y_asymp),linewidth=2,linestyle="-", color=cm2(plno),label=leg)
-#   end  
-# 
-#   Res2            = CQ*(ω*I - OPCg)*CQ
-#   y_asymp         = view(Y_O3,ind2,i)
-#   r               = view(h_asymp,ind2)
-#   gmres!(y_asymp,Res2,r)
-#   y2norm = sqrt(abs(y_asymp'*(Bg.*y_asymp))) 
-#   # plotting no
-#   if y2norm>1.0e-12
-#     plno    = plno + 1
-#     ijk = "_{$(ind[1]+1)"
-#     for k in 2:Ord
-#       ijk = ijk*",$(ind[k]+1)"
-#     end
-#     ijk = ijk*"}"
-#     # leg = L"\mathfrak{R}(y%$ijk*)"
-#     # ax4.plot(xg,real.(y_asymp),linewidth=2,linestyle="-", color=cm2(plno),label=leg)
-#     # leg = L"\mathfrak{Im}(y%$ijk*)"
-#     # ax4.plot(xg,imag.(y_asymp),linewidth=2,linestyle="--",color=cm2(plno),label=leg)
-# 
-#     # leg = L"|y%$ijk*|"
-#     # ax4.plot(xg,abs.(y_asymp),linewidth=2,linestyle="--",color=cm2(plno),label=leg)
-#   end  
-# 
-# end
-# 
-# ax4.legend(ncol=3,loc="upper right",fontsize=Grh.lgfs)
 
 println("Asymptotic System (Normal Form) Done.")
 

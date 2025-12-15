@@ -4,16 +4,16 @@
 #---------------------------------------------------------------------- 
 println("Extended Tangent Space using Arnoldi.")
 
-function GLExtendTangentSpace2(L::AbstractMatrix{T1},LC::AbstractMatrix{T1},B::AbstractVector{T2},λc::AbstractVector{T3},V::AbstractMatrix{T1},W::AbstractMatrix{T1},λp::AbstractVector{T3},Lp::AbstractMatrix{T1},λh::AbstractVector{T3},Lh::AbstractMatrix{T1},lbc::Bool,rbc::Bool) where {T1,T2,T3<:Number}
+function GLExtendTangentSpace2(L::AbstractMatrix{T1},LC::AbstractMatrix{T1},B::AbstractVector{T2},λc::AbstractVector{T3},V::AbstractMatrix{T1},W::AbstractMatrix{T1},λp::AbstractVector{T3},Lp::AbstractMatrix{T1},λh::AbstractVector{T3},Lh::AbstractMatrix{T1},restricted::Bool,lbc::Bool,rbc::Bool) where {T1,T2,T3<:Number}
 
-  Nby2      = size(L,2)
-  N         = 2*Nby2
-  ind1      = 1:Nby2
-  ind2      = Nby2+1:N
+  Nby2            = size(L,2)
+  N               = 2*Nby2
+  ind1            = 1:Nby2
+  ind2            = Nby2+1:N
 
-  n         = length(λc)
-  p         = length(λp)
-  h         = length(λh)
+  n               = length(λc)
+  p               = length(λp)
+  h               = length(λh)
 
   # Stepper-Arnoldi (for Extended Operator Calculation)
   #-------------------------------------------------- 
@@ -40,10 +40,10 @@ function GLExtendTangentSpace2(L::AbstractMatrix{T1},LC::AbstractMatrix{T1},B::A
   EArnInp           = StepperArnoldi.ArnoldiInput(ifarnoldi,ifverbose,ifeigshift,vlen,nev,ekryl,lkryl,eigshift,ngs,bsize,outer_iterations,tol)
   
 
-  PEmodes1   = StepperArnoldi.ExtendedTangentSpaces(L ,B,λc,V[ind1,:],W[ind1,:],Lp[ind1,:],λp,EArnInp,EStpInp,lbc,rbc);
-  PEmodes2   = StepperArnoldi.ExtendedTangentSpaces(LC,B,λc,V[ind2,:],W[ind2,:],Lp[ind2,:],λp,EArnInp,EStpInp,lbc,rbc);
-  HEmodes1   = StepperArnoldi.ExtendedTangentSpaces(L ,B,λc,V[ind1,:],W[ind1,:],Lh[ind1,:],λh,EArnInp,EStpInp,lbc,rbc);
-  HEmodes2   = StepperArnoldi.ExtendedTangentSpaces(LC,B,λc,V[ind2,:],W[ind2,:],Lh[ind2,:],λh,EArnInp,EStpInp,lbc,rbc);
+  PEmodes1   = StepperArnoldi.ExtendedTangentSpaces(L ,B,λc,V[ind1,:],W[ind1,:],Lp[ind1,:],λp,restricted,EArnInp,EStpInp,lbc,rbc);
+  PEmodes2   = StepperArnoldi.ExtendedTangentSpaces(LC,B,λc,V[ind2,:],W[ind2,:],Lp[ind2,:],λp,restricted,EArnInp,EStpInp,lbc,rbc);
+  HEmodes1   = StepperArnoldi.ExtendedTangentSpaces(L ,B,λc,V[ind1,:],W[ind1,:],Lh[ind1,:],λh,restricted,EArnInp,EStpInp,lbc,rbc);
+  HEmodes2   = StepperArnoldi.ExtendedTangentSpaces(LC,B,λc,V[ind2,:],W[ind2,:],Lh[ind2,:],λh,restricted,EArnInp,EStpInp,lbc,rbc);
 
   Zp         = PEmodes1.Z .+ PEmodes2.Z
   Zh         = HEmodes1.Z .+ HEmodes2.Z
@@ -73,7 +73,7 @@ function GLExtendTangentSpace2(L::AbstractMatrix{T1},LC::AbstractMatrix{T1},B::A
   return PEmodes,HEmodes
 end
 #---------------------------------------------------------------------- 
-function GLExtendTangentSpace2(L::AbstractMatrix{T1},LC::AbstractMatrix{T1},B::AbstractVector{T2},λc::AbstractVector{T3},V::AbstractMatrix{T1},W::AbstractMatrix{T1},λe::AbstractVector{T3},Le::AbstractMatrix{T1},lbc::Bool,rbc::Bool) where {T1,T2,T3<:Number}
+function GLExtendTangentSpace2(L::AbstractMatrix{T1},LC::AbstractMatrix{T1},B::AbstractVector{T2},λc::AbstractVector{T3},V::AbstractMatrix{T1},W::AbstractMatrix{T1},λe::AbstractVector{T3},Le::AbstractMatrix{T1},restricted::Bool,lbc::Bool,rbc::Bool) where {T1,T2,T3<:Number}
 
   Nby2      = size(L,2)
   N         = 2*Nby2
@@ -108,8 +108,8 @@ function GLExtendTangentSpace2(L::AbstractMatrix{T1},LC::AbstractMatrix{T1},B::A
   EArnInp           = StepperArnoldi.ArnoldiInput(ifarnoldi,ifverbose,ifeigshift,vlen,nev,ekryl,lkryl,eigshift,ngs,bsize,outer_iterations,tol)
   
 
-  Emodes1    = StepperArnoldi.ExtendedTangentSpaces(L ,B,λc,V[ind1,:],W[ind1,:],Le[ind1,:],λe,EArnInp,EStpInp,lbc,rbc);
-  Emodes2    = StepperArnoldi.ExtendedTangentSpaces(LC,B,λc,V[ind2,:],W[ind2,:],Le[ind2,:],λe,EArnInp,EStpInp,lbc,rbc);
+  Emodes1    = StepperArnoldi.ExtendedTangentSpaces(L ,B,λc,V[ind1,:],W[ind1,:],Le[ind1,:],λe,restricted,EArnInp,EStpInp,lbc,rbc);
+  Emodes2    = StepperArnoldi.ExtendedTangentSpaces(LC,B,λc,V[ind2,:],W[ind2,:],Le[ind2,:],λe,restricted,EArnInp,EStpInp,lbc,rbc);
 
   Z          = Emodes1.Z .+ Emodes2.Z
   Γ          = Emodes1.Γ .+ Emodes2.Γ
@@ -130,6 +130,7 @@ end
 
 ifresonant = false
 emodeplot  = true
+restricted = false 
 
 Nby2  = ArnInp.vlen
 N     = Nby2*2
@@ -159,7 +160,7 @@ Lθ    = [f2 f3]
 if ifresonant
   λh    = [1.0im; -1.0im;]
 else
-  λh    = [1.2im; -1.2im;]
+  λh    = [1.3im; -1.3im;]
 end
 # Forcing Modes
 ax2.plot(xg,real.(ψ) ,linewidth=2,linestyle="-", color=cm(2),label=L"\mathfrak{R}(ψ)")
@@ -167,7 +168,7 @@ ax2.plot(xg,imag.(ψ) ,linewidth=2,linestyle="--",color=cm(2),label=L"\mathfrak{
 
 Λh    = diagm(λh)
 
-# PE,HE = GLExtendTangentSpace2(OPg,OPCg,Bg,λc,V,W,λν,Lν,λh,Lθ,Inp.lbc,Inp.rbc)
+# PE,HE = GLExtendTangentSpace2(OPg,OPCg,Bg,λc,V,W,λν,Lν,λh,Lθ,restricted,Inp.lbc,Inp.rbc)
 
 λext = [λν[:]; λh[:]]
 Lext = zeros(ComplexF64,N,p+h)
@@ -181,13 +182,13 @@ for i in 1:h
     Lext[j,i+p] = Lθ[j,i]
   end
 end
-EM = GLExtendTangentSpace2(OPg,OPCg,Bg,λc,V,W,λext,Lext,Inp.lbc,Inp.rbc)
+EM = GLExtendTangentSpace2(OPg,OPCg,Bg,λc,V,W,λext,Lext,restricted,Inp.lbc,Inp.rbc)
 
 for i in 1:length(λext)
   vnorm = norm(EM.Ve[ind1,i])
   # Plot Mode
   if (emodeplot) && vnorm > 0.0
-    j = n+i+20
+    j = n+i
     ax2.plot(xg,real.(EM.Ve[ind1,i]),linewidth=2,linestyle="-", color=cm(j-1),label=L"\mathfrak{R}(ϕ_{%$j})")
     ax2.plot(xg,imag.(EM.Ve[ind1,i]),linewidth=2,linestyle="--",color=cm(j-1),label=L"\mathfrak{Im}(ϕ_{%$j})")
   end
@@ -201,13 +202,16 @@ Ze          = EM.Z
 Λc          = diagm(λc)
 Zero_ne_n   = zeros(ComplexF64,p+h,n)
 
-Khat = [Λc        Γe;
-        Zero_ne_n Λe]
+Khat  = [Λc        Γe;
+         Zero_ne_n Λe]
 
-Vhat  = [V              EM.Ve;
-         Zero_ne_n      I]
+Vhat  = [V         EM.Ve;
+         Zero_ne_n I]
 What  = [Wext;
-         Ze      I]
+         Ze        I]
+Bhat  = [Bg2; ones(eltype(Bg2),p+h)]
+
+EBiOrtho = What'*diagm(Bhat)*Vhat
 
 if (emodeplot)
   ax2.legend(ncols=4,fontsize=Grh.lgfs)

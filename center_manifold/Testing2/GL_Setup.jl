@@ -33,11 +33,11 @@ GeoM  = SEM1D.SEMGeoMat(B0,Bd,Inp)
 δc    = conj.(δ)
 
 # GinzburgLandau Linear Operators
-L,  B, OP,  Conv,  Src,  Lap  = SEM1D.GinzburgLandauSparse(δ, Inp,GeoM,B0)
-LC, B, OPC, ConvC, SrcC, LapC = SEM1D.GinzburgLandauSparse(δc,Inp,GeoM,B0)
+L,  B, OP,  Conv,  Src,  WLap,  Lap       = SEM1D.GinzburgLandauSparse(δ, Inp,GeoM,B0)
+LC, B, OPC, ConvC, SrcC, WLapC, LapC      = SEM1D.GinzburgLandauSparse(δc,Inp,GeoM,B0)
 
-AL,  B, AOP, AConv,  ASrc,  ALap  = SEM1D.AdjointGinzburgLandauSparse(δ,Inp,GeoM,B0)
-ALC, B,AOPC, AConvC, ASrcC, ALapC = SEM1D.AdjointGinzburgLandauSparse(δ,Inp,GeoM,B0)
+AL,  B, AOP, AConv,  ASrc,  AWLap,  ALap  = SEM1D.AdjointGinzburgLandauSparse(δ,Inp,GeoM,B0)
+ALC, B,AOPC, AConvC, ASrcC, AWLapC, ALapC = SEM1D.AdjointGinzburgLandauSparse(δ,Inp,GeoM,B0)
 
 ifperiodic  = false
 ndof, glnum = SEM1D.SEM_Global_Num(GeoM.xm1,ifperiodic)

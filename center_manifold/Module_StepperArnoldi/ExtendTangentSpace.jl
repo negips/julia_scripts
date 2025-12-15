@@ -1,6 +1,6 @@
 # Extending the tangent space
 #---------------------------------------------------------------------- 
-function ExtendedTangentSpaces(L::AbstractMatrix{T2},B::AbstractVector{T3},λc::AbstractVector{T1},V::AbstractMatrix{T2},W::AbstractMatrix{T2},F::AbstractMatrix{T2},λe::AbstractVector{T1},AInp::ArnoldiInput,SInp::StepperInput,lbc::Bool,rbc::Bool) where {T1,T2,T3<:Number}
+function ExtendedTangentSpaces(L::AbstractMatrix{T2},B::AbstractVector{T3},λc::AbstractVector{T1},V::AbstractMatrix{T2},W::AbstractMatrix{T2},F::AbstractMatrix{T2},λe::AbstractVector{T1},restricted::Bool,AInp::ArnoldiInput,SInp::StepperInput,lbc::Bool,rbc::Bool) where {T1,T2,T3<:Number}
 
   ne = length(λe)
 
@@ -10,7 +10,11 @@ function ExtendedTangentSpaces(L::AbstractMatrix{T2},B::AbstractVector{T3},λc::
     f     = view(F,:,i)
     AInp.ifeigshift = true
     AInp.eigshift   = λe[i]
-    EM[i] = ExtendTangentSpace(L,B,λc,V,W,f,λe[i],AInp,SInp,lbc,rbc)
+    if (restricted)
+      EM[i] = ExtendTangentSpaceRestricted(L,B,λc,V,W,f,λe[i],AInp,SInp,lbc,rbc)
+    else
+      EM[i] = ExtendTangentSpace(L,B,λc,V,W,f,λe[i],AInp,SInp,lbc,rbc)
+    end
   end  
 
   EModes = ExtendedModes(EM)
@@ -53,7 +57,7 @@ function ExtendTangentSpace(L::AbstractMatrix{T2},B::AbstractVector{T3},λc::Abs
       # println("Resonant λ: $j")
       resonance = true
       nr  = nr + 1
- 
+
       di = (nr-1)*Ne + 1    # destination index
       si = (j-1)*N + 1      # source index
       copyto!(Ve,di,V,si,N)
@@ -77,6 +81,7 @@ function ExtendTangentSpace(L::AbstractMatrix{T2},B::AbstractVector{T3},λc::Abs
     Le[1:N,N+1]   = B.*ftmp
     Le[N+1,N+1]   = λe
 
+    ifconv = false
     # Set the proper Arnoldi vector length
     AInp.vlen     = Ne
     if (resonance)
@@ -87,11 +92,99 @@ function ExtendTangentSpace(L::AbstractMatrix{T2},B::AbstractVector{T3},λc::Abs
       DArnOut     = StepArn(Le,Be,SInp,AInp,lbc,rbc) 
     end
     ii            = argmin(abs.(DArnOut.evals .- λe))
+    λfound        = DArnOut.evals[ii]
     θt            = DArnOut.evecs[Ne,ii]
 
     for i in LinearIndices(vh)
       vh[i]  = DArnOut.evecs[i,ii]./θt     # ensure extended variable == 1.0
     end  
+
+    if (abs(λe - λfound) > 10*AInp.tol)
+      println("Mismatched Eigenvalues: $λe, $λfound")
+    else
+      println("Eigenvalue Found. $λfound")
+    end
+
+  end
+
+  # Adjoint Forcing modes
+  wh    = zeros(T2,N)
+  z     = zeros(T2,1,n)             # Row Vector
+  for i in 1:n
+    z[i] = -vh'*(B.*W[:,i])
+  end
+
+  extmode = ExtendedMode(λe,Γ,vh,wh,z)
+
+  return extmode
+end  
+#---------------------------------------------------------------------- 
+function ExtendTangentSpaceRestricted(L::AbstractMatrix{T2},B::AbstractVector{T3},λc::AbstractVector{T1},V::AbstractMatrix{T2},W::AbstractMatrix{T2},f::AbstractVector{T2},λe::T1,AInp::ArnoldiInput,SInp::StepperInput,lbc::Bool,rbc::Bool) where {T1,T2,T3<:Number}
+
+  ngs = 2
+  N   = size(L,2)
+  n   = length(λc)
+
+  Γ   = zeros(T2,n)
+  vh  = zeros(T2,N)
+
+  # Off-Diagonal Components of Khat
+  ftmp = copy(f)
+  for ig in 1:ngs
+    α = zeros(T2,n)
+    for j in 1:n
+      α[j]  = W[:,j]'*(B.*ftmp)
+      Γ[j]  = Γ[j] + α[j]
+    end
+    ftmp .= ftmp .- V*α
+  end
+
+  # Build Extended Matrices
+  Ne  = N+1
+
+  if norm(ftmp) > AInp.tol
+    # Extended Mass
+    Be   = ones(T3,Ne)
+    copyto!(Be,1,B,1,N)
+
+    # Extended Operator
+    if typeof(L) <: SparseMatrixCSC
+      Le = spzeros(T2,Ne,Ne)
+    else
+      Le = zeros(T2,Ne,Ne)
+    end
+    Le[1:N,1:N]   = L
+    Le[1:N,N+1]   = B.*ftmp
+    Le[N+1,N+1]   = λe
+
+    Ve  = zeros(T2,Ne,n)
+    We  = zeros(T2,Ne,n)
+    for j in 1:n
+      di = (j-1)*Ne + 1    # destination index
+      si = (j-1)*N + 1     # source index
+      copyto!(Ve,di,V,si,N)
+      copyto!(We,di,W,si,N)
+    end  
+  
+
+    ifconv = false
+    # Set the proper Arnoldi vector length
+    AInp.vlen     = Ne
+    DArnOut       = RestrictedStepArn(Le,Be,Ve,We,SInp,AInp,lbc,rbc) 
+    ii            = argmin(abs.(DArnOut.evals .- λe))
+    λfound        = DArnOut.evals[ii]
+    θt            = DArnOut.evecs[Ne,ii]
+
+    for i in LinearIndices(vh)
+      vh[i]  = DArnOut.evecs[i,ii]./θt     # ensure extended variable == 1.0
+    end  
+
+    if (abs(λe - λfound) > 10*AInp.tol)
+      println("Mismatched Eigenvalues: $λe, $λfound")
+    else
+      println("Eigenvalue Found. $λfound")
+    end
+
   end
 
   # Adjoint Forcing modes

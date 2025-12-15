@@ -407,101 +407,11 @@ Bghat       = [Bg2; ones(ComplexF64,p); ones(ComplexF64,h)]
 
 BiOrtho     = What'*(diagm(Bghat)*Vhat)
 
-include("ExtendTangentSpace.jl")
-Emodes1     = ExtendedTangentSpaces(λc,OPg,Bg,V[ind1,:],W[ind1,:],Lθ[ind1,:],λh,EArnInp,EStpInp,Inp);
-Emodes2     = ExtendedTangentSpaces(λc,OPCg,Bg,V[ind2,:],W[ind2,:],Lθ[ind2,:],λh,EArnInp,EStpInp,Inp);
-ax2.plot(xg,real.(Emodes1.Ve[:,1]),linewidth=2,linestyle="-", color="black",label=L"\mathfrak{R}(ϕ_{10})")
-ax2.plot(xg,real.(Emodes2.Ve[:,2]),linewidth=2,linestyle="-", color="brown",label=L"\mathfrak{R}(ϕ_{12})")
-
-
 if (emodeplot)
   ax2.legend(ncols=4,fontsize=Grh.lgfs)
 else  
   ax2.legend(ncols=3,fontsize=Grh.lgfs)
 end  
-
-println("Extended Tangent Space Done.")
-
-# println("Extended Tangent Space using Arnoldi.")
-# # Stepper-Arnoldi
-# #-------------------------------------------------- 
-# ifadjoint         = false
-# ifoptimal         = false
-# ifverbose         = false
-# verbosestep       = 500
-# nsteps            = 500
-# dt                = 1.0e-4
-# EStpInp           = StepperArnoldi.StepperInput(ifadjoint,ifoptimal,ifverbose,verbosestep,nsteps,dt)
-# 
-# ifarnoldi         = true 
-# ifverbose         = false
-# ifeigshift        = false
-# vlen              = ndof+1
-# nev               = 2
-# ekryl             = 15  
-# lkryl             = nev + ekryl 
-# eigshift          = λh[1]
-# ngs               = 2
-# bsize             = 1
-# outer_iterations  = 100
-# tol               = 1.0e-12
-# EArnInp           = StepperArnoldi.ArnoldiInput(ifarnoldi,ifverbose,ifeigshift,vlen,nev,ekryl,lkryl,eigshift,ngs,bsize,outer_iterations,tol)
-# 
-# # Direct
-# EOPg                 = spzeros(ComplexF64,EArnInp.vlen,EArnInp.vlen)
-# EOPg[1:ndof,1:ndof]  = OPg
-# EOPg[1:ndof,ndof+1]  = Bg.*ψ
-# EOPg[ndof+1,ndof+1]  = λh[1]
-# EBg                  = [Bg[:]; 1.0]
-# EArnDir              = StepperArnoldi.StepArn( EOPg,EBg,EStpInp,EArnInp,Inp.lbc,Inp.rbc)
-# 
-# # Adjoint
-# EAOPg                = spzeros(ComplexF64,EArnInp.vlen,EArnInp.vlen)
-# EAOPg[1:ndof,1:ndof] = AOPg
-# EAOPg[ndof+1,1:ndof] = (Bg.*ψ)'
-# EAOPg[ndof+1,ndof+1] = λh[1]'
-# EArnInp.eigshift     = λh[1]'
-# EArnAdj              = StepperArnoldi.StepArn( EAOPg,EBg,EStpInp,EArnInp,Inp.lbc,Inp.rbc)
-# 
-# ind7        = argmin(abs.(EArnDir.evals .- λh[1]))
-# θt1         = EArnDir.evecs[ndof+1,ind7]
-# v7          = EArnDir.evecs[:,ind7]./θt1
-# ax2.plot(xg,real.(v7[ind1]),linewidth=2,linestyle="-", color=cm(7-1),label=L"\mathfrak{R}(ϕ_{7})")
-# ax2.plot(xg,imag.(v7[ind1]),linewidth=2,linestyle="--",color=cm(7-1),label=L"\mathfrak{Im}(ϕ_{7})")
-# 
-# ind8        = argmin(abs.(EArnAdj.evals .- λc[1]'))
-# θt1         = EArnAdj.evecs[ndof+1,ind8]
-# θt2         = θt1/Zh[1,1]         
-# v8          = EArnAdj.evecs[:,ind8]# ./θt2
-# #@views renormalize_evecs!(V[ind1,1],v8[ind1],Bg)
-# #ax2.plot(xg,real.(v8[ind1]),linewidth=1,linestyle="-", color=cm(8-1),label=L"\mathfrak{R}(χ_{7})")
-# #ax2.plot(xg,imag.(v8[ind1]),linewidth=1,linestyle="--",color=cm(8-1),label=L"\mathfrak{Im}(χ_{7})")
-# 
-# vtmp        = zeros(ComplexF64,ndof+1)
-# vtmp[ind1]  = copy(V[ind1])
-# wtmp        = zeros(ComplexF64,ndof+1)
-# wtmp        = copy(v8)
-# Bg3         = zeros(Float64,ndof+1)
-# Bg3[ind1]   = copy(Bg)
-# Bg3[ndof+1] = 1.0
-# @views renormalize_evecs!(vtmp,wtmp,Bg3)
-# ax2.plot(xg,real.(wtmp[ind1]),linewidth=1,linestyle="-", color=cm(8-1),label=L"\mathfrak{R}(χ_{7})")
-# ax2.plot(xg,imag.(wtmp[ind1]),linewidth=1,linestyle="--",color=cm(8-1),label=L"\mathfrak{Im}(χ_{7})")
-# 
-# Lθ1         = Lθ[ind1,1]
-# zzz1        = Lθ1'*wtmp[ind1]/(λc[1]' - λh[1]')
-# zzz2        = Lθ1'*(BgM*wtmp[ind1])/(λc[1]' - λh[1]')
-# 
-# 
-# if (emodeplot)
-#   ax2.legend(ncols=4,fontsize=Grh.lgfs)
-# else  
-#   ax2.legend(ncols=3,fontsize=Grh.lgfs)
-# end  
-# 
-# Vhat[ind1,5] = v7[ind1]
-# 
-# BiOrtho2 = What'*(diagm(Bghat)*Vhat)
 
 println("Extended Tangent Space (Arnoldi) Done.")
 

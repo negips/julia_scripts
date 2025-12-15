@@ -796,21 +796,21 @@ function EvalNonLinear(x::AbstractVector{T},Ind::AbstractMatrix{S}) where {T,S <
   return NLx
 end
 #---------------------------------------------------------------------- 
-function GetAsymptoticField3(z::AbstractVector{T},Y1::AbstractMatrix{T},Y2::AbstractMatrix{T},Y3::AbstractMatrix{T}) where {T <: Number}
+function GetAsymptoticField3(z::AbstractVector{T1},Y1::AbstractMatrix{T2},Y2::AbstractMatrix{T2},Y3::AbstractMatrix{T2}) where {T1,T2 <: Number}
 
   ndof,nv = size(Y1)
 
-  fld = zeros(T,ndof)
+  fld  = zeros(T2,ndof)
 
   z1   = z
   fld .= fld .+ Y1*z1 
 
-  Ord = 2
-  z2  = EvaluateNonLinear(z,Ord)
+  Ord  = 2
+  z2   = EvaluateNonLinear(z,Ord)
   fld .= fld .+ Y2*z2
 
-  Ord = 3
-  z3  = EvaluateNonLinear(z,Ord)
+  Ord  = 3
+  z3   = EvaluateNonLinear(z,Ord)
   fld .= fld .+ Y3*z3
 
   return fld
