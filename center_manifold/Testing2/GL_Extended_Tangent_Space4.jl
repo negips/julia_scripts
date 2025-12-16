@@ -190,11 +190,18 @@ Nby2  = size(OPg,2)
 N     = Nby2*2
 # n     = length(λc)
 p     = 2
+s     = npert
 h     = 2
 m     = nsys+p+h
 
+# Parameter Perturbation
 Lν    = zeros(ComplexF64,N,p)
 λν    = zeros(ComplexF64,p)
+
+# System Perturbation
+Lσ    = zeros(ComplexF64,N,s)
+λσ    = zeros(ComplexF64,s)
+
 # Forcing Shape
 x0,κ  = ForcingParams()
 ψ     = zeros(ComplexF64,Nby2)
@@ -219,16 +226,21 @@ ax2.plot(xg,imag.(ψ) ,linewidth=2,linestyle="--",color=cm(2),label=L"\mathfrak{
 
 # PE,HE = GLExtendTangentSpace2(OPg,OPCg,Bg,λc,V,W,λν,Lν,λh,Lθ,restricted,Inp.lbc,Inp.rbc)
 
-λext = [λν[:]; λh[:]]
-Lext = zeros(ComplexF64,N,p+h)
+λext = [λν; λσ; λh]
+Lext = zeros(ComplexF64,N,p+s+h)
 for i in 1:p
   for j in 1:N
     Lext[j,i] = Lν[j,i]
   end
 end
+for i in 1:s
+  for j in 1:N
+    Lext[j,i+p] = Lσ[j,i]
+  end
+end
 for i in 1:h
   for j in 1:N
-    Lext[j,i+p] = Lθ[j,i]
+    Lext[j,i+p+s] = Lθ[j,i]
   end
 end
 if (ifmodepert)
@@ -254,7 +266,7 @@ if (ifmodepert)
   Ze          = EM.Z
   Λe          = diagm(EM.λe)
   ΛSys        = diagm(λSys)
-  Zero_ne_n   = zeros(ComplexF64,p+h,nsys)
+  Zero_ne_n   = zeros(ComplexF64,p+s+h,nsys)
 else
   Vext        = [VSys EM.Ve]
   Wext        = [WSys EM.We]
@@ -262,7 +274,7 @@ else
   Ze          = EM.Z
   Λe          = diagm(EM.λe)
   ΛSys        = diagm(λSys)
-  Zero_ne_n   = zeros(ComplexF64,p+h,nsys)
+  Zero_ne_n   = zeros(ComplexF64,p+s+h,nsys)
 end  
 
 
@@ -273,7 +285,7 @@ Vhat  = [Vext;
          Zero_ne_n I]
 What  = [Wext;
          Ze        I]
-Bhat  = [Bg2; ones(eltype(Bg2),p+h)]
+Bhat  = [Bg2; ones(eltype(Bg2),p+s+h)]
 
 EBiOrtho = What'*diagm(Bhat)*Vhat
 
@@ -282,13 +294,6 @@ if (emodeplot)
 else  
   ax2.legend(ncols=3,fontsize=Grh.lgfs)
 end  
-
-
-# Extended Adjoint Tangent Space
-#-------------------------------------------------- 
-
-# println("Extended Tangent Space Done.")
-
 
 println("Extended Tangent Space (Arnoldi) Done.")
 
