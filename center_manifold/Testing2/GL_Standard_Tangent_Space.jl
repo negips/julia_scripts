@@ -17,7 +17,7 @@ include("../Module_StepperArnoldi/StepperArnoldi.jl")
 #using PyPlot
 
 #---------------------------------------------------------------------- 
-screen = 2
+screen = 1
 Grh    = setgraphics(screen)
 
 # Stepper-Arnoldi
@@ -71,8 +71,10 @@ pl3   = ax1.plot(imag.(ArnDir.evals),real.(ArnDir.evals),linestyle="none",marker
 cm    = get_cmap("tab10")
 
 # Build Center-Manifold matrices
-v1    = copy(ArnDir.evecs[:,1])
-w1    = copy(ArnAdj.evecs[:,1])
+id    = argmin(abs.(ArnDir.evals .- Ω[1]))
+v1    = copy(ArnDir.evecs[:,id])
+ia    = argmin(abs.(ArnAdj.evals .- Ω[1]'))
+w1    = copy(ArnAdj.evecs[:,ia])
 
 fx0   = 6.0
 j0    = argmin(abs.(xg .- fx0))
