@@ -1,5 +1,5 @@
 # Include the function files
-function StepArnOP(L,B::AbstractVector{S},StpInp::StepperInput,ArnInp::ArnoldiInput,lbc::Bool,rbc::Bool,T=ComplexF64) where {S<:Number}
+function StepArnOP(OP,B::AbstractVector{S},StpInp::StepperInput,ArnInp::ArnoldiInput,lbc::Bool,rbc::Bool,T=ComplexF64) where {S<:Number}
 
   dtype           = T
 
@@ -56,8 +56,7 @@ function StepArnOP(L,B::AbstractVector{S},StpInp::StepperInput,ArnInp::ArnoldiIn
       t = t + dt;
       # Apply BC
       StpArn_SetBC!(v,lbc,rbc)
-      # RK4!(v,L,v1,v2,v3,dt)
-      OPBiRK4!(v,L,Bi,v1,v2,v3,dt)
+      OPBiRK4!(v,OP,Bi,v1,v2,v3,dt)
     end  
   
     # Expand Krylov space
@@ -100,7 +99,7 @@ function StepArnOP(L,B::AbstractVector{S},StpInp::StepperInput,ArnInp::ArnoldiIn
   return arnout
 end
 #---------------------------------------------------------------------- 
-function RestrictedStepArnOP(L,B::AbstractVector{S},Vr::AbstractMatrix{T},Wr::AbstractMatrix{T},StpInp::StepperInput,ArnInp::ArnoldiInput,lbc::Bool,rbc::Bool) where {S,T<:Number}
+function RestrictedStepArnOP(OP,B::AbstractVector{S},Vr::AbstractMatrix{T},Wr::AbstractMatrix{T},StpInp::StepperInput,ArnInp::ArnoldiInput,lbc::Bool,rbc::Bool) where {S,T<:Number}
 
   dtype           = T
 
@@ -162,7 +161,7 @@ function RestrictedStepArnOP(L,B::AbstractVector{S},Vr::AbstractMatrix{T},Wr::Ab
       t = t + dt;
       # Apply BC
       # StpArn_SetBC!(v,lbc,rbc)
-      OPRestrictedBRK4!(v,L,B,Vr,Wr,lbc,rbc,v1,v2,v3,dt)
+      OPRestrictedBRK4!(v,OP,B,Vr,Wr,lbc,rbc,v1,v2,v3,dt)
     end  
   
     # Expand Krylov space

@@ -127,6 +127,60 @@ function GLExtendTangentSpace2(L::AbstractMatrix{T1},LC::AbstractMatrix{T1},B::A
   return Emodes
 end
 #---------------------------------------------------------------------- 
+function GLExtendTangentSpace2OP(OP,OPC,B::AbstractVector{T2},λc::AbstractVector{T3},V::AbstractMatrix{T1},W::AbstractMatrix{T1},λe::AbstractVector{T3},Le::AbstractMatrix{T1},restricted::Bool,lbc::Bool,rbc::Bool) where {T1,T2,T3<:Number}
+
+  Nby2      = length(B)
+  N         = 2*Nby2
+  ind1      = 1:Nby2
+  ind2      = Nby2+1:N
+
+  n         = length(λc)
+  ne        = length(λe)
+
+  # Stepper-Arnoldi (for Extended Operator Calculation)
+  #-------------------------------------------------- 
+  ifadjoint         = false
+  ifoptimal         = false
+  ifverbose         = false
+  verbosestep       = 500
+  nsteps            = 500
+  dt                = 1.0e-4
+  EStpInp           = StepperArnoldi.StepperInput(ifadjoint,ifoptimal,ifverbose,verbosestep,nsteps,dt)
+  
+  ifarnoldi         = true 
+  ifverbose         = false
+  ifeigshift        = true
+  vlen              = Nby2+1
+  nev               = 1
+  ekryl             = 15  
+  lkryl             = nev + ekryl 
+  eigshift          = 0.0 + 0.0im
+  ngs               = 2
+  bsize             = 1
+  outer_iterations  = 100
+  tol               = 1.0e-12
+  EArnInp           = StepperArnoldi.ArnoldiInput(ifarnoldi,ifverbose,ifeigshift,vlen,nev,ekryl,lkryl,eigshift,ngs,bsize,outer_iterations,tol)
+  
+
+  Emodes1    = StepperArnoldi.ExtendedTangentSpacesOP(OP,B,λc,V[ind1,:],W[ind1,:],Le[ind1,:],λe,restricted,EArnInp,EStpInp,lbc,rbc);
+  Emodes2    = StepperArnoldi.ExtendedTangentSpacesOP(OPC,B,λc,V[ind2,:],W[ind2,:],Le[ind2,:],λe,restricted,EArnInp,EStpInp,lbc,rbc);
+
+  Z          = Emodes1.Z .+ Emodes2.Z
+  Γ          = Emodes1.Γ .+ Emodes2.Γ
+
+  Ve         = zeros(T1,N,ne)
+  Ve[ind1,:] = copy(Emodes1.Ve)
+  Ve[ind2,:] = copy(Emodes2.Ve)
+  
+  We         = zeros(T1,N,ne)
+  We[ind1,:] = copy(Emodes1.We)
+  We[ind2,:] = copy(Emodes2.We)
+
+  Emodes = StepperArnoldi.ExtendedModes(λe,Γ,Ve,We,Z)
+
+  return Emodes
+end
+#---------------------------------------------------------------------- 
 
 ifresonant = false
 emodeplot  = true
@@ -134,10 +188,10 @@ restricted = false
 
 Nby2  = size(OPg,2)
 N     = Nby2*2
-n     = length(λc)
+# n     = length(λc)
 p     = 2
 h     = 2
-m     = n+p+h
+m     = nsys+p+h
 
 Lν    = zeros(ComplexF64,N,p)
 λν    = zeros(ComplexF64,p)
@@ -177,30 +231,45 @@ for i in 1:h
     Lext[j,i+p] = Lθ[j,i]
   end
 end
-EM = GLExtendTangentSpace2(OPg,OPCg,Bg,λc,V,W,λext,Lext,restricted,Inp.lbc,Inp.rbc)
+if (ifmodepert)
+  EM = GLExtendTangentSpace2OP(NewOPg,NewOPCg,Bg,λSys,VSys,WSys,λext,Lext,restricted,Inp.lbc,Inp.rbc)
+else
+  EM = GLExtendTangentSpace2(NewOPg,NewOPCg,Bg,λc,V,W,λext,Lext,restricted,Inp.lbc,Inp.rbc)
+end
 
 for i in 1:length(λext)
   vnorm = norm(EM.Ve[ind1,i])
   # Plot Mode
   if (emodeplot) && vnorm > 0.0
-    j = n+i
+    j = nsys+i
     ax2.plot(xg,real.(EM.Ve[ind1,i]),linewidth=2,linestyle="-", color=cm(j-1),label=L"\mathfrak{R}(ϕ_{%$j})")
     ax2.plot(xg,imag.(EM.Ve[ind1,i]),linewidth=2,linestyle="--",color=cm(j-1),label=L"\mathfrak{Im}(ϕ_{%$j})")
   end
 end  
 
-Vext        = [V EM.Ve]
-Wext        = [W EM.We]
-Γe          = EM.Γ
-Ze          = EM.Z
-Λe          = diagm(EM.λe)
-Λc          = diagm(λc)
-Zero_ne_n   = zeros(ComplexF64,p+h,n)
+if (ifmodepert)
+  Vext        = [VSys EM.Ve]
+  Wext        = [WSys EM.We]
+  Γe          = EM.Γ
+  Ze          = EM.Z
+  Λe          = diagm(EM.λe)
+  ΛSys        = diagm(λSys)
+  Zero_ne_n   = zeros(ComplexF64,p+h,nsys)
+else
+  Vext        = [VSys EM.Ve]
+  Wext        = [WSys EM.We]
+  Γe          = EM.Γ
+  Ze          = EM.Z
+  Λe          = diagm(EM.λe)
+  ΛSys        = diagm(λSys)
+  Zero_ne_n   = zeros(ComplexF64,p+h,nsys)
+end  
 
-Khat  = [Λc        Γe;
+
+Khat  = [ΛSys      Γe;
          Zero_ne_n Λe]
 
-Vhat  = [V         EM.Ve;
+Vhat  = [Vext;
          Zero_ne_n I]
 What  = [Wext;
          Ze        I]

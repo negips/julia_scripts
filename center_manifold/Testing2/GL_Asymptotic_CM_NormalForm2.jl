@@ -1,11 +1,5 @@
-# Testing the module
+# Calculate the Center-Manifold Asymptotic vectors
 
-# include("Module_SEM1D/SEM1D.jl")
-# #using .SEM1D
-# 
-# include("Module_StepperArnoldi/StepperArnoldi.jl")
-# #using .StepperArnoldi
-# 
 include("../Module_CenterManifold/CenterManifold.jl")
 # #using .CenterManifold
 
@@ -49,9 +43,6 @@ function GLStdAsympNLTerm(n0::Int,Ord0::Int,Nc::Int,MV1::AbstractMatrix{T},MV2::
       end         # j
     end           # i
   end             # if (Ord1 + Ord2 + Ord3 == Ord0) && Ord0>=3
-
-  # println(ind0)
-  # println(norm(h))
 
   return h
 end
@@ -139,6 +130,8 @@ function BuildLowOrder(n0::Int,Ord::Int,Nc::Int,Y::AbstractMatrix{T},G::Abstract
   return h_low
 end  
 #----------------------------------------------------------------------
+
+
 #---------------------------------------------------------------------- 
 function GL2AsymptoticCM_Ord2(L::AbstractMatrix{T2},LC::AbstractMatrix{T2},B::AbstractVector{T3},δ::AbstractVector{T2},Khat::AbstractMatrix{T1},Vext::AbstractMatrix{T2},Wext::AbstractMatrix{T2},n::Int,p::Int,h::Int,lbc::Bool,rbc::Bool,Lap::AbstractMatrix{T2},LapC::AbstractMatrix{T2},ifnormal::Bool) where {T1,T2,T3<:Number}
 

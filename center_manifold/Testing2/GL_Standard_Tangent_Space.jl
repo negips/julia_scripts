@@ -1,4 +1,4 @@
-# Testing the module
+# Standard Tangent Space
 
 #include("Module_SEM1D/SEM1D.jl")
 #using .SEM1D
@@ -6,18 +6,8 @@
 include("../Module_StepperArnoldi/StepperArnoldi.jl")
 #using .StepperArnoldi
 
-#include("Module_CenterManifold/CenterManifold.jl")
-#using .CenterManifold
-
-#using LinearAlgebra
-#using SparseArrays
-#using Printf
-#using PolynomialBases
-#using IterativeSolvers
-#using PyPlot
-
 #---------------------------------------------------------------------- 
-screen = 2
+screen = 1
 Grh    = setgraphics(screen)
 
 # Stepper-Arnoldi
@@ -82,7 +72,7 @@ renormalize_evec!(v1,j0)
 renormalize_evecs!(v1,w1,Bg)
 v2    = conj.(v1)
 w2    = conj.(w1)
-λc    = [1.0im; -1.0im;]
+λc    = [1.0im; -1.0im]
 Λc    = diagm(λc)
 n     = length(λc)
 

@@ -96,9 +96,13 @@
              RestrictedStepArn,
              RestrictedStepArnOP,
              ObliqueSubspaceRemoval!,
+             ExtLOP,
              ExtendTangentSpace,
-             ExtendedTangentSpaces
-
+             ExtendTangentSpaceOP,
+             ExtendTangentSpaceRestricted,
+             ExtendTangentSpaceRestrictedOP,
+             ExtendedTangentSpaces,
+             ExtendedTangentSpacesOP
 
       end         # Module StepperArnoldi
 #----------------------------------------------------------------------
