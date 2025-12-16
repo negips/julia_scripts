@@ -132,17 +132,12 @@ ifresonant = false
 emodeplot  = true
 restricted = false 
 
-Nby2  = ArnInp.vlen
+Nby2  = size(OPg,2)
 N     = Nby2*2
 n     = length(λc)
 p     = 2
 h     = 2
 m     = n+p+h
-ind1  = 1:Nby2
-ind2  = Nby2+1:N
-
-Bg2   = [Bg; Bg]
-Bg2M  = diagm(Bg2)
 
 Lν    = zeros(ComplexF64,N,p)
 λν    = zeros(ComplexF64,p)

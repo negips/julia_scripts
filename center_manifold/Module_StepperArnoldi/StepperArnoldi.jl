@@ -21,6 +21,7 @@
 
       include("StpArnFunctions.jl")
       include("RK4.jl")
+      include("OPRK4.jl")
       include("ArnUpd.jl")
       include("ArnIRst.jl")
       include("ExplicitShiftedQR.jl")
@@ -28,6 +29,7 @@
       include("IRAM.jl")
       include("ArnInit.jl")
       include("Stepper.jl")
+      include("StepperOP.jl")
       include("ExtendTangentSpace.jl")
 
 
@@ -55,6 +57,9 @@
       export RK4!,
              BiRK4!,
              RestrictedBRK4!,
+             OPRK4!,
+             OPBiRK4!,
+             OPRestrictedBRK4!,
              ArnUpd,
              ArnIRst,
              ArnBIRst,
@@ -87,8 +92,10 @@
              StpArn_SetBC!,
              ArnInitVector,
              StepArn,
-             ObliqueSubspaceRemoval!,
+             StepArnOP,
              RestrictedStepArn,
+             RestrictedStepArnOP,
+             ObliqueSubspaceRemoval!,
              ExtendTangentSpace,
              ExtendedTangentSpaces
 

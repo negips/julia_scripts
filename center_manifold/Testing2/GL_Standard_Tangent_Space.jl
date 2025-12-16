@@ -17,7 +17,7 @@ include("../Module_StepperArnoldi/StepperArnoldi.jl")
 #using PyPlot
 
 #---------------------------------------------------------------------- 
-screen = 1
+screen = 2
 Grh    = setgraphics(screen)
 
 # Stepper-Arnoldi
@@ -35,7 +35,7 @@ ifarnoldi         = true
 ifverbose         = false
 ifeigshift        = false
 vlen              = ndof
-nev               = 1
+nev               = 2
 ekryl             = 15  
 lkryl             = nev + ekryl 
 eigshift          = 0.0 + 1.0im
@@ -84,6 +84,7 @@ v2    = conj.(v1)
 w2    = conj.(w1)
 λc    = [1.0im; -1.0im;]
 Λc    = diagm(λc)
+n     = length(λc)
 
 # Plot (normalized) Eigenvectors
 h2    = figure(num=2,figsize=Grh.figsz2)
@@ -117,6 +118,13 @@ V     = [v1       vzro;
          vzro     v2]
 W     = [w1       vzro;
          vzro     w2]
+
+Nby2  = size(OPg,2)
+N     = 2*Nby2
+ind1  = 1:Nby2
+ind2  = Nby2+1:N
+Bg2   = [Bg; Bg]
+Bg2M  = diagm(Bg2)
 
 println("Standard Tangent Space Done.")
 
