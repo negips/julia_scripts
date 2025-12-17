@@ -1,9 +1,5 @@
-# Testing the module
-
-# Extending the tangent space
+# Functions for Extending the tangent space
 #---------------------------------------------------------------------- 
-println("Extended Tangent Space using Arnoldi.")
-
 function GLExtendTangentSpace2(L::AbstractMatrix{T1},LC::AbstractMatrix{T1},B::AbstractVector{T2},λc::AbstractVector{T3},V::AbstractMatrix{T1},W::AbstractMatrix{T1},λp::AbstractVector{T3},Lp::AbstractMatrix{T1},λh::AbstractVector{T3},Lh::AbstractMatrix{T1},restricted::Bool,lbc::Bool,rbc::Bool) where {T1,T2,T3<:Number}
 
   Nby2            = size(L,2)
@@ -73,15 +69,16 @@ function GLExtendTangentSpace2(L::AbstractMatrix{T1},LC::AbstractMatrix{T1},B::A
   return PEmodes,HEmodes
 end
 #---------------------------------------------------------------------- 
-function GLExtendTangentSpace2(L::AbstractMatrix{T1},LC::AbstractMatrix{T1},B::AbstractVector{T2},λc::AbstractVector{T3},V::AbstractMatrix{T1},W::AbstractMatrix{T1},λe::AbstractVector{T3},Le::AbstractMatrix{T1},restricted::Bool,lbc::Bool,rbc::Bool) where {T1,T2,T3<:Number}
+function GLExtendPertTangentSpace(L::AbstractMatrix{T1},LC::AbstractMatrix{T1},B::AbstractVector{T2},λsys::AbstractVector{T3},σ::AbstractVector{T3},V::AbstractMatrix{T1},W::AbstractMatrix{T1},λe::AbstractVector{T3},Le::AbstractMatrix{T1},restricted::Bool,lbc::Bool,rbc::Bool) where {T1,T2,T3<:Number}
 
   Nby2      = size(L,2)
   N         = 2*Nby2
   ind1      = 1:Nby2
   ind2      = Nby2+1:N
 
-  n         = length(λc)
+  nsys      = length(λsys)
   ne        = length(λe)
+  m         = nsys + ne
 
   # Stepper-Arnoldi (for Extended Operator Calculation)
   #-------------------------------------------------- 
@@ -108,8 +105,8 @@ function GLExtendTangentSpace2(L::AbstractMatrix{T1},LC::AbstractMatrix{T1},B::A
   EArnInp           = StepperArnoldi.ArnoldiInput(ifarnoldi,ifverbose,ifeigshift,vlen,nev,ekryl,lkryl,eigshift,ngs,bsize,outer_iterations,tol)
   
 
-  Emodes1    = StepperArnoldi.ExtendedTangentSpaces(L ,B,λc,V[ind1,:],W[ind1,:],Le[ind1,:],λe,restricted,EArnInp,EStpInp,lbc,rbc);
-  Emodes2    = StepperArnoldi.ExtendedTangentSpaces(LC,B,λc,V[ind2,:],W[ind2,:],Le[ind2,:],λe,restricted,EArnInp,EStpInp,lbc,rbc);
+  Emodes1    = StepperArnoldi.ExtendedPertTangentSpaces(L ,B,λsys,σ,V[ind1,:],W[ind1,:],Le[ind1,:],λe,restricted,EArnInp,EStpInp,lbc,rbc);
+  Emodes2    = StepperArnoldi.ExtendedPertTangentSpaces(LC,B,λsys,σ,V[ind2,:],W[ind2,:],Le[ind2,:],λe,restricted,EArnInp,EStpInp,lbc,rbc);
 
   Z          = Emodes1.Z .+ Emodes2.Z
   Γ          = Emodes1.Γ .+ Emodes2.Γ
@@ -235,121 +232,35 @@ function GLExtendTangentSpace2OP(OP,OPC,B::AbstractVector{T2},λc::AbstractVecto
   return Emodes
 end
 #---------------------------------------------------------------------- 
+function GetExternalForcing(x::AbstractVector{T1},B::AbstractVector{T2},lbc::Bool,rbc::Bool) where {T1,T2<:Number}
 
-ifresonant = false
-emodeplot  = true
-restricted = false 
+  # Forcing Shape
+  x0,κ  = ForcingParams()
+  Nby2  = length(B)
+  N     = 2*Nby2
+  ψ     = zeros(ComplexF64,Nby2)
+  σ     = 1.0
+  SetForcingShape!(ψ,B,x,x0,σ,κ)
+  SEM1D.SEM_SetBC!(ψ,lbc,rbc)
 
-Nby2  = size(OPg,2)
-N     = Nby2*2
-# n     = length(λc)
-p     = 2
-s     = npert
-h     = 2
-m     = nsys+p+h
+  h     = 2
+  Lθ    = zeros(ComplexF64,N,h)
+  f2    = [ψ;  vzro]
+  f3    = [vzro;ψ]
+  
+  Lθ    = [ψ                        zeros(ComplexF64,Nby2);
+           zeros(ComplexF64,Nby2)   conj.(ψ)]
 
-# Parameter Perturbation
-Lν    = zeros(ComplexF64,N,p)
-λν    = zeros(ComplexF64,p)
-
-# System Perturbation
-Lσ    = zeros(ComplexF64,N,s)
-λσ    = zeros(ComplexF64,s)
-
-# Forcing Shape
-x0,κ  = ForcingParams()
-ψ     = zeros(ComplexF64,Nby2)
-σ     = 1.0
-SetForcingShape!(ψ,Bg,xg,x0,σ,κ)
-SEM1D.SEM_SetBC!(ψ,Inp.lbc,Inp.rbc)
-Lθ    = zeros(ComplexF64,N,h)
-f1    = 1.0/(sqrt(2.0))*[ψ;ψ]
-f2    = [ψ;  vzro]
-f3    = [vzro;ψ]
-Lθ    = [f2 f3]
-if ifresonant
-  λh    = [1.0im; -1.0im;]
-else
-  λh    = [1.3im; -1.3im;]
-end
-# Forcing Modes
-ax2.plot(xg,real.(ψ) ,linewidth=2,linestyle="-", color=cm(2),label=L"\mathfrak{R}(ψ)")
-ax2.plot(xg,imag.(ψ) ,linewidth=2,linestyle="--",color=cm(2),label=L"\mathfrak{Im}(ψ)")
-
-Λh    = diagm(λh)
-
-# PE,HE = GLExtendTangentSpace2(OPg,OPCg,Bg,λc,V,W,λν,Lν,λh,Lθ,restricted,Inp.lbc,Inp.rbc)
-
-λext = [λν; λσ; λh]
-Lext = zeros(ComplexF64,N,p+s+h)
-for i in 1:p
-  for j in 1:N
-    Lext[j,i] = Lν[j,i]
+  if ifresonant
+    λh    = [1.0im; -1.0im;]
+  else
+    λh    = [1.3im; -1.3im;]
   end
+
+
+  return ψ,Lθ,λh
 end
-for i in 1:s
-  for j in 1:N
-    Lext[j,i+p] = Lσ[j,i]
-  end
-end
-for i in 1:h
-  for j in 1:N
-    Lext[j,i+p+s] = Lθ[j,i]
-  end
-end
-if (ifmodepert)
-  EM = GLExtendTangentSpace2OP(NewOPg,NewOPCg,Bg,λSys,VSys,WSys,λext,Lext,restricted,Inp.lbc,Inp.rbc)
-else
-  EM = GLExtendTangentSpace2(NewOPg,NewOPCg,Bg,λc,V,W,λext,Lext,restricted,Inp.lbc,Inp.rbc)
-end
-
-for i in 1:length(λext)
-  vnorm = norm(EM.Ve[ind1,i])
-  # Plot Mode
-  if (emodeplot) && vnorm > 0.0
-    j = nsys+i
-    ax2.plot(xg,real.(EM.Ve[ind1,i]),linewidth=2,linestyle="-", color=cm(j-1),label=L"\mathfrak{R}(ϕ_{%$j})")
-    ax2.plot(xg,imag.(EM.Ve[ind1,i]),linewidth=2,linestyle="--",color=cm(j-1),label=L"\mathfrak{Im}(ϕ_{%$j})")
-  end
-end  
-
-if (ifmodepert)
-  Vext        = [VSys EM.Ve]
-  Wext        = [WSys EM.We]
-  Γe          = EM.Γ
-  Ze          = EM.Z
-  Λe          = diagm(EM.λe)
-  ΛSys        = diagm(λSys)
-  Zero_ne_n   = zeros(ComplexF64,p+s+h,nsys)
-else
-  Vext        = [VSys EM.Ve]
-  Wext        = [WSys EM.We]
-  Γe          = EM.Γ
-  Ze          = EM.Z
-  Λe          = diagm(EM.λe)
-  ΛSys        = diagm(λSys)
-  Zero_ne_n   = zeros(ComplexF64,p+s+h,nsys)
-end  
-
-
-Khat  = [ΛSys      Γe;
-         Zero_ne_n Λe]
-
-Vhat  = [Vext;
-         Zero_ne_n I]
-What  = [Wext;
-         Ze        I]
-Bhat  = [Bg2; ones(eltype(Bg2),p+s+h)]
-
-EBiOrtho = What'*diagm(Bhat)*Vhat
-
-if (emodeplot)
-  ax2.legend(ncols=4,fontsize=Grh.lgfs)
-else  
-  ax2.legend(ncols=3,fontsize=Grh.lgfs)
-end  
-
-println("Extended Tangent Space (Arnoldi) Done.")
+#----------------------------------------------------------------------
 
 
 

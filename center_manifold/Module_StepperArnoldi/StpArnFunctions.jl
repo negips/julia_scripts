@@ -40,6 +40,49 @@ function ObliqueSubspaceRemoval!(v::AbstractVector{T},V::AbstractMatrix{T},W::Ab
   return nothing
 end  
 #---------------------------------------------------------------------- 
+function ObliqueSubspaceRemoval2!(v::AbstractVector{T},V::AbstractMatrix{T},W::AbstractMatrix{T},B::AbstractVector{S},ifremove::Vector{Bool},ngs::Int) where {T,S<:Number}
+
+  nv = size(V,2)
+
+  for j in 1:ngs
+    for i in 1:nv
+      if (ifremove[i])
+        β   = W[:,i]'*(B.*v)
+        v  .= v .- V[:,i]*β
+      end
+    end
+  end
+
+  return nothing
+end  
+#---------------------------------------------------------------------- 
+function ObliqueSubspaceRemoval3!(v::AbstractVector{T},V::AbstractMatrix{T},W::AbstractMatrix{T},B::AbstractVector{S},ifremove::Vector{Bool},ngs::Int) where {T,S<:Number}
+
+  nv = size(V,2)
+
+  α  = zeros(T,nv)
+
+  for j in 1:ngs
+    for i in 1:nv
+      if (ifremove[i])
+        β     = W[:,i]'*(B.*v)
+        v    .= v .- V[:,i]*β
+        α[i]  = α[i] + β
+      end
+    end
+  end
+
+  return α
+end  
+#---------------------------------------------------------------------- 
+
+
+
+
+
+
+
+
 
 
 

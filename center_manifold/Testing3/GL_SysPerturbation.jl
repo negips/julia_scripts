@@ -225,19 +225,27 @@ if (ifmodepert)
   NewEOPCg(x,y,z) = ExtPertLv(x,OPCg,Bg,VSys2,WSys2,σ,y,z)
 
   # ArnDirNew   = StepperArnoldi.StepArnOP(NewOPg,Bg,StpInp,ArnInp,Inp.lbc,Inp.rbc)
-  
 
 else
 
   nmode       = 0
   npert       = 0
   nsys        = n + npert
+  λSys        = copy(λc)
+  σ           = [zeros(ComplexF64,nsys)]
+
+  PertModes   = zeros(Int,nsys)
+
   VSys        = copy(V)
   WSys        = copy(W)
-  PertModes   = []
-  λSys        = copy(λc)
-  NewOPg      = copy(OPg)
-  NewOPCg     = copy(OPCg)
+
+  VSys1       = VSys[ind1,:]
+  VSys2       = VSys[ind2,:]
+  WSys1       = WSys[ind1,:]
+  WSys2       = WSys[ind2,:]
+
+  # NewOPg      = OPg
+  # NewOPCg     = OPCg
 
 end  
 
