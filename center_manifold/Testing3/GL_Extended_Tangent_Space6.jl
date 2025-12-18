@@ -53,7 +53,12 @@ for i in 1:h
     Lext[j,i+p+s] = Lθ[j,i]
   end
 end
-EM = GLExtendPertTangentSpace(OPg,OPCg,Bg,λSys,σ,VSys,WSys,λext,Lext,restricted,Inp.lbc,Inp.rbc)
+
+if (ifmodepert)
+  EM = GLExtendPertTangentSpace(OPg,OPCg,Bg,λSys,σ,VSys,WSys,λext,Lext,restricted,Inp.lbc,Inp.rbc)
+else  
+  EM = GLExtendTangentSpace(OPg,OPCg,Bg,λSys,VSys,WSys,λext,Lext,restricted,Inp.lbc,Inp.rbc)
+end
 
 # if (ifmodepert)
 #   EM = GLExtendTangentSpace2OP(NewOPg,NewOPCg,Bg,λSys,VSys,WSys,λext,Lext,restricted,Inp.lbc,Inp.rbc)

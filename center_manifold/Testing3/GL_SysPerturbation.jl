@@ -185,7 +185,7 @@ if (ifmodepert)
   
   for i in 1:length(λpert)
     λnew[i] = imag(λpert[i])*im       # Map to real axis
-    dλ[i]   = λnew[i] - λpert[i]
+    dλ[i]   = (λnew[i] - λpert[i])*1
   end  
 
   nsys        = n + npert

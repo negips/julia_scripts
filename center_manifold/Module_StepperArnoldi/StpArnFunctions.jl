@@ -44,8 +44,8 @@ function ObliqueSubspaceRemoval2!(v::AbstractVector{T},V::AbstractMatrix{T},W::A
 
   nv = size(V,2)
 
-  for j in 1:ngs
-    for i in 1:nv
+  for i in 1:nv
+    for j in 1:ngs
       if (ifremove[i])
         β   = W[:,i]'*(B.*v)
         v  .= v .- V[:,i]*β

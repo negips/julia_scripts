@@ -116,8 +116,8 @@
              ExtendTangentSpaceRestrictedOP,
              ExtendedTangentSpaces,
              ExtendedTangentSpacesOP,
-             EPTangentSpaces,
-             EPTangentSpace
+             REPTangentSpaces,
+             REPTangentSpace
 
       end         # Module StepperArnoldi
 #----------------------------------------------------------------------
