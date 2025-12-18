@@ -214,7 +214,6 @@ function REPStepArn(L::AbstractMatrix{T1},B::AbstractVector{T2},σ::AbstractVect
   Ve,H            = ArnKrylovInit(StpInp,ArnInp;Dtype=T1)
   v0              = ArnInitVector(ArnInp.vlen,lbc,rbc,Dtype=T1)
   # Remove subspace
-  println(restriction)
   @views ObliqueSubspaceRemoval2!(v0[1:N],V0,W0,B,restriction,ArnInp.ngs) 
   @views StpArn_SetBC!(v0[1:N],lbc,rbc)
 

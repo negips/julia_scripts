@@ -40,10 +40,6 @@ function EPTangentSpace(L::AbstractMatrix{T2},B::AbstractVector{T3},λc::Abstrac
     end
   end
 
-  f1 = f'*(B.*f)
-  fnorm = sqrt(abs(f1[1]))
-  # println(fnorm)
-
   Γ = ObliqueSubspaceRemoval3!(ftmp,V,W,B,ifresonant,ngs)
 
   # Build Extended Matrices
@@ -53,8 +49,6 @@ function EPTangentSpace(L::AbstractMatrix{T2},B::AbstractVector{T3},λc::Abstrac
 
   f2 = ftmp'*(B.*ftmp)
   fnorm = sqrt(abs(f2[1]))
-  # println(fnorm)
-  # println(ifresonant)
 
   if fnorm > AInp.tol
 

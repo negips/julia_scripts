@@ -155,7 +155,7 @@ function REP_BRK4!(ve::AbstractVector{T1},L::AbstractMatrix{T2},B::AbstractVecto
     v5[i] = ve[i] + dt/two*v1[i]
   end
   v5[Ne]  = ve[Ne] + dt/two*v1[Ne]
-  @views ObliqueSubspaceRemoval!(v5[1:N],V,W,B,ngs) 
+  @views ObliqueSubspaceRemoval2!(v5[1:N],V,W,B,restricted,ngs) 
   @views StpArn_SetBC!(v5[1:N],lbc,rbc)
 
   v2  = REPLx(v5,L,B,V,W,σ,restricted,f,ω)
@@ -164,7 +164,7 @@ function REP_BRK4!(ve::AbstractVector{T1},L::AbstractMatrix{T2},B::AbstractVecto
     v5[i] = ve[i] + dt/two*v2[i]
   end
   v5[Ne]  = ve[Ne] + dt/two*v2[Ne]
-  @views ObliqueSubspaceRemoval!(v5[1:N],V,W,B,ngs) 
+  @views ObliqueSubspaceRemoval2!(v5[1:N],V,W,B,restricted,ngs) 
   @views StpArn_SetBC!(v5[1:N],lbc,rbc)
 
   v3  = REPLx(v5,L,B,V,W,σ,restricted,f,ω)
@@ -173,7 +173,7 @@ function REP_BRK4!(ve::AbstractVector{T1},L::AbstractMatrix{T2},B::AbstractVecto
     v5[i] = ve[i] + dt*v3[i]
   end
   v5[Ne]  = ve[Ne] + dt*v3[Ne]
-  @views ObliqueSubspaceRemoval!(v5[1:N],V,W,B,ngs) 
+  @views ObliqueSubspaceRemoval2!(v5[1:N],V,W,B,restricted,ngs) 
   @views StpArn_SetBC!(v5[1:N],lbc,rbc)
 
   v4  = REPLx(v5,L,B,V,W,σ,restricted,f,ω)
@@ -184,7 +184,7 @@ function REP_BRK4!(ve::AbstractVector{T1},L::AbstractMatrix{T2},B::AbstractVecto
   for i in 1:Ne
     ve[i]  = ve[i] + dt/six*(v1[i] + two*v2[i] + two*v3[i] + v4[i])
   end  
-  @views ObliqueSubspaceRemoval!(ve[1:N],V,W,B,ngs) 
+  @views ObliqueSubspaceRemoval2!(ve[1:N],V,W,B,restricted,ngs) 
   @views StpArn_SetBC!(ve[1:N],lbc,rbc)
 
   return nothing 
