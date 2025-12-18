@@ -31,6 +31,7 @@
       include("Stepper.jl")
       include("StepperOP.jl")
       include("ExtendTangentSpace.jl")
+      include("ExtendPertTangentSpace.jl")
 
 
 #      include("SEM1D_Constructors.jl")    #
@@ -95,6 +96,7 @@
              StepArnOP,
              RestrictedStepArn,
              RestrictedStepArnOP,
+             REPStepArn,
              ObliqueSubspaceRemoval!,
              ObliqueSubspaceRemoval2!,
              ObliqueSubspaceRemoval3!,
@@ -113,7 +115,9 @@
              ExtendTangentSpaceRestricted,
              ExtendTangentSpaceRestrictedOP,
              ExtendedTangentSpaces,
-             ExtendedTangentSpacesOP
+             ExtendedTangentSpacesOP,
+             EPTangentSpaces,
+             EPTangentSpace
 
       end         # Module StepperArnoldi
 #----------------------------------------------------------------------

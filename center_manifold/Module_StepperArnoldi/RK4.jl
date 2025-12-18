@@ -139,12 +139,12 @@ function RestrictedBRK4!(v::AbstractVector{T},OP,B::AbstractVector{S},Vr::Abstra
   return nothing 
 end  
 #---------------------------------------------------------------------- 
-function REP_BRK4!(ve::AbstractVector{T1},L::AbstractMatrix{T2},B::AbstractVector{T3},σ::AbstractVector{T1},V::AbstractMatrix{T1},W::AbstractMatrix{T1},restriction::Vector{Bool},f::AbstractVector{T2},ω::T1,lbc::Bool,rbc::Bool,v1::AbstractVector{T1},v2::AbstractVector{T1},v3::AbstractVector{T1},v4::AbstractVector{T1},v5::AbstractVector{T1},dt::P) where {T,S,P<:Number}
+function REP_BRK4!(ve::AbstractVector{T1},L::AbstractMatrix{T2},B::AbstractVector{T3},σ::AbstractVector{T1},V::AbstractMatrix{T1},W::AbstractMatrix{T1},restricted::Vector{Bool},f::AbstractVector{T2},ω::T1,lbc::Bool,rbc::Bool,v1::AbstractVector{T1},v2::AbstractVector{T1},v3::AbstractVector{T1},v4::AbstractVector{T1},v5::AbstractVector{T1},dt::T4) where {T1,T2,T3,T4<:Number}
 
   Ne  = length(ve)
   N   = Ne - 1
-  two = T(2)
-  six = T(6)
+  two = T1(2)
+  six = T1(6)
   ngs = 2
 
   Bi  = 1.0./B
@@ -182,10 +182,10 @@ function REP_BRK4!(ve::AbstractVector{T1},L::AbstractMatrix{T2},B::AbstractVecto
   end
 
   for i in 1:Ne
-    v[i]  .= v[i] .+ dt/six*(v1 .+ two*v2 .+ two*v3 .+ v4)
+    ve[i]  = ve[i] + dt/six*(v1[i] + two*v2[i] + two*v3[i] + v4[i])
   end  
-  @views ObliqueSubspaceRemoval!(v[1:N],V,W,B,ngs) 
-  @views StpArn_SetBC!(v[1:N],lbc,rbc)
+  @views ObliqueSubspaceRemoval!(ve[1:N],V,W,B,ngs) 
+  @views StpArn_SetBC!(ve[1:N],lbc,rbc)
 
   return nothing 
 end  

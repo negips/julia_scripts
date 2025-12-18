@@ -208,7 +208,7 @@ function REPLx(xe::AbstractVector{T1},L::AbstractMatrix{T1},B::AbstractVector{T2
   for j in 1:N
     Lx[j] = Lx[j] + B[j]*ftmp[j]
   end
-  Lx[Ne]  = ω*x[Ne]
+  Lx[Ne]  = ω*xe[Ne]
 
   return Lx
 end

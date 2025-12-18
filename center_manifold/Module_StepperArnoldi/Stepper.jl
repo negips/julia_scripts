@@ -211,9 +211,10 @@ function REPStepArn(L::AbstractMatrix{T1},B::AbstractVector{T2},σ::AbstractVect
   N               = size(L,2)
   Ne              = N + 1
   ArnInp.vlen     = Ne
-  Ve,             = ArnKrylovInit(StpInp,ArnInp;Dtype=T)
-  v0              = ArnInitVector(ArnInp.vlen,lbc,rbc,Dtype=T)
+  Ve,H            = ArnKrylovInit(StpInp,ArnInp;Dtype=T1)
+  v0              = ArnInitVector(ArnInp.vlen,lbc,rbc,Dtype=T1)
   # Remove subspace
+  println(restriction)
   @views ObliqueSubspaceRemoval2!(v0[1:N],V0,W0,B,restriction,ArnInp.ngs) 
   @views StpArn_SetBC!(v0[1:N],lbc,rbc)
 
@@ -221,7 +222,7 @@ function REPStepArn(L::AbstractMatrix{T1},B::AbstractVector{T2},σ::AbstractVect
   copyto!(Be,1,B,1,N)
 
   nev             = ArnInp.nev
-  eigshift        = ArnInp.eigshift
+  eigshift        = ω 
   tol             = ArnInp.tol
   ngs             = ArnInp.ngs
 
@@ -240,17 +241,18 @@ function REPStepArn(L::AbstractMatrix{T1},B::AbstractVector{T2},σ::AbstractVect
   nkryl           = 0
 
   ifconv          = false
-  t               = T(0)*dt       # Time
+  fl              = real(T1)
+  t               = fl(0)*dt      # Time
   i               = 0             # Istep
 
   maxouter_it     = ArnInp.outer_iterations
   major_it        = 1
 
-  ve1             = zeros(T,Ne) 
-  ve2             = zeros(T,Ne) 
-  ve3             = zeros(T,Ne)
-  ve4             = zeros(T,Ne)
-  ve5             = zeros(T,Ne)
+  ve1             = zeros(T1,Ne) 
+  ve2             = zeros(T1,Ne) 
+  ve3             = zeros(T1,Ne)
+  ve4             = zeros(T1,Ne)
+  ve5             = zeros(T1,Ne)
 
   # Eigenvalue Shift
   if ifeigshift
@@ -273,7 +275,7 @@ function REPStepArn(L::AbstractMatrix{T1},B::AbstractVector{T2},σ::AbstractVect
     end  
   
     # Expand Krylov space
-    Ve,H,nkryl,β,major_it = IRAM!(Ve,H,Be,v,nkryl,lkryl,major_it,nev,Ω,ngs)
+    Ve,H,nkryl,β,major_it = IRAM!(Ve,H,Be,ve,nkryl,lkryl,major_it,nev,Ω,ngs)
     ve  = Ve[:,nkryl]
   
     if (major_it>maxouter_it)
@@ -304,7 +306,7 @@ function REPStepArn(L::AbstractMatrix{T1},B::AbstractVector{T2},σ::AbstractVect
   
   λ  = λr .+ im*λi
   # Eigenvectors  
-  eigvec = V[:,1:nev]*F.vectors
+  eigvec = Ve[:,1:nev]*F.vectors
 
   # Structured output
   arnout = ArnoldiOutput(λ,eigvec,ritz,ifconv,tol) 
