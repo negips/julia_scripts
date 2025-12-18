@@ -105,8 +105,8 @@ function GLExtendPertTangentSpace(L::AbstractMatrix{T1},LC::AbstractMatrix{T1},B
   EArnInp           = StepperArnoldi.ArnoldiInput(ifarnoldi,ifverbose,ifeigshift,vlen,nev,ekryl,lkryl,eigshift,ngs,bsize,outer_iterations,tol)
   
 
-  Emodes1    = StepperArnoldi.ExtendedPertTangentSpaces(L ,B,λsys,σ,V[ind1,:],W[ind1,:],Le[ind1,:],λe,restricted,EArnInp,EStpInp,lbc,rbc);
-  Emodes2    = StepperArnoldi.ExtendedPertTangentSpaces(LC,B,λsys,σ,V[ind2,:],W[ind2,:],Le[ind2,:],λe,restricted,EArnInp,EStpInp,lbc,rbc);
+  Emodes1    = StepperArnoldi.EPTangentSpaces(L ,B,λsys,σ,V[ind1,:],W[ind1,:],Le[ind1,:],λe,restricted,EArnInp,EStpInp,lbc,rbc);
+  Emodes2    = StepperArnoldi.EPTangentSpaces(LC,B,λsys,σ,V[ind2,:],W[ind2,:],Le[ind2,:],λe,restricted,EArnInp,EStpInp,lbc,rbc);
 
   Z          = Emodes1.Z .+ Emodes2.Z
   Γ          = Emodes1.Γ .+ Emodes2.Γ

@@ -173,7 +173,7 @@ function ExtendedTangentSpaces(L::AbstractMatrix{T2},B::AbstractVector{T3},λc::
   return EModes
 end
 #---------------------------------------------------------------------- 
-function ExtendedPertTangentSpaces(L::AbstractMatrix{T2},B::AbstractVector{T3},λc::AbstractVector{T1},σ::AbstractVector{T1},V::AbstractMatrix{T2},W::AbstractMatrix{T2},F::AbstractMatrix{T2},λe::AbstractVector{T1},restricted::Bool,AInp::ArnoldiInput,SInp::StepperInput,lbc::Bool,rbc::Bool) where {T1,T2,T3<:Number}
+function EPTangentSpaces(L::AbstractMatrix{T2},B::AbstractVector{T3},λc::AbstractVector{T1},σ::AbstractVector{T1},V::AbstractMatrix{T2},W::AbstractMatrix{T2},F::AbstractMatrix{T2},λe::AbstractVector{T1},restricted::Bool,AInp::ArnoldiInput,SInp::StepperInput,lbc::Bool,rbc::Bool) where {T1,T2,T3<:Number}
 
   ne = length(λe)
 
@@ -195,7 +195,6 @@ function ExtendedPertTangentSpaces(L::AbstractMatrix{T2},B::AbstractVector{T3},�
   return EModes
 end
 #---------------------------------------------------------------------- 
-
 function ExtendedTangentSpacesOP(OP,B::AbstractVector{T3},λc::AbstractVector{T1},V::AbstractMatrix{T2},W::AbstractMatrix{T2},F::AbstractMatrix{T2},λe::AbstractVector{T1},restricted::Bool,AInp::ArnoldiInput,SInp::StepperInput,lbc::Bool,rbc::Bool) where {T1,T2,T3<:Number}
 
   ne = length(λe)
