@@ -197,7 +197,6 @@ function REPLx(xe::AbstractVector{T1},L::AbstractMatrix{T1},B::AbstractVector{T2
   N   = size(L,2)
   Ne  = N+1
   Lx  = zeros(T1,Ne)
-  nv  = size(V,2)
   σtol = 1.0e-12
   
   @views RPLx!(Lx[1:N],xe[1:N],L,B,V,W,σ,restricted)

@@ -190,6 +190,45 @@ function REP_BRK4!(ve::AbstractVector{T1},L::AbstractMatrix{T2},B::AbstractVecto
   return nothing 
 end  
 #---------------------------------------------------------------------- 
+function REP_BRK4_2!(ve::AbstractVector{T1},L::AbstractMatrix{T2},B::AbstractVector{T3},σ::AbstractVector{T1},V::AbstractMatrix{T1},W::AbstractMatrix{T1},restricted::Vector{Bool},f::AbstractVector{T2},ω::T1,lbc::Bool,rbc::Bool,v1::AbstractVector{T1},v2::AbstractVector{T1},v3::AbstractVector{T1},v4::AbstractVector{T1},v5::AbstractVector{T1},dt::T4) where {T1,T2,T3,T4<:Number}
+
+  Ne  = length(ve)
+  N   = Ne - 1
+  two = T1(2)
+  six = T1(6)
+  ngs = 2
+
+  Bei = zeros(eltype(B),Ne)
+  for i in LinearIndices(B)
+    Bei[i]  = 1.0./B[i]
+  end
+  Bei[Ne] = 1.0
+
+  v1  = REPLx(ve,L,B,V,W,σ,restricted,f,ω)
+  v5 .= ve .+ dt/two*Bei.*v1
+  # @views ObliqueSubspaceRemoval2!(v5[1:N],V,W,B,restricted,ngs) 
+  @views StpArn_SetBC!(v5[1:N],lbc,rbc)
+
+  v2  = REPLx(v5,L,B,V,W,σ,restricted,f,ω)
+  v5 .= ve .+ dt/two*Bei.*v2
+  # @views ObliqueSubspaceRemoval2!(v5[1:N],V,W,B,restricted,ngs) 
+  @views StpArn_SetBC!(v5[1:N],lbc,rbc)
+
+  v3  = REPLx(v5,L,B,V,W,σ,restricted,f,ω)
+  v5 .= ve .+ dt*Bei.*v3
+  # @views ObliqueSubspaceRemoval2!(v5[1:N],V,W,B,restricted,ngs) 
+  @views StpArn_SetBC!(v5[1:N],lbc,rbc)
+
+  v4  = REPLx(v5,L,B,V,W,σ,restricted,f,ω)
+  v5  = dt/six*Bei.*(v1 .+ two*v2 .+ two*v3 .+ v4)
+
+  ve .= ve .+ v5
+  # @views ObliqueSubspaceRemoval2!(ve[1:N],V,W,B,restricted,ngs) 
+  @views StpArn_SetBC!(ve[1:N],lbc,rbc)
+
+  return nothing 
+end  
+#---------------------------------------------------------------------- 
 
 
 
