@@ -1,10 +1,32 @@
 
 include("../Module_StepperArnoldi/StepperArnoldi.jl")
 
-ArnInp.nev        = 1
-ArnInp.vlen       = ndof + 1
-ArnInp.ifeigshift = true
-ArnInp.eigshift   = λext[5]
+# Stepper-Arnoldi
+#-------------------------------------------------- 
+ifadjoint         = false
+ifoptimal         = false
+ifverbose         = false
+verbosestep       = 500
+nsteps            = 500
+dt                = 1.0e-4
+StpInp            = StepperArnoldi.StepperInput(ifadjoint,ifoptimal,ifverbose,verbosestep,nsteps,dt)
+#StpInp      = Set_StepperParams()
+
+ifarnoldi         = true 
+ifverbose         = false
+ifeigshift        = true
+vlen              = ndof
+nev               = 1
+ekryl             = 15  
+lkryl             = nev + ekryl 
+eigshift          = λext[5]
+ngs               = 2
+bsize             = 1
+outer_iterations  = 100
+tol               = 1.0e-12
+ArnInp            = StepperArnoldi.ArnoldiInput(ifarnoldi,ifverbose,ifeigshift,vlen,nev,ekryl,lkryl,eigshift,ngs,bsize,outer_iterations,tol)
+
+#
 λf                = λext[5]
 ff                = copy(Lext[ind1,5])
 ifres             = fill(false,nsys)
