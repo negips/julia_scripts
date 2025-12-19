@@ -184,9 +184,9 @@ function EPLx(xe::AbstractVector{T1},L::AbstractMatrix{T1},B::AbstractVector{T2}
 
   # Add forcing extension
   for j in 1:N
-    Lx[j] = Lx[j] + B[j]*f[j]
+    Lx[j] = Lx[j] + B[j]*f[j]*xe[Ne]
   end
-  Lx[Ne]  = ω*x[Ne]
+  Lx[Ne]  = ω*xe[Ne]
 
   return Lx
 end
@@ -203,10 +203,10 @@ function REPLx(xe::AbstractVector{T1},L::AbstractMatrix{T1},B::AbstractVector{T2
   @views RPLx!(Lx[1:N],xe[1:N],L,B,V,W,σ,restricted)
 
   # Add forcing extension
-  ftmp = copy(f)
-  ObliqueSubspaceRemoval2!(ftmp,V,W,B,restricted,ngs)
+  # ftmp = copy(f)
+  # ObliqueSubspaceRemoval2!(ftmp,V,W,B,restricted,ngs)
   for j in 1:N
-    Lx[j] = Lx[j] + B[j]*ftmp[j]
+    Lx[j] = Lx[j] + B[j]*f[j]*xe[Ne]
   end
   Lx[Ne]  = ω*xe[Ne]
 

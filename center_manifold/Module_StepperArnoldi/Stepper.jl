@@ -205,6 +205,7 @@ end
 #---------------------------------------------------------------------- 
 # Include the function files
 function REPStepArn(L::AbstractMatrix{T1},B::AbstractVector{T2},σ::AbstractVector{T3},V0::AbstractMatrix{T1},W0::AbstractMatrix{T1},restriction::Vector{Bool},f::AbstractVector{T1},ω::T3,StpInp::StepperInput,ArnInp::ArnoldiInput,lbc::Bool,rbc::Bool) where {T1,T2,T3<:Number}
+#function REPStepArn(L::AbstractMatrix{T1},B::AbstractVector{T2},σ::AbstractVector{T3},V0::AbstractMatrix{T1},W0::AbstractMatrix{T1},restriction::Vector{Bool},f::AbstractVector{T1},ω::T3,StpInp,ArnInp,lbc::Bool,rbc::Bool) where {T1,T2,T3<:Number}
 
   dtype           = T1
 
