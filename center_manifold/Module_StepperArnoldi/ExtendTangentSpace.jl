@@ -16,7 +16,7 @@ end
 function PertLx(x::AbstractVector{T1},L::AbstractMatrix{T1},B::AbstractVector{T2},V::AbstractMatrix{T1},W::AbstractMatrix{T1},σ::AbstractVector{T3}) where {T1,T2,T3<:Number}
 
   ngs = 2
-  N   = size(L,2)
+  N   = size(L,1)
   Lx  = zeros(T1,N)
   np  = length(σ)
   σtol = 1.0e-12

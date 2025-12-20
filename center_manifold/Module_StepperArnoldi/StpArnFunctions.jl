@@ -44,11 +44,17 @@ function ObliqueSubspaceRemoval2!(v::AbstractVector{T},V::AbstractMatrix{T},W::A
 
   nv = size(V,2)
 
-  for i in 1:nv
-    for j in 1:ngs
-      if (ifremove[i])
-        β   = W[:,i]'*(B.*v)
-        v  .= v .- V[:,i]*β
+  for j in 1:ngs
+    β    = zeros(T,nv)
+    for i in 1:nv
+      if ifremove[i]
+        β[i]  = W[:,i]'*(B.*v)
+      end
+    end   
+
+    for i in 1:nv
+      if ifremove[i]
+        v  .= v .- V[:,i]*β[i]
       end
     end
   end
@@ -60,14 +66,20 @@ function ObliqueSubspaceRemoval3!(v::AbstractVector{T},V::AbstractMatrix{T},W::A
 
   nv = size(V,2)
 
-  α  = zeros(T,nv)
-
+  # Get components of subspace V in v
+  α    = zeros(T,nv)
   for j in 1:ngs
+    β    = zeros(T,nv)
     for i in 1:nv
-      if (ifremove[i])
-        β     = W[:,i]'*(B.*v)
-        v    .= v .- V[:,i]*β
-        α[i]  = α[i] + β
+      if ifremove[i]
+        β[i]  = W[:,i]'*(B.*v)
+        α[i]  = α[i] + β[i]
+      end
+    end   
+
+    for i in 1:nv
+      if ifremove[i]
+        v  .= v .- V[:,i]*β[i]
       end
     end
   end
@@ -77,31 +89,43 @@ end
 #---------------------------------------------------------------------- 
 function PLx(x::AbstractVector{T1},L::AbstractMatrix{T1},B::AbstractVector{T2},V::AbstractMatrix{T1},W::AbstractMatrix{T1},σ::AbstractVector{T3}) where {T1,T2,T3<:Number}
 
-  ngs = 2
-  N   = size(L,2)
-  Lx  = zeros(T1,N)
-  np  = length(σ)
+  ngs  = 2
+  N    = size(L,1)
+  nv   = size(V,2)
   σtol = 1.0e-12
-  xtmp = Vector{T1}(undef,N)
 
-  # L*x
-  Lx = L*x
+  # using Lx as a work array for now
+  Lx   = copy(x)
 
-  # Evaluate Mode perturbation terms
-  for i in 1:np
+  # Get components of the Perturbed Modes in x
+  α    = zeros(T1,nv)
+  for j in 1:ngs
+    β    = zeros(T1,nv)
+    for i in 1:nv
+      if abs(σ[i]) > σtol
+        β[i]  = W[:,i]'*(B.*Lx)
+        α[i]  = α[i] + β[i]
+      end
+    end   
+
+    # Since we only need α.
+    if j<ngs
+      for i in 1:nv
+        if abs(σ[i]) > σtol
+          Lx  .= Lx .- V[:,i]*β[i]
+        end
+      end
+    end  
+  end
+  # Lx = L*x
+  mul!(Lx,L,x)
+
+  # Add Mode Perturbations
+  for i in 1:nv
     if abs(σ[i]) > σtol
-      copyto!(xtmp,1,x,1,N)
-      α    = T1(0)
-      for j in 1:ngs
-        β     = W[:,i]'*(B.*xtmp)
-        α     = α + β 
-        xtmp .= xtmp .- β*V[:,i]
-      end
-      for j in 1:N
-        Lx[j] = Lx[j] + α*σ[i]*B[j]*V[j,i]
-      end
+      Lx  .= Lx .+ σ[i]*B.*(V[:,i]*α[i])
     end
-  end  
+  end   
 
   return Lx
 end
@@ -109,64 +133,90 @@ end
 function PLx!(Lx::AbstractVector{T1},x::AbstractVector{T1},L::AbstractMatrix{T1},B::AbstractVector{T2},V::AbstractMatrix{T1},W::AbstractMatrix{T1},σ::AbstractVector{T3}) where {T1,T2,T3<:Number}
 
   ngs  = 2
-  N    = size(L,2)
+  N    = size(L,1)
   nv   = size(V,2)
   σtol = 1.0e-12
+
+  # using Lx as a work array for now
+  copyto!(Lx,1,x,1,N)
+
+  # Get components of the Perturbed Modes in x
+  α    = zeros(T1,nv)
+  for j in 1:ngs
+    β    = zeros(T1,nv)
+    for i in 1:nv
+      if abs(σ[i]) > σtol
+        β[i]  = W[:,i]'*(B.*Lx)
+        α[i]  = α[i] + β[i]
+      end
+    end   
+
+    # Since we only need α.
+    if j<ngs
+      for i in 1:nv
+        if abs(σ[i]) > σtol
+          Lx  .= Lx .- V[:,i]*β[i]
+        end
+      end
+    end  
+  end
 
   # Lx = L*x
   mul!(Lx,L,x)
 
-  # Evaluate Mode perturbation terms
-  xtmp = Vector{T1}(undef,N)
+  # Add Mode Perturbations
   for i in 1:nv
     if abs(σ[i]) > σtol
-      copyto!(xtmp,1,x,1,N)
-      α    = T1(0)
-      for j in 1:ngs
-        β     = W[:,i]'*(B.*xtmp)
-        α     = α + β 
-        xtmp .= xtmp .- β*V[:,i]
-      end
-      for j in 1:N
-        Lx[j] = Lx[j] + α*σ[i]*B[j]*V[j,i]
-      end
+      Lx  .= Lx .+ σ[i]*B.*(V[:,i]*α[i])
     end
-  end  
+  end   
 
   return nothing
 end
 #---------------------------------------------------------------------- 
-function RPLx!(Lx::AbstractVector{T1},x::AbstractVector{T1},L::AbstractMatrix{T1},B::AbstractVector{T2},V::AbstractMatrix{T1},W::AbstractMatrix{T1},σ::AbstractVector{T3},restricted::Vector{Bool}) where {T1,T2,T3<:Number}
+function RPLx!(Lx::AbstractVector{T1},x::AbstractVector{T1},L::AbstractMatrix{T1},B::AbstractVector{T2},V::AbstractMatrix{T1},W::AbstractMatrix{T1},σ::AbstractVector{T3},restricted::Vector{Bool},x1::AbstractVector{T1}) where {T1,T2,T3<:Number}
 
   ngs  = 2
-  N    = size(L,2)
-  np   = length(σ)
+  N    = size(L,1)
+  nv   = size(V,2)
   σtol = 1.0e-12
 
+  # using x1 as a work array for now
+  copyto!(x1,1,x,1,N)
+
+  # Get components of the Perturbed Modes in x
+  α    = zeros(T1,nv)
+  for j in 1:ngs
+    β    = zeros(T1,nv)
+    for i in 1:nv
+      if abs(σ[i]) > σtol && ~restricted[i]
+        β[i]  = W[:,i]'*(B.*x1)
+        α[i]  = α[i] + β[i]
+      end
+    end   
+
+    # Since we only need α.
+    if j<ngs
+      for i in 1:nv
+        if abs(σ[i]) > σtol
+          x1  .= x1 .- V[:,i]*β[i]
+        end
+      end
+    end  
+  end
+
+  copyto!(x1,1,x,1,N)
+  ObliqueSubspaceRemoval2!(x1,V,W,B,restriction,ngs)
+
   # Lx = L*x
-  xtmp = Vector{T1}(undef,N)
-  copyto!(xtmp,1,x,1,N)
+  mul!(Lx,L,x1)
 
-  ObliqueSubspaceRemoval2!(xtmp,V,W,B,restricted,ngs)
-  mul!(Lx,L,xtmp)
-
-  # Evaluate Mode perturbation terms
-  for i in 1:np
-    if (~restricted[i])
-      if abs(σ[i]) > σtol
-        copyto!(xtmp,1,x,1,N)
-        α    = T1(0)
-        for j in 1:ngs
-          β     = W[:,i]'*(B.*xtmp)
-          α     = α + β 
-          xtmp .= xtmp .- β*V[:,i]
-        end
-        for j in 1:N
-          Lx[j] = Lx[j] + α*σ[i]*B[j]*V[j,i]
-        end
-      end         # abs(σ[i]) > σtol
-    end           # ~restricted[i]
-  end  
+  # Add Mode Perturbations
+  for i in 1:nv
+    if abs(σ[i]) > σtol
+      Lx  .= Lx .+ σ[i]*B.*(V[:,i]*α[i])
+    end
+  end   
 
   return nothing
 end
@@ -180,7 +230,7 @@ function EPLx(xe::AbstractVector{T1},L::AbstractMatrix{T1},B::AbstractVector{T2}
   np  = length(σ)
   σtol = 1.0e-12
   
-  @views PertLx!(Lx[1:N],xe[1:N],L,B,V,W,σ)
+  @views PLx!(Lx[1:N],xe[1:N],L,B,V,W,σ)
 
   # Add forcing extension
   for j in 1:N
@@ -191,6 +241,27 @@ function EPLx(xe::AbstractVector{T1},L::AbstractMatrix{T1},B::AbstractVector{T2}
   return Lx
 end
 #---------------------------------------------------------------------- 
+function EPLx!(Lxe::AbstractVector{T1},xe::AbstractVector{T1},L::AbstractMatrix{T1},B::AbstractVector{T2},V::AbstractMatrix{T1},W::AbstractMatrix{T1},σ::AbstractVector{T3},f::AbstractVector{T1},ω::T3) where {T1,T2,T3<:Number}
+
+  ngs  = 2
+  N    = size(L,2)
+  Ne   = N+1
+  Lxe  = zeros(T1,Ne)
+  nv   = size(V,2)
+  σtol = 1.0e-12
+  
+  @views PLx!(Lxe[1:N],xe[1:N],L,B,V,W,σ)
+
+  # Add forcing extension
+  for j in 1:N
+    Lxe[j] = Lxe[j] + B[j]*f[j]*xe[Ne]
+  end
+  Lxe[Ne]  = ω*xe[Ne]
+
+  return nothing
+end
+#---------------------------------------------------------------------- 
+
 function REPLx(xe::AbstractVector{T1},L::AbstractMatrix{T1},B::AbstractVector{T2},V::AbstractMatrix{T1},W::AbstractMatrix{T1},σ::AbstractVector{T3},restricted::AbstractVector{Bool},f::AbstractVector{T1},ω::T3) where {T1,T2,T3<:Number}
 
   ngs = 2

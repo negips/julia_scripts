@@ -270,8 +270,9 @@ function REPStepArn(L::AbstractMatrix{T1},B::AbstractVector{T2},σ::AbstractVect
       t = t + dt;
       # Apply BC
       # @views StpArn_SetBC!(ve[1:N],lbc,rbc)
-      # REP_BRK4_2!(ve,L,B,σ,V0,W0,restriction,f,ω,lbc,rbc,ve1,ve2,ve3,ve4,ve5,dt)
-      BiRK4_2!(ve,L,Be,f,ω,ve1,ve2,ve3,dt)
+      # BiRK4_2!(ve,L,Be,f,ω,ve1,ve2,ve3,dt)
+      # BiRK4_3!(ve,L,Be,f,ω,ve1,ve2,ve3,ve4,dt)
+      REP_BRK4!(ve,L,Be,σ,V0,W0,restriction,f,ω,lbc,rbc,ve1,ve2,ve3,ve4,dt)
     end  
   
     # Expand Krylov space
