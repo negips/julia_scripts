@@ -89,43 +89,10 @@ end
 #---------------------------------------------------------------------- 
 function PLx(x::AbstractVector{T1},L::AbstractMatrix{T1},B::AbstractVector{T2},V::AbstractMatrix{T1},W::AbstractMatrix{T1},σ::AbstractVector{T3}) where {T1,T2,T3<:Number}
 
-  ngs  = 2
   N    = size(L,1)
-  nv   = size(V,2)
-  σtol = 1.0e-12
+  Lx   = zeros(T1,N)
 
-  # using Lx as a work array for now
-  Lx   = copy(x)
-
-  # Get components of the Perturbed Modes in x
-  α    = zeros(T1,nv)
-  for j in 1:ngs
-    β    = zeros(T1,nv)
-    for i in 1:nv
-      if abs(σ[i]) > σtol
-        β[i]  = W[:,i]'*(B.*Lx)
-        α[i]  = α[i] + β[i]
-      end
-    end   
-
-    # Since we only need α.
-    if j<ngs
-      for i in 1:nv
-        if abs(σ[i]) > σtol
-          Lx  .= Lx .- V[:,i]*β[i]
-        end
-      end
-    end  
-  end
-  # Lx = L*x
-  mul!(Lx,L,x)
-
-  # Add Mode Perturbations
-  for i in 1:nv
-    if abs(σ[i]) > σtol
-      Lx  .= Lx .+ σ[i]*B.*(V[:,i]*α[i])
-    end
-  end   
+  PLx!(Lx,x,L,B,V,W,σ)
 
   return Lx
 end
@@ -172,6 +139,17 @@ function PLx!(Lx::AbstractVector{T1},x::AbstractVector{T1},L::AbstractMatrix{T1}
   end   
 
   return nothing
+end
+#---------------------------------------------------------------------- 
+function RPLx(x::AbstractVector{T1},L::AbstractMatrix{T1},B::AbstractVector{T2},V::AbstractMatrix{T1},W::AbstractMatrix{T1},σ::AbstractVector{T3},restricted::Vector{Bool},x1::AbstractVector{T1}) where {T1,T2,T3<:Number}
+
+  N    = size(L,1)
+  Lx   = zeros(T1,N)
+  x1   = zeros(T1,N)    # Work array
+
+  RPLx!(Lx,x,L,B,V,W,σ,restricted,x1) 
+
+  return Lx
 end
 #---------------------------------------------------------------------- 
 function RPLx!(Lx::AbstractVector{T1},x::AbstractVector{T1},L::AbstractMatrix{T1},B::AbstractVector{T2},V::AbstractMatrix{T1},W::AbstractMatrix{T1},σ::AbstractVector{T3},restricted::Vector{Bool},x1::AbstractVector{T1}) where {T1,T2,T3<:Number}
@@ -223,22 +201,28 @@ end
 #---------------------------------------------------------------------- 
 function EPLx(xe::AbstractVector{T1},L::AbstractMatrix{T1},B::AbstractVector{T2},V::AbstractMatrix{T1},W::AbstractMatrix{T1},σ::AbstractVector{T3},f::AbstractVector{T1},ω::T3) where {T1,T2,T3<:Number}
 
-  ngs = 2
+  # ngs = 2
+  # N   = size(L,2)
+  # Ne  = N+1
+  # Lxe = zeros(T1,Ne)
+  # np  = length(σ)
+  # σtol = 1.0e-12
+  # 
+  # @views PLx!(Lxe[1:N],xe[1:N],L,B,V,W,σ)
+
+  # # Add forcing extension
+  # for j in 1:N
+  #   Lxe[j] = Lxe[j] + B[j]*f[j]*xe[Ne]
+  # end
+  # Lxe[Ne]  = ω*xe[Ne]
+
   N   = size(L,2)
   Ne  = N+1
-  Lx  = zeros(T1,Ne)
-  np  = length(σ)
-  σtol = 1.0e-12
+  Lxe = zeros(T1,Ne)
   
-  @views PLx!(Lx[1:N],xe[1:N],L,B,V,W,σ)
+  EPLx!(Lxe,xe,L,B,V,W,σ,f,ω)
 
-  # Add forcing extension
-  for j in 1:N
-    Lx[j] = Lx[j] + B[j]*f[j]*xe[Ne]
-  end
-  Lx[Ne]  = ω*xe[Ne]
-
-  return Lx
+  return Lxe
 end
 #---------------------------------------------------------------------- 
 function EPLx!(Lxe::AbstractVector{T1},xe::AbstractVector{T1},L::AbstractMatrix{T1},B::AbstractVector{T2},V::AbstractMatrix{T1},W::AbstractMatrix{T1},σ::AbstractVector{T3},f::AbstractVector{T1},ω::T3) where {T1,T2,T3<:Number}
@@ -264,23 +248,44 @@ end
 
 function REPLx(xe::AbstractVector{T1},L::AbstractMatrix{T1},B::AbstractVector{T2},V::AbstractMatrix{T1},W::AbstractMatrix{T1},σ::AbstractVector{T3},restricted::AbstractVector{Bool},f::AbstractVector{T1},ω::T3) where {T1,T2,T3<:Number}
 
-  ngs = 2
+  # ngs = 2
+  # N   = size(L,2)
+  # Ne  = N+1
+  # Lxe = zeros(T1,Ne)
+  # σtol = 1.0e-12
+  # 
+  # @views RPLx!(Lxe[1:N],xe[1:N],L,B,V,W,σ,restricted)
+
+  # # Add forcing extension
+  # for j in 1:N
+  #   Lxe[j] = Lxe[j] + B[j]*f[j]*xe[Ne]
+  # end
+  # Lxe[Ne]  = ω*xe[Ne]
+
   N   = size(L,2)
-  Ne  = N+1
-  Lx  = zeros(T1,Ne)
+  Lxe = zeros(T1,N+1)
+
+  REPLx!(Lxe,xe,L,B,V,W,σ,restricted,f,ω)
+
+  return Lxe
+end
+#---------------------------------------------------------------------- 
+function REPLx!(Lxe::AbstractVector{T1},xe::AbstractVector{T1},L::AbstractMatrix{T1},B::AbstractVector{T2},V::AbstractMatrix{T1},W::AbstractMatrix{T1},σ::AbstractVector{T3},restricted::AbstractVector{Bool},f::AbstractVector{T1},ω::T3) where {T1,T2,T3<:Number}
+
+  ngs  = 2
+  N    = size(L,2)
+  Ne   = N+1
   σtol = 1.0e-12
   
-  @views RPLx!(Lx[1:N],xe[1:N],L,B,V,W,σ,restricted)
+  @views RPLx!(Lxe[1:N],xe[1:N],L,B,V,W,σ,restricted)
 
   # Add forcing extension
-  # ftmp = copy(f)
-  # ObliqueSubspaceRemoval2!(ftmp,V,W,B,restricted,ngs)
   for j in 1:N
-    Lx[j] = Lx[j] + B[j]*f[j]*xe[Ne]
+    Lxe[j] = Lxe[j] + B[j]*f[j]*xe[Ne]
   end
-  Lx[Ne]  = ω*xe[Ne]
+  Lxe[Ne]  = ω*xe[Ne]
 
-  return Lx
+  return nothing
 end
 #---------------------------------------------------------------------- 
 

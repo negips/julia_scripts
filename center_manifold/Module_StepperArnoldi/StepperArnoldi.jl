@@ -58,10 +58,16 @@
       export RK4!,
              BiRK4!,
              RestrictedBRK4!,
-             OPRK4!,
+             BRK4_2!,
+             BRK4_3!,
+             REP_BRK4!
+
+
+      export OPRK4!,
              OPBiRK4!,
-             OPRestrictedBRK4!,
-             ArnUpd,
+             OPRestrictedBRK4!
+
+      export ArnUpd,
              ArnIRst,
              ArnBIRst,
              ArnGetUpperShifts,
@@ -96,20 +102,22 @@
              StepArnOP,
              RestrictedStepArn,
              RestrictedStepArnOP,
-             REPStepArn,
-             ObliqueSubspaceRemoval!,
+             REPStepArn
+
+
+      export ObliqueSubspaceRemoval!,
              ObliqueSubspaceRemoval2!,
              ObliqueSubspaceRemoval3!,
-             PLx,
-             PLx!,
+             PLx,                               # Perturbed Lx
+             PLx!,                              
+             RPLx,                              # Restricted Perturbed Lx
              RPLx!,
-             EPLx,
-             REPLx,
-             ExtLOP,
-             PertLx,
-             PertLx!,
-             ExtPertLx,
-             RestrictedExtPertLx,
+             EPLx,                              # Extended Perturbed Lx
+             EPLx!,                        
+             REPLx,                             # Restricted Extended Perturbed Lx
+             REPLx!
+
+      export ExtLOP,
              ExtendTangentSpace,
              ExtendTangentSpaceOP,
              ExtendTangentSpaceRestricted,
