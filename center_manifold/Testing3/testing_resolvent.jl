@@ -29,6 +29,11 @@ ArnInp2           = StepperArnoldi.ArnoldiInput(ifarnoldi,ifverbose,ifeigshift,v
 #
 λf                = λext[5]
 ff                = copy(Lext[ind1,5])
+if ifresonant
+  ff  .= ff .- VSys[ind1,1]*(WSys[ind1,1]'*(BgM*ff))
+  ff  .= ff .- VSys[ind1,1]*(WSys[ind1,1]'*(BgM*ff))
+end
+
 ifres             = fill(false,nsys)
 
 

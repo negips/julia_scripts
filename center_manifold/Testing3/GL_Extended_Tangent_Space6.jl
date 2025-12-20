@@ -30,8 +30,8 @@ Lσ    = zeros(ComplexF64,N,s)
 # Forcing Modes
 ψ,Lθ,λh     = GetExternalForcing(xg,Bg,Inp.lbc,Inp.rbc)
 Λh          = diagm(λh)
-ax2.plot(xg,real.(ψ) ,linewidth=2,linestyle="-", color=cm(2),label=L"\mathfrak{R}(ψ)")
-ax2.plot(xg,imag.(ψ) ,linewidth=2,linestyle="--",color=cm(2),label=L"\mathfrak{Im}(ψ)")
+ax2.plot(xg,real.(ψ) ,linewidth=2,linestyle="-", color=cm(nsys),label=L"\mathfrak{R}(ψ)")
+ax2.plot(xg,imag.(ψ) ,linewidth=2,linestyle="--",color=cm(nsys),label=L"\mathfrak{Im}(ψ)")
 
 
 # PE,HE = GLExtendTangentSpace2(OPg,OPCg,Bg,λc,V,W,λν,Lν,λh,Lθ,restricted,Inp.lbc,Inp.rbc)

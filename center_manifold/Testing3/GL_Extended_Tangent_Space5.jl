@@ -310,7 +310,7 @@ function GetExternalForcing(x::AbstractVector{T1},B::AbstractVector{T2},lbc::Boo
   if ifresonant
     λh    = [1.0im; -1.0im;]
   else
-    λh    = [1.3im; -1.3im;]
+    λh    = [1.7im; -1.7im;]
   end
 
 
