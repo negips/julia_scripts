@@ -207,24 +207,57 @@ function REP_BRK4_2!(ve::AbstractVector{T1},L::AbstractMatrix{T2},B::AbstractVec
   v1  = REPLx(ve,L,B,V,W,σ,restricted,f,ω)
   v5 .= ve .+ dt/two*Bei.*v1
   # @views ObliqueSubspaceRemoval2!(v5[1:N],V,W,B,restricted,ngs) 
-  @views StpArn_SetBC!(v5[1:N],lbc,rbc)
+  # @views StpArn_SetBC!(v5[1:N],lbc,rbc)
 
   v2  = REPLx(v5,L,B,V,W,σ,restricted,f,ω)
   v5 .= ve .+ dt/two*Bei.*v2
   # @views ObliqueSubspaceRemoval2!(v5[1:N],V,W,B,restricted,ngs) 
-  @views StpArn_SetBC!(v5[1:N],lbc,rbc)
+  # @views StpArn_SetBC!(v5[1:N],lbc,rbc)
 
   v3  = REPLx(v5,L,B,V,W,σ,restricted,f,ω)
   v5 .= ve .+ dt*Bei.*v3
   # @views ObliqueSubspaceRemoval2!(v5[1:N],V,W,B,restricted,ngs) 
-  @views StpArn_SetBC!(v5[1:N],lbc,rbc)
+  # @views StpArn_SetBC!(v5[1:N],lbc,rbc)
 
   v4  = REPLx(v5,L,B,V,W,σ,restricted,f,ω)
   v5  = dt/six*Bei.*(v1 .+ two*v2 .+ two*v3 .+ v4)
 
   ve .= ve .+ v5
   # @views ObliqueSubspaceRemoval2!(ve[1:N],V,W,B,restricted,ngs) 
-  @views StpArn_SetBC!(ve[1:N],lbc,rbc)
+  # @views StpArn_SetBC!(ve[1:N],lbc,rbc)
+
+  return nothing 
+end  
+#---------------------------------------------------------------------- 
+function BiRK4_2!(ve::AbstractVector{T1},M::AbstractMatrix{T2},Be::AbstractVector{T3},f::AbstractVector{T2},ω::T2,ve1::AbstractVector{T1},ve2::AbstractVector{T1},ve3::AbstractVector{T1},dt::T4) where {T1,T2,T3,T4<:Number}
+
+  #localprec = eltype(v[1])
+  two = T1(2)
+  six = T1(6)
+
+  N   = size(M,2)
+  Ne  = N+1
+
+  v    = view(ve,1:N)
+  v1   = view(ve1,1:N)
+  v2   = view(ve2,1:N)
+  v3   = view(ve3,1:N)
+
+  Bei = 1.0./Be
+  B   = view(Be,1:N)
+  Bi  = view(Bei,1:N)
+
+  v1       .= v .+ dt/two*Bi.*(M*v .+ B.*f*ve[Ne])
+  ve1[Ne]   = ve[Ne] + dt/two*ω*ve[Ne]
+
+  v2       .= v .+ dt/two*Bi.*(M*v1 .+ B.*f*ve1[Ne])
+  ve2[Ne]   = ve[Ne] + dt/two*ω*ve1[Ne]
+
+  v3       .= v .+ dt*Bi.*(M*v2 .+ B.*f*ve2[Ne])
+  ve3[Ne]   = ve[Ne] + dt*ω*ve2[Ne]
+
+  v        .= v .+ dt/six*Bi.*(M*(v .+ two*v1 .+ two*v2 .+ v3) .+ B.*f*(ve[Ne] .+ two*ve1[Ne] .+ two*ve2[Ne] .+ ve3[Ne]))
+  ve[Ne]    = ve[Ne] + dt/six*ω*(ve[Ne] + two*ve1[Ne] + two*ve2[Ne] + ve3[Ne])
 
   return nothing 
 end  

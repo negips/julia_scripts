@@ -205,7 +205,6 @@ end
 #---------------------------------------------------------------------- 
 # Include the function files
 function REPStepArn(L::AbstractMatrix{T1},B::AbstractVector{T2},σ::AbstractVector{T3},V0::AbstractMatrix{T1},W0::AbstractMatrix{T1},restriction::Vector{Bool},f::AbstractVector{T1},ω::T3,StpInp::StepperInput,ArnInp::ArnoldiInput,lbc::Bool,rbc::Bool) where {T1,T2,T3<:Number}
-#function REPStepArn(L::AbstractMatrix{T1},B::AbstractVector{T2},σ::AbstractVector{T3},V0::AbstractMatrix{T1},W0::AbstractMatrix{T1},restriction::Vector{Bool},f::AbstractVector{T1},ω::T3,StpInp,ArnInp,lbc::Bool,rbc::Bool) where {T1,T2,T3<:Number}
 
   dtype           = T1
 
@@ -270,13 +269,14 @@ function REPStepArn(L::AbstractMatrix{T1},B::AbstractVector{T2},σ::AbstractVect
     for i in 1:nsteps
       t = t + dt;
       # Apply BC
-      @views StpArn_SetBC!(ve[1:N],lbc,rbc)
-      REP_BRK4_2!(ve,L,B,σ,V0,W0,restriction,f,ω,lbc,rbc,ve1,ve2,ve3,ve4,ve5,dt)
+      # @views StpArn_SetBC!(ve[1:N],lbc,rbc)
+      # REP_BRK4_2!(ve,L,B,σ,V0,W0,restriction,f,ω,lbc,rbc,ve1,ve2,ve3,ve4,ve5,dt)
+      BiRK4_2!(ve,L,Be,f,ω,ve1,ve2,ve3,dt)
     end  
   
     # Expand Krylov space
     Ve,H,nkryl,β,major_it = IRAM!(Ve,H,Be,ve,nkryl,lkryl,major_it,nev,Ω,ngs)
-    ve  = Ve[:,nkryl]
+    ve                    = Ve[:,nkryl]
   
     if (major_it>maxouter_it)
       break
