@@ -7,7 +7,7 @@ println("Extended Tangent Space using Arnoldi.")
 include("GL_Extended_Tangent_Space5.jl")
 #----------------------------------------------------------------------
 
-ifresonant = false
+ifresonant = true
 emodeplot  = true
 restricted = false 
 
@@ -32,9 +32,6 @@ Lσ    = zeros(ComplexF64,N,s)
 Λh          = diagm(λh)
 ax2.plot(xg,real.(ψ) ,linewidth=2,linestyle="-", color=cm(nsys),label=L"\mathfrak{R}(ψ)")
 ax2.plot(xg,imag.(ψ) ,linewidth=2,linestyle="--",color=cm(nsys),label=L"\mathfrak{Im}(ψ)")
-
-
-# PE,HE = GLExtendTangentSpace2(OPg,OPCg,Bg,λc,V,W,λν,Lν,λh,Lθ,restricted,Inp.lbc,Inp.rbc)
 
 λext = [λσ; λν; λh]
 Lext = zeros(ComplexF64,N,p+s+h)
@@ -74,6 +71,16 @@ for i in 1:length(λext)
     ax2.plot(xg,real.(EM.Ve[ind1,i]),linewidth=2,linestyle="-", color=cm(j-1),label=L"\mathfrak{R}(ϕ_{%$j})")
     ax2.plot(xg,imag.(EM.Ve[ind1,i]),linewidth=2,linestyle="--",color=cm(j-1),label=L"\mathfrak{Im}(ϕ_{%$j})")
   end
+
+  # Conjugate Mode
+  vnorm2 = norm(EM.Ve[ind2,i])
+  # Plot Mode
+  if (emodeplot) && vnorm2 > 0.0
+    j = nsys+i
+    ax2.plot(xg,real.(EM.Ve[ind2,i]),linewidth=2,linestyle="-", color=cm(j-1),label=L"\mathfrak{R}(ϕ_{%$j})")
+    ax2.plot(xg,imag.(EM.Ve[ind2,i]),linewidth=2,linestyle="--",color=cm(j-1),label=L"\mathfrak{Im}(ϕ_{%$j})")
+  end
+
 end  
 
 if (ifmodepert)
