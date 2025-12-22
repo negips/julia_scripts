@@ -189,7 +189,157 @@ function BRK4_3!(ve::AbstractVector{T1},M::AbstractMatrix{T2},Be::AbstractVector
   return nothing 
 end  
 #---------------------------------------------------------------------- 
+function RE_BRK4!(ve::AbstractVector{T1},L::AbstractMatrix{T2},Be::AbstractVector{T3},V::AbstractMatrix{T1},W::AbstractMatrix{T1},restricted::Vector{Bool},f::AbstractVector{T2},ω::T1,lbc::Bool,rbc::Bool,ve1::AbstractVector{T1},ve2::AbstractVector{T1},ve3::AbstractVector{T1},ve4::AbstractVector{T1},dt::T4) where {T1,T2,T3,T4<:Number}
 
+  two = T1(2)
+  six = T1(6)
+  ngs = 2
+
+  N   = size(L,2)
+  Ne  = N+1
+
+  v    = view(ve,1:N)
+  v1   = view(ve1,1:N)
+  v2   = view(ve2,1:N)
+  v3   = view(ve3,1:N)
+  v4   = view(ve4,1:N)
+
+  Bei = 1.0./Be
+  B   = view(Be,1:N)
+  Bi  = view(Bei,1:N)
+
+  # Perturbed Lv
+  PLx!(v4,v,L,B,V,W,σ)
+  v1       .= v .+ dt/two*Bi.*(v4 .+ B.*f*ve[Ne])
+  ve1[Ne]   = ve[Ne] + dt/two*ω*ve[Ne]
+  ObliqueSubspaceRemoval2!(v1,V,W,B,restricted,ngs) 
+
+  # Perturbed Lv
+  PLx!(v4,v1,L,B,V,W,σ)
+  v2       .= v .+ dt/two*Bi.*(v4 .+ B.*f*ve1[Ne])
+  ve2[Ne]   = ve[Ne] + dt/two*ω*ve1[Ne]
+  ObliqueSubspaceRemoval2!(v2,V,W,B,restricted,ngs) 
+
+  # Perturbed Lv
+  PLx!(v4,v2,L,B,V,W,σ)
+  v3       .= v .+ dt*Bi.*(v4 .+ B.*f*ve2[Ne])
+  ve3[Ne]   = ve[Ne] + dt*ω*ve2[Ne]
+  ObliqueSubspaceRemoval2!(v3,V,W,B,restricted,ngs) 
+
+  # Perturbed Lv
+  ve3 .= ve .+ two*ve1 .+ two*ve2 .+ ve3
+  PLx!(v4,v3,L,B,V,W,σ)
+  v        .= v .+ dt/six*Bi.*(v4 .+ B.*f*ve3[Ne])
+  ve[Ne]    = ve[Ne] + dt/six*ω*(ve3[Ne])
+  ObliqueSubspaceRemoval2!(v,V,W,B,restricted,ngs) 
+
+  return nothing 
+
+end  
+#---------------------------------------------------------------------- 
+function E_BRK4!(ve::AbstractVector{T1},L::AbstractMatrix{T2},Be::AbstractVector{T3},f::AbstractVector{T2},ω::T1,lbc::Bool,rbc::Bool,ve1::AbstractVector{T1},ve2::AbstractVector{T1},ve3::AbstractVector{T1},ve4::AbstractVector{T1},dt::T4) where {T1,T2,T3,T4<:Number}
+
+  two = T1(2)
+  six = T1(6)
+  ngs = 2
+
+  N   = size(L,2)
+  Ne  = N+1
+
+  Bei = 1.0./Be
+  B   = view(Be,1:N)
+  Bi  = view(Bei,1:N)
+
+  # Extended Lv
+  ELx!(ve4,ve,L,B,f,ω)
+  for j in 1:N
+    ve1[j]  = ve[j] + dt/two*Bei[j]*ve4[j]
+  end
+  ve1[Ne]  = ve[Ne] + dt/two*ve4[Ne]
+
+  # Extended Lv
+  ELx!(ve4,ve1,L,B,f,ω)
+  for j in 1:N
+    ve2[j]  = ve[j] + dt/two*Bei[j]*ve4[j]
+  end
+  ve2[Ne]  = ve[Ne] + dt/two*ve4[Ne]
+
+  # Extended Lv
+  ELx!(ve4,ve2,L,B,f,ω)
+  for j in 1:N
+    ve3[j]  = ve[j] + dt*Bei[j]*ve4[j]
+  end
+  ve3[Ne]  = ve[Ne] + dt*ve4[Ne]
+
+  # Extended Lv
+  ve3 .= ve .+ two*ve1 .+ two*ve2 .+ ve3
+  ELx!(ve4,ve3,L,B,f,ω)
+  for j in 1:N
+    ve[j]  = ve[j] + dt/six*Bei[j]*ve4[j]
+  end
+  ve[Ne]  = ve[Ne] + dt/six*ve4[Ne]
+
+  return nothing 
+end  
+#---------------------------------------------------------------------- 
+function RE_BRK4!(ve::AbstractVector{T1},L::AbstractMatrix{T2},Be::AbstractVector{T3},V::AbstractMatrix{T1},W::AbstractMatrix{T1},restricted::Vector{Bool},f::AbstractVector{T2},ω::T1,lbc::Bool,rbc::Bool,ve1::AbstractVector{T1},ve2::AbstractVector{T1},ve3::AbstractVector{T1},ve4::AbstractVector{T1},ve5::AbstractVector{T1},dt::T4) where {T1,T2,T3,T4<:Number}
+
+  two = T1(2)
+  six = T1(6)
+  ngs = 2
+
+  N   = size(L,2)
+  Ne  = N+1
+
+  Bei = 1.0./Be
+  B   = view(Be,1:N)
+  Bi  = view(Bei,1:N)
+
+  v    = view(ve ,1:N)
+  v1   = view(ve1,1:N)
+  v2   = view(ve2,1:N)
+  v3   = view(ve3,1:N)
+  v4   = view(ve4,1:N)
+
+  # ve5 used as work array
+
+  # Restricted Extended Lv
+  RELx!(ve4,ve,L,B,V,W,restricted,f,ω,ve5)
+  for j in 1:N
+    ve1[j]  = ve[j] + dt/two*Bei[j]*ve4[j]
+  end
+  ve1[Ne]  = ve[Ne] + dt/two*ve4[Ne]
+  ObliqueSubspaceRemoval2!(v1,V,W,B,restricted,ngs)
+
+  # Restricted Extended Lv
+  RELx!(ve4,ve1,L,B,V,W,restricted,f,ω,ve5)
+  for j in 1:N
+    ve2[j]  = ve[j] + dt/two*Bei[j]*ve4[j]
+  end
+  ve2[Ne]  = ve[Ne] + dt/two*ve4[Ne]
+  ObliqueSubspaceRemoval2!(v2,V,W,B,restricted,ngs)
+
+  # Restricted Extended Lv
+  RELx!(ve4,ve2,L,B,V,W,restricted,f,ω,ve5)
+  for j in 1:N
+    ve3[j]  = ve[j] + dt*Bei[j]*ve4[j]
+  end
+  ve3[Ne]  = ve[Ne] + dt*ve4[Ne]
+  ObliqueSubspaceRemoval2!(v3,V,W,B,restricted,ngs)
+
+  # Restricted Extended Lv
+  ve3 .= ve .+ two*ve1 .+ two*ve2 .+ ve3
+  RELx!(ve4,ve3,L,B,V,W,restricted,f,ω,ve5)
+  for j in 1:N
+    ve[j]  = ve[j] + dt/six*Bei[j]*ve4[j]
+  end
+  ve[Ne]  = ve[Ne] + dt/six*ve4[Ne]
+  ObliqueSubspaceRemoval2!(v,V,W,B,restricted,ngs)
+ 
+
+  return nothing 
+end  
+#---------------------------------------------------------------------- 
 function REP_BRK4!(ve::AbstractVector{T1},L::AbstractMatrix{T2},Be::AbstractVector{T3},σ::AbstractVector{T1},V::AbstractMatrix{T1},W::AbstractMatrix{T1},restricted::Vector{Bool},f::AbstractVector{T2},ω::T1,lbc::Bool,rbc::Bool,ve1::AbstractVector{T1},ve2::AbstractVector{T1},ve3::AbstractVector{T1},ve4::AbstractVector{T1},dt::T4) where {T1,T2,T3,T4<:Number}
 
   two = T1(2)

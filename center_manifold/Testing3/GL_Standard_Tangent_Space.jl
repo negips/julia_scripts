@@ -7,7 +7,7 @@ include("../Module_StepperArnoldi/StepperArnoldi.jl")
 #using .StepperArnoldi
 
 #---------------------------------------------------------------------- 
-screen = 1
+screen = 2
 Grh    = setgraphics(screen)
 
 # Stepper-Arnoldi

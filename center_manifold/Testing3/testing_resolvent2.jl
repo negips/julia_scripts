@@ -19,7 +19,7 @@ vlen              = ndof+1
 nev               = 3
 ekryl             = 15  
 lkryl             = nev + ekryl 
-eigshift          = λext[5]
+eigshift          = λext[3]
 ngs               = 2
 bsize             = 1
 outer_iterations  = 100
@@ -27,8 +27,8 @@ tol               = 1.0e-12
 ArnInp2           = StepperArnoldi.ArnoldiInput(ifarnoldi,ifverbose,ifeigshift,vlen,nev,ekryl,lkryl,eigshift,ngs,bsize,outer_iterations,tol)
 
 #
-λf                = λext[5]
-ff                = copy(Lext[ind1,5])
+λf                = λext[3]
+ff                = copy(Lext[ind1,3])
 if ifresonant
   ff  .= ff .- VSys[ind1,1]*(WSys[ind1,1]'*(BgM*ff))
   ff  .= ff .- VSys[ind1,1]*(WSys[ind1,1]'*(BgM*ff))

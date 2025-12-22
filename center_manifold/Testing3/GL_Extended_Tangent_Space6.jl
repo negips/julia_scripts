@@ -7,9 +7,9 @@ println("Extended Tangent Space using Arnoldi.")
 include("GL_Extended_Tangent_Space5.jl")
 #----------------------------------------------------------------------
 
-ifresonant = true
+ifresonant = false
 emodeplot  = true
-restricted = false 
+restricted = true 
 
 Nby2  = size(OPg,2)
 N     = Nby2*2
@@ -57,12 +57,6 @@ else
   EM = GLExtendTangentSpace(OPg,OPCg,Bg,λSys,VSys,WSys,λext,Lext,restricted,Inp.lbc,Inp.rbc)
 end
 
-# if (ifmodepert)
-#   EM = GLExtendTangentSpace2OP(NewOPg,NewOPCg,Bg,λSys,VSys,WSys,λext,Lext,restricted,Inp.lbc,Inp.rbc)
-# else
-#   EM = GLExtendTangentSpace2(NewOPg,NewOPCg,Bg,λc,V,W,λext,Lext,restricted,Inp.lbc,Inp.rbc)
-# end
-# 
 for i in 1:length(λext)
   vnorm = norm(EM.Ve[ind1,i])
   # Plot Mode

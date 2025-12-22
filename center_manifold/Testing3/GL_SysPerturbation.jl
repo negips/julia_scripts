@@ -93,7 +93,7 @@ function GLModePertTerm(n0::Int,Ord0::Int,Nc::Int,MV1::AbstractMatrix{T},Ord1::I
 end
 #---------------------------------------------------------------------- 
 
-ifmodepert = true
+ifmodepert = false
 
 if (ifmodepert)
   modeselect                    = [2]
@@ -164,7 +164,7 @@ else
   npert       = 0
   nsys        = n + npert
   λSys        = copy(λc)
-  σ           = [zeros(ComplexF64,nsys)]
+  σ           = zeros(ComplexF64,nsys)
 
   PertModes   = zeros(Int,nsys)
 

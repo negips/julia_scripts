@@ -87,6 +87,66 @@ function ObliqueSubspaceRemoval3!(v::AbstractVector{T},V::AbstractMatrix{T},W::A
   return α
 end  
 #---------------------------------------------------------------------- 
+function ELx(xe::AbstractVector{T1},L::AbstractMatrix{T1},B::AbstractVector{T2},f::AbstractVector{T1},ω::T3) where {T1,T2,T3<:Number}
+
+  N   = size(L,2)
+  Lxe = zeros(T1,N+1)
+
+  ELx!(Lxe,xe,L,B,f,ω)
+
+  return Lxe
+end
+#---------------------------------------------------------------------- 
+function ELx!(Lxe::AbstractVector{T1},xe::AbstractVector{T1},L::AbstractMatrix{T1},B::AbstractVector{T2},f::AbstractVector{T1},ω::T3) where {T1,T2,T3<:Number}
+
+  N    = size(L,2)
+  Ne   = N+1
+  
+  @views mul!(Lxe[1:N],L,xe[1:N]) 
+
+  # Add forcing extension
+  for j in 1:N
+    Lxe[j] = Lxe[j] + B[j]*f[j]*xe[Ne]
+  end
+  Lxe[Ne]  = ω*xe[Ne]
+
+  return nothing
+end
+#---------------------------------------------------------------------- 
+function RELx(xe::AbstractVector{T1},L::AbstractMatrix{T1},B::AbstractVector{T2},V::AbstractMatrix{T1},W::AbstractMatrix{T1},restricted::AbstractVector{Bool},f::AbstractVector{T1},ω::T3) where {T1,T2,T3<:Number}
+
+  N   = size(L,2)
+  Lxe = zeros(T1,N+1)
+  xe1 = zeros(T1,N+1)
+
+  RELx!(Lxe,xe,L,B,V,W,restricted,f,ω,xe1)
+
+  return Lxe
+end
+#---------------------------------------------------------------------- 
+function RELx!(Lxe::AbstractVector{T1},xe::AbstractVector{T1},L::AbstractMatrix{T1},B::AbstractVector{T2},V::AbstractMatrix{T1},W::AbstractMatrix{T1},restricted::Vector{Bool},f::AbstractVector{T1},ω::T3,xe1::AbstractVector{T1}) where {T1,T2,T3<:Number}
+
+  N    = size(L,2)
+  Ne   = N+1
+  ngs  = 2
+
+  copyto!(xe1,1,xe,1,Ne)
+
+  x    = view(xe,1:N)
+  x1   = view(xe1,1:N)
+
+  ObliqueSubspaceRemoval2!(x1,V,W,B,restricted,ngs)
+  @views mul!(Lxe[1:N],L,xe1[1:N]) 
+
+  # Add forcing extension
+  for j in 1:N
+    Lxe[j] = Lxe[j] + B[j]*f[j]*xe1[Ne]
+  end
+  Lxe[Ne]  = ω*xe[Ne]
+
+  return nothing
+end
+#---------------------------------------------------------------------- 
 function PLx(x::AbstractVector{T1},L::AbstractMatrix{T1},B::AbstractVector{T2},V::AbstractMatrix{T1},W::AbstractMatrix{T1},σ::AbstractVector{T3}) where {T1,T2,T3<:Number}
 
   N    = size(L,1)
@@ -201,21 +261,6 @@ end
 #---------------------------------------------------------------------- 
 function EPLx(xe::AbstractVector{T1},L::AbstractMatrix{T1},B::AbstractVector{T2},V::AbstractMatrix{T1},W::AbstractMatrix{T1},σ::AbstractVector{T3},f::AbstractVector{T1},ω::T3) where {T1,T2,T3<:Number}
 
-  # ngs = 2
-  # N   = size(L,2)
-  # Ne  = N+1
-  # Lxe = zeros(T1,Ne)
-  # np  = length(σ)
-  # σtol = 1.0e-12
-  # 
-  # @views PLx!(Lxe[1:N],xe[1:N],L,B,V,W,σ)
-
-  # # Add forcing extension
-  # for j in 1:N
-  #   Lxe[j] = Lxe[j] + B[j]*f[j]*xe[Ne]
-  # end
-  # Lxe[Ne]  = ω*xe[Ne]
-
   N   = size(L,2)
   Ne  = N+1
   Lxe = zeros(T1,Ne)
@@ -230,7 +275,6 @@ function EPLx!(Lxe::AbstractVector{T1},xe::AbstractVector{T1},L::AbstractMatrix{
   ngs  = 2
   N    = size(L,2)
   Ne   = N+1
-  Lxe  = zeros(T1,Ne)
   nv   = size(V,2)
   σtol = 1.0e-12
   
@@ -245,22 +289,7 @@ function EPLx!(Lxe::AbstractVector{T1},xe::AbstractVector{T1},L::AbstractMatrix{
   return nothing
 end
 #---------------------------------------------------------------------- 
-
 function REPLx(xe::AbstractVector{T1},L::AbstractMatrix{T1},B::AbstractVector{T2},V::AbstractMatrix{T1},W::AbstractMatrix{T1},σ::AbstractVector{T3},restricted::AbstractVector{Bool},f::AbstractVector{T1},ω::T3) where {T1,T2,T3<:Number}
-
-  # ngs = 2
-  # N   = size(L,2)
-  # Ne  = N+1
-  # Lxe = zeros(T1,Ne)
-  # σtol = 1.0e-12
-  # 
-  # @views RPLx!(Lxe[1:N],xe[1:N],L,B,V,W,σ,restricted)
-
-  # # Add forcing extension
-  # for j in 1:N
-  #   Lxe[j] = Lxe[j] + B[j]*f[j]*xe[Ne]
-  # end
-  # Lxe[Ne]  = ω*xe[Ne]
 
   N   = size(L,2)
   Lxe = zeros(T1,N+1)

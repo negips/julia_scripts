@@ -134,6 +134,36 @@ function SetForcingShape!(ψ::AbstractVector{T},B::AbstractVector{S},xg::Abstrac
   return nothing
 end
 #---------------------------------------------------------------------- 
+function GetExternalForcing(x::AbstractVector{T1},B::AbstractVector{T2},lbc::Bool,rbc::Bool) where {T1,T2<:Number}
+
+  # Forcing Shape
+  x0,κ  = ForcingParams()
+  Nby2  = length(B)
+  N     = 2*Nby2
+  ψ     = zeros(ComplexF64,Nby2)
+  σ     = 1.0
+  SetForcingShape!(ψ,B,x,x0,σ,κ)
+  SEM1D.SEM_SetBC!(ψ,lbc,rbc)
+
+  h     = 2
+  Lθ    = zeros(ComplexF64,N,h)
+  f2    = [ψ;  vzro]
+  f3    = [vzro;ψ]
+  
+  Lθ    = [ψ                        zeros(ComplexF64,Nby2);
+           zeros(ComplexF64,Nby2)   conj.(ψ)]
+
+  if ifresonant
+    λh    = [1.0im; -1.0im;]
+  else
+    λh    = [1.7im; -1.7im;]
+  end
+
+
+  return ψ,Lθ,λh
+end
+#----------------------------------------------------------------------
+
 function Get_AsymptoticFieldx(ind::Int,z::AbstractVector{T},Y1::AbstractMatrix{T},Y2::AbstractMatrix{T},Y3::AbstractMatrix{T}) where {T <: Number}
 
   val = T(0)

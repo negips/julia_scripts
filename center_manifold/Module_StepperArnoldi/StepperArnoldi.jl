@@ -31,6 +31,7 @@
       include("Stepper.jl")
       include("StepperOP.jl")
       include("ExtendTangentSpace.jl")
+      include("ExtendTangentSpaceOP.jl")
       include("ExtendPertTangentSpace.jl")
 
 
@@ -60,6 +61,8 @@
              RestrictedBRK4!,
              BRK4_2!,
              BRK4_3!,
+             E_BRK4!,
+             RE_BRK4!,
              REP_BRK4!
 
 
@@ -102,12 +105,17 @@
              StepArnOP,
              RestrictedStepArn,
              RestrictedStepArnOP,
+             REStepArn,
              REPStepArn
 
 
       export ObliqueSubspaceRemoval!,
              ObliqueSubspaceRemoval2!,
              ObliqueSubspaceRemoval3!,
+             ELx,                               # Extended Lx
+             ELx!,
+             RELx,                              # Restricted Extended Lx
+             RELx!,     
              PLx,                               # Perturbed Lx
              PLx!,                              
              RPLx,                              # Restricted Perturbed Lx
@@ -117,15 +125,18 @@
              REPLx,                             # Restricted Extended Perturbed Lx
              REPLx!
 
-      export ExtLOP,
-             ExtendTangentSpace,
-             ExtendTangentSpaceOP,
+      export ExtendTangentSpace,
+             ExtendTangentSpace2,
              ExtendTangentSpaceRestricted,
-             ExtendTangentSpaceRestrictedOP,
-             ExtendedTangentSpaces,
-             ExtendedTangentSpacesOP,
-             REPTangentSpaces,
+             ExtendedTangentSpaces
+
+      export REPTangentSpaces,
              REPTangentSpace
+
+      export ExtLOP,
+             ExtendTangentSpaceOP,
+             ExtendTangentSpaceRestrictedOP,
+             ExtendedTangentSpacesOP
 
       end         # Module StepperArnoldi
 #----------------------------------------------------------------------
