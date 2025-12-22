@@ -7,7 +7,7 @@ include("../Module_StepperArnoldi/StepperArnoldi.jl")
 #using .StepperArnoldi
 
 #---------------------------------------------------------------------- 
-screen = 2
+screen = 1
 Grh    = setgraphics(screen)
 
 # Stepper-Arnoldi
@@ -66,8 +66,7 @@ v1    = copy(ArnDir.evecs[:,id])
 ia    = argmin(abs.(ArnAdj.evals .- Ω[1]'))
 w1    = copy(ArnAdj.evecs[:,ia])
 
-fx0   = 6.0
-j0    = argmin(abs.(xg .- fx0))
+j0    = renormalization_index(xg)
 renormalize_evec!(v1,j0)
 renormalize_evecs!(v1,w1,Bg)
 v2    = conj.(v1)

@@ -63,7 +63,7 @@ function REPTangentSpace(L::AbstractMatrix{T2},B::AbstractVector{T3},λc::Abstra
       vh[i]  = DArnOut.evecs[i,ii]./θt     # ensure extended variable == 1.0
     end  
 
-    if (abs(λe - λfound) > 10*AInp.tol)
+    if (abs(λe - λfound) > 50*AInp.tol)
       println("Mismatched Eigenvalues: $λe, $λfound")
     else
       println("Eigenvalue Found. $λfound")

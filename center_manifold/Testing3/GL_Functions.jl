@@ -67,6 +67,14 @@ function Set_ArnoldiParams()
   return ArnInp
 end  
 #---------------------------------------------------------------------- 
+function renormalization_index(xg::Vector{Float64})
+
+  fx0   = 6.0
+  j0    = argmin(abs.(xg .- fx0))
+
+  return j0
+end  
+#---------------------------------------------------------------------- 
 function renormalize_evec!(v::AbstractVector{T},j0::Int) where {T}
 
   vj        = v[j0]
