@@ -335,6 +335,7 @@ function REPStepArn(L::AbstractMatrix{T1},B::AbstractVector{T2},σ::AbstractVect
   N               = size(L,2)
   Ne              = N + 1
   ArnInp.vlen     = Ne
+  n               = size(V0,2)
   Ve,H            = ArnKrylovInit(StpInp,ArnInp;Dtype=T1)
   v0              = ArnInitVector(ArnInp.vlen,lbc,rbc,Dtype=T1)
   # Remove subspace
