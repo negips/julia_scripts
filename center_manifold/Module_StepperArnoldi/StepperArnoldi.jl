@@ -125,10 +125,10 @@
              REPLx,                             # Restricted Extended Perturbed Lx
              REPLx!
 
-      export ExtendTangentSpace,
-             ExtendTangentSpace2,
-             ExtendTangentSpaceRestricted,
-             ExtendedTangentSpaces
+      export ExtendedTangentSpaces,
+             ExtendTangentSpace,
+             ExtendTangentSpace1,
+             ExtendTangentSpaceRestricted1
 
       export REPTangentSpaces,
              REPTangentSpace

@@ -10,11 +10,7 @@ function ExtendedTangentSpaces(L::AbstractMatrix{T2},B::AbstractVector{T3},λc::
     f     = view(F,:,i)
     AInp.ifeigshift = true
     AInp.eigshift   = λe[i]
-    # if (restricted)
-    #   EM[i] = ExtendTangentSpaceRestricted(L,B,λc,V,W,f,λe[i],AInp,SInp,lbc,rbc)
-    # else
-      EM[i] = ExtendTangentSpace2(L,B,λc,V,W,f,λe[i],restricted,AInp,SInp,lbc,rbc)
-    # end
+    EM[i] = ExtendTangentSpace(L,B,λc,V,W,f,λe[i],restricted,AInp,SInp,lbc,rbc)
   end  
 
   EModes = ExtendedModes(EM)
@@ -22,7 +18,64 @@ function ExtendedTangentSpaces(L::AbstractMatrix{T2},B::AbstractVector{T3},λc::
   return EModes
 end
 #---------------------------------------------------------------------- 
-function ExtendTangentSpace(L::AbstractMatrix{T2},B::AbstractVector{T3},λc::AbstractVector{T1},V::AbstractMatrix{T2},W::AbstractMatrix{T2},f::AbstractVector{T2},λe::T1,AInp::ArnoldiInput,SInp::StepperInput,lbc::Bool,rbc::Bool) where {T1,T2,T3<:Number}
+function ExtendTangentSpace(L::AbstractMatrix{T2},B::AbstractVector{T3},λc::AbstractVector{T1},V::AbstractMatrix{T2},W::AbstractMatrix{T2},f::AbstractVector{T2},λe::T1,restricted::Bool,AInp::ArnoldiInput,SInp::StepperInput,lbc::Bool,rbc::Bool) where {T1,T2,T3<:Number}
+
+  ngs = 2
+  N   = size(L,2)
+  n   = length(λc)
+
+  Γ   = zeros(T2,n)
+  vh  = zeros(T2,N)
+
+  ifresonant = fill(false,n)
+  # Get resonant indicies
+  if (restricted)
+    fill!(ifresonant,true)
+  else
+    for j in 1:n
+      if abs(λc[j] - λe) < 1.0e-12
+        ifresonant[j] = true
+      end
+    end
+  end
+  Ne  = N+1
+
+  ftmp = copy(f)
+  # Off-Diagonal Components of Khat
+  Γ    = ObliqueSubspaceRemoval3!(ftmp,V,W,B,ifresonant,ngs)
+
+  if norm(ftmp) > AInp.tol
+
+    DArnOut       = REStepArn(L,B,V,W,ifresonant,ftmp,λe,SInp,AInp,lbc,rbc) 
+    ii            = argmin(abs.(DArnOut.evals .- λe))
+    λfound        = DArnOut.evals[ii]
+    θt            = DArnOut.evecs[Ne,ii]
+
+    for i in LinearIndices(vh)
+      vh[i]  = DArnOut.evecs[i,ii]./θt     # ensure extended variable == 1.0
+    end  
+
+    if (abs(λe - λfound) > 100*AInp.tol)
+      println("Mismatched Eigenvalues: $λe, $λfound")
+    else
+      println("Eigenvalue Found. $λfound")
+    end
+
+  end
+
+  # Adjoint Forcing modes
+  wh    = zeros(T2,N)
+  z     = zeros(T2,1,n)             # Row Vector
+  for i in 1:n
+    z[i] = -vh'*(B.*W[:,i])
+  end
+
+  extmode = ExtendedMode(λe,Γ,vh,wh,z)
+
+  return extmode
+end  
+#---------------------------------------------------------------------- 
+function ExtendTangentSpace1(L::AbstractMatrix{T2},B::AbstractVector{T3},λc::AbstractVector{T1},V::AbstractMatrix{T2},W::AbstractMatrix{T2},f::AbstractVector{T2},λe::T1,AInp::ArnoldiInput,SInp::StepperInput,lbc::Bool,rbc::Bool) where {T1,T2,T3<:Number}
 
   ngs = 2
   N   = size(L,2)
@@ -119,64 +172,7 @@ function ExtendTangentSpace(L::AbstractMatrix{T2},B::AbstractVector{T3},λc::Abs
   return extmode
 end  
 #---------------------------------------------------------------------- 
-function ExtendTangentSpace2(L::AbstractMatrix{T2},B::AbstractVector{T3},λc::AbstractVector{T1},V::AbstractMatrix{T2},W::AbstractMatrix{T2},f::AbstractVector{T2},λe::T1,restricted::Bool,AInp::ArnoldiInput,SInp::StepperInput,lbc::Bool,rbc::Bool) where {T1,T2,T3<:Number}
-
-  ngs = 2
-  N   = size(L,2)
-  n   = length(λc)
-
-  Γ   = zeros(T2,n)
-  vh  = zeros(T2,N)
-
-  ifresonant = fill(false,n)
-  # Get resonant indicies
-  if (restricted)
-    fill!(ifresonant,true)
-  else
-    for j in 1:n
-      if abs(λc[j] - λe) < 1.0e-12
-        ifresonant[j] = true
-      end
-    end
-  end
-  Ne  = N+1
-
-  ftmp = copy(f)
-  # Off-Diagonal Components of Khat
-  Γ    = ObliqueSubspaceRemoval3!(ftmp,V,W,B,ifresonant,ngs)
-
-  if norm(ftmp) > AInp.tol
-
-    DArnOut       = REStepArn(L,B,V,W,ifresonant,ftmp,λe,SInp,AInp,lbc,rbc) 
-    ii            = argmin(abs.(DArnOut.evals .- λe))
-    λfound        = DArnOut.evals[ii]
-    θt            = DArnOut.evecs[Ne,ii]
-
-    for i in LinearIndices(vh)
-      vh[i]  = DArnOut.evecs[i,ii]./θt     # ensure extended variable == 1.0
-    end  
-
-    if (abs(λe - λfound) > 100*AInp.tol)
-      println("Mismatched Eigenvalues: $λe, $λfound")
-    else
-      println("Eigenvalue Found. $λfound")
-    end
-
-  end
-
-  # Adjoint Forcing modes
-  wh    = zeros(T2,N)
-  z     = zeros(T2,1,n)             # Row Vector
-  for i in 1:n
-    z[i] = -vh'*(B.*W[:,i])
-  end
-
-  extmode = ExtendedMode(λe,Γ,vh,wh,z)
-
-  return extmode
-end  
-#---------------------------------------------------------------------- 
-function ExtendTangentSpaceRestricted(L::AbstractMatrix{T2},B::AbstractVector{T3},λc::AbstractVector{T1},V::AbstractMatrix{T2},W::AbstractMatrix{T2},f::AbstractVector{T2},λe::T1,AInp::ArnoldiInput,SInp::StepperInput,lbc::Bool,rbc::Bool) where {T1,T2,T3<:Number}
+function ExtendTangentSpaceRestricted1(L::AbstractMatrix{T2},B::AbstractVector{T3},λc::AbstractVector{T1},V::AbstractMatrix{T2},W::AbstractMatrix{T2},f::AbstractVector{T2},λe::T1,AInp::ArnoldiInput,SInp::StepperInput,lbc::Bool,rbc::Bool) where {T1,T2,T3<:Number}
 
   ngs = 2
   N   = size(L,2)
