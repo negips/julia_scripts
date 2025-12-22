@@ -1,7 +1,6 @@
 # Calculate the Center-Manifold Asymptotic vectors
 
 include("../Module_CenterManifold/CenterManifold.jl")
-# #using .CenterManifold
 
 #---------------------------------------------------------------------- 
 function GLStdAsympNLTerm(n0::Int,Ord0::Int,Nc::Int,MV1::AbstractMatrix{T},MV2::AbstractMatrix{T},MV3::AbstractMatrix{T},Ord1::Int,Ord2::Int,Ord3::Int,δ5) where {T}
