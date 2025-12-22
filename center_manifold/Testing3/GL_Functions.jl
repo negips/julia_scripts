@@ -134,7 +134,7 @@ function SetForcingShape!(ψ::AbstractVector{T},B::AbstractVector{S},xg::Abstrac
   return nothing
 end
 #---------------------------------------------------------------------- 
-function GetExternalForcing(x::AbstractVector{T1},B::AbstractVector{T2},lbc::Bool,rbc::Bool) where {T1,T2<:Number}
+function GetExternalForcing(x::AbstractVector{T1},B::AbstractVector{T2},ifresonant::Bool,lbc::Bool,rbc::Bool) where {T1,T2<:Number}
 
   # Forcing Shape
   x0,κ  = ForcingParams()

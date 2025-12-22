@@ -28,7 +28,7 @@ Lσ    = zeros(ComplexF64,N,s)
 λσ    = zeros(ComplexF64,s)
 
 # Forcing Modes
-ψ,Lθ,λh     = GetExternalForcing(xg,Bg,Inp.lbc,Inp.rbc)
+ψ,Lθ,λh     = GetExternalForcing(xg,Bg,ifresonant,Inp.lbc,Inp.rbc)
 Λh          = diagm(λh)
 ax2.plot(xg,real.(ψ) ,linewidth=2,linestyle="-", color=cm(nsys),label=L"\mathfrak{R}(ψ)")
 ax2.plot(xg,imag.(ψ) ,linewidth=2,linestyle="--",color=cm(nsys),label=L"\mathfrak{Im}(ψ)")

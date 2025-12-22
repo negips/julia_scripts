@@ -48,7 +48,6 @@ function StepArn(L::AbstractMatrix{T},B::AbstractVector{S},StpInp::StepperInput,
   end
 
   # Start iterations
-  ifdirect = true
   println("Starting Stepper/Arnoldi Iterations")
   while (~ifconv)
 
@@ -154,7 +153,6 @@ function RestrictedStepArn(L::AbstractMatrix{T},B::AbstractVector{S},Vr::Abstrac
   end
 
   # Start iterations
-  ifdirect = true
   println("Starting Restricted Stepper/Arnoldi Iterations")
   while (~ifconv)
 
@@ -270,10 +268,13 @@ function REStepArn(L::AbstractMatrix{T1},B::AbstractVector{T2},V0::AbstractMatri
     end
   end
 
-
   # Start iterations
-  ifdirect = true
-  println("Starting Stepper/Arnoldi Iterations")
+  if (resonance)
+    println("Starting Restricted-Extended Stepper/Arnoldi Iterations")
+  else
+    println("Starting Extended Stepper/Arnoldi Iterations")
+  end
+
   while (~ifconv)
 
     for i in 1:nsteps
@@ -384,9 +385,21 @@ function REPStepArn(L::AbstractMatrix{T1},B::AbstractVector{T2},σ::AbstractVect
     Ω = 0.0
   end
 
+  # Any part of the subspace restricted?
+  resonance = false
+  for i in 1:n
+    if restriction[i]
+      resonance = true
+    end
+  end
+
   # Start iterations
-  ifdirect = true
-  println("Starting Stepper/Arnoldi Iterations")
+  if (resonance)
+    println("Starting Restricted-Extended Perturbed Stepper/Arnoldi Iterations")
+  else
+    println("Starting Extended Perturbed Stepper/Arnoldi Iterations")
+  end
+ 
   while (~ifconv)
 
     for i in 1:nsteps
