@@ -60,16 +60,16 @@ function StepArn(L::AbstractMatrix{T},B::AbstractVector{S},StpInp::StepperInput,
     end  
   
     # Expand Krylov space
-    V,H,nkryl,β,major_it = IRAM!(V,H,B,v,nkryl,lkryl,major_it,nev,Ω,ngs)
+    V,H,nkryl,β,major_it = IRAM!(V,H,B,v,nkryl,lkryl,major_it,nev,Ω,ngs,verbose)
     v   = V[:,nkryl]
   
     if (major_it>maxouter_it)
       break
     end  
   
-    if (verbose)
-      @printf "Major Iteration: %3i/%3i, Krylov Size: %3i/%3i, β: %12e\n" major_it maxouter_it nkryl lkryl β
-    end
+    # if (verbose)
+    #   @printf "Major Iteration: %3i/%3i, Krylov Size: %3i/%3i, β: %12e\n" major_it maxouter_it nkryl lkryl β
+    # end
     if (β < tol)
       @printf "Stopping Iteration, β: %12e\n" β
       ifconv = true
@@ -164,16 +164,16 @@ function RestrictedStepArn(L::AbstractMatrix{T},B::AbstractVector{S},Vr::Abstrac
     end  
   
     # Expand Krylov space
-    V,H,nkryl,β,major_it = IRAM!(V,H,B,v,nkryl,lkryl,major_it,nev,Ω,ngs)
+    V,H,nkryl,β,major_it = IRAM!(V,H,B,v,nkryl,lkryl,major_it,nev,Ω,ngs,verbose)
     v   = V[:,nkryl]
   
     if (major_it>maxouter_it)
       break
     end  
   
-    if (verbose)
-      @printf "Major Iteration: %3i/%3i, Krylov Size: %3i/%3i, β: %12e\n" major_it maxouter_it nkryl lkryl β
-    end
+    # if (verbose)
+    #   @printf "Major Iteration: %3i/%3i, Krylov Size: %3i/%3i, β: %12e\n" major_it maxouter_it nkryl lkryl β
+    # end
     if (β < tol)
       @printf "Stopping Iteration, β: %12e\n" β
       ifconv = true
@@ -289,16 +289,16 @@ function REStepArn(L::AbstractMatrix{T1},B::AbstractVector{T2},V0::AbstractMatri
     end  
   
     # Expand Krylov space
-    Ve,H,nkryl,β,major_it = IRAM!(Ve,H,Be,ve,nkryl,lkryl,major_it,nev,Ω,ngs)
+    Ve,H,nkryl,β,major_it = IRAM!(Ve,H,Be,ve,nkryl,lkryl,major_it,nev,Ω,ngs,verbose)
     ve                    = Ve[:,nkryl]
   
     if (major_it>maxouter_it)
       break
     end  
   
-    if (verbose)
-      @printf "Major Iteration: %3i/%3i, Krylov Size: %3i/%3i, β: %12e\n" major_it maxouter_it nkryl lkryl β
-    end
+    # if (verbose)
+    #   @printf "Major Iteration: %3i/%3i, Krylov Size: %3i/%3i, β: %12e\n" major_it maxouter_it nkryl lkryl β
+    # end
     if (β < tol)
       @printf "Stopping Iteration, β: %12e\n" β
       ifconv = true
@@ -411,16 +411,16 @@ function REPStepArn(L::AbstractMatrix{T1},B::AbstractVector{T2},σ::AbstractVect
     end  
   
     # Expand Krylov space
-    Ve,H,nkryl,β,major_it = IRAM!(Ve,H,Be,ve,nkryl,lkryl,major_it,nev,Ω,ngs)
+    Ve,H,nkryl,β,major_it = IRAM!(Ve,H,Be,ve,nkryl,lkryl,major_it,nev,Ω,ngs,verbose)
     ve                    = Ve[:,nkryl]
   
     if (major_it>maxouter_it)
       break
     end  
   
-    if (verbose)
-      @printf "Major Iteration: %3i/%3i, Krylov Size: %3i/%3i, β: %12e\n" major_it maxouter_it nkryl lkryl β
-    end
+    # if (verbose)
+    #   @printf "Major Iteration: %3i/%3i, Krylov Size: %3i/%3i, β: %12e\n" major_it maxouter_it nkryl lkryl β
+    # end
     if (β < tol)
       @printf "Stopping Iteration, β: %12e\n" β
       ifconv = true

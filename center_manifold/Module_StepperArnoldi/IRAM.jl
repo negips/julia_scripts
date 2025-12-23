@@ -1,4 +1,4 @@
-function IRAM!(Vin::Matrix,Hes::Matrix,B::Union{Vector,Matrix},v::Vector,k::Int,kmax::Int,Mi::Int,Nev,Ω::T,ngs::Int) where {T<:Number}
+function IRAM!(Vin::Matrix,Hes::Matrix,B::Union{Vector,Matrix},v::Vector,k::Int,kmax::Int,Mi::Int,Nev,Ω::T,ngs::Int,verbose::Bool) where {T<:Number}
 
 #   Vin     - Krylov Matrix
 #   Hes     - Hessenberg Matrix
@@ -39,7 +39,9 @@ function IRAM!(Vin::Matrix,Hes::Matrix,B::Union{Vector,Matrix},v::Vector,k::Int,
       
       v = V[:,k2]
       β = abs(H[Nev+1,Nev])
-      @printf "Major Iteration: %3i; β: %8e\n" Mi β
+      if (verbose)
+        @printf "Major Iteration: %3i; β: %8e\n" Mi β
+      end  
 
       nkryl = k2
       mi    = mi + 1
