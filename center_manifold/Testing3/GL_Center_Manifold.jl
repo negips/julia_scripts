@@ -9,12 +9,12 @@ ifnormal = true
 #  include("GL_Asymptotic_CM_GraphForm.jl")
 #end
 
-CenterManifold.DisplayTerms2(1,"z",Khat,G2)
-CenterManifold.DisplayTerms2(3,"ϕ",Khat,G2)
+#CenterManifold.DisplayTerms2(1,"z",Khat,G2)
+#CenterManifold.DisplayTerms2(3,"ϕ",Khat,G2)
 
 #CenterManifold.DisplayTerms3(1,"z",Khat,G_O2,G_O3)
-#CenterManifold.DisplayTerms3(1,"z",Khat,G2,G3)
-#CenterManifold.DisplayTerms3(2,"z",Khat,G2,G3)
+CenterManifold.DisplayTerms3(1,"z",Khat,G2,G3)
+#CenterManifold.DisplayTerms3(3,"ϕ",Khat,G2,G3)
 
 println("Center-Manifold Evaluation Complete.")
 

@@ -193,7 +193,7 @@ function GL2AsymptoticCM_Ord2(L::AbstractMatrix{T2},LC::AbstractMatrix{T2},B::Ab
   PM          = PertModes[PertModes .> 0]
   npmodes     = length(PM)
   # println(npmodes)
-  println(PertModes)
+  # println(PertModes)
 
   # No of terms at this order.
   Nt          = CenterManifold.NInteractionTerms(Ord,m)
@@ -205,6 +205,7 @@ function GL2AsymptoticCM_Ord2(L::AbstractMatrix{T2},LC::AbstractMatrix{T2},B::Ab
   SysMat      = CenterManifold.BuildAsympSystem(Ord,Khat)
   # Reduced Matrix terms.
   G           = zeros(T1,m,Nt)
+  # Mass Matrix (Vector)
   B2          = [B; B]
 
   # Stepper-Arnoldi (for Extended Operator Calculation)
@@ -319,7 +320,7 @@ function GL2AsymptoticCM_Ord2(L::AbstractMatrix{T2},LC::AbstractMatrix{T2},B::Ab
   return SysMat,G,Y,F,CMmodes
 end  
 #---------------------------------------------------------------------- 
-function GL2AsymptoticCM_Ord3(L::AbstractMatrix{T2},LC::AbstractMatrix{T2},B::AbstractVector{T3},δ::AbstractVector{T2},Khat::AbstractMatrix{T1},Vext::AbstractMatrix{T2},Wext::AbstractMatrix{T2},G2::AbstractMatrix{T1},Y2::AbstractMatrix{T2},n::Int,p::Int,h::Int,lbc::Bool,rbc::Bool,LAP::AbstractMatrix{T2},LAPC::AbstractMatrix{T2},irnormal::Bool) where {T1,T2,T3<:Number}
+function GL2AsymptoticCM_Ord3(L::AbstractMatrix{T2},LC::AbstractMatrix{T2},B::AbstractVector{T3},δ::AbstractVector{T2},Khat::AbstractMatrix{T1},Vext::AbstractMatrix{T2},Wext::AbstractMatrix{T2},σ::AbstractVector{T1},PertModes::AbstractVector{Int},nsys::Int,G2::AbstractMatrix{T1},Y2::AbstractMatrix{T2},lbc::Bool,rbc::Bool,LAP::AbstractMatrix{T2},LAPC::AbstractMatrix{T2},ifnormal::Bool) where {T1,T2,T3<:Number}
 
   # n         - Original Critical space size (Needed to determine Laplace Modes)
   # p         - Parameter Modes
@@ -332,6 +333,9 @@ function GL2AsymptoticCM_Ord3(L::AbstractMatrix{T2},LC::AbstractMatrix{T2},B::Ab
   ind2        = Nby2+1:N
   restricted  = ~ifnormal
 
+  PM          = PertModes[PertModes .> 0]
+  npmodes     = length(PM)
+
   # No of terms at this order.
   Nt          = CenterManifold.NInteractionTerms(Ord,m)
   # Asymptotic CM Vectors.
@@ -342,7 +346,8 @@ function GL2AsymptoticCM_Ord3(L::AbstractMatrix{T2},LC::AbstractMatrix{T2},B::Ab
   SysMat      = CenterManifold.BuildAsympSystem(Ord,Khat)
   # Reduced Matrix terms.
   G           = zeros(T1,m,Nt)
-
+  # Mass Matrix (Vector)
+  B2          = [B; B]
 
 
   # Stepper-Arnoldi (for Extended Operator Calculation)
@@ -370,6 +375,12 @@ function GL2AsymptoticCM_Ord3(L::AbstractMatrix{T2},LC::AbstractMatrix{T2},B::Ab
   AInp              = StepperArnoldi.ArnoldiInput(ifarnoldi,ifverbose,ifeigshift,vlen,nev,ekryl,lkryl,eigshift,ngs,bsize,outer_iterations,tol)
   #-------------------------------------------------- 
 
+  AsEM1             = Vector{StepperArnoldi.ExtendedMode}(undef,Nt)
+  AsEM2             = Vector{StepperArnoldi.ExtendedMode}(undef,Nt)
+  Z                 = zeros(T2,Nt,m)
+  Γ                 = zeros(T2,m,Nt)
+  We                = zeros(T2,N,Nt)
+
   # Build the forcing
   for i in 1:Nt
     ω       = SysMat[i,i]
@@ -377,9 +388,18 @@ function GL2AsymptoticCM_Ord3(L::AbstractMatrix{T2},LC::AbstractMatrix{T2},B::Ab
     println("Solving for $(i), ω=$(ω)")
 
     h_asymp = zeros(T2,N)
+    if npmodes>0
+      Ord1      = 2
+      h_mpert   = GLModePertTerm(i,Ord,Y2,Ord1,Vext,Wext,B2,PertModes)
+      # if norm(h_mpert)>1.0e-12
+      #   println("Pertmode for i=$i, |h_mpert| = $(norm(h_mpert))")
+      # end
+      h_asymp  .= h_asymp .+ h_mpert
+    end
+
     if p>0
-      lap_mode  = n+1
-      lap_cmode = n+2
+      lap_mode  = nsys+npmodes + 1
+      lap_cmode = nsys+npmodes + 2
       OrdY      = 2
       h_lapl    = GLLapNLTerm(i,Ord,m,Y2,OrdY,lap_mode,lap_cmode,LAP,LAPC)
       h_asymp  .= h_asymp .+ h_lapl 
@@ -416,26 +436,36 @@ function GL2AsymptoticCM_Ord3(L::AbstractMatrix{T2},LC::AbstractMatrix{T2},B::Ab
     h_asymp1  = view(h_asymp,ind1)
     h_asymp2  = view(h_asymp,ind2)
 
-    λ_khat    = diag(Khat)
-    AInp.eigshift = ω
-    if (restricted)
-      CM2_EM1   = StepperArnoldi.ExtendTangentSpaceRestricted(L,B,λ_khat,V1,W1,h_asymp1,ω,AInp,SInp,lbc,rbc)
-      CM2_EM2   = StepperArnoldi.ExtendTangentSpaceRestricted(LC,B,λ_khat,V2,W2,h_asymp2,ω,AInp,SInp,lbc,rbc)
+    λ_khat          = diag(Khat)
+    AInp.ifeigshift = true
+    AInp.eigshift   = ω
+
+    if (npmodes>0)
+      AsEM1[i]    = StepperArnoldi.REPTangentSpace(L, B,λ_khat,σ,V1,W1,h_asymp1,ω,restricted,AInp,SInp,lbc,rbc)
+      AsEM2[i]    = StepperArnoldi.REPTangentSpace(LC,B,λ_khat,σ,V2,W2,h_asymp2,ω,restricted,AInp,SInp,lbc,rbc)
     else
-      CM2_EM1   = StepperArnoldi.ExtendTangentSpace(L,B,λ_khat,V1,W1,h_asymp1,ω,AInp,SInp,lbc,rbc)
-      CM2_EM2   = StepperArnoldi.ExtendTangentSpace(LC,B,λ_khat,V2,W2,h_asymp2,ω,AInp,SInp,lbc,rbc)
+      AsEM1[i]    = StepperArnoldi.ExtendTangentSpace(L, B,λ_khat,V1,W1,h_asymp1,ω,restricted,AInp,SInp,lbc,rbc)
+      AsEM2[i]    = StepperArnoldi.ExtendTangentSpace(LC,B,λ_khat,V2,W2,h_asymp2,ω,restricted,AInp,SInp,lbc,rbc)
     end
 
-    Y[ind1,i] = copy(CM2_EM1.ve)
-    Y[ind2,i] = copy(CM2_EM2.ve)
+    Y[ind1,i]     = copy(AsEM1[i].ve)
+    Y[ind2,i]     = copy(AsEM2[i].ve)
+    Z[i,:]        = AsEM1[i].z .+ AsEM2[i].z
+    Γ[:,i]        = AsEM1[i].Γ .+ AsEM2[i].Γ
+
+    We[ind1,i]    = copy(AsEM1[i].we)
+    We[ind2,i]    = copy(AsEM2[i].we)
 
     for j in 1:m
-      G[j,i]  = CM2_EM1.Γ[j] + CM2_EM2.Γ[j]
+      G[j,i]  = AsEM1[i].Γ[j] + AsEM2[i].Γ[j]
     end     # j
 
   end       # i
 
-  return SysMat,G,Y,F
+  λ_khat  = diag(Khat)
+  CMmodes = StepperArnoldi.ExtendedModes(λ_khat,F,Γ,Y,We,Z)
+
+  return SysMat,G,Y,F,CMmodes
 end  
 #---------------------------------------------------------------------- 
 resmodeplot = true
@@ -476,36 +506,36 @@ if (resmodeplot)
   ax4.legend(ncols=4,fontsize=Grh.lgfs)
 end
 
-# SM3,G3,Y3,F3 = GL2AsymptoticCM_Ord3(OPg,OPCg,Bg,δ,Khat,Vext,Wext,G2,Y2,n,p,h,Inp.lbc,Inp.rbc,BiLapg,BiLapCg,ifnormal);
-# 
-# if (resmodeplot)
-#   h5    = figure(num=5,figsize=Grh.figsz2)
-#   ax5   = gca()
-#   ax5.cla()
-#   plno  = -1 
-# end
-# 
-# for i in 1:CenterManifold.NInteractionTerms(3,m)
-#   vnorm = norm(Y3[ind1,i])
-#   # Plot Mode
-#   if (resmodeplot) && vnorm > 0.0
-#  
-#     ind = CenterManifold.GetPolynomialIndices(i,3,m) .+ 1
-#     ijk = "_{$(ind[1])"
-#     for k in 2:3
-#       ijk = ijk*",$(ind[k])"
-#     end
-#     ijk = ijk*"}"
-#    
-#     j = i
-#     global plno = plno + 1 
-#     ax5.plot(xg,real.(Y3[ind1,i]),linewidth=2,linestyle="-", color=cm(plno),label=L"\mathfrak{R}(y_{%$ijk})")
-#     ax5.plot(xg,imag.(Y3[ind1,i]),linewidth=2,linestyle="--",color=cm(plno),label=L"\mathfrak{Im}(y_{%$ijk})")
-#   end
-# end  
-# if (resmodeplot)
-#   ax5.legend(ncols=4,fontsize=Grh.lgfs,loc="upper right")
-# end
+SM3,G3,Y3,F3,CMmodes3 = GL2AsymptoticCM_Ord3(OPg,OPCg,Bg,δ,Khat,Vext,Wext,σext,PertModesExt,nsys,G2,Y2,Inp.lbc,Inp.rbc,BiLapg,BiLapCg,ifnormal);
+ 
+if (resmodeplot)
+  h5    = figure(num=5,figsize=Grh.figsz2)
+  ax5   = gca()
+  ax5.cla()
+  plno  = -1 
+end
+
+for i in 1:CenterManifold.NInteractionTerms(3,m)
+  vnorm = norm(Y3[ind1,i])
+  # Plot Mode
+  if (resmodeplot) && vnorm > 0.0
+ 
+    ind = CenterManifold.GetPolynomialIndices(i,3,m) .+ 1
+    ijk = "_{$(ind[1])"
+    for k in 2:3
+      ijk = ijk*",$(ind[k])"
+    end
+    ijk = ijk*"}"
+   
+    j = i
+    global plno = plno + 1 
+    ax5.plot(xg,real.(Y3[ind1,i]),linewidth=2,linestyle="-", color=cm(plno),label=L"\mathfrak{R}(y_{%$ijk})")
+    ax5.plot(xg,imag.(Y3[ind1,i]),linewidth=2,linestyle="--",color=cm(plno),label=L"\mathfrak{Im}(y_{%$ijk})")
+  end
+end  
+if (resmodeplot)
+  ax5.legend(ncols=4,fontsize=Grh.lgfs,loc="upper right")
+end
 
 println("Asymptotic System (Normal Form) Done.")
 

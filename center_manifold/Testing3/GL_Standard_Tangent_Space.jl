@@ -7,7 +7,7 @@ include("../Module_StepperArnoldi/StepperArnoldi.jl")
 #using .StepperArnoldi
 
 #---------------------------------------------------------------------- 
-screen = 2
+screen = 1
 Grh    = setgraphics(screen)
 
 # Stepper-Arnoldi
@@ -41,7 +41,6 @@ if (StpInp.ifadjoint)
   Ω   = conj.(Ω)
 end  
 
-#figz1   = [10.,7.]
 
 close("all")
 h1    = figure(num=1,figsize=Grh.figsz1);

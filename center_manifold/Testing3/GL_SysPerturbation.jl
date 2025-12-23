@@ -45,7 +45,7 @@ function GLSelectPertModes(DOut,AOut,modeselect::Vector{Int})
 end  
 #---------------------------------------------------------------------- 
 
-ifmodepert = true
+ifmodepert = false
 
 if (ifmodepert)
   modeselect                    = [2]
