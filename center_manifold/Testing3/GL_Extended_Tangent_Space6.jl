@@ -9,7 +9,7 @@ include("GL_Extended_Tangent_Space5.jl")
 
 ifresonant = false
 emodeplot  = true
-restricted = true 
+restricted = false 
 
 Nby2  = size(OPg,2)
 N     = Nby2*2

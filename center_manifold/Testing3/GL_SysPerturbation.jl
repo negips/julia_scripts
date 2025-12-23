@@ -133,31 +133,6 @@ if (ifmodepert)
   WSys1       = WSys[ind1,:]
   WSys2       = WSys[ind2,:]
 
-  # V1          = VSys[ind1,1:2:nsys]
-  # V2          = VSys[ind2,2:2:nsys]
-  # W1          = WSys[ind1,1:2:nsys]
-  # W2          = WSys[ind2,2:2:nsys]
-  # σ1          = σ[1:2:nsys]
-  # σ2          = σ[2:2:nsys]
-  # PModes1     = PertModes[1:2:nsys]
-  # PModes2     = PertModes[2:2:nsys]
-
-  # V1          = Vpert[ind1,1:2:npert]
-  # V2          = Vpert[ind2,2:2:npert]
-  # W1          = Wpert[ind1,1:2:npert]
-  # W2          = Wpert[ind2,2:2:npert]
-  # σ1          = dλ[1:2:npert]
-  # σ2          = dλ[2:2:npert]
- 
-  # New Linear Operator
-  # NewOPg(x)   = PertLv(x,OPg,Bg,VSys1,WSys1,σ)      
-  # NewOPCg(x)  = PertLv(x,OPCg,Bg,VSys2,WSys2,σ)
-
-  # NewEOPg(x,y,z)  = ExtPertLv(x,OPg,Bg,VSys1,WSys1,σ,y,z)      
-  # NewEOPCg(x,y,z) = ExtPertLv(x,OPCg,Bg,VSys2,WSys2,σ,y,z)
-
-  # ArnDirNew   = StepperArnoldi.StepArnOP(NewOPg,Bg,StpInp,ArnInp,Inp.lbc,Inp.rbc)
-
 else
 
   nmode       = 0
@@ -175,9 +150,6 @@ else
   VSys2       = VSys[ind2,:]
   WSys1       = WSys[ind1,:]
   WSys2       = WSys[ind2,:]
-
-  # NewOPg      = OPg
-  # NewOPCg     = OPCg
 
 end  
 
