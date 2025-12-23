@@ -110,6 +110,51 @@ function DisplayEquation3(ind::Int,var::String,G1::Matrix{T},G2::Matrix{T},G3::M
   return nothing
 end
 #---------------------------------------------------------------------- 
+function DisplayTerms2(ind::Int,var::String,G1::Matrix{T},G2::Matrix{T};tol=1.0e-10) where {T<:ComplexF64}
+
+  nv,nv2    = size(G1)
+
+  str0      = "d"*var*"/dt"
+  space     = " "
+
+  @printf("Reduced System:\n")
+  @printf("------------------------------\n")
+
+  ord = 1
+  nt  = NInteractionTerms(ord,nv)
+  for i in 1:nt
+    val     = G1[ind,i]
+    if (abs(val)>tol)
+      str     = Complex2String(val)
+       
+      pind    = GetPolynomialIndices(i,ord,nv)
+      pind    = pind .+ 1
+      polystr = polyString(var,pind)
+      str1    = str*polystr
+      @printf("%s\n",str1)
+    end  
+  end
+  @printf("------------------------------\n")
+
+  ord       = 2
+  nt        = NInteractionTerms(ord,nv)
+  for i in 1:nt
+    val     = G2[ind,i]
+    if abs(val)>tol
+      str     = Complex2String(val)
+       
+      pind    = GetPolynomialIndices(i,ord,nv)
+      pind    = pind .+ 1
+      polystr = polyString(var,pind)
+      str2    = str*polystr
+      @printf("%s\n",str2)
+    end  
+  end
+  @printf("------------------------------\n")
+
+  return nothing
+end
+#---------------------------------------------------------------------- 
 function DisplayTerms3(ind::Int,var::String,G1::Matrix{T},G2::Matrix{T},G3::Matrix{T};tol=1.0e-10) where {T<:ComplexF64}
 
   nv,nv2    = size(G1)

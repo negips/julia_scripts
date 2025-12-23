@@ -6,6 +6,7 @@ function ExtendedModes(EM::Vector{ExtendedMode})
   nc = size(EM[1].z,2)        # Critical space
 
   Γ  = zeros(T,nc,ne)
+  Fe = zeros(T,N,ne)
   Ve = zeros(T,N,ne)
   We = zeros(T,N,ne)
   Z  = zeros(T,ne,nc)
@@ -19,11 +20,12 @@ function ExtendedModes(EM::Vector{ExtendedMode})
     end
     di = (i-1)*N+1
     si = 1
+    copyto!(Fe,di,EM[i].fe,si,N)
     copyto!(Ve,di,EM[i].ve,si,N)
     copyto!(We,di,EM[i].we,si,N)
   end  
 
-  ExModes = ExtendedModes(λe,Γ,Ve,We,Z)
+  ExModes = ExtendedModes(λe,Fe,Γ,Ve,We,Z)
 
   return ExModes
 end

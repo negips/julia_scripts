@@ -26,6 +26,7 @@ function ExtendTangentSpace(L::AbstractMatrix{T2},B::AbstractVector{T3},λc::Abs
 
   Γ   = zeros(T2,n)
   vh  = zeros(T2,N)
+  fe  = copy(f)
 
   ifresonant = fill(false,n)
   # Get resonant indicies
@@ -70,7 +71,7 @@ function ExtendTangentSpace(L::AbstractMatrix{T2},B::AbstractVector{T3},λc::Abs
     z[i] = -vh'*(B.*W[:,i])
   end
 
-  extmode = ExtendedMode(λe,Γ,vh,wh,z)
+  extmode = ExtendedMode(λe,fe,Γ,vh,wh,z)
 
   return extmode
 end  
@@ -83,6 +84,7 @@ function ExtendTangentSpace1(L::AbstractMatrix{T2},B::AbstractVector{T3},λc::Ab
 
   Γ   = zeros(T2,n)
   vh  = zeros(T2,N)
+  fe  = copy(f)
 
   # Off-Diagonal Components of Khat
   ftmp = copy(f)
@@ -167,7 +169,7 @@ function ExtendTangentSpace1(L::AbstractMatrix{T2},B::AbstractVector{T3},λc::Ab
     z[i] = -vh'*(B.*W[:,i])
   end
 
-  extmode = ExtendedMode(λe,Γ,vh,wh,z)
+  extmode = ExtendedMode(λe,fe,Γ,vh,wh,z)
 
   return extmode
 end  
@@ -180,6 +182,7 @@ function ExtendTangentSpaceRestricted1(L::AbstractMatrix{T2},B::AbstractVector{T
 
   Γ   = zeros(T2,n)
   vh  = zeros(T2,N)
+  fe  = copy(f)
 
   # Off-Diagonal Components of Khat
   ftmp = copy(f)
@@ -247,7 +250,7 @@ function ExtendTangentSpaceRestricted1(L::AbstractMatrix{T2},B::AbstractVector{T
     z[i] = -vh'*(B.*W[:,i])
   end
 
-  extmode = ExtendedMode(λe,Γ,vh,wh,z)
+  extmode = ExtendedMode(λe,fe,Γ,vh,wh,z)
 
   return extmode
 end  

@@ -66,14 +66,14 @@ for i in 1:length(λext)
     ax2.plot(xg,imag.(EM.Ve[ind1,i]),linewidth=2,linestyle="--",color=cm(j-1),label=L"\mathfrak{Im}(ϕ_{%$j})")
   end
 
-  # Conjugate Mode
-  vnorm2 = norm(EM.Ve[ind2,i])
-  # Plot Mode
-  if (emodeplot) && vnorm2 > 0.0
-    j = nsys+i
-    ax2.plot(xg,real.(EM.Ve[ind2,i]),linewidth=2,linestyle="-", color=cm(j-1),label=L"\mathfrak{R}(ϕ_{%$j})")
-    ax2.plot(xg,imag.(EM.Ve[ind2,i]),linewidth=2,linestyle="--",color=cm(j-1),label=L"\mathfrak{Im}(ϕ_{%$j})")
-  end
+  # # Conjugate Mode
+  # vnorm2 = norm(EM.Ve[ind2,i])
+  # # Plot Mode
+  # if (emodeplot) && vnorm2 > 0.0
+  #   j = nsys+i
+  #   ax2.plot(xg,real.(EM.Ve[ind2,i]),linewidth=2,linestyle="-", color=cm(j-1),label=L"\mathfrak{R}(ϕ_{%$j})")
+  #   ax2.plot(xg,imag.(EM.Ve[ind2,i]),linewidth=2,linestyle="--",color=cm(j-1),label=L"\mathfrak{Im}(ϕ_{%$j})")
+  # end
 
 end  
 
@@ -108,8 +108,6 @@ Bhat  = [Bg2; ones(eltype(Bg2),p+s+h)]
 EBiOrtho = What'*diagm(Bhat)*Vhat
 
 if (emodeplot)
-  ax2.legend(ncols=4,fontsize=Grh.lgfs)
-else  
   ax2.legend(ncols=3,fontsize=Grh.lgfs)
 end  
 

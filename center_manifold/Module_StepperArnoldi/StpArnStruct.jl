@@ -98,6 +98,7 @@ end
 mutable struct ExtendedMode{T}
 
       λe::T
+      fe::AbstractVector{T}
       Γ::AbstractVector{T}
       ve::AbstractVector{T}
       we::AbstractVector{T}
@@ -122,6 +123,7 @@ end
 mutable struct ExtendedModes{T}
 
       λe::AbstractVector{T}
+      Fe::AbstractMatrix{T}
       Γ::AbstractMatrix{T}
       Ve::AbstractMatrix{T}
       We::AbstractMatrix{T}

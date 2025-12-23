@@ -48,6 +48,7 @@ module CenterManifold
          EvalNonLinear,
          GetAsymptoticField3,
          DisplayEquation3,
+         DisplayTerms2,
          DisplayTerms3,
          BuildAsympSystem
 

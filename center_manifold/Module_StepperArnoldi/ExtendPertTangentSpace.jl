@@ -28,9 +28,9 @@ function REPTangentSpace(L::AbstractMatrix{T2},B::AbstractVector{T3},λc::Abstra
 
   Γ   = zeros(T2,n)
   vh  = zeros(T2,N)
+  fe  = copy(f)
 
   # Off-Diagonal Components of Khat
-  ftmp = copy(f)
   if (restricted)
     ifresonant = fill(true,n)
   else
@@ -42,6 +42,7 @@ function REPTangentSpace(L::AbstractMatrix{T2},B::AbstractVector{T3},λc::Abstra
     end
   end  
 
+  ftmp = copy(f)
   Γ = ObliqueSubspaceRemoval3!(ftmp,V,W,B,ifresonant,ngs)
 
 
@@ -78,7 +79,7 @@ function REPTangentSpace(L::AbstractMatrix{T2},B::AbstractVector{T3},λc::Abstra
     z[i] = -vh'*(B.*W[:,i])
   end
 
-  extmode = ExtendedMode(λe,Γ,vh,wh,z)
+  extmode = ExtendedMode(λe,fe,Γ,vh,wh,z)
 
   return extmode
 end  

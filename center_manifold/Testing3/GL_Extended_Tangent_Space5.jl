@@ -42,6 +42,10 @@ function GLExtendTangentSpace(L::AbstractMatrix{T1},LC::AbstractMatrix{T1},B::Ab
   Z          = Emodes1.Z .+ Emodes2.Z
   Γ          = Emodes1.Γ .+ Emodes2.Γ
 
+  Fe         = zeros(T1,N,ne)
+  Fe[ind1,:] = copy(Emodes1.Fe)
+  Fe[ind2,:] = copy(Emodes2.Fe)
+
   Ve         = zeros(T1,N,ne)
   Ve[ind1,:] = copy(Emodes1.Ve)
   Ve[ind2,:] = copy(Emodes2.Ve)
@@ -50,7 +54,7 @@ function GLExtendTangentSpace(L::AbstractMatrix{T1},LC::AbstractMatrix{T1},B::Ab
   We[ind1,:] = copy(Emodes1.We)
   We[ind2,:] = copy(Emodes2.We)
 
-  Emodes = StepperArnoldi.ExtendedModes(λe,Γ,Ve,We,Z)
+  Emodes = StepperArnoldi.ExtendedModes(λe,Fe,Γ,Ve,We,Z)
 
   return Emodes
 end
@@ -97,6 +101,10 @@ function GLExtendPertTangentSpace(L::AbstractMatrix{T1},LC::AbstractMatrix{T1},B
   Z          = Emodes1.Z .+ Emodes2.Z
   Γ          = Emodes1.Γ .+ Emodes2.Γ
 
+  Fe         = zeros(T1,N,ne)
+  Fe[ind1,:] = copy(Emodes1.Fe)
+  Fe[ind2,:] = copy(Emodes2.Fe)
+
   Ve         = zeros(T1,N,ne)
   Ve[ind1,:] = copy(Emodes1.Ve)
   Ve[ind2,:] = copy(Emodes2.Ve)
@@ -105,7 +113,7 @@ function GLExtendPertTangentSpace(L::AbstractMatrix{T1},LC::AbstractMatrix{T1},B
   We[ind1,:] = copy(Emodes1.We)
   We[ind2,:] = copy(Emodes2.We)
 
-  Emodes = StepperArnoldi.ExtendedModes(λe,Γ,Ve,We,Z)
+  Emodes = StepperArnoldi.ExtendedModes(λe,Fe,Γ,Ve,We,Z)
 
   return Emodes
 end

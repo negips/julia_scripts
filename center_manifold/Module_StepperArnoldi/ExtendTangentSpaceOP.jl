@@ -43,6 +43,7 @@ function ExtendTangentSpaceOP(OP,B::AbstractVector{T3},λc::AbstractVector{T1},V
 
   Γ   = zeros(T2,n)
   vh  = zeros(T2,N)
+  fe  = copy(f)
 
   # Off-Diagonal Components of Khat
   ftmp = copy(f)

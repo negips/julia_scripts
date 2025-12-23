@@ -7,7 +7,7 @@ include("../Module_StepperArnoldi/StepperArnoldi.jl")
 #using .StepperArnoldi
 
 #---------------------------------------------------------------------- 
-screen = 1
+screen = 2
 Grh    = setgraphics(screen)
 
 # Stepper-Arnoldi
@@ -58,11 +58,12 @@ ArnDir      = StepperArnoldi.StepArn( OPg,Bg,StpInp,ArnInp,Inp.lbc,Inp.rbc)
 ArnAdj      = StepperArnoldi.StepArn(AOPg,Bg,StpInp,ArnInp,Inp.lbc,Inp.rbc)
 
 pl3   = ax1.plot(imag.(ArnDir.evals),real.(ArnDir.evals),linestyle="none",marker="o",markersize=Grh.mksz)
-cm    = get_cmap("tab10")
+cm    = get_cmap("tab20")
 
 # Build Center-Manifold matrices
 id    = argmin(abs.(ArnDir.evals .- Ω[1]))
 v1    = copy(ArnDir.evecs[:,id])
+
 ia    = argmin(abs.(ArnAdj.evals .- Ω[1]'))
 w1    = copy(ArnAdj.evecs[:,ia])
 
@@ -78,20 +79,29 @@ n     = length(λc)
 # Plot (normalized) Eigenvectors
 h2    = figure(num=2,figsize=Grh.figsz2)
 ax2   = gca()
-for i in 1:ArnInp.nev
-  vtmp = ArnDir.evecs[:,i]
-  wtmp = ArnAdj.evecs[:,i]
+
+id0   = abs.(real.(ArnDir.evals)) .< ArnInp.tol
+id    = Vector(1:ArnInp.nev)[id0]
+ia0   = abs.(real.(ArnAdj.evals)) .< ArnInp.tol
+ia    = Vector(1:ArnInp.nev)[ia0]
+
+for i in 1:length(id) #1:ArnInp.nev
+  j1 = id[i]
+  j2 = ia[i]
+  vtmp = ArnDir.evecs[:,j1]
+  wtmp = ArnAdj.evecs[:,j2]
   renormalize_evec!(vtmp,j0)
   renormalize_evecs!(vtmp,wtmp,Bg)
 
   ax2.plot(xg,real.(vtmp),linewidth=2,linestyle="-", color=cm(i-1),label=L"\mathfrak{R}(ϕ_{%$i})")
   ax2.plot(xg,imag.(vtmp),linewidth=2,linestyle="--",color=cm(i-1),label=L"\mathfrak{Im}(ϕ_{%$i})")
 
-  ax2.plot(xg,real.(wtmp),linewidth=1,linestyle="-", color=cm(i+ArnInp.nev-1),label=L"\mathfrak{R}(χ_{%$i})")
-  ax2.plot(xg,imag.(wtmp),linewidth=1,linestyle="--",color=cm(i+ArnInp.nev-1),label=L"\mathfrak{Im}(χ_{%$i})")
+  ax2.plot(xg,real.(wtmp),linewidth=1,linestyle="-", color=cm(i-1+10),label=L"\mathfrak{R}(χ_{%$i})")
+  ax2.plot(xg,imag.(wtmp),linewidth=1,linestyle="--",color=cm(i-1+10),label=L"\mathfrak{Im}(χ_{%$i})")
 end
 ax2.set_xlabel(L"x",fontsize=Grh.lafs)
 ax2.set_ylabel(L"A",fontsize=Grh.lafs)
+ax2.legend(ncols=1,fontsize=Grh.lgfs)
 
 
 # ax2.plot(xg,real.(v1),linewidth=2,linestyle="-", color=cm(0),label=L"\mathfrak{R}(ϕ)")

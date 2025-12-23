@@ -44,54 +44,6 @@ function GLSelectPertModes(DOut,AOut,modeselect::Vector{Int})
       return λpert,λpertA,Vpert,Wpert
 end  
 #---------------------------------------------------------------------- 
-function GLModePertTerm(n0::Int,Ord0::Int,Nc::Int,MV1::AbstractMatrix{T},Ord1::Int,V::AbstractMatrix{T},W::AbstractMatrix{T},B::AbstractVector{T1},PertModes::AbstractVector{Int}) where {T,T1<:Number}
-
-  ngs  = 2
-  ind0 = CenterManifold.GetPolynomialIndices(n0,Ord0,Nc) .+ 1
-
-  Nt1  = CenterManifold.NInteractionTerms(Ord1,Nc)
-
-  N,c  = size(MV1)
-  
-  nmodes = length(PertModes) 
-
-  h    = zeros(T,N)
-  vtmp = zeros(T,N)
-  if (Ord1 + 1 != Ord0) 
-    return h
-  end
-  if Ord0<2
-    return h
-  end
-  if nmodes == 0
-    return h
-  end  
-
-
-  for i in 1:Nt1
-    for j in PertModes
-      # Mode Perturbation nonlinearity σjVj⋅(B⋅Wj)'
-      ind1        = CenterManifold.GetPolynomialIndices(i,Ord1,Nc) .+ 1
-      ind_total   = [ind1[:]; PertModes[j]]
-      sort!(ind_total)
-      if (ind_total == ind0)    # Matching polynomials
-        di  = 1
-        si  = (i-1)*N + 1
-        copyto!(vtmp,di,MV1,si,N)
-        β   = T(0)
-        for k in 1:ngs
-          α       = Wpert[:,j]*(B.*vtmp)
-          β       = β + α
-          vtmp   .= vtmp .- α*Vpert[:,j]
-        end
-        h .= h .+ β*V[:,j]
-      end         # ind_total == ind0
-    end           # j in 1:nmodes
-  end             # i in 1:Nt1
-
-  return h
-end
-#---------------------------------------------------------------------- 
 
 ifmodepert = true
 
@@ -132,6 +84,22 @@ if (ifmodepert)
   VSys2       = VSys[ind2,:]
   WSys1       = WSys[ind1,:]
   WSys2       = WSys[ind2,:]
+
+  for i in 1:nmode
+    j1      = (i-1)*2 + 1
+    j2      = j1 + 1
+    vtmp    = Vpert[ind1,j1]
+    wtmp    = Wpert[ind1,j1]
+ 
+    j       = n + j1
+
+    ax2.plot(xg,real.(vtmp),linewidth=2,linestyle="-", color=cm(j-1),label=L"\mathfrak{R}(ϕ_{%$j})")
+    ax2.plot(xg,imag.(vtmp),linewidth=2,linestyle="--",color=cm(j-1),label=L"\mathfrak{Im}(ϕ_{%$j})")
+  
+    ax2.plot(xg,real.(wtmp),linewidth=1,linestyle="-", color=cm(j-1+10),label=L"\mathfrak{R}(χ_{%$j})")
+    ax2.plot(xg,imag.(wtmp),linewidth=1,linestyle="--",color=cm(j-1+10),label=L"\mathfrak{Im}(χ_{%$j})")
+  end
+  ax2.legend(ncols=2,fontsize=Grh.lgfs)
 
 else
 
