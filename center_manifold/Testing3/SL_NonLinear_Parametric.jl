@@ -34,7 +34,7 @@ if ifresonant
 else
   nsteps    = 3000000
 end
-ifsave      = false
+ifsave      = true
 plotstep    = 20000
 verbosestep = 10000
 histstep    = 100
@@ -45,8 +45,8 @@ zro         = vt(0)
 
 dt          = 0.001
 Tend        = dt*nsteps
-θA          = [0.1; 0.25; 0.5; 0.75; 1.0]
-θA          = [0.1; 0.2; 0.3; 0.4; 0.5]
+#θA          = [0.1; 0.25; 0.5; 0.75; 1.0]
+#θA          = [0.1; 0.2; 0.3; 0.4; 0.5]
 θA          = Vector(1:10)*0.1
 #θA          = [0.5]
 nθ          = length(θA)

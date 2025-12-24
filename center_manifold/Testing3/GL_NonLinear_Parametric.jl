@@ -47,13 +47,14 @@ Tend        = dt*nsteps
 
 #θA          = [0.1; 0.25; 0.5; 0.75; 1.0]
 #θA          = [0.1; 0.2; 0.3; 0.4; 0.5]
-θA          = [0.5]
+θA          = Vector(1:10)*0.1
+#θA          = [0.5]
 nθ          = length(θA)
 ncycles     = ones(Int64,nθ)
-# if !ifresonant
-#   ncycles[1]  = 3
-#   ncycles[2]  = 2
-# end
+if !ifresonant
+  ncycles[1]  = 4
+  ncycles[2]  = 3
+end
 
 cm          = get_cmap("tab10");
 rgba0       = cm(0) 
@@ -147,7 +148,7 @@ for ik in 1:nθ
 
   # Testing temporary forcing amplitude change
   θtmp  = vt(1.00)
-  λtmp  = -0.01
+  λtmp  = -0.025
 
   cycles = ncycles[ik]
   println("$cycles cycles for ik=$ik")
@@ -161,8 +162,8 @@ for ik in 1:nθ
     
       # Apply BC
       SEM1D.SEM_SetBC!(v,Inp.lbc,Inp.rbc)
+
       # Non-linear Evolution
-      # OP_RK4!(NGL,v,dt)
 
       # Testing temporary forcing amplitude change
       if ic==1
@@ -173,13 +174,11 @@ for ik in 1:nθ
       θ    = θ*fac
 
       # Forced Non-linear Evolution
-      # OP2_RK4!(FNGL,v,θ,dt)
-      # OP2_RK4!(FNGL,v,θ,dt,vwork,θwork)
       OP2_BiRK4!(FNGL,Bgi,v,θ,dt,vwork,θwork)
       # if (ik<2 && ic==1)
-      #   OP2_RK4!(DFGL,v,θ,dt,vwork,θwork)
+      #   OP2_BiRK4!(DFGL,Bgi,v,θ,dt,vwork,θwork)
       # else
-      #   OP2_RK4!(FNGL,v,θ,dt,vwork,θwork)
+      #   OP2_BiRK4!(FNGL,Bgi,v,θ,dt,vwork,θwork)
       # end  
 
 
@@ -297,9 +296,9 @@ end
 
 if (ifsave && nsteps>0)
   if ifresonant
-    fname = "GL_resonant_Parametric3.jld2"
+    fname = "GL_resonant_Parametric1.jld2"
   else
-    fname = "GL_nonresonant_Parametric3.jld2"
+    fname = "GL_nonresonant_Parametric1.jld2"
   end  
   save(fname,"xg",xg,"vlast",vlast,"Vext",Vext,"Y_O2",Y_O2,"Y_O3",Y_O3,"Khat",Khat,"G_O2",G_O2,"G_O3",G_O3,"δ",δ,"Time",Time,"θA",θA,"Peak_Amp",Peak_Amp,"Hist",Hist,"ω_nonlinear",ω_nonlinear);
   println(fname*" saved.")
