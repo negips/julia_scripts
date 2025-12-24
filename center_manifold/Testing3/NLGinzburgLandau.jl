@@ -35,7 +35,7 @@ function ForcedNLGinzburgLandau(L::AbstractMatrix{T},B,v::AbstractVector{T},F::A
    dv = L*v
    fθ = F*θ
    for i in LinearIndices(dv)
-     dv[i] = dv[i] + δ*B[i]*conj(v[i])*v[i]*v[i] + fθ[i]
+     dv[i] = dv[i] + δ*B[i]*conj(v[i])*v[i]*v[i] + B[i]*fθ[i]
    end
    # Note these are boundary conditions for time derivative.
    # Not for the field values themselves.
@@ -63,7 +63,7 @@ function DampedFGL(FGL,B::AbstractVector{S},v::AbstractVector{T},θ::AbstractVec
 
    # Projections
    α     = W'*(B.*v)
-   dv   .= dv .- V*(α.*χ)
+   dv   .= dv .- B.*(V*(α.*χ))
 
    return dv, dθ
 end  

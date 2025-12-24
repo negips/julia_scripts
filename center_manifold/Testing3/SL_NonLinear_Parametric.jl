@@ -45,14 +45,15 @@ zro         = vt(0)
 
 dt          = 0.001
 Tend        = dt*nsteps
-#θA          = [0.1; 0.25; 0.5; 0.75; 1.0]
+θA          = [0.1; 0.25; 0.5; 0.75; 1.0]
 θA          = [0.1; 0.2; 0.3; 0.4; 0.5]
+θA          = Vector(1:10)*0.1
 #θA          = [0.5]
 nθ          = length(θA)
 ncycles     = ones(Int64,nθ)
 if !ifresonant
-  ncycles[1]  = 3
-  ncycles[2]  = 2
+  ncycles[1]  = 4
+  ncycles[2]  = 3
 end
 
 Hist_Mode   = zeros(vt,nhist,m,nθ)
@@ -112,7 +113,7 @@ for ik in 1:nθ
   z           = zeros(vt,m)
   rng         = Xoshiro(1235)
   # Mode initial values
-  z[1]        = 1.0e-5*rand(rng,vt)
+  z[1]        = 1.0e-4*rand(rng,vt)
   z[2]        = z[1]'
   # Parameter Perturbations
   z[n+1:n+p]  = zeros(vt,p)
@@ -204,7 +205,7 @@ for ik in 1:nθ
           fld1  = fld12[1:ndof]
           ax5.plot(xg,real.(fld1),color=cm(0),linestyle="-",linewidth=1)
           ax5.plot(xg,imag.(fld1),color=cm(0),linestyle="--",linewidth=1)
-          ax5.plot(xg,abs.(fld1),color=cm(0),linestyle="-",linewidth=3)
+          ax5.plot(xg,abs.(fld1),color=cm(1),linestyle="-",linewidth=3)
         end  
       end   # ifplot && mod(i,plotstep)==0 
     end     # i in 1:nsteps
@@ -272,11 +273,11 @@ end
 
 if (ifsave && nsteps>0)
   if ifresonant
-    fname = "SL_resonant_Parametric2.jld2"
+    fname = "SL_resonant_Parametric1.jld2"
   else
-    fname = "SL_nonresonant_Parametric2.jld2"
+    fname = "SL_nonresonant_Parametric1.jld2"
   end
-  save(fname,"xg",xg,"Vext",Vext,"Y_O2",Y_O2,"Y_O3",Y_O3,"G1",G1,"G2",G2,"G3",G3,"δ",δ,"Time",Time,"θA",θA,"Peak_Amp",Peak_Amp,"Histx",Histx,"ω_nonlinear",ω_nonlinear);
+  save(fname,"xg",xg,"Vext",Vext,"Y2",Y2,"Y3",Y3,"G1",G1,"G2",G2,"G3",G3,"δ",δ,"Time",Time,"θA",θA,"Peak_Amp",Peak_Amp,"Histx",Histx,"ω_nonlinear",ω_nonlinear);
   println(fname*" saved.")
 end 
 

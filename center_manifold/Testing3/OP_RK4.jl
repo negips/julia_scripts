@@ -112,6 +112,46 @@ function OP2_RK4!(OP,v::AbstractVector{T},θ::AbstractVector{T},dt::Float64,vw::
   return nothing 
 end
 #----------------------------------------------------------------------
+function OP2_BiRK4!(OP,Bi::AbstractVector{T1},v::AbstractVector{T2},θ::AbstractVector{T2},dt::Float64,vw::AbstractMatrix{T2},θw::AbstractMatrix{T2}) where {T1,T2 <: Number}
+
+  two       = T2(2)
+  six       = T2(6)
+
+  dv1 = view(vw,:,1)
+  dθ1 = view(θw,:,1)
+
+  dv2 = view(vw,:,2)
+  dθ2 = view(θw,:,2)
+
+  dv3 = view(vw,:,3)
+  dθ3 = view(θw,:,3)
+
+  dv4 = view(vw,:,4)
+  dθ4 = view(θw,:,4)
+
+  vn  = view(vw,:,5)
+  θn  = view(θw,:,5)
+
+ 
+  dv1,dθ1   = OP(v,θ)
+  vn        = v + dt/two*(Bi.*dv1)
+  θn        = θ + dt/two*dθ1
+
+  dv2,dθ2   = OP(vn,θn)
+  vn        = v + dt/two*(Bi.*dv2)
+  θn        = θ + dt/two*dθ2
+
+  dv3,dθ3   = OP(vn,θn)
+  vn        = v + dt*(Bi.*dv3)
+  θn        = θ + dt*dθ3
+
+  dv4,dθ4   = OP(vn,θn)
+  v        .= v .+ dt/six*Bi.*(dv1 .+ two*dv2 .+ two*dv3 .+ dv4)
+  θ        .= θ .+ dt/six*(dθ1 .+ two*dθ2 .+ two*dθ3 .+ dθ4)
+
+  return nothing 
+end
+#----------------------------------------------------------------------
 
 
 

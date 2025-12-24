@@ -46,14 +46,14 @@ dt          = 0.0001
 Tend        = dt*nsteps
 
 #θA          = [0.1; 0.25; 0.5; 0.75; 1.0]
-θA          = [0.1; 0.2; 0.3; 0.4; 0.5]
-#θA          = [0.5]
+#θA          = [0.1; 0.2; 0.3; 0.4; 0.5]
+θA          = [0.5]
 nθ          = length(θA)
 ncycles     = ones(Int64,nθ)
-if !ifresonant
-  ncycles[1]  = 3
-  ncycles[2]  = 2
-end
+# if !ifresonant
+#   ncycles[1]  = 3
+#   ncycles[2]  = 2
+# end
 
 cm          = get_cmap("tab10");
 rgba0       = cm(0) 
@@ -77,7 +77,7 @@ vwork       = zeros(vt,ndof,5)
 θwork       = zeros(vt,nfreq,5)
 
 if (ifplot)
-  hv  = figure(num=2,figsize=Grh.figsz1);
+  hv  = figure(num=2,figsize=Grh.figsz3);
   ax2 = gca()
   ax2.set_xlabel(L"x",fontsize=Grh.lafs)
   ax2.set_ylabel(L"A",fontsize=Grh.lafs)
@@ -88,7 +88,7 @@ if (histplot)
   ax3 = gca()
 end  
 
-NGL(x)= NLGinzburgLandau(OPg,ones(vt,ndof),x,δ[5],zro,zro,Inp.lbc,Inp.rbc)  
+NGL(x)= NLGinzburgLandau(OPg,Bg,x,δ[5],zro,zro,Inp.lbc,Inp.rbc)  
 
 # Forcing Shape
 x0,κ  = ForcingParams()
@@ -98,7 +98,7 @@ SEM1D.SEM_SetBC!(ψ,Inp.lbc,Inp.rbc)
 F     = zeros(ComplexF64,ndof,nfreq)
 copyto!(F,ψ)
 Ωf    = [λh[1]]
-FNGL(x,y) = ForcedNLGinzburgLandau(OPg,ones(vt,ndof),x,F,y,δ[5],Ωf,zro,zro,Inp.lbc,Inp.rbc)
+FNGL(x,y) = ForcedNLGinzburgLandau(OPg,Bg,x,F,y,δ[5],Ωf,zro,zro,Inp.lbc,Inp.rbc)
 Vdamp     = zeros(vt,ndof,1)
 Vdamp[:,1]= V[ind1,1]
 Wdamp     = zeros(vt,ndof,1)
@@ -134,7 +134,7 @@ for ik in 1:nθ
   z[2]  = z[1]'
   z[5]  = θAmp*vt(1)
   z[6]  = z[5]'
-  fld   = Get_AsymptoticField(z,Vext,Y2,Y3)
+  # fld   = Get_AsymptoticField(z,Vext,Y2,Y3)
 
   v     = zeros(vt,ndof)
   #v     = fld[1:ndof]
@@ -142,12 +142,12 @@ for ik in 1:nθ
   #v    .= v .+ 1.0e-5*rnd
   #v    .= v .+ 0.1*exp.(-(xg.-5.75).^2)
   #v    .= v .+ conj.(v)
-  global θ     = zeros(vt,nfreq)
+  θ     = zeros(vt,nfreq)
   θ[1]  = θAmp*(1.0 + 0.0im)
 
   # Testing temporary forcing amplitude change
   θtmp  = vt(1.00)
-  λtmp  = -0.025
+  λtmp  = -0.01
 
   cycles = ncycles[ik]
   println("$cycles cycles for ik=$ik")
@@ -175,11 +175,12 @@ for ik in 1:nθ
       # Forced Non-linear Evolution
       # OP2_RK4!(FNGL,v,θ,dt)
       # OP2_RK4!(FNGL,v,θ,dt,vwork,θwork)
-      if (ik<2 && ic==1)
-        OP2_RK4!(DFGL,v,θ,dt,vwork,θwork)
-      else
-        OP2_RK4!(FNGL,v,θ,dt,vwork,θwork)
-      end  
+      OP2_BiRK4!(FNGL,Bgi,v,θ,dt,vwork,θwork)
+      # if (ik<2 && ic==1)
+      #   OP2_RK4!(DFGL,v,θ,dt,vwork,θwork)
+      # else
+      #   OP2_RK4!(FNGL,v,θ,dt,vwork,θwork)
+      # end  
 
 
       # Testing temporary forcing amplitude change
@@ -211,7 +212,7 @@ for ik in 1:nθ
        
         pv1 = ax2.plot(xg,real.(v),linestyle="-",color=rgba0)
         pv2 = ax2.plot(xg,imag.(v),linestyle="--",color=rgba0)
-        pv2 = ax2.plot(xg,abs.(v) ,linestyle="-",color=rgba1,linewidth=2)
+        pv2 = ax2.plot(xg,abs.(v) ,linestyle="-",color=rgba1,linewidth=3)
     
         vmax = 1.2*maximum(abs.(v))
         vmin = -vmax
