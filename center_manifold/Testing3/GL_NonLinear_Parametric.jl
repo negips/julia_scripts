@@ -52,8 +52,8 @@ Tend        = dt*nsteps
 nθ          = length(θA)
 ncycles     = ones(Int64,nθ)
 if !ifresonant
-  ncycles[1]  = 4
-  ncycles[2]  = 3
+  ncycles[1]  = 3
+  ncycles[2]  = 2
 end
 
 cm          = get_cmap("tab10");

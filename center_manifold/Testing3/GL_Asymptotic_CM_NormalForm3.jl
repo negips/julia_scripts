@@ -177,7 +177,7 @@ function BuildLowOrder(n0::Int,Ord::Int,Nc::Int,Y::AbstractMatrix{T},G::Abstract
   return h_low
 end  
 #----------------------------------------------------------------------
-function GL2AsymptoticCM_Ord2(L::AbstractMatrix{T2},LC::AbstractMatrix{T2},B::AbstractVector{T3},δ::AbstractVector{T2},Khat::AbstractMatrix{T1},Vext::AbstractMatrix{T2},Wext::AbstractMatrix{T2},σ::AbstractVector{T1},PertModes::AbstractVector{Int},nsys::Int,lbc::Bool,rbc::Bool,Lap::AbstractMatrix{T2},LapC::AbstractMatrix{T2},ifnormal::Bool) where {T1,T2,T3<:Number}
+function GL2AsymptoticCM_Ord2(L::AbstractMatrix{T2},LC::AbstractMatrix{T2},B::AbstractVector{T3},δ::AbstractVector{T2},Khat::AbstractMatrix{T1},Vext::AbstractMatrix{T2},Wext::AbstractMatrix{T2},σ::AbstractVector{T1},PertModes::AbstractVector{Int},nsys::Int,p::Int,h::Int,lbc::Bool,rbc::Bool,Lap::AbstractMatrix{T2},LapC::AbstractMatrix{T2},ifnormal::Bool) where {T1,T2,T3<:Number}
 
   # nsys      - Original (Perturbed) Critical space size (Needed to determine Laplace Modes and Perturbation Modes)
   # p         - Parameter Modes
@@ -320,7 +320,7 @@ function GL2AsymptoticCM_Ord2(L::AbstractMatrix{T2},LC::AbstractMatrix{T2},B::Ab
   return SysMat,G,Y,F,CMmodes
 end  
 #---------------------------------------------------------------------- 
-function GL2AsymptoticCM_Ord3(L::AbstractMatrix{T2},LC::AbstractMatrix{T2},B::AbstractVector{T3},δ::AbstractVector{T2},Khat::AbstractMatrix{T1},Vext::AbstractMatrix{T2},Wext::AbstractMatrix{T2},σ::AbstractVector{T1},PertModes::AbstractVector{Int},nsys::Int,G2::AbstractMatrix{T1},Y2::AbstractMatrix{T2},lbc::Bool,rbc::Bool,LAP::AbstractMatrix{T2},LAPC::AbstractMatrix{T2},ifnormal::Bool) where {T1,T2,T3<:Number}
+function GL2AsymptoticCM_Ord3(L::AbstractMatrix{T2},LC::AbstractMatrix{T2},B::AbstractVector{T3},δ::AbstractVector{T2},Khat::AbstractMatrix{T1},Vext::AbstractMatrix{T2},Wext::AbstractMatrix{T2},σ::AbstractVector{T1},PertModes::AbstractVector{Int},nsys::Int,p::Int,h::Int,G2::AbstractMatrix{T1},Y2::AbstractMatrix{T2},lbc::Bool,rbc::Bool,LAP::AbstractMatrix{T2},LAPC::AbstractMatrix{T2},ifnormal::Bool) where {T1,T2,T3<:Number}
 
   # n         - Original Critical space size (Needed to determine Laplace Modes)
   # p         - Parameter Modes
@@ -476,7 +476,7 @@ PertModesExt      = zeros(Int64,m)
 copyto!(PertModesExt,1,PertModes,1,nsys)
 
 
-SM2,G2,Y2,F2,CMmodes2 = GL2AsymptoticCM_Ord2(OPg,OPCg,Bg,δ,Khat,Vext,Wext,σext,PertModesExt,nsys,Inp.lbc,Inp.rbc,BiLapg,BiLapCg,ifnormal);
+SM2,G2,Y2,F2,CMmodes2 = GL2AsymptoticCM_Ord2(OPg,OPCg,Bg,δ,Khat,Vext,Wext,σext,PertModesExt,nsys,p,h,Inp.lbc,Inp.rbc,BiLapg,BiLapCg,ifnormal);
 if (resmodeplot)
   h4    = figure(num=4,figsize=Grh.figsz2)
   ax4   = gca()
@@ -506,7 +506,7 @@ if (resmodeplot)
   ax4.legend(ncols=4,fontsize=Grh.lgfs)
 end
 
-SM3,G3,Y3,F3,CMmodes3 = GL2AsymptoticCM_Ord3(OPg,OPCg,Bg,δ,Khat,Vext,Wext,σext,PertModesExt,nsys,G2,Y2,Inp.lbc,Inp.rbc,BiLapg,BiLapCg,ifnormal);
+SM3,G3,Y3,F3,CMmodes3 = GL2AsymptoticCM_Ord3(OPg,OPCg,Bg,δ,Khat,Vext,Wext,σext,PertModesExt,nsys,p,h,G2,Y2,Inp.lbc,Inp.rbc,BiLapg,BiLapCg,ifnormal);
  
 if (resmodeplot)
   h5    = figure(num=5,figsize=Grh.figsz2)
