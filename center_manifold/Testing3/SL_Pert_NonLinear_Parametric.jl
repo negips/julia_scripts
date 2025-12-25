@@ -47,8 +47,8 @@ dt          = 0.001
 Tend        = dt*nsteps
 #θA          = [0.1; 0.25; 0.5; 0.75; 1.0]
 #θA          = [0.1; 0.2; 0.3; 0.4; 0.5]
-θA          = Vector(1:10)*0.1
-#θA          = [0.5]
+#θA          = Vector(1:10)*0.1
+θA          = [0.1]
 nθ          = length(θA)
 ncycles     = ones(Int64,nθ)
 if !ifresonant
@@ -113,10 +113,15 @@ for ik in 1:nθ
   z           = zeros(vt,m)
   rng         = Xoshiro(1235)
   # Mode initial values
-  z[1]        = 1.0e-4*rand(rng,vt)
-  z[2]        = z[1]'
+  for i in 1:nsys
+    if mod(i-1,2) == 0
+      z[i]        = 1.0e-4*rand(rng,vt)
+    else
+      z[i]        = z[i-1]'
+    end
+  end
   # System Perturbations
-  for i in 1:m
+  for i in 1:nsys
     j = PertModesExt[i]
     if j != 0
       z[j] = -σext[i]
@@ -127,11 +132,11 @@ for ik in 1:nθ
   z[nsys+npert+1:nsys+npert+p]  = zeros(vt,p)
   # Harmonic Forcing Amplitude
   z[nsys+npert+p+1]    = θAmp*(1.0 + 0.0im)
-  z[nsys+npert+p+2]    = z[n+p+1]'
-  
+  z[nsys+npert+p+2]    = z[nsys+npert+p+1]'
+  # println(z)
+
   # Work Arrays
   zwork       = zeros(vt,m,5)
-  
 
   # Testing temporary forcing amplitude change
   θtmp  = vt(1.00)
@@ -193,7 +198,7 @@ for ik in 1:nθ
         for lo in ax3.get_lines()
           lo.remove()
         end
-        ax3.plot(Time[1:j],real.(Hist_Mode[1:j,Mode_Ind,ik]),color=cols)
+        ax3.plot(Time[1:j],real.(Hist_Mode[1:j,Mode_Ind,ik]),color=cm(ik-1))
 
         # Remove previous plots
         for lo in ax4.get_lines()
