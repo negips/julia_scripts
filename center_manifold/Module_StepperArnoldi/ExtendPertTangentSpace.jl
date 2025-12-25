@@ -67,7 +67,7 @@ function REPTangentSpace(L::AbstractMatrix{T2},B::AbstractVector{T3},λc::Abstra
     if (abs(λe - λfound) > 50*AInp.tol)
       println("Mismatched Eigenvalues: $λe, $λfound")
     else
-      println("Eigenvalue Found. $λfound")
+      # println("Eigenvalue Found. $λfound")
     end
 
   end       # fnorm > AInp.tol

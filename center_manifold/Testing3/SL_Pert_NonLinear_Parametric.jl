@@ -48,7 +48,7 @@ Tend        = dt*nsteps
 #θA          = [0.1; 0.25; 0.5; 0.75; 1.0]
 #θA          = [0.1; 0.2; 0.3; 0.4; 0.5]
 #θA          = Vector(1:10)*0.1
-θA          = [0.1]
+θA          = [0.25]
 nθ          = length(θA)
 ncycles     = ones(Int64,nθ)
 if !ifresonant
@@ -129,10 +129,18 @@ for ik in 1:nθ
   end  
 
   # Parameter Perturbations
-  z[nsys+npert+1:nsys+npert+p]  = zeros(vt,p)
+  for i in nsys+npert+1:nsys+npert+p
+    z[i]  = 0
+  end
   # Harmonic Forcing Amplitude
-  z[nsys+npert+p+1]    = θAmp*(1.0 + 0.0im)
-  z[nsys+npert+p+2]    = z[nsys+npert+p+1]'
+  for i in nsys+npert+p+1:m
+    j = i - (nsys+npert+p)
+    if mod(j-1,2) == 0 
+      z[i]    = θAmp*(1.0 + 0.0im)
+    else  
+      z[i]    = z[i-1]'
+    end
+  end
   # println(z)
 
   # Work Arrays
@@ -181,14 +189,14 @@ for ik in 1:nθ
       end
     
       if (mod(i,histstep) == 0)
-        j = Int(i/histstep)
-        Hist_Mode[j,:,ik] = copy(z)
-        Time[j]           = t
+        jj = Int(i/histstep)
+        Hist_Mode[jj,:,ik] = copy(z)
+        Time[jj]           = t
     
         # Get field value at point x = hist_x,
         # corresponding to array index hist_i
         if (xhist)
-          Histx[j,ik] = Get_AsymptoticFieldx(hist_i,z,Vext,Y2,Y3)
+          Histx[jj,ik] = Get_AsymptoticFieldx(hist_i,z,Vext,Y2,Y3)
         end  
       end
 
@@ -198,16 +206,18 @@ for ik in 1:nθ
         for lo in ax3.get_lines()
           lo.remove()
         end
-        ax3.plot(Time[1:j],real.(Hist_Mode[1:j,Mode_Ind,ik]),color=cm(ik-1))
+        for k in 1:length(Mode_Ind)
+          ax3.plot(Time[1:jj],real.(Hist_Mode[1:jj,Mode_Ind[k],ik]),color=cm(k-1))
+        end  
 
         # Remove previous plots
         for lo in ax4.get_lines()
           lo.remove()
         end
-        ax4.plot(Time[1:j],real.(Histx[1:j,ik]),color=cm(ik-1))
+        ax4.plot(Time[1:jj],real.(Histx[1:jj,ik]),color=cm(ik-1))
 
         if (moveaxis)
-          tmax = Time[j]
+          tmax = Time[jj]
           tmin = max(0.0,tmax-500.0)
           ax3.set_xlim([tmin,tmax])
           ax4.set_xlim([tmin,tmax])

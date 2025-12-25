@@ -68,7 +68,7 @@ if (ifmodepert)
   end  
   
   for i in 1:length(λpert)
-    λ1      = imag(λpert[i])*im       # Map to real axis
+    λ1      = sign(imag(λpert[i]))*im       # Map to real axis
     dλ[i]   = (λ1 - λpert[i])*1
     λnew[i] = λpert[i] + dλ[i] 
   end  

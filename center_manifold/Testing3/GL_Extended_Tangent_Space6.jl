@@ -14,7 +14,7 @@ restricted = false
 Nby2  = size(OPg,2)
 N     = Nby2*2
 n     = length(λc)
-p     = 2
+p     = 0
 s     = npert
 h     = 2
 m     = nsys+npert+p+h
@@ -112,15 +112,6 @@ if (emodeplot)
 end  
 
 println("Extended Tangent Space (Arnoldi) Done.")
-
-
-
-
-
-
-
-
-
 
 
 

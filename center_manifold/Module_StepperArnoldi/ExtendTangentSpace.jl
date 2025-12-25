@@ -59,7 +59,7 @@ function ExtendTangentSpace(L::AbstractMatrix{T2},B::AbstractVector{T3},λc::Abs
     if (abs(λe - λfound) > 100*AInp.tol)
       println("Mismatched Eigenvalues: $λe, $λfound")
     else
-      println("Eigenvalue Found. $λfound")
+      # println("Eigenvalue Found. $λfound")
     end
 
   end
@@ -157,7 +157,7 @@ function ExtendTangentSpace1(L::AbstractMatrix{T2},B::AbstractVector{T3},λc::Ab
     if (abs(λe - λfound) > 10*AInp.tol)
       println("Mismatched Eigenvalues: $λe, $λfound")
     else
-      println("Eigenvalue Found. $λfound")
+      # println("Eigenvalue Found. $λfound")
     end
 
   end
@@ -238,7 +238,7 @@ function ExtendTangentSpaceRestricted1(L::AbstractMatrix{T2},B::AbstractVector{T
     if (abs(λe - λfound) > 10*AInp.tol)
       println("Mismatched Eigenvalues: $λe, $λfound")
     else
-      println("Eigenvalue Found. $λfound")
+      # println("Eigenvalue Found. $λfound")
     end
 
   end
