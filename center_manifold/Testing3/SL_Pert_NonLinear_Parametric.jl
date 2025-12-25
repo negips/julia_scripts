@@ -119,7 +119,7 @@ for ik in 1:nθ
   for i in 1:m
     j = PertModesExt[i]
     if j != 0
-      z[i] = -σ[i]
+      z[j] = -σext[i]
     end
   end  
 
