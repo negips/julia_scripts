@@ -45,7 +45,7 @@ function GLSelectPertModes(DOut,AOut,modeselect::Vector{Int})
 end  
 #---------------------------------------------------------------------- 
 
-ifmodepert = false
+ifmodepert = true
 
 if (ifmodepert)
   modeselect                    = [2]
@@ -68,8 +68,9 @@ if (ifmodepert)
   end  
   
   for i in 1:length(λpert)
-    λnew[i] = imag(λpert[i])*im       # Map to real axis
-    dλ[i]   = (λnew[i] - λpert[i])*1
+    λ1      = imag(λpert[i])*im       # Map to real axis
+    dλ[i]   = (λ1 - λpert[i])*1
+    λnew[i] = λpert[i] + dλ[i] 
   end  
 
   nsys        = n + npert

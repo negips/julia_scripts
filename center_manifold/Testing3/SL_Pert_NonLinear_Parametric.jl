@@ -34,7 +34,7 @@ if ifresonant
 else
   nsteps    = 3000000
 end
-ifsave      = true
+ifsave      = false
 plotstep    = 20000
 verbosestep = 10000
 histstep    = 100
@@ -60,7 +60,7 @@ Hist_Mode   = zeros(vt,nhist,m,nθ)
 Time        = zeros(Float64,nhist)
 Peak_Amp    = zeros(Float64,nθ)
 ω_nonlinear = zeros(Float64,nθ)
-Mode_Ind    = [1]                         # Which mode to plot 
+Mode_Ind    = [1; 3]                         # Which mode(s) to plot 
 
 # figsz       = [12.0, 5.0]
 
@@ -115,11 +115,19 @@ for ik in 1:nθ
   # Mode initial values
   z[1]        = 1.0e-4*rand(rng,vt)
   z[2]        = z[1]'
+  # System Perturbations
+  for i in 1:m
+    j = PertModesExt[i]
+    if j != 0
+      z[i] = -σ[i]
+    end
+  end  
+
   # Parameter Perturbations
-  z[n+1:n+p]  = zeros(vt,p)
+  z[nsys+npert+1:nsys+npert+p]  = zeros(vt,p)
   # Harmonic Forcing Amplitude
-  z[n+p+1]    = θAmp*(1.0 + 0.0im)
-  z[n+p+2]    = z[n+p+1]'
+  z[nsys+npert+p+1]    = θAmp*(1.0 + 0.0im)
+  z[nsys+npert+p+2]    = z[n+p+1]'
   
   # Work Arrays
   zwork       = zeros(vt,m,5)
@@ -128,6 +136,10 @@ for ik in 1:nθ
   # Testing temporary forcing amplitude change
   θtmp  = vt(1.00)
   λtmp  = -0.01
+  cols  = fill(cm(0),length(Mode_Ind))
+  for i in 1:length(Mode_Ind)
+    cols[i] = cm(i-1)
+  end
 
   cycles = ncycles[ik]
   for ic in 1:cycles
@@ -180,8 +192,8 @@ for ik in 1:nθ
         # Remove previous plots
         for lo in ax3.get_lines()
           lo.remove()
-        end  
-        ax3.plot(Time[1:j],real.(Hist_Mode[1:j,Mode_Ind,ik]),color=cm(ik-1))
+        end
+        ax3.plot(Time[1:j],real.(Hist_Mode[1:j,Mode_Ind,ik]),color=cols)
 
         # Remove previous plots
         for lo in ax4.get_lines()
@@ -217,8 +229,6 @@ for ik in 1:nθ
       lo.remove()
     end  
     ax3.plot(Time,real.(Hist_Mode[:,Mode_Ind,ik]))
-    # ax3.set_xlabel(L"t",fontsize=lafs)
-    # ax3.set_ylabel(L"A",fontsize=lafs)
 
     # Remove previous plots
     for lo in ax4.get_lines()
@@ -240,10 +250,6 @@ for ik in 1:nθ
   end       # if nsteps>0 && histplot
 
 end         # ik in 1:nθ
-
-#ax4.set_xlim([4500.0,5000.0])
-#ax4.set_ylim([-0.4,0.4])
-#ax4.legend(fontsize=lgfs,ncols=nθ)
 
 
 # Plot Peaks
@@ -273,9 +279,9 @@ end
 
 if (ifsave && nsteps>0)
   if ifresonant
-    fname = "SL_resonant_Parametric1.jld2"
+    fname = "SL_pert_resonant_Parametric1.jld2"
   else
-    fname = "SL_nonresonant_Parametric1.jld2"
+    fname = "SL_pert_nonresonant_Parametric1.jld2"
   end
   save(fname,"xg",xg,"Vext",Vext,"Y2",Y2,"Y3",Y3,"G1",G1,"G2",G2,"G3",G3,"δ",δ,"Time",Time,"θA",θA,"Peak_Amp",Peak_Amp,"Histx",Histx,"ω_nonlinear",ω_nonlinear,"Hist_Mode",Hist_Mode);
   println(fname*" saved.")

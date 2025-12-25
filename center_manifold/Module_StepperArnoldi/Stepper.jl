@@ -42,7 +42,9 @@ function StepArn(L::AbstractMatrix{T},B::AbstractVector{S},StpInp::StepperInput,
   # Eigenvalue Shift
   if ifeigshift
     Ω = exp(eigshift*nsteps*dt)
-    println("EigShift: $(eigshift), Ω= $Ω, |Ω| = $(abs(Ω))")
+    if (verbose)
+      println("EigShift: $(eigshift), Ω= $Ω, |Ω| = $(abs(Ω))")
+    end
   else
     Ω = 0.0
   end
@@ -147,7 +149,9 @@ function RestrictedStepArn(L::AbstractMatrix{T},B::AbstractVector{S},Vr::Abstrac
   # Eigenvalue Shift
   if ifeigshift
     Ω = exp(eigshift*nsteps*dt)
-    println("EigShift: $(eigshift), Ω= $Ω, |Ω| = $(abs(Ω))")
+    if (verbose)
+      println("EigShift: $(eigshift), Ω= $Ω, |Ω| = $(abs(Ω))")
+    end
   else
     Ω = 0.0
   end
@@ -255,7 +259,9 @@ function REStepArn(L::AbstractMatrix{T1},B::AbstractVector{T2},V0::AbstractMatri
   # Eigenvalue Shift
   if ifeigshift
     Ω = exp(eigshift*nsteps*dt)
-    println("EigShift: $(eigshift), Ω= $Ω, |Ω| = $(abs(Ω))")
+    if (verbose)
+      println("EigShift: $(eigshift), Ω= $Ω, |Ω| = $(abs(Ω))")
+    end
   else
     Ω = 0.0
   end
@@ -381,7 +387,9 @@ function REPStepArn(L::AbstractMatrix{T1},B::AbstractVector{T2},σ::AbstractVect
   # Eigenvalue Shift
   if ifeigshift
     Ω = exp(eigshift*nsteps*dt)
-    println("EigShift: $(eigshift), Ω= $Ω, |Ω| = $(abs(Ω))")
+    if (verbose)
+      println("EigShift: $(eigshift), Ω= $Ω, |Ω| = $(abs(Ω))")
+    end
   else
     Ω = 0.0
   end
