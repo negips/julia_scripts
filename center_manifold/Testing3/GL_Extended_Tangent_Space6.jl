@@ -7,7 +7,7 @@ println("Extended Tangent Space using Arnoldi.")
 include("GL_Extended_Tangent_Space5.jl")
 #----------------------------------------------------------------------
 
-ifresonant = false
+ifresonant = true
 emodeplot  = true
 restricted = false 
 

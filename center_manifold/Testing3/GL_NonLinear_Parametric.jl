@@ -148,7 +148,7 @@ for ik in 1:nθ
 
   # Testing temporary forcing amplitude change
   θtmp  = vt(1.00)
-  λtmp  = -0.025
+  λtmp  = -0.1
 
   cycles = ncycles[ik]
   println("$cycles cycles for ik=$ik")
@@ -300,7 +300,7 @@ if (ifsave && nsteps>0)
   else
     fname = "GL_nonresonant_Parametric1.jld2"
   end  
-  save(fname,"xg",xg,"vlast",vlast,"Vext",Vext,"Y_O2",Y_O2,"Y_O3",Y_O3,"Khat",Khat,"G_O2",G_O2,"G_O3",G_O3,"δ",δ,"Time",Time,"θA",θA,"Peak_Amp",Peak_Amp,"Hist",Hist,"ω_nonlinear",ω_nonlinear);
+  save(fname,"xg",xg,"vlast",vlast,"Vext",Vext,"Y2",Y2,"Y3",Y3,"Khat",Khat,"G2",G2,"G3",G3,"δ",δ,"Time",Time,"θA",θA,"Peak_Amp",Peak_Amp,"Hist",Hist,"ω_nonlinear",ω_nonlinear);
   println(fname*" saved.")
 end 
 
