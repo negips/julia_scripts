@@ -116,12 +116,3 @@ println("Extended Tangent Space (Arnoldi) Done.")
 
 
 
-
-
-
-
-
-
-
-
-

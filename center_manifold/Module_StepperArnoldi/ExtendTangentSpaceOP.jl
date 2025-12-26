@@ -117,7 +117,7 @@ function ExtendTangentSpaceOP(OP,B::AbstractVector{T3},λc::AbstractVector{T1},V
     if (abs(λe - λfound) > 10*AInp.tol)
       println("Mismatched Eigenvalues: $λe, $λfound")
     else
-      println("Eigenvalue Found. $λfound")
+      # println("Eigenvalue Found. $λfound")
     end
   end       # norm(ftmp)>AInp.tol
 
@@ -196,7 +196,7 @@ function ExtendTangentSpaceRestrictedOP(OP,B::AbstractVector{T3},λc::AbstractVe
     if (abs(λe - λfound) > 10*AInp.tol)
       println("Mismatched Eigenvalues: $λe, $λfound")
     else
-      println("Eigenvalue Found. $λfound")
+      # println("Eigenvalue Found. $λfound")
     end
 
   end
