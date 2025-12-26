@@ -24,7 +24,7 @@ ax1.set_title(L"Non-Resonant",fontsize=Grh.lafs)
 
 cm    = get_cmap("tab10")
 
-nk    = 5
+nk    = 4
 
 # GL
 #-------------------------------------------------- 

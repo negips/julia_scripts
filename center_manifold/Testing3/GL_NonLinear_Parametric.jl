@@ -47,13 +47,17 @@ Tend        = dt*nsteps
 
 #θA          = [0.1; 0.25; 0.5; 0.75; 1.0]
 #θA          = [0.1; 0.2; 0.3; 0.4; 0.5]
-θA          = Vector(1:10)*0.1
+θA          = Vector(1:10)*0.05
 #θA          = [0.5]
 nθ          = length(θA)
 ncycles     = ones(Int64,nθ)
 if !ifresonant
-  ncycles[1]  = 3
-  ncycles[2]  = 2
+  for i in 1:2
+    ncycles[i]  = 4
+  end
+  for i in 3:4
+    ncycles[i]  = 2
+  end
 end
 
 cm          = get_cmap("tab10");
@@ -296,9 +300,9 @@ end
 
 if (ifsave && nsteps>0)
   if ifresonant
-    fname = "GL_resonant_Parametric1.jld2"
+    fname = "GL_resonant_Parametric2.jld2"
   else
-    fname = "GL_nonresonant_Parametric1.jld2"
+    fname = "GL_nonresonant_Parametric2.jld2"
   end  
   save(fname,"xg",xg,"vlast",vlast,"Vext",Vext,"Y2",Y2,"Y3",Y3,"Khat",Khat,"G2",G2,"G3",G3,"δ",δ,"Time",Time,"θA",θA,"Peak_Amp",Peak_Amp,"Hist",Hist,"ω_nonlinear",ω_nonlinear);
   println(fname*" saved.")
