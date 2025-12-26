@@ -14,7 +14,7 @@ restricted = false
 Nby2  = size(OPg,2)
 N     = Nby2*2
 n     = length(λc)
-p     = 2
+p     = 0
 s     = npert
 h     = 2
 m     = nsys+npert+p+h
@@ -30,8 +30,9 @@ Lσ    = zeros(ComplexF64,N,s)
 # Forcing Modes
 ψ,Lθ,λh     = GetExternalForcing(xg,Bg,ifresonant,Inp.lbc,Inp.rbc)
 Λh          = diagm(λh)
-ax2.plot(xg,real.(ψ) ,linewidth=2,linestyle="-", color=cm(nsys),label=L"\mathfrak{R}(ψ)")
-ax2.plot(xg,imag.(ψ) ,linewidth=2,linestyle="--",color=cm(nsys),label=L"\mathfrak{Im}(ψ)")
+j_cm        = Int(nsys/2)
+ax2.plot(xg,real.(ψ) ,linewidth=2,linestyle="-", color=cm(j_cm),label=L"\mathfrak{R}(ψ)")
+ax2.plot(xg,imag.(ψ) ,linewidth=2,linestyle="--",color=cm(j_cm),label=L"\mathfrak{Im}(ψ)")
 
 λext = [λσ; λν; λh]
 Lext = zeros(ComplexF64,N,p+s+h)
@@ -61,7 +62,7 @@ for i in 1:length(λext)
   vnorm = norm(EM.Ve[ind1,i])
   # Plot Mode
   if (emodeplot) && vnorm > 0.0
-    j = nsys+i
+    j = Int(nsys/2) + 1 + i
     ax2.plot(xg,real.(EM.Ve[ind1,i]),linewidth=2,linestyle="-", color=cm(j-1),label=L"\mathfrak{R}(ϕ_{%$j})")
     ax2.plot(xg,imag.(EM.Ve[ind1,i]),linewidth=2,linestyle="--",color=cm(j-1),label=L"\mathfrak{Im}(ϕ_{%$j})")
   end
@@ -70,7 +71,7 @@ for i in 1:length(λext)
   # vnorm2 = norm(EM.Ve[ind2,i])
   # # Plot Mode
   # if (emodeplot) && vnorm2 > 0.0
-  #   j = nsys+i
+  #   j = Int(nsys/2) + 1 + i + 1
   #   ax2.plot(xg,real.(EM.Ve[ind2,i]),linewidth=2,linestyle="-", color=cm(j-1),label=L"\mathfrak{R}(ϕ_{%$j})")
   #   ax2.plot(xg,imag.(EM.Ve[ind2,i]),linewidth=2,linestyle="--",color=cm(j-1),label=L"\mathfrak{Im}(ϕ_{%$j})")
   # end
