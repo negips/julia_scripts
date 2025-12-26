@@ -47,16 +47,16 @@ Tend        = dt*nsteps
 
 #θA          = [0.1; 0.25; 0.5; 0.75; 1.0]
 #θA          = [0.1; 0.2; 0.3; 0.4; 0.5]
-θA          = Vector(1:10)*0.05
+θA          = Vector(1:10)*0.1
 #θA          = [0.5]
 nθ          = length(θA)
 ncycles     = ones(Int64,nθ)
 if !ifresonant
   for i in 1:2
-    ncycles[i]  = 4
+    ncycles[i]  = 3
   end
   for i in 3:4
-    ncycles[i]  = 2
+    ncycles[i]  = 1
   end
 end
 

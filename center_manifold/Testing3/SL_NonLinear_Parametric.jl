@@ -9,12 +9,6 @@ include("$JULIACOMMON/RK4.jl")
 include("NLGinzburgLandau.jl")
 include("OP_RK4.jl")
 
-
-# lafs        = 16
-# lgfs        = 12
-# mksz        = 6
-
-# include("GL_Setup.jl")
 #-------------------------------------------------- 
 
 close("all")
@@ -47,7 +41,7 @@ dt          = 0.001
 Tend        = dt*nsteps
 #θA          = [0.1; 0.25; 0.5; 0.75; 1.0]
 #θA          = [0.1; 0.2; 0.3; 0.4; 0.5]
-θA          = Vector(1:10)*0.05
+θA          = Vector(1:10)*0.1
 #θA          = [0.5]
 nθ          = length(θA)
 ncycles     = ones(Int64,nθ)
@@ -66,7 +60,6 @@ Peak_Amp    = zeros(Float64,nθ)
 ω_nonlinear = zeros(Float64,nθ)
 Mode_Ind    = [1]                         # Which mode to plot 
 
-# figsz       = [12.0, 5.0]
 
 h3          = figure(num=3,figsize=Grh.figsz3);
 ax3         = gca()
