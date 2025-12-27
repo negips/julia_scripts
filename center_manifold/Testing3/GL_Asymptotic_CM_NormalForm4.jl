@@ -42,7 +42,7 @@ end
 #---------------------------------------------------------------------- 
 resmodeplot = true
 
-MaxOrd      = 5
+MaxOrd      = 3
 
 σext  = zeros(ComplexF64,m)
 copyto!(σext,1,σ,1,nsys)
