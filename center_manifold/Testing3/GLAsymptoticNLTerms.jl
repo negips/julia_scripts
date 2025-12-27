@@ -67,6 +67,12 @@ function GLStdAsympNLTerm(n0::Int,Ord0::Int,Nc::Int,MV1::AbstractMatrix{T},MV2::
     h .= h .+ GLStdNLTerm(n0,Ord0,Nc,MV2,MV1,MV3,Ord2,Ord1,Ord3,δ5)
     h .= h .+ GLStdNLTerm(n0,Ord0,Nc,MV3,MV1,MV2,Ord3,Ord1,Ord2,δ5)
 
+  elseif (Ord2 == Ord3) && (Ord1 != Ord2)    
+
+    h  =      GLStdNLTerm(n0,Ord0,Nc,MV1,MV2,MV3,Ord1,Ord2,Ord3,δ5)
+    h .= h .+ GLStdNLTerm(n0,Ord0,Nc,MV2,MV1,MV3,Ord2,Ord1,Ord3,δ5)
+    h .= h .+ GLStdNLTerm(n0,Ord0,Nc,MV2,MV3,MV1,Ord2,Ord3,Ord1,δ5)
+
   elseif (Ord1 != Ord2) && (Ord2 != Ord3) && (Ord3 != Ord1)
 
     h  =      GLStdNLTerm(n0,Ord0,Nc,MV1,MV2,MV3,Ord1,Ord2,Ord3,δ5)
@@ -198,7 +204,7 @@ function BuildLowOrder(n0::Int,Ord::Int,Nc::Int,Y::AbstractMatrix{T},G::Abstract
           
           # Multiplication by G_α,j
           for j in 1:NtG
-            ind3        = CenterManifold.GetPolynomialIndices(i,OrdG,Nc)
+            ind3        = CenterManifold.GetPolynomialIndices(j,OrdG,Nc)
             ind4        = [ind2[:]; ind3] # Indicies of Y_i * G_α,j
 
             k           = CenterManifold.GetIndexNumber(ind4,Nc)

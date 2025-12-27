@@ -105,6 +105,36 @@ function StuartLandau3(G1::AbstractMatrix{T},G2::AbstractMatrix{T},G3::AbstractM
    return dv
 end  
 #---------------------------------------------------------------------- 
+@doc """
+      StuartLandau5(G1::AbstractMatrix{T},G2::AbstractMatrix{T},G3::AbstractMatrix{T},G4::AbstractMatrix{T},G5::AbstractMatrix{T},v::AbstractVector{T}) where {T <: Number}
+
+      Calculate the time derivative of the (third-order) Stuart-Landau equations.
+
+"""
+function StuartLandau5(G1::AbstractMatrix{T},G2::AbstractMatrix{T},G3::AbstractMatrix{T},G4::AbstractMatrix{T},G5::AbstractMatrix{T},v::AbstractVector{T}) where {T <: Number}
+
+   ord1     = 1
+   dv       = G1*v
+
+   Ord      = 2
+   NLv2     = CenterManifold.EvaluateNonLinear(v,Ord)
+   dv      .= dv .+ G2*NLv2
+
+   Ord      = 3
+   NLv3     = CenterManifold.EvaluateNonLinear(v,Ord)
+   dv      .= dv .+ G3*NLv3
+
+   Ord      = 4
+   NLv4     = CenterManifold.EvaluateNonLinear(v,Ord)
+   dv      .= dv .+ G4*NLv4
+
+   Ord      = 5
+   NLv5     = CenterManifold.EvaluateNonLinear(v,Ord)
+   dv      .= dv .+ G5*NLv5
+
+   return dv
+end  
+#---------------------------------------------------------------------- 
 
 
 

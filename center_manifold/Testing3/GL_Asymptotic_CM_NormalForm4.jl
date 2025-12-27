@@ -42,32 +42,54 @@ end
 #---------------------------------------------------------------------- 
 resmodeplot = true
 
+MaxOrd      = 5
+
 σext  = zeros(ComplexF64,m)
 copyto!(σext,1,σ,1,nsys)
 PertModesExt      = zeros(Int64,m)
 copyto!(PertModesExt,1,PertModes,1,nsys)
 
-
+# Ord = 2
 SM2,G2,Y2,F2,CMmodes2 = GL2AsymptoticCM_Ord2(OPg,OPCg,Bg,δ,Khat,Vext,Wext,σext,PertModesExt,nsys,p,h,Inp.lbc,Inp.rbc,BiLapg,BiLapCg,ifnormal);
 if (resmodeplot)
   h4    = figure(num=4,figsize=Grh.figsz2)
   ax4   = gca()
   ax4.cla()
-  
   @views plotAsymptoticVectors(ax4,xg,Y2[ind1,:],2,m,Grh.lgfs)
 end
 
+# Ord = 3
 SM3,G3,Y3,F3,CMmodes3 = GL2AsymptoticCM_Ord3(OPg,OPCg,Bg,δ,Khat,Vext,Wext,σext,PertModesExt,nsys,p,h,G2,Y2,Inp.lbc,Inp.rbc,BiLapg,BiLapCg,ifnormal);
- 
 if (resmodeplot)
   h5    = figure(num=5,figsize=Grh.figsz2)
   ax5   = gca()
   ax5.cla()
-
   @views plotAsymptoticVectors(ax5,xg,Y3[ind1,:],3,m,Grh.lgfs)
 end
 
-println("Asymptotic System (Normal Form) Done.")
+if MaxOrd>=4
+  # Ord = 4
+  SM4,G4,Y4,F4,CMmodes4 = GL2AsymptoticCM_Ord4(OPg,OPCg,Bg,δ,Khat,Vext,Wext,σext,PertModesExt,nsys,p,h,G2,Y2,G3,Y3,Inp.lbc,Inp.rbc,BiLapg,BiLapCg,ifnormal);
+  if (resmodeplot)
+    h6    = figure(num=6,figsize=Grh.figsz2)
+    ax6   = gca()
+    ax6.cla()
+    @views plotAsymptoticVectors(ax6,xg,Y4[ind1,:],4,m,Grh.lgfs)
+  end
+end  
+
+if MaxOrd>=5
+  # Ord = 5
+  SM5,G5,Y5,F5,CMmodes5 = GL2AsymptoticCM_Ord5(OPg,OPCg,Bg,δ,Khat,Vext,Wext,σext,PertModesExt,nsys,p,h,G2,Y2,G3,Y3,G4,Y4,Inp.lbc,Inp.rbc,BiLapg,BiLapCg,ifnormal);
+  if (resmodeplot)
+    h7    = figure(num=7,figsize=Grh.figsz2)
+    ax7   = gca()
+    ax7.cla()
+    @views plotAsymptoticVectors(ax7,xg,Y5[ind1,:],5,m,Grh.lgfs)
+  end
+end  
+
+println("Asymptotic System (Normal Form) Done to Ord=$MaxOrd.")
 
 
 

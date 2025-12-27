@@ -71,7 +71,7 @@ function StepArnOP(OP,B::AbstractVector{S},StpInp::StepperInput,ArnInp::ArnoldiI
     #   @printf "Major Iteration: %3i/%3i, Krylov Size: %3i/%3i, β: %12e\n" major_it maxouter_it nkryl lkryl β
     # end
     if (β < tol)
-      @printf "Stopping Iteration, β: %12e\n" β
+      @printf "Stoping Iteration, β: %12e\n" β
       ifconv = true
     end  
   end      # while ... 
@@ -176,7 +176,7 @@ function RestrictedStepArnOP(OP,B::AbstractVector{S},Vr::AbstractMatrix{T},Wr::A
     #   @printf "Major Iteration: %3i/%3i, Krylov Size: %3i/%3i, β: %12e\n" major_it maxouter_it nkryl lkryl β
     # end
     if (β < tol)
-      @printf "Stopping Iteration, β: %12e\n" β
+      @printf "Stoping Iteration, β: %12e\n" β
       ifconv = true
     end  
   end      # while ... 

@@ -73,7 +73,7 @@ function StepArn(L::AbstractMatrix{T},B::AbstractVector{S},StpInp::StepperInput,
     #   @printf "Major Iteration: %3i/%3i, Krylov Size: %3i/%3i, β: %12e\n" major_it maxouter_it nkryl lkryl β
     # end
     if (β < tol)
-      @printf "Stopping Iteration, β: %12e\n" β
+      @printf "Stoping Iteration, β: %12e\n" β
       ifconv = true
     end  
   end      # while ... 
@@ -179,7 +179,7 @@ function RestrictedStepArn(L::AbstractMatrix{T},B::AbstractVector{S},Vr::Abstrac
     #   @printf "Major Iteration: %3i/%3i, Krylov Size: %3i/%3i, β: %12e\n" major_it maxouter_it nkryl lkryl β
     # end
     if (β < tol)
-      @printf "Stopping Iteration, β: %12e\n" β
+      @printf "Stoping Iteration, β: %12e\n" β
       ifconv = true
     end  
   end      # while ... 
@@ -306,7 +306,7 @@ function REStepArn(L::AbstractMatrix{T1},B::AbstractVector{T2},V0::AbstractMatri
     #   @printf "Major Iteration: %3i/%3i, Krylov Size: %3i/%3i, β: %12e\n" major_it maxouter_it nkryl lkryl β
     # end
     if (β < tol)
-      @printf "Stopping Iteration, β: %12e\n" β
+      @printf "Stoping Iteration, β: %12e\n" β
       ifconv = true
     end  
   end      # while ... 
@@ -430,7 +430,7 @@ function REPStepArn(L::AbstractMatrix{T1},B::AbstractVector{T2},σ::AbstractVect
     #   @printf "Major Iteration: %3i/%3i, Krylov Size: %3i/%3i, β: %12e\n" major_it maxouter_it nkryl lkryl β
     # end
     if (β < tol)
-      @printf "Stopping Iteration, β: %12e\n" β
+      @printf "Stoping Iteration, β: %12e\n" β
       ifconv = true
     end  
   end      # while ... 

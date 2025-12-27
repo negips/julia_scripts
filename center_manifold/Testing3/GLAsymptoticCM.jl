@@ -360,10 +360,10 @@ function GL2AsymptoticCM_Ord4(L::AbstractMatrix{T2},LC::AbstractMatrix{T2},B::Ab
     ω       = SysMat[i,i]
 
     println("Solving for $(i), ω=$(ω)")
+    h_asymp = zeros(T2,N)
 
     # Mode Perturbation Terms
     #-------------------------------------------------- 
-    h_asymp = zeros(T2,N)
     if npmodes>0
       Ord1      = 3
       h_mpert   = GLModePertTerm(i,Ord,Y3,Ord1,Vext,Wext,B2,PertModes)
