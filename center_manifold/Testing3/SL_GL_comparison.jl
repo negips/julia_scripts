@@ -36,7 +36,7 @@ GL1_xg = get(GL1,"xg",[])
 GL1_v  = get(GL1,"vlast",[])
 
 for ik in 1:nk
-  ax1.plot(GL1_xg,abs.(GL1_v[:,ik]),linewidth=1,linestyle="-",color=cm(ik-1))
+  ax1.plot(GL1_xg,abs.(GL1_v[:,ik]),linewidth=2,linestyle="-",color=cm(ik-1))
 end  
 
 
@@ -62,7 +62,7 @@ for ik in 1:nk
   lab     = @sprintf("|θ|= %.2f",SL1_θA[ik])
   z       = SL1_M[end,:,ik]
   SL1_fld = CenterManifold.GetAsymptoticField3(z,Y1,Y2,Y3)
-  ax1.plot(SL1_xg,abs.(SL1_fld[ind1]),linewidth=2,linestyle="--",color=cm(ik-1),marker="o",markevery=10,label=L"%$lab")
+  ax1.plot(SL1_xg,abs.(SL1_fld[ind1]),linewidth=1,linestyle="--",color=cm(ik-1),marker="o",markevery=10,label=L"%$lab")
 end
 
 ax1.legend(fontsize=Grh.lgfs)
@@ -87,7 +87,7 @@ GL2_xg = get(GL2,"xg",[])
 GL2_v  = get(GL2,"vlast",[])
 
 for ik in 1:2:nk
-  ax2.plot(GL1_xg,abs.(GL2_v[:,ik]),linewidth=1,linestyle="-",color=cm(ik-1))
+  ax2.plot(GL1_xg,abs.(GL2_v[:,ik]),linewidth=2,linestyle="-",color=cm(ik-1))
 end  
 
 
@@ -108,7 +108,7 @@ for ik in 1:2:nk
   lab     = @sprintf("|θ|= %.2f",SL2_θA[ik])
   z       = SL2_M[end,:,ik]
   SL2_fld = CenterManifold.GetAsymptoticField3(z,Y1Res,Y2Res,Y3Res)
-  ax2.plot(SL2_xg,abs.(SL2_fld[ind1]),linewidth=2,linestyle="--",color=cm(ik-1),marker="o",markevery=10,label=L"%$lab")
+  ax2.plot(SL2_xg,abs.(SL2_fld[ind1]),linewidth=1,linestyle="--",color=cm(ik-1),marker="o",markevery=10,label=L"%$lab")
 end
 
 ax2.legend(fontsize=Grh.lgfs)
