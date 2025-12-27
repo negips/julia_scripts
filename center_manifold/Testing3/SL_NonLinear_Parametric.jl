@@ -28,7 +28,7 @@ if ifresonant
 else
   nsteps    = 3000000
 end
-ifsave      = true
+ifsave      = false
 plotstep    = 20000
 verbosestep = 10000
 histstep    = 100
@@ -92,6 +92,7 @@ G1          = Khat
 G2          = G2
 G3          = G3
 SL(x)       = StuartLandau3(G1,G2,G3,x)  
+SL5(x)      = StuartLandau5(G1,G2,G3,G4,G5,x)  
 
 println("Press x to stop. Any other key to continue...")
 xin = readline()
@@ -146,7 +147,8 @@ for ik in 1:nθ
       # z[n+p+2]    = z[n+p+2]*fac
 
       # Stuart Landau Evolution
-      OP_RK4!(SL,z,dt,zwork)
+      # OP_RK4!(SL,z,dt,zwork)
+      OP_RK4!(SL5,z,dt,zwork)
 
       # z[n+p+1]    = z[n+p+1]/fac
       # z[n+p+2]    = z[n+p+2]/fac

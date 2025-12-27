@@ -30,9 +30,9 @@ moveaxis    = true
 plotfield   = true
 verbose     = true
 if ifresonant
-  nsteps    = 3000000
+  nsteps    = 1000000
 else
-  nsteps    = 3000000
+  nsteps    = 1000000
 end
 ifsave      = false
 plotstep    = 20000
@@ -48,7 +48,7 @@ Tend        = dt*nsteps
 #θA          = [0.1; 0.25; 0.5; 0.75; 1.0]
 #θA          = [0.1; 0.2; 0.3; 0.4; 0.5]
 #θA          = Vector(1:10)*0.1
-θA          = [0.25]
+θA          = [0.5]
 nθ          = length(θA)
 ncycles     = ones(Int64,nθ)
 if !ifresonant
@@ -95,6 +95,7 @@ G1          = Khat
 G2          = G2
 G3          = G3
 SL(x)       = StuartLandau3(G1,G2,G3,x)  
+SL5(x)      = StuartLandau5(G1,G2,G3,G4,G5,x)  
 
 println("Press x to stop. Any other key to continue...")
 xin = readline()
@@ -174,7 +175,8 @@ for ik in 1:nθ
       # z[n+p+2]    = z[n+p+2]*fac
 
       # Stuart Landau Evolution
-      OP_RK4!(SL,z,dt,zwork)
+      # OP_RK4!(SL,z,dt,zwork)
+      OP_RK4!(SL5,z,dt,zwork)
 
       # z[n+p+1]    = z[n+p+1]/fac
       # z[n+p+2]    = z[n+p+2]/fac

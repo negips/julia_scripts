@@ -597,7 +597,7 @@ function GetPolynomialIndices(n::Int,ord::Int,nc::Int)
   ind = fill(-99,ord)
 
   if n > Nt
-    println("n greater than total terms, $n, $Nt")
+    println("n greater than total terms, $n, $Nt, Ord=$ord")
   else
     for i in 1:n
       UpdatePolynomialIndex!(ind,ord,nc)
@@ -821,6 +821,7 @@ function BuildAsympSystem(Ord::Int,Khat::AbstractMatrix{T}) where {T<:Number}
   Nc        = size(Khat,2)
   Nt        = CenterManifold.NInteractionTerms(Ord,Nc)
   SysM      = zeros(T,Nt,Nt)
+
   for α in 1:Nc         # Derivative Variable
     for ii in 1:Ord     # Polynomial order
       for i in 1:Nt     # Go through all terms that undergo derivation
