@@ -161,7 +161,7 @@ function BuildLowOrder(n0::Int,Ord::Int,Nc::Int,Y::AbstractMatrix{T},G::Abstract
           
           # Multiplication by G_α,j
           for j in 1:NtG
-            ind3        = CenterManifold.GetPolynomialIndices(i,OrdG,Nc)
+            ind3        = CenterManifold.GetPolynomialIndices(j,OrdG,Nc)
             ind4        = [ind2[:]; ind3] # Indicies of Y_i * G_α,j
 
             k           = CenterManifold.GetIndexNumber(ind4,Nc)

@@ -41,8 +41,8 @@ dt          = 0.001
 Tend        = dt*nsteps
 #θA          = [0.1; 0.25; 0.5; 0.75; 1.0]
 #θA          = [0.1; 0.2; 0.3; 0.4; 0.5]
-θA          = Vector(1:10)*0.1
-#θA          = [0.5]
+θA          = Vector(1:10)*0.05
+#θA          = [1.0]
 nθ          = length(θA)
 ncycles     = ones(Int64,nθ)
 if !ifresonant
@@ -270,9 +270,9 @@ end
 
 if (ifsave && nsteps>0)
   if ifresonant
-    fname = "SL_resonant_Parametric1.jld2"
+    fname = "SL_resonant_Parametric2.jld2"
   else
-    fname = "SL_nonresonant_Parametric1.jld2"
+    fname = "SL_nonresonant_Parametric2.jld2"
   end
   save(fname,"xg",xg,"Vext",Vext,"Y2",Y2,"Y3",Y3,"G1",G1,"G2",G2,"G3",G3,"δ",δ,"Time",Time,"θA",θA,"Peak_Amp",Peak_Amp,"Histx",Histx,"ω_nonlinear",ω_nonlinear,"Hist_Mode",Hist_Mode);
   println(fname*" saved.")
