@@ -10,10 +10,10 @@ include("../Module_CenterManifold/CenterManifold.jl")
 screen = 2
 Grh    = setgraphics(screen)
 
-file1 = "SL_nonresonant_Parametric1.jld2"
+file1 = "SL_nonresonant_Parametric2.jld2"
 file2 = "SL_resonant_Parametric2.jld2"
 
-file3 = "GL_nonresonant_Parametric1.jld2"
+file3 = "GL_nonresonant_Parametric2.jld2"
 file4 = "GL_resonant_Parametric2.jld2"
 #-------------------------------------------------- 
 h1    = figure(num=1,figsize=Grh.figsz3);
@@ -25,7 +25,7 @@ ax1.set_title(L"Non-Resonant",fontsize=Grh.lafs)
 
 cm    = get_cmap("tab20")
 
-nk    = 4
+nk    = 8
 
 # GL
 #-------------------------------------------------- 
@@ -35,7 +35,7 @@ GL2    = load(file4)
 GL1_xg = get(GL1,"xg",[])
 GL1_v  = get(GL1,"vlast",[])
 
-for ik in 1:nk
+for ik in 1:2:nk
   ax1.plot(GL1_xg,abs.(GL1_v[:,ik]),linewidth=2,linestyle="-",color=cm(ik-1))
 end  
 
@@ -58,7 +58,7 @@ Y3     = get(SL1,"Y3",[])
 
 ind1   = 1:Nby2
 
-for ik in 1:nk
+for ik in 1:2:nk
   lab     = @sprintf("|θ|= %.2f",SL1_θA[ik])
   z       = SL1_M[end,:,ik]
   SL1_fld = CenterManifold.GetAsymptoticField3(z,Y1,Y2,Y3)

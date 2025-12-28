@@ -52,10 +52,10 @@ Tend        = dt*nsteps
 nθ          = length(θA)
 ncycles     = ones(Int64,nθ)
 if !ifresonant
-  for i in 1:2
-    ncycles[i]  = 3
+  for i in 1:3
+    ncycles[i]  = 4
   end
-  for i in 3:4
+  for i in 4:4
     ncycles[i]  = 2
   end
 end
@@ -152,7 +152,7 @@ for ik in 1:nθ
 
   # Testing temporary forcing amplitude change
   θtmp  = vt(1.00)
-  λtmp  = -0.02
+  λtmp  = -0.015
 
   cycles = ncycles[ik]
   println("$cycles cycles for ik=$ik")
