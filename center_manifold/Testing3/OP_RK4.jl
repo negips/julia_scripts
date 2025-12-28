@@ -36,6 +36,34 @@ function OP_RK4!(OP,v::AbstractVector{T},dt,wk::AbstractMatrix{T}) where {T <: N
   return nothing 
 end
 #---------------------------------------------------------------------- 
+function OP_BiRK4!(OP,Bi::AbstractVector{T1},v::AbstractVector{T2},dt::Float64,vw::AbstractMatrix{T2}) where {T1,T2 <: Number}
+
+  two       = T2(2)
+  six       = T2(6)
+
+  dv1 = view(vw,:,1)
+  dv2 = view(vw,:,2)
+  dv3 = view(vw,:,3)
+  dv4 = view(vw,:,4)
+  vn  = view(vw,:,5)
+
+ 
+  dv1       = OP(v)
+  vn        = v + dt/two*(Bi.*dv1)
+
+  dv2       = OP(vn)
+  vn        = v + dt/two*(Bi.*dv2)
+
+  dv3       = OP(vn)
+  vn        = v + dt*(Bi.*dv3)
+
+  dv4       = OP(vn)
+  v        .= v .+ dt/six*Bi.*(dv1 .+ two*dv2 .+ two*dv3 .+ dv4)
+
+  return nothing 
+end
+#----------------------------------------------------------------------
+
 function OP_RK4(OP,v::T,dt::Float64) where T <: Union{ComplexF64,Float64}
 
   two = T(2)

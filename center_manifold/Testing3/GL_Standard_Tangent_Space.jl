@@ -6,6 +6,8 @@
 include("../Module_StepperArnoldi/StepperArnoldi.jl")
 #using .StepperArnoldi
 
+using PyPlot
+
 #---------------------------------------------------------------------- 
 screen = 2
 Grh    = setgraphics(screen)
@@ -52,6 +54,8 @@ if (StpInp.ifadjoint)
 else  
   ax1.set_xlim([0.0,1.80])
 end  
+ax1.set_xlabel(L"\mathfrak{Im}(ω)",fontsize=Grh.lafs)
+ax1.set_ylabel(L"\mathfrak{R}(ω)",fontsize=Grh.lafs)
 
 ArnDir      = StepperArnoldi.StepArn( OPg,Bg,StpInp,ArnInp,Inp.lbc,Inp.rbc)
 ArnAdj      = StepperArnoldi.StepArn(AOPg,Bg,StpInp,ArnInp,Inp.lbc,Inp.rbc)

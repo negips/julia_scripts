@@ -16,7 +16,7 @@ function Get_SEM1D_Input()
   return Inp
 end  
 #---------------------------------------------------------------------- 
-function Set_GL_Params()
+function Set_GL_CriticalParams()
   # δ1  = -1.0 + 0.0im            # -U
   # δ2  =  0.741 + 1.025im        #  μ0
   # δ3  = -0.125 + 0.0im          #  μx
