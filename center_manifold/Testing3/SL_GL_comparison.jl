@@ -7,7 +7,7 @@ using Printf
 include("GL_Functions.jl")
 include("../Module_CenterManifold/CenterManifold.jl")
 
-screen = 2
+screen = 1
 Grh    = setgraphics(screen)
 
 file1 = "SL_nonresonant_Parametric2.jld2"
