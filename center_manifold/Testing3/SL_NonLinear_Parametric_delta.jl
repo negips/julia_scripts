@@ -24,7 +24,8 @@ moveaxis    = true
 plotfield   = true
 verbose     = true
 nsteps      = 3000000
-ifsave      = false
+
+ifsave      = true
 plotstep    = 20000
 verbosestep = 10000
 histstep    = 100
