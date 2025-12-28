@@ -6,6 +6,8 @@
 include("../Module_StepperArnoldi/StepperArnoldi.jl")
 #using .StepperArnoldi
 
+using PyPlot
+
 #---------------------------------------------------------------------- 
 screen = 2
 Grh    = setgraphics(screen)
