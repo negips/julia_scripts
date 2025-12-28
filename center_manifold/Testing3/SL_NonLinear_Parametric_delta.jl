@@ -23,11 +23,7 @@ histplot    = true
 moveaxis    = true
 plotfield   = true
 verbose     = true
-if ifresonant
-  nsteps    = 3000000
-else
-  nsteps    = 3000000
-end
+nsteps      = 3000000
 ifsave      = false
 plotstep    = 20000
 verbosestep = 10000
