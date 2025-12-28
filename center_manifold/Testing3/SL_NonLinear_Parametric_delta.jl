@@ -131,15 +131,15 @@ for ik in 1:nδ4
       z[i]    = z[i-1]'
     end
   end
-  # # Harmonic Forcing Amplitude
-  # for i in nsys+npert+p+1:m
-  #   j = i - (nsys+npert+p)
-  #   if mod(j-1,2) == 0 
-  #     z[i]    = θAmp*(1.0 + 0.0im)
-  #   else  
-  #     z[i]    = z[i-1]'
-  #   end
-  # end
+  # Harmonic Forcing Amplitude
+  for i in nsys+npert+p+1:m
+    j = i - (nsys+npert+p)
+    if mod(j-1,2) == 0 
+      z[i]    = 0*(1.0 + 0.0im)
+    else  
+      z[i]    = z[i-1]'
+    end
+  end
   
   # Work Arrays
   zwork       = zeros(vt,m,5)
