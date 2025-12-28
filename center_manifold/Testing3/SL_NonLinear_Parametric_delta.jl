@@ -39,16 +39,14 @@ zro         = vt(0)
 
 dt          = 0.001
 Tend        = dt*nsteps
-δ4          = Vector(1:10)*0.05
+δ4          = -Vector(1:10)*0.05
 nδ4         = length(δ4)
 ncycles     = ones(Int64,nδ4)
-if !ifresonant
-  for i in 1:2
-    ncycles[i]  = 4
-  end
-  for i in 3:4
-    ncycles[i]  = 2
-  end
+for i in 1:2
+  ncycles[i]  = 4
+end
+for i in 3:4
+  ncycles[i]  = 2
 end
 
 Hist_Mode   = zeros(vt,nhist,m,nδ4)

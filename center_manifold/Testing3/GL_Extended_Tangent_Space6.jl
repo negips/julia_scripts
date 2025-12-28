@@ -16,7 +16,7 @@ N     = Nby2*2
 n     = length(λc)
 p     = 2
 s     = npert
-h     = 2
+h     = 0
 m     = nsys+npert+p+h
 
 # Parameter Perturbation
@@ -34,22 +34,26 @@ j_cm        = Int(nsys/2)
 ax2.plot(xg,real.(ψ) ,linewidth=2,linestyle="-", color=cm(j_cm),label=L"\mathfrak{R}(ψ)")
 ax2.plot(xg,imag.(ψ) ,linewidth=2,linestyle="--",color=cm(j_cm),label=L"\mathfrak{Im}(ψ)")
 
-λext = [λσ; λν; λh]
-Lext = zeros(ComplexF64,N,p+s+h)
+λext        = zeros(ComplexF64,s+p+h)
+#λext = [λσ; λν; λh]
+Lext        = zeros(ComplexF64,N,s+p+h)
 for i in 1:s
   for j in 1:N
     Lext[j,i] = Lσ[j,i]
   end
+  λext[i] = λσ[i]
 end
 for i in 1:p
   for j in 1:N
     Lext[j,i+s] = Lν[j,i]
   end
+  λext[s+i] = λν[i]
 end
 for i in 1:h
   for j in 1:N
     Lext[j,i+p+s] = Lθ[j,i]
   end
+  λext[s+p+i] = λh[i]
 end
 
 if (ifmodepert)
