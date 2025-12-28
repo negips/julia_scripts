@@ -98,7 +98,7 @@ for ik in 1:nδ4
   global hv, ax2
   global h3, ax3
   global vlast
-  global δ
+  global δ, δc
 
  
   rng   = Xoshiro(1235)
