@@ -35,7 +35,7 @@ function ForcedNLGinzburgLandau(L::AbstractMatrix{T},B,v::AbstractVector{T},F::A
    dv = L*v
    fθ = F*θ
    for i in LinearIndices(dv)
-     dv[i] = dv[i] + δ*B[i]*conj(v[i])*v[i]*v[i] + fθ[i]
+     dv[i] = dv[i] + δ*B[i]*conj(v[i])*v[i]*v[i] + B[i]*fθ[i]
    end
    # Note these are boundary conditions for time derivative.
    # Not for the field values themselves.
@@ -63,7 +63,7 @@ function DampedFGL(FGL,B::AbstractVector{S},v::AbstractVector{T},θ::AbstractVec
 
    # Projections
    α     = W'*(B.*v)
-   dv   .= dv .- V*(α.*χ)
+   dv   .= dv .- B.*(V*(α.*χ))
 
    return dv, dθ
 end  
@@ -101,6 +101,36 @@ function StuartLandau3(G1::AbstractMatrix{T},G2::AbstractMatrix{T},G3::AbstractM
    Ord      = 3
    NLv3     = CenterManifold.EvaluateNonLinear(v,Ord)
    dv      .= dv .+ G3*NLv3
+
+   return dv
+end  
+#---------------------------------------------------------------------- 
+@doc """
+      StuartLandau5(G1::AbstractMatrix{T},G2::AbstractMatrix{T},G3::AbstractMatrix{T},G4::AbstractMatrix{T},G5::AbstractMatrix{T},v::AbstractVector{T}) where {T <: Number}
+
+      Calculate the time derivative of the (third-order) Stuart-Landau equations.
+
+"""
+function StuartLandau5(G1::AbstractMatrix{T},G2::AbstractMatrix{T},G3::AbstractMatrix{T},G4::AbstractMatrix{T},G5::AbstractMatrix{T},v::AbstractVector{T}) where {T <: Number}
+
+   ord1     = 1
+   dv       = G1*v
+
+   Ord      = 2
+   NLv2     = CenterManifold.EvaluateNonLinear(v,Ord)
+   dv      .= dv .+ G2*NLv2
+
+   Ord      = 3
+   NLv3     = CenterManifold.EvaluateNonLinear(v,Ord)
+   dv      .= dv .+ G3*NLv3
+
+   Ord      = 4
+   NLv4     = CenterManifold.EvaluateNonLinear(v,Ord)
+   dv      .= dv .+ G4*NLv4
+
+   Ord      = 5
+   NLv5     = CenterManifold.EvaluateNonLinear(v,Ord)
+   dv      .= dv .+ G5*NLv5
 
    return dv
 end  

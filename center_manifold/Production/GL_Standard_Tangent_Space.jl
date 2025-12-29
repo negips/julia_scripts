@@ -6,8 +6,10 @@
 include("../Module_StepperArnoldi/StepperArnoldi.jl")
 #using .StepperArnoldi
 
+using PyPlot
+
 #---------------------------------------------------------------------- 
-screen = 2
+screen = 1
 Grh    = setgraphics(screen)
 
 # Stepper-Arnoldi
@@ -25,13 +27,13 @@ ifarnoldi         = true
 ifverbose         = false
 ifeigshift        = false
 vlen              = ndof
-nev               = 2
-ekryl             = 15  
+nev               = 4
+ekryl             = 24  
 lkryl             = nev + ekryl 
 eigshift          = 0.0 + 1.0im
 ngs               = 2
 bsize             = 1
-outer_iterations  = 100
+outer_iterations  = 200
 tol               = 1.0e-12
 ArnInp            = StepperArnoldi.ArnoldiInput(ifarnoldi,ifverbose,ifeigshift,vlen,nev,ekryl,lkryl,eigshift,ngs,bsize,outer_iterations,tol)
 #ArnInp      = Set_ArnoldiParams()
@@ -41,33 +43,36 @@ if (StpInp.ifadjoint)
   Ω   = conj.(Ω)
 end  
 
-#figz1   = [10.,7.]
 
 close("all")
 h1    = figure(num=1,figsize=Grh.figsz1);
 ax1   = gca()
-pl1   = ax1.plot(imag.(Ω),real.(Ω),linestyle="none",marker="o",markersize=1.5*Grh.mksz,markerfacecolor="none",markeredgewidth=3)
+pl1   = ax1.plot(imag.(Ω),real.(Ω),linestyle="none",marker="o",markersize=2*Grh.mksz,markerfacecolor="none",markeredgewidth=2,label="Analytical - [0,∞)")
 ax1.set_ylim([-2.75,0.5])
 if (StpInp.ifadjoint)
   ax1.set_xlim([-1.80,0.0])
 else  
   ax1.set_xlim([0.0,1.80])
 end  
+ax1.set_xlabel(L"\mathfrak{Im}(ω)",fontsize=Grh.lafs)
+ax1.set_ylabel(L"\mathfrak{R}(ω)",fontsize=Grh.lafs)
 
 ArnDir      = StepperArnoldi.StepArn( OPg,Bg,StpInp,ArnInp,Inp.lbc,Inp.rbc)
 ArnAdj      = StepperArnoldi.StepArn(AOPg,Bg,StpInp,ArnInp,Inp.lbc,Inp.rbc)
 
-pl3   = ax1.plot(imag.(ArnDir.evals),real.(ArnDir.evals),linestyle="none",marker="o",markersize=Grh.mksz)
+pl3   = ax1.plot(imag.(ArnDir.evals),real.(ArnDir.evals),linestyle="none",marker="o",markersize=Grh.mksz,label="Numerical - [0,40]")
+ax1.legend(ncols=1,fontsize=Grh.lgfs,loc="center left")
+
 cm    = get_cmap("tab10")
 
 # Build Center-Manifold matrices
 id    = argmin(abs.(ArnDir.evals .- Ω[1]))
 v1    = copy(ArnDir.evecs[:,id])
+
 ia    = argmin(abs.(ArnAdj.evals .- Ω[1]'))
 w1    = copy(ArnAdj.evecs[:,ia])
 
-fx0   = 6.0
-j0    = argmin(abs.(xg .- fx0))
+j0    = renormalization_index(xg)
 renormalize_evec!(v1,j0)
 renormalize_evecs!(v1,w1,Bg)
 v2    = conj.(v1)
@@ -79,20 +84,32 @@ n     = length(λc)
 # Plot (normalized) Eigenvectors
 h2    = figure(num=2,figsize=Grh.figsz2)
 ax2   = gca()
-for i in 1:ArnInp.nev
-  vtmp = ArnDir.evecs[:,i]
-  wtmp = ArnAdj.evecs[:,i]
+
+id0   = abs.(real.(ArnDir.evals)) .< ArnInp.tol
+id    = Vector(1:ArnInp.nev)[id0]
+ia0   = abs.(real.(ArnAdj.evals)) .< ArnInp.tol
+ia    = Vector(1:ArnInp.nev)[ia0]
+
+for i in 1:length(id) #1:ArnInp.nev
+  j1 = id[i]
+  j2 = ia[i]
+  vtmp = ArnDir.evecs[:,j1]
+  wtmp = ArnAdj.evecs[:,j2]
   renormalize_evec!(vtmp,j0)
   renormalize_evecs!(vtmp,wtmp,Bg)
 
-  ax2.plot(xg,real.(vtmp),linewidth=2,linestyle="-", color=cm(i-1),label=L"\mathfrak{R}(ϕ_{%$i})")
-  ax2.plot(xg,imag.(vtmp),linewidth=2,linestyle="--",color=cm(i-1),label=L"\mathfrak{Im}(ϕ_{%$i})")
+  j3  = (i-1)*2 + 0
+  j4  = (i-1)*2 + 1
 
-  ax2.plot(xg,real.(wtmp),linewidth=1,linestyle="-", color=cm(i+ArnInp.nev-1),label=L"\mathfrak{R}(χ_{%$i})")
-  ax2.plot(xg,imag.(wtmp),linewidth=1,linestyle="--",color=cm(i+ArnInp.nev-1),label=L"\mathfrak{Im}(χ_{%$i})")
+  ax2.plot(xg,real.(vtmp),linewidth=2,linestyle="-", color=cm(j3),label=L"\mathfrak{R}(ϕ_{%$i})")
+  ax2.plot(xg,imag.(vtmp),linewidth=2,linestyle="--",color=cm(j3),label=L"\mathfrak{Im}(ϕ_{%$i})")
+
+  ax2.plot(xg,real.(wtmp),linewidth=1,linestyle="-", color=cm(j4),label=L"\mathfrak{R}(χ_{%$i})")
+  ax2.plot(xg,imag.(wtmp),linewidth=1,linestyle="--",color=cm(j4),label=L"\mathfrak{Im}(χ_{%$i})")
 end
 ax2.set_xlabel(L"x",fontsize=Grh.lafs)
 ax2.set_ylabel(L"A",fontsize=Grh.lafs)
+ax2.legend(ncols=1,fontsize=Grh.lgfs)
 
 
 # ax2.plot(xg,real.(v1),linewidth=2,linestyle="-", color=cm(0),label=L"\mathfrak{R}(ϕ)")

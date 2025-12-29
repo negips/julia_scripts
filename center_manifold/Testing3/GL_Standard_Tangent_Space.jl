@@ -27,13 +27,13 @@ ifarnoldi         = true
 ifverbose         = false
 ifeigshift        = false
 vlen              = ndof
-nev               = 2
-ekryl             = 15  
+nev               = 4
+ekryl             = 24  
 lkryl             = nev + ekryl 
 eigshift          = 0.0 + 1.0im
 ngs               = 2
 bsize             = 1
-outer_iterations  = 100
+outer_iterations  = 200
 tol               = 1.0e-12
 ArnInp            = StepperArnoldi.ArnoldiInput(ifarnoldi,ifverbose,ifeigshift,vlen,nev,ekryl,lkryl,eigshift,ngs,bsize,outer_iterations,tol)
 #ArnInp      = Set_ArnoldiParams()
@@ -47,7 +47,7 @@ end
 close("all")
 h1    = figure(num=1,figsize=Grh.figsz1);
 ax1   = gca()
-pl1   = ax1.plot(imag.(Ω),real.(Ω),linestyle="none",marker="o",markersize=1.5*Grh.mksz,markerfacecolor="none",markeredgewidth=3)
+pl1   = ax1.plot(imag.(Ω),real.(Ω),linestyle="none",marker="o",markersize=2*Grh.mksz,markerfacecolor="none",markeredgewidth=2,label="Analytical - [0,∞)")
 ax1.set_ylim([-2.75,0.5])
 if (StpInp.ifadjoint)
   ax1.set_xlim([-1.80,0.0])
@@ -60,8 +60,10 @@ ax1.set_ylabel(L"\mathfrak{R}(ω)",fontsize=Grh.lafs)
 ArnDir      = StepperArnoldi.StepArn( OPg,Bg,StpInp,ArnInp,Inp.lbc,Inp.rbc)
 ArnAdj      = StepperArnoldi.StepArn(AOPg,Bg,StpInp,ArnInp,Inp.lbc,Inp.rbc)
 
-pl3   = ax1.plot(imag.(ArnDir.evals),real.(ArnDir.evals),linestyle="none",marker="o",markersize=Grh.mksz)
-cm    = get_cmap("tab20")
+pl3   = ax1.plot(imag.(ArnDir.evals),real.(ArnDir.evals),linestyle="none",marker="o",markersize=Grh.mksz,label="Numerical - [0,40]")
+ax1.legend(ncols=1,fontsize=Grh.lgfs,loc="center left")
+
+cm    = get_cmap("tab10")
 
 # Build Center-Manifold matrices
 id    = argmin(abs.(ArnDir.evals .- Ω[1]))
@@ -96,11 +98,14 @@ for i in 1:length(id) #1:ArnInp.nev
   renormalize_evec!(vtmp,j0)
   renormalize_evecs!(vtmp,wtmp,Bg)
 
-  ax2.plot(xg,real.(vtmp),linewidth=2,linestyle="-", color=cm(i-1),label=L"\mathfrak{R}(ϕ_{%$i})")
-  ax2.plot(xg,imag.(vtmp),linewidth=2,linestyle="--",color=cm(i-1),label=L"\mathfrak{Im}(ϕ_{%$i})")
+  j3  = (i-1)*2 + 0
+  j4  = (i-1)*2 + 1
 
-  ax2.plot(xg,real.(wtmp),linewidth=1,linestyle="-", color=cm(i-1+10),label=L"\mathfrak{R}(χ_{%$i})")
-  ax2.plot(xg,imag.(wtmp),linewidth=1,linestyle="--",color=cm(i-1+10),label=L"\mathfrak{Im}(χ_{%$i})")
+  ax2.plot(xg,real.(vtmp),linewidth=2,linestyle="-", color=cm(j3),label=L"\mathfrak{R}(ϕ_{%$i})")
+  ax2.plot(xg,imag.(vtmp),linewidth=2,linestyle="--",color=cm(j3),label=L"\mathfrak{Im}(ϕ_{%$i})")
+
+  ax2.plot(xg,real.(wtmp),linewidth=1,linestyle="-", color=cm(j4),label=L"\mathfrak{R}(χ_{%$i})")
+  ax2.plot(xg,imag.(wtmp),linewidth=1,linestyle="--",color=cm(j4),label=L"\mathfrak{Im}(χ_{%$i})")
 end
 ax2.set_xlabel(L"x",fontsize=Grh.lafs)
 ax2.set_ylabel(L"A",fontsize=Grh.lafs)

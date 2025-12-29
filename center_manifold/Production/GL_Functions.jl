@@ -16,7 +16,7 @@ function Get_SEM1D_Input()
   return Inp
 end  
 #---------------------------------------------------------------------- 
-function Set_GL_Params()
+function Set_GL_CriticalParams()
   # δ1  = -1.0 + 0.0im            # -U
   # δ2  =  0.741 + 1.025im        #  μ0
   # δ3  = -0.125 + 0.0im          #  μx
@@ -65,6 +65,14 @@ function Set_ArnoldiParams()
   ArnInp            = StepperArnoldi.ArnoldiInput(ifarnoldi,ifverbose,vlen,nev,ekryl,lkryl,ngs,bsize,outer_iterations,tol)
 
   return ArnInp
+end  
+#---------------------------------------------------------------------- 
+function renormalization_index(xg::Vector{Float64})
+
+  fx0   = 6.0
+  j0    = argmin(abs.(xg .- fx0))
+
+  return j0
 end  
 #---------------------------------------------------------------------- 
 function renormalize_evec!(v::AbstractVector{T},j0::Int) where {T}
@@ -126,6 +134,36 @@ function SetForcingShape!(ψ::AbstractVector{T},B::AbstractVector{S},xg::Abstrac
   return nothing
 end
 #---------------------------------------------------------------------- 
+function GetExternalForcing(x::AbstractVector{T1},B::AbstractVector{T2},ifresonant::Bool,lbc::Bool,rbc::Bool) where {T1,T2<:Number}
+
+  # Forcing Shape
+  x0,κ  = ForcingParams()
+  Nby2  = length(B)
+  N     = 2*Nby2
+  ψ     = zeros(ComplexF64,Nby2)
+  σ     = 1.0
+  SetForcingShape!(ψ,B,x,x0,σ,κ)
+  SEM1D.SEM_SetBC!(ψ,lbc,rbc)
+
+  h     = 2
+  Lθ    = zeros(ComplexF64,N,h)
+  f2    = [ψ;  vzro]
+  f3    = [vzro;ψ]
+  
+  Lθ    = [ψ                        zeros(ComplexF64,Nby2);
+           zeros(ComplexF64,Nby2)   conj.(ψ)]
+
+  if ifresonant
+    λh    = [1.0im; -1.0im;]
+  else
+    λh    = [1.3im; -1.3im;]
+  end
+
+
+  return ψ,Lθ,λh
+end
+#----------------------------------------------------------------------
+
 function Get_AsymptoticFieldx(ind::Int,z::AbstractVector{T},Y1::AbstractMatrix{T},Y2::AbstractMatrix{T},Y3::AbstractMatrix{T}) where {T <: Number}
 
   val = T(0)

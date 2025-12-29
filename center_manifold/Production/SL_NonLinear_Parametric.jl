@@ -9,12 +9,6 @@ include("$JULIACOMMON/RK4.jl")
 include("NLGinzburgLandau.jl")
 include("OP_RK4.jl")
 
-
-# lafs        = 16
-# lgfs        = 12
-# mksz        = 6
-
-# include("GL_Setup.jl")
 #-------------------------------------------------- 
 
 close("all")
@@ -46,13 +40,18 @@ zro         = vt(0)
 dt          = 0.001
 Tend        = dt*nsteps
 #θA          = [0.1; 0.25; 0.5; 0.75; 1.0]
-θA          = [0.1; 0.2; 0.3; 0.4; 0.5]
-#θA          = [0.5]
+#θA          = [0.1; 0.2; 0.3; 0.4; 0.5]
+θA          = Vector(1:10)*0.05
+#θA          = [1.0]
 nθ          = length(θA)
 ncycles     = ones(Int64,nθ)
 if !ifresonant
-  ncycles[1]  = 3
-  ncycles[2]  = 2
+  for i in 1:2
+    ncycles[i]  = 4
+  end
+  for i in 3:4
+    ncycles[i]  = 2
+  end
 end
 
 Hist_Mode   = zeros(vt,nhist,m,nθ)
@@ -61,7 +60,6 @@ Peak_Amp    = zeros(Float64,nθ)
 ω_nonlinear = zeros(Float64,nθ)
 Mode_Ind    = [1]                         # Which mode to plot 
 
-# figsz       = [12.0, 5.0]
 
 h3          = figure(num=3,figsize=Grh.figsz3);
 ax3         = gca()
@@ -94,6 +92,7 @@ G1          = Khat
 G2          = G2
 G3          = G3
 SL(x)       = StuartLandau3(G1,G2,G3,x)  
+SL5(x)      = StuartLandau5(G1,G2,G3,G4,G5,x)  
 
 println("Press x to stop. Any other key to continue...")
 xin = readline()
@@ -112,7 +111,7 @@ for ik in 1:nθ
   z           = zeros(vt,m)
   rng         = Xoshiro(1235)
   # Mode initial values
-  z[1]        = 1.0e-5*rand(rng,vt)
+  z[1]        = 1.0e-4*rand(rng,vt)
   z[2]        = z[1]'
   # Parameter Perturbations
   z[n+1:n+p]  = zeros(vt,p)
@@ -148,7 +147,8 @@ for ik in 1:nθ
       # z[n+p+2]    = z[n+p+2]*fac
 
       # Stuart Landau Evolution
-      OP_RK4!(SL,z,dt,zwork)
+      # OP_RK4!(SL,z,dt,zwork)
+      OP_RK4!(SL5,z,dt,zwork)
 
       # z[n+p+1]    = z[n+p+1]/fac
       # z[n+p+2]    = z[n+p+2]/fac
@@ -202,9 +202,9 @@ for ik in 1:nθ
           end
           fld12 = CenterManifold.GetAsymptoticField3(z,Vext,Y2,Y3)
           fld1  = fld12[1:ndof]
-          ax5.plot(xg,real.(fld1),color=cm(0),linestyle="-",linewidth=1)
+          ax5.plot(xg,real.(fld1),color=cm(0),linestyle="-", linewidth=1)
           ax5.plot(xg,imag.(fld1),color=cm(0),linestyle="--",linewidth=1)
-          ax5.plot(xg,abs.(fld1),color=cm(0),linestyle="-",linewidth=3)
+          ax5.plot(xg,abs.(fld1), color=cm(1),linestyle="-", linewidth=3)
         end  
       end   # ifplot && mod(i,plotstep)==0 
     end     # i in 1:nsteps
@@ -276,7 +276,7 @@ if (ifsave && nsteps>0)
   else
     fname = "SL_nonresonant_Parametric2.jld2"
   end
-  save(fname,"xg",xg,"Vext",Vext,"Y_O2",Y_O2,"Y_O3",Y_O3,"G1",G1,"G2",G2,"G3",G3,"δ",δ,"Time",Time,"θA",θA,"Peak_Amp",Peak_Amp,"Histx",Histx,"ω_nonlinear",ω_nonlinear);
+  save(fname,"xg",xg,"Vext",Vext,"Y2",Y2,"Y3",Y3,"G1",G1,"G2",G2,"G3",G3,"δ",δ,"Time",Time,"θA",θA,"Peak_Amp",Peak_Amp,"Histx",Histx,"ω_nonlinear",ω_nonlinear,"Hist_Mode",Hist_Mode);
   println(fname*" saved.")
 end 
 

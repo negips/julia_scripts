@@ -3,12 +3,6 @@
 include("../Module_SEM1D/SEM1D.jl")
 #using .SEM1D
 
-#include("Module_StepperArnoldi/StepperArnoldi.jl")
-#using .StepperArnoldi
-
-#include("Module_CenterManifold/CenterManifold.jl")
-#using .CenterManifold
-
 using LinearAlgebra
 using SparseArrays
 using Printf
@@ -29,7 +23,7 @@ Bd    = LobattoLegendre(Inp.Nd)
 GeoM  = SEM1D.SEMGeoMat(B0,Bd,Inp)
 
 # GL Parameters
-δ     = Set_GL_Params()
+δ     = Set_GL_CriticalParams()
 δc    = conj.(δ)
 
 # GinzburgLandau Linear Operators
