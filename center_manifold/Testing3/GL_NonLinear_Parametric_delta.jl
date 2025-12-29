@@ -41,7 +41,7 @@ nfreq       = 1                           # No. of external frequencies
 dt          = 0.0001
 Tend        = dt*nsteps
 
-δ4          = -Vector(1:10)*0.05
+δ4          = -Vector(1:10)*0.02
 nδ4         = length(δ4)
 ncycles     = ones(Int64,nδ4)
 for i in 1:3
@@ -231,12 +231,12 @@ if nsteps>0 && histplot
 
     @printf("δ4: %.2f ; Amax: %.5f ; Ω: %.4e\n", δ4[ik], Peak_Amp[ik], ω_nonlinear[ik])
   end
-  ax4.plot(δ4,Peak_Amp,linestyle="none",marker="o",markersize=Grh.mksz)
+  ax4.plot(-δ4,ω_nonlinear,linestyle="none",marker="o",markersize=Grh.mksz)
 end  
 
 
 if (ifsave && nsteps>0)
-  fname = "GL_diffusion_Parametric.jld2"
+  fname = "GL_diffusion_Parametric2.jld2"
   δ         = Set_GL_CriticalParams()
 
   save(fname,"xg",xg,"vlast",vlast,"δ",δ,"Time",Time,"δ4",δ4,"Peak_Amp",Peak_Amp,"Hist",Hist,"ω_nonlinear",ω_nonlinear);

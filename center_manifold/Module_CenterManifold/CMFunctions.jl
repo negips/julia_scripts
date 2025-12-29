@@ -816,6 +816,50 @@ function GetAsymptoticField3(z::AbstractVector{T1},Y1::AbstractMatrix{T2},Y2::Ab
   return fld
 end
 #---------------------------------------------------------------------- 
+function GetAsymptoticField5(z::AbstractVector{T1},Y1::AbstractMatrix{T2},Y2::AbstractMatrix{T2},Y3::AbstractMatrix{T2},Y4::AbstractMatrix{T2},Y5::AbstractMatrix{T2}) where {T1,T2 <: Number}
+
+  ndof,nv = size(Y1)
+
+  fld  = zeros(T2,ndof)
+
+  z1   = z
+  fld .= fld .+ Y1*z1 
+
+  Ord  = 2
+  z2   = EvaluateNonLinear(z,Ord)
+  fld .= fld .+ Y2*z2
+
+  Ord  = 3
+  z3   = EvaluateNonLinear(z,Ord)
+  fld .= fld .+ Y3*z3
+
+  Ord  = 4
+  z4   = EvaluateNonLinear(z,Ord)
+  fld .= fld .+ Y4*z4
+
+  Ord  = 5
+  z5   = EvaluateNonLinear(z,Ord)
+  fld .= fld .+ Y5*z5
+ 
+  return fld
+end
+#---------------------------------------------------------------------- 
+function GetAsymptoticField(z::AbstractVector{T1},YM::Vector{Matrix{T2}}) where {T1,T2 <: Number}
+
+  OrdM    = length(YM)
+  ndof,nv = size(YM[1])
+
+  fld  = zeros(T2,ndof)
+
+  for n in 1:OrdM
+    zn   = EvaluateNonLinear(z,n)
+    fld .= fld .+ YM[n]*zn
+  end
+ 
+  return fld
+end
+#---------------------------------------------------------------------- 
+
 function BuildAsympSystem(Ord::Int,Khat::AbstractMatrix{T}) where {T<:Number}
 
   Nc        = size(Khat,2)

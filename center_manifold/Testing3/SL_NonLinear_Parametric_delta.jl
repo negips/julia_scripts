@@ -25,7 +25,7 @@ plotfield   = true
 verbose     = true
 nsteps      = 3000000
 
-ifsave      = true
+ifsave      = false
 plotstep    = 20000
 verbosestep = 10000
 histstep    = 100
@@ -36,15 +36,16 @@ zro         = vt(0)
 
 dt          = 0.001
 Tend        = dt*nsteps
-δ4          = -Vector(1:10)*0.05
+#δ4          = -Vector(1:10)*0.05
+δ4          = [-0.4]
 nδ4         = length(δ4)
 ncycles     = ones(Int64,nδ4)
-for i in 1:2
-  ncycles[i]  = 4
-end
-for i in 3:4
-  ncycles[i]  = 2
-end
+# for i in 1:2
+#   ncycles[i]  = 4
+# end
+# for i in 3:4
+#   ncycles[i]  = 2
+# end
 
 Hist_Mode   = zeros(vt,nhist,m,nδ4)
 Time        = zeros(Float64,nhist)
@@ -83,8 +84,10 @@ end
 G1          = Khat
 G2          = G2
 G3          = G3
-SL(x)       = StuartLandau3(G1,G2,G3,x)  
-#SL5(x)      = StuartLandau5(G1,G2,G3,G4,G5,x)  
+SL(x)       = StuartLandau3(G1,G2,G3,x)
+if (MaxOrd == 5)
+  SL5(x)      = StuartLandau5(G1,G2,G3,G4,G5,x)
+end
 
 println("Press x to stop. Any other key to continue...")
 xin = readline()
@@ -150,8 +153,11 @@ for ik in 1:nδ4
       t = t + dt;
 
       # Stuart Landau Evolution
-      OP_RK4!(SL,z,dt,zwork)
-      # OP_RK4!(SL5,z,dt,zwork)
+      if (MaxOrd == 5)
+        OP_RK4!(SL5,z,dt,zwork)
+      else
+        OP_RK4!(SL,z,dt,zwork)
+      end
 
       # Set conjugation correctly
       # z[2] = z[1]'
@@ -200,7 +206,11 @@ for ik in 1:nδ4
           for lo in ax5.get_lines()
             lo.remove()
           end
-          fld12 = CenterManifold.GetAsymptoticField3(z,Vext,Y2,Y3)
+          if MaxOrd == 5
+            fld12 = CenterManifold.GetAsymptoticField(z,YM)
+          else
+            fld12 = CenterManifold.GetAsymptoticField3(z,Vext,Y2,Y3)
+          end
           fld1  = fld12[1:ndof]
           ax5.plot(xg,real.(fld1),color=cm(0),linestyle="-", linewidth=1)
           ax5.plot(xg,imag.(fld1),color=cm(0),linestyle="--",linewidth=1)
