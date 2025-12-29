@@ -25,7 +25,7 @@ plotfield   = true
 verbose     = true
 nsteps      = 3000000
 
-ifsave      = false
+ifsave      = true
 plotstep    = 20000
 verbosestep = 10000
 histstep    = 100
@@ -40,12 +40,12 @@ Tend        = dt*nsteps
 #δ4          = [-0.4]
 nδ4         = length(δ4)
 ncycles     = ones(Int64,nδ4)
-# for i in 1:2
-#   ncycles[i]  = 4
-# end
-# for i in 3:4
-#   ncycles[i]  = 2
-# end
+for i in 1:2
+  ncycles[i]  = 2
+end
+for i in 3:4
+  ncycles[i]  = 1
+end
 
 Hist_Mode   = zeros(vt,nhist,m,nδ4)
 Time        = zeros(Float64,nhist)
@@ -268,7 +268,7 @@ if nsteps>0 && histplot
 
     @printf("δ4: %.2f ; Amax: %.5f ; Ω: %.4e\n", δ4[ik],Peak_Amp[ik], ω_nonlinear[ik])
   end
-  ax6.plot(abs.(δ4),Peak_Amp,linestyle="none",marker="o",markersize=Grh.mksz)
+  ax6.plot(abs.(δ4),ω_nonlinear,linestyle="none",marker="o",markersize=Grh.mksz)
   ax6.set_xlabel(L"-δ4",fontsize=Grh.lafs)
   ax6.set_ylabel(L"A_{x}^{max}",fontsize=Grh.lafs)
 end  
