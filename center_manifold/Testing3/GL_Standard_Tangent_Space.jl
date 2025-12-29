@@ -9,7 +9,7 @@ include("../Module_StepperArnoldi/StepperArnoldi.jl")
 using PyPlot
 
 #---------------------------------------------------------------------- 
-screen = 2
+screen = 1
 Grh    = setgraphics(screen)
 
 # Stepper-Arnoldi
