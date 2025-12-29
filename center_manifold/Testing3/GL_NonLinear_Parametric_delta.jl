@@ -45,10 +45,10 @@ Tend        = dt*nsteps
 nδ4         = length(δ4)
 ncycles     = ones(Int64,nδ4)
 for i in 1:3
-  ncycles[i]  = 4
+  ncycles[i]  = 2
 end
 for i in 4:4
-  ncycles[i]  = 2
+  ncycles[i]  = 1
 end
 
 cm          = get_cmap("tab10");
