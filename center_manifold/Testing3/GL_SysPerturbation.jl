@@ -45,10 +45,10 @@ function GLSelectPertModes(DOut,AOut,modeselect::Vector{Int})
 end  
 #---------------------------------------------------------------------- 
 
-ifmodepert = true
+ifmodepert = false
 
 if (ifmodepert)
-  modeselect                    = [2; 3]
+  modeselect                    = [2]
   nmode                         = length(modeselect)
   λpert,λpertA,Vpert,Wpert      = GLSelectPertModes(ArnDir,ArnAdj,modeselect)
   npert                         = length(λpert)

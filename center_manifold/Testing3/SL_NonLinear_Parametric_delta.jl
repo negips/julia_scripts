@@ -36,8 +36,8 @@ zro         = vt(0)
 
 dt          = 0.001
 Tend        = dt*nsteps
-#δ4          = -Vector(1:10)*0.05
-δ4          = [-0.4]
+δ4          = -Vector(1:10)*0.02
+#δ4          = [-0.4]
 nδ4         = length(δ4)
 ncycles     = ones(Int64,nδ4)
 # for i in 1:2
@@ -275,7 +275,7 @@ end
 
 
 if (ifsave && nsteps>0)
-  fname = "SL_diffusion_Parametric.jld2"
+  fname = "SL_diffusion_Parametric2.jld2"
 
   save(fname,"xg",xg,"Vext",Vext,"Y2",Y2,"Y3",Y3,"G1",G1,"G2",G2,"G3",G3,"δ",δ,"Time",Time,"δ4",δ4,"Peak_Amp",Peak_Amp,"Histx",Histx,"ω_nonlinear",ω_nonlinear,"Hist_Mode",Hist_Mode);
   println(fname*" saved.")
