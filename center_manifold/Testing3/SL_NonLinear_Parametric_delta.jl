@@ -268,7 +268,7 @@ if nsteps>0 && histplot
 
     @printf("δ4: %.2f ; Amax: %.5f ; Ω: %.4e\n", δ4[ik],Peak_Amp[ik], ω_nonlinear[ik])
   end
-  ax6.plot(abs.(δ4),Peak_Amp,linestyle="none",marker="o",markersize=Grh.mksz)
+  ax6.plot(abs.(δ4),ω_nonlinear,linestyle="none",marker="o",markersize=Grh.mksz)
   ax6.set_xlabel(L"-δ4",fontsize=Grh.lafs)
   ax6.set_ylabel(L"A_{x}^{max}",fontsize=Grh.lafs)
 end  
