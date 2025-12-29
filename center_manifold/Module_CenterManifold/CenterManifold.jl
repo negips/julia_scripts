@@ -47,6 +47,8 @@ module CenterManifold
          EvaluateNonLinear,
          EvalNonLinear,
          GetAsymptoticField3,
+         GetAsymptoticField5,
+         GetAsymptoticField,
          DisplayEquation3,
          DisplayTerms2,
          DisplayTerms3,

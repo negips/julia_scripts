@@ -89,6 +89,20 @@ if MaxOrd>=5
   end
 end  
 
+YM    = Vector{Matrix{ComplexF64}}(undef,MaxOrd)
+if MaxOrd==5
+  YM[1] = Vext
+  YM[2] = Y2
+  YM[3] = Y3
+  YM[4] = Y4
+  YM[5] = Y5
+elseif MaxOrd == 3
+  YM[1] = Vext
+  YM[2] = Y2
+  YM[3] = Y3
+end
+
+
 println("Asymptotic System (Normal Form) Done to Ord=$MaxOrd.")
 
 
