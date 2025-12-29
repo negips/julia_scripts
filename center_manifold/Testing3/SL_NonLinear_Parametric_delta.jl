@@ -25,7 +25,7 @@ plotfield   = true
 verbose     = true
 nsteps      = 3000000
 
-ifsave      = false
+ifsave      = true
 plotstep    = 20000
 verbosestep = 10000
 histstep    = 100
@@ -40,12 +40,12 @@ Tend        = dt*nsteps
 #δ4          = [-0.4]
 nδ4         = length(δ4)
 ncycles     = ones(Int64,nδ4)
-# for i in 1:2
-#   ncycles[i]  = 4
-# end
-# for i in 3:4
-#   ncycles[i]  = 2
-# end
+for i in 1:2
+  ncycles[i]  = 2
+end
+for i in 3:4
+  ncycles[i]  = 1
+end
 
 Hist_Mode   = zeros(vt,nhist,m,nδ4)
 Time        = zeros(Float64,nhist)
