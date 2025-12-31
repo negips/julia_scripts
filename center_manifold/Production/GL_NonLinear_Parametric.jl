@@ -34,7 +34,7 @@ else
   nsteps    = 30000000
 end  
 
-ifsave      = true
+ifsave      = false
 plotstep    = 10000
 verbosestep = 10000
 histstep    = 1000
@@ -48,16 +48,18 @@ Tend        = dt*nsteps
 #θA          = [0.1; 0.25; 0.5; 0.75; 1.0]
 #θA          = [0.1; 0.2; 0.3; 0.4; 0.5]
 θA          = Vector(1:10)*0.05
-#θA          = [0.5]
+#θA          = [0.25]
 nθ          = length(θA)
 ncycles     = ones(Int64,nθ)
-if !ifresonant
+if nθ> 1 && !ifresonant
   for i in 1:3
     ncycles[i]  = 4
   end
   for i in 4:4
     ncycles[i]  = 2
   end
+else
+  ncycles[1] = 3
 end
 
 cm          = get_cmap("tab10");

@@ -42,23 +42,25 @@ Tend        = dt*nsteps
 #θA          = [0.1; 0.25; 0.5; 0.75; 1.0]
 #θA          = [0.1; 0.2; 0.3; 0.4; 0.5]
 θA          = Vector(1:10)*0.05
-#θA          = [1.0]
+#θA          = [0.25]
 nθ          = length(θA)
 ncycles     = ones(Int64,nθ)
-if !ifresonant
+if nθ>1 && !ifresonant
   for i in 1:2
     ncycles[i]  = 4
   end
   for i in 3:4
     ncycles[i]  = 2
   end
+elseif nθ==1
+  ncycles[1] = 5
 end
 
 Hist_Mode   = zeros(vt,nhist,m,nθ)
 Time        = zeros(Float64,nhist)
 Peak_Amp    = zeros(Float64,nθ)
 ω_nonlinear = zeros(Float64,nθ)
-Mode_Ind    = [1]                         # Which mode to plot 
+Mode_Ind    = [1; 3]                         # Which mode to plot 
 
 
 h3          = figure(num=3,figsize=Grh.figsz3);
@@ -111,14 +113,35 @@ for ik in 1:nθ
   z           = zeros(vt,m)
   rng         = Xoshiro(1235)
   # Mode initial values
-  z[1]        = 1.0e-4*rand(rng,vt)
-  z[2]        = z[1]'
+  for i in 1:nsys
+    if mod(i-1,2) == 0
+      z[i] = 1.0e-4*rand(rng,vt)
+    else
+      z[i] = z[i-1]'
+    end
+  end
+  # System Perturbations
+  for i in 1:nsys
+    j = PertModesExt[i]
+    if j != 0
+      z[j] = -σext[i]
+    end
+  end  
   # Parameter Perturbations
-  z[n+1:n+p]  = zeros(vt,p)
+  for i in nsys+npert+1:nsys+npert+p
+    z[i]  = 0
+  end
   # Harmonic Forcing Amplitude
-  z[n+p+1]    = θAmp*(1.0 + 0.0im)
-  z[n+p+2]    = z[n+p+1]'
-  
+  for i in nsys+npert+p+1:m
+    j = i - (nsys+npert+p)
+    if mod(j-1,2) == 0 
+      z[i]    = θAmp*(1.0 + 0.0im)
+    else  
+      z[i]    = z[i-1]'
+    end
+  end
+  # println(z)
+
   # Work Arrays
   zwork       = zeros(vt,m,5)
   
@@ -147,8 +170,8 @@ for ik in 1:nθ
       # z[n+p+2]    = z[n+p+2]*fac
 
       # Stuart Landau Evolution
-      # OP_RK4!(SL,z,dt,zwork)
-      OP_RK4!(SL5,z,dt,zwork)
+      OP_RK4!(SL,z,dt,zwork)
+      # OP_RK4!(SL5,z,dt,zwork)
 
       # z[n+p+1]    = z[n+p+1]/fac
       # z[n+p+2]    = z[n+p+2]/fac
@@ -163,14 +186,14 @@ for ik in 1:nθ
       end
     
       if (mod(i,histstep) == 0)
-        j = Int(i/histstep)
-        Hist_Mode[j,:,ik] = copy(z)
-        Time[j]           = t
+        jj = Int(i/histstep)
+        Hist_Mode[jj,:,ik] = copy(z)
+        Time[jj]           = t
     
         # Get field value at point x = hist_x,
         # corresponding to array index hist_i
         if (xhist)
-          Histx[j,ik] = Get_AsymptoticFieldx(hist_i,z,Vext,Y2,Y3)
+          Histx[jj,ik] = Get_AsymptoticFieldx(hist_i,z,Vext,Y2,Y3)
         end  
       end
 
@@ -179,17 +202,20 @@ for ik in 1:nθ
         # Remove previous plots
         for lo in ax3.get_lines()
           lo.remove()
+        end 
+        for k in 1:length(Mode_Ind)
+          ax3.plot(Time[1:jj],real.(Hist_Mode[1:jj,Mode_Ind[k],ik]),color=cm(k-1))
         end  
-        ax3.plot(Time[1:j],real.(Hist_Mode[1:j,Mode_Ind,ik]),color=cm(ik-1))
+        # ax3.plot(Time[1:j],real.(Hist_Mode[1:j,Mode_Ind,ik]),color=cm(ik-1))
 
         # Remove previous plots
         for lo in ax4.get_lines()
           lo.remove()
         end
-        ax4.plot(Time[1:j],real.(Histx[1:j,ik]),color=cm(ik-1))
+        ax4.plot(Time[1:jj],real.(Histx[1:jj,ik]),color=cm(ik-1))
 
         if (moveaxis)
-          tmax = Time[j]
+          tmax = Time[jj]
           tmin = max(0.0,tmax-500.0)
           ax3.set_xlim([tmin,tmax])
           ax4.set_xlim([tmin,tmax])

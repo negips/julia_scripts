@@ -105,7 +105,8 @@ end
 #---------------------------------------------------------------------- 
 function ForcingParams()
 
-  x0 = 4.0
+  # x0 = 6.5        # Destabilizing (non-resonant) forcing
+  x0 = 5.0        # Stabilizing (non-resonant) foricng
   κ  = 0.0
 
   return x0,κ

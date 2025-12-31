@@ -5,7 +5,7 @@ using PyPlot
 
 include("GL_SEM_Setup.jl")
 
-screen = 1
+screen = 2
 Grh    = setgraphics(screen)
 
 # GL Parameters
