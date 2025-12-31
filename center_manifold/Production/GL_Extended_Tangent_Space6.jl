@@ -28,11 +28,11 @@ Lσ    = zeros(ComplexF64,N,s)
 λσ    = zeros(ComplexF64,s)
 
 # Forcing Modes
-ψ,Lθ,λh     = GetExternalForcing(xg,Bg,ifresonant,Inp.lbc,Inp.rbc)
+ξ,Lθ,λh     = GetExternalForcing(xg,Bg,ifresonant,Inp.lbc,Inp.rbc)
 Λh          = diagm(λh)
-j_cm        = Int(nsys/2)
-ax2.plot(xg,real.(ψ) ,linewidth=2,linestyle="-", color=cm(j_cm),label=L"\mathfrak{R}(ψ)")
-ax2.plot(xg,imag.(ψ) ,linewidth=2,linestyle="--",color=cm(j_cm),label=L"\mathfrak{Im}(ψ)")
+j_cm        = Int(nsys)
+ax2.plot(xg,real.(ξ) ,linewidth=2,linestyle="-", color=cm(j_cm),label=L"\mathfrak{R}(ξ)")
+ax2.plot(xg,imag.(ξ) ,linewidth=2,linestyle="--",color=cm(j_cm),label=L"\mathfrak{Im}(ξ)")
 
 λext        = zeros(ComplexF64,s+p+h)
 #λext = [λσ; λν; λh]
@@ -66,7 +66,7 @@ for i in 1:length(λext)
   vnorm = norm(EM.Ve[ind1,i])
   # Plot Mode
   if (emodeplot) && vnorm > 0.0
-    j = Int(nsys/2) + 1 + i
+    j = nsys + 1 + i
     ax2.plot(xg,real.(EM.Ve[ind1,i]),linewidth=2,linestyle="-", color=cm(j-1),label=L"\mathfrak{R}(ϕ_{%$j})")
     ax2.plot(xg,imag.(EM.Ve[ind1,i]),linewidth=2,linestyle="--",color=cm(j-1),label=L"\mathfrak{Im}(ϕ_{%$j})")
   end
@@ -113,8 +113,14 @@ Bhat  = [Bg2; ones(eltype(Bg2),p+s+h)]
 EBiOrtho = What'*diagm(Bhat)*Vhat
 
 if (emodeplot)
-  ax2.legend(ncols=3,fontsize=Grh.lgfs)
+  if h>0
+    ax2.legend(ncols=4,fontsize=Grh.lgfs)
+  else
+    ax2.legend(ncols=3,fontsize=Grh.lgfs)
+  end
 end  
+h2fname = "extended_eigenvectors.eps"
+save_figure(h2,h2fname,figsave)  
 
 println("Extended Tangent Space (Arnoldi) Done.")
 

@@ -238,6 +238,20 @@ function setgraphics(screen)
   return grh 
 end
 #---------------------------------------------------------------------- 
+function save_figure(h,filename::String,ifsave::Bool) 
+
+  plotdir           = "./plots/"
+
+  if (ifsave)
+    svfile = plotdir*filename
+    h.savefig(svfile)
+    println("$svfile saved.")
+  end
+
+  return nothing
+end
+#---------------------------------------------------------------------- 
+
 
 
 
