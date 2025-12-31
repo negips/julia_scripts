@@ -28,7 +28,7 @@ ifplot      = true
 histplot    = true
 moveaxis    = true
 verbose     = true
-nsteps      = 30000000
+nsteps      = 15000000
 
 ifsave      = true
 plotstep    = 10000
@@ -44,10 +44,10 @@ Tend        = dt*nsteps
 δ4          = -Vector(1:10)*0.02
 nδ4         = length(δ4)
 ncycles     = ones(Int64,nδ4)
-for i in 1:3
+for i in 1:2
   ncycles[i]  = 2
 end
-for i in 4:4
+for i in 3:4
   ncycles[i]  = 1
 end
 
@@ -102,7 +102,11 @@ for ik in 1:nδ4
 
  
   rng   = Xoshiro(1235)
-  v     = 1.0e-4*ones(vt,ndof)
+  if (ik == 1)
+    v     = 1.0e-2*ones(vt,ndof)
+  else
+    v     = copy(vlast[:,ik-1])
+  end  
 
   # GL Parameters
   δ4_diff   = δ4[ik]

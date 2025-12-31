@@ -12,6 +12,9 @@ using PyPlot
 screen = 2
 Grh    = setgraphics(screen)
 
+figsave           = true
+plotdir           = "./plots/"
+
 # Stepper-Arnoldi
 #-------------------------------------------------- 
 ifadjoint         = false
@@ -27,7 +30,7 @@ ifarnoldi         = true
 ifverbose         = false
 ifeigshift        = false
 vlen              = ndof
-nev               = 4
+nev               = 2
 ekryl             = 24  
 lkryl             = nev + ekryl 
 eigshift          = 0.0 + 1.0im
@@ -47,7 +50,7 @@ end
 close("all")
 h1    = figure(num=1,figsize=Grh.figsz1);
 ax1   = gca()
-pl1   = ax1.plot(imag.(Ω),real.(Ω),linestyle="none",marker="o",markersize=2*Grh.mksz,markerfacecolor="none",markeredgewidth=2,label="Analytical - [0,∞)")
+pl1   = ax1.plot(imag.(Ω),real.(Ω),linestyle="none",marker="o",markersize=1.75*Grh.mksz,markerfacecolor="none",markeredgewidth=2,label="Analytical - [0,∞)")
 ax1.set_ylim([-2.75,0.5])
 if (StpInp.ifadjoint)
   ax1.set_xlim([-1.80,0.0])
@@ -62,6 +65,9 @@ ArnAdj      = StepperArnoldi.StepArn(AOPg,Bg,StpInp,ArnInp,Inp.lbc,Inp.rbc)
 
 pl3   = ax1.plot(imag.(ArnDir.evals),real.(ArnDir.evals),linestyle="none",marker="o",markersize=Grh.mksz,label="Numerical - [0,40]")
 ax1.legend(ncols=1,fontsize=Grh.lgfs,loc="center left")
+
+h1fname = "spectra.eps"
+save_figure(h1,h1fname,figsave)  
 
 cm    = get_cmap("tab10")
 
@@ -104,20 +110,15 @@ for i in 1:length(id) #1:ArnInp.nev
   ax2.plot(xg,real.(vtmp),linewidth=2,linestyle="-", color=cm(j3),label=L"\mathfrak{R}(ϕ_{%$i})")
   ax2.plot(xg,imag.(vtmp),linewidth=2,linestyle="--",color=cm(j3),label=L"\mathfrak{Im}(ϕ_{%$i})")
 
-  ax2.plot(xg,real.(wtmp),linewidth=1,linestyle="-", color=cm(j4),label=L"\mathfrak{R}(χ_{%$i})")
-  ax2.plot(xg,imag.(wtmp),linewidth=1,linestyle="--",color=cm(j4),label=L"\mathfrak{Im}(χ_{%$i})")
+  ax2.plot(xg,real.(wtmp),linewidth=2,linestyle="-", color=cm(j4),label=L"\mathfrak{R}(χ_{%$i})")
+  ax2.plot(xg,imag.(wtmp),linewidth=2,linestyle="--",color=cm(j4),label=L"\mathfrak{Im}(χ_{%$i})")
 end
 ax2.set_xlabel(L"x",fontsize=Grh.lafs)
 ax2.set_ylabel(L"A",fontsize=Grh.lafs)
-ax2.legend(ncols=1,fontsize=Grh.lgfs)
+ax2.legend(ncols=2,fontsize=Grh.lgfs)
 
-
-# ax2.plot(xg,real.(v1),linewidth=2,linestyle="-", color=cm(0),label=L"\mathfrak{R}(ϕ)")
-# ax2.plot(xg,imag.(v1),linewidth=2,linestyle="--",color=cm(0),label=L"\mathfrak{Im}(ϕ)")
-# ax2.plot(xg,real.(w1),linewidth=2,linestyle="-", color=cm(1),label=L"\mathfrak{R}(χ)")
-# ax2.plot(xg,imag.(w1),linewidth=2,linestyle="--",color=cm(1),label=L"\mathfrak{Im}(χ)")
-#ax2.plot(xg,real.(ψ) ,linewidth=2,linestyle="-", color=cm(2),label=L"\mathfrak{R}(ψ)")
-#ax2.plot(xg,imag.(ψ) ,linewidth=2,linestyle="--",color=cm(2),label=L"\mathfrak{Im}(ψ)")
+h2fname = "standard_eigenvectors.eps"
+save_figure(h2,h2fname,figsave)  
 
 vzro  = 0.0*v1
 

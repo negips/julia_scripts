@@ -1,7 +1,7 @@
 # Center Manifold Evaluation
 println("Center-Manifold Evaluation on the Ginzburg Landau system.")
 
-ifnormal = true
+ifnormal = false
 
 #if ifnormal
   include("GL_Asymptotic_CM_NormalForm4.jl")
