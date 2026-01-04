@@ -7,7 +7,7 @@ println("Extended Tangent Space using Arnoldi.")
 include("GL_Extended_Tangent_Space5.jl")
 #----------------------------------------------------------------------
 
-ifresonant = false
+ifresonant = true
 emodeplot  = true
 restricted = false 
 
@@ -89,7 +89,7 @@ if (ifmodepert)
   Ze          = EM.Z
   Λe          = diagm(EM.λe)
   ΛSys        = diagm(λSys)
-  Zero_ne_n   = zeros(ComplexF64,p+s+h,nsys)
+  Zero_ne_n   = zeros(ComplexF64,s+p+h,nsys)
 else
   Vext        = [VSys EM.Ve]
   Wext        = [WSys EM.We]
@@ -97,7 +97,7 @@ else
   Ze          = EM.Z
   Λe          = diagm(EM.λe)
   ΛSys        = diagm(λSys)
-  Zero_ne_n   = zeros(ComplexF64,p+s+h,nsys)
+  Zero_ne_n   = zeros(ComplexF64,s+p+h,nsys)
 end  
 
 
@@ -108,7 +108,7 @@ Vhat  = [Vext;
          Zero_ne_n I]
 What  = [Wext;
          Ze        I]
-Bhat  = [Bg2; ones(eltype(Bg2),p+s+h)]
+Bhat  = [Bg2; ones(eltype(Bg2),s+p+h)]
 
 EBiOrtho = What'*diagm(Bhat)*Vhat
 

@@ -19,7 +19,7 @@ include("NLGinzburgLandau.jl")
 include("OP_RK4.jl")
 
 
-include("GL_Setup.jl")
+include("GL_Setup2.jl")
 #-------------------------------------------------- 
 
 close("all")
@@ -28,12 +28,12 @@ ifplot      = true
 histplot    = true
 moveaxis    = true
 verbose     = true
-if ifresonant
-  nsteps    = 30000000
-else
-  nsteps    = 30000000
-end  
-
+reconst     = true      # Reconstruct solution
+if ifnormal
+  reconst   = false
+end
+#nsteps      = 30000000
+nsteps      = 5500000
 ifsave      = false
 plotstep    = 10000
 verbosestep = 10000
@@ -47,8 +47,8 @@ Tend        = dt*nsteps
 
 #θA          = [0.1; 0.25; 0.5; 0.75; 1.0]
 #θA          = [0.1; 0.2; 0.3; 0.4; 0.5]
-θA          = Vector(1:10)*0.05
-#θA          = [0.25]
+#θA          = Vector(1:10)*0.05
+θA          = [0.25]
 nθ          = length(θA)
 ncycles     = ones(Int64,nθ)
 if nθ> 1 && !ifresonant
@@ -59,7 +59,7 @@ if nθ> 1 && !ifresonant
     ncycles[i]  = 2
   end
 else
-  ncycles[1] = 3
+  ncycles[1] = 1
 end
 
 cm          = get_cmap("tab10");
@@ -84,7 +84,7 @@ vwork       = zeros(vt,ndof,5)
 θwork       = zeros(vt,nfreq,5)
 
 if (ifplot)
-  hv  = figure(num=2,figsize=Grh.figsz3);
+  h2  = figure(num=2,figsize=Grh.figsz1);
   ax2 = gca()
   ax2.set_xlabel(L"x",fontsize=Grh.lafs)
   ax2.set_ylabel(L"A",fontsize=Grh.lafs)
@@ -128,7 +128,7 @@ println("Starting Iterations")
 
 for ik in 1:nθ
   global vwork,θwork
-  global hv, ax2
+  global h2, ax2
   global h3, ax3
   global vlast
 
@@ -154,7 +154,8 @@ for ik in 1:nθ
 
   # Testing temporary forcing amplitude change
   θtmp  = vt(1.00)
-  λtmp  = -0.015
+  #λtmp  = -0.015
+  λtmp  = -0.15
 
   cycles = ncycles[ik]
   println("$cycles cycles for ik=$ik")
@@ -197,7 +198,9 @@ for ik in 1:nθ
 
       # Print something  
       if verbose && mod(i,verbosestep)==0
-        println("ik=$ik/$nθ, ic=$ic/$cycles, Istep=$i, Time=$t, θ=$(abs.(θ)[1]), χd=$(χd)")
+        # println("ik=$ik/$nθ, ic=$ic/$cycles, Istep=$i, Time=$t, θ=$(abs.(θ)[1])")
+
+        @printf("ik=%2i/%2i; ic=%2i/%2i; Istep=%7i; Time=%.5f; |θ|=%.4f\n",ik,nθ,ic,cycles,i,t,abs(θ[1]))
       end
    
       # Save History
@@ -214,17 +217,34 @@ for ik in 1:nθ
             lo.remove()
           end  
         #end  
-       
-        pv1 = ax2.plot(xg,real.(v),linestyle="-",color=rgba0)
-        pv2 = ax2.plot(xg,imag.(v),linestyle="--",color=rgba0)
-        pv2 = ax2.plot(xg,abs.(v) ,linestyle="-",color=rgba1,linewidth=3)
-    
+
+        if ~reconst
+          pv1 = ax2.plot(xg,real.(v),linestyle="-" ,color=rgba0,linewidth=1)
+          pv2 = ax2.plot(xg,imag.(v),linestyle="--",color=rgba0,linewidth=1)
+          pv2 = ax2.plot(xg,abs.(v) ,linestyle="-" ,color=rgba1,linewidth=3)
+        else
+          # Reconstruction
+          pv1 = ax2.plot(xg,real.(v),linestyle="-",color=rgba0,linewidth=2,label=L"\mathfrak{R}(A)")
+          pv2 = ax2.plot(xg,imag.(v),linestyle="-",color=rgba1,linewidth=2,label=L"\mathfrak{Im}(A)")
+          # pv2 = ax2.plot(xg,abs.(v) ,linestyle="-" ,color=rgba1,linewidth=3)
+
+          Bvtemp = [v; conj.(v); θ*fac; conj(θ*fac)]
+          proj   = What'*(Bhat.*Bvtemp)
+          # println(proj)
+          fld12  = CenterManifold.GetAsymptoticField3(proj,Vext,Y2,Y3)
+          fld1   = fld12[1:ndof]
+          ax2.plot(xg,real.(fld1),color=rgba0,linestyle="--",linewidth=1,marker="o",markevery=25,label=L"\mathfrak{R}(A) - Reconstructed")
+          ax2.plot(xg,imag.(fld1),color=rgba1,linestyle="--",linewidth=1,marker="o",markevery=25,label=L"\mathfrak{Im}(A) - Reconstructed")
+          # ax2.plot(xg,abs.(fld1), color=rgba1,linestyle="-", linewidth=3,marker="o",markevery=50)
+        end          
+
         vmax = 1.2*maximum(abs.(v))
         vmin = -vmax
         dv   = abs(vmax-vmin)
         ax2.set_ylim((vmin,vmax))
         # ax2.set_ylim((-dv,dv))
-        hv.show()    
+        h2.show()
+
 
         # History plot
         if histplot
@@ -275,6 +295,9 @@ for ik in 1:nθ
 end         # ik in 1:nθ
 
 # ax3.set_xlim([2900.0,3000.0])
+if (reconst)
+  ax2.legend(loc="upper right",ncols=2,fontsize=Grh.lgfs)
+end
 
 
 # Plot Peaks
